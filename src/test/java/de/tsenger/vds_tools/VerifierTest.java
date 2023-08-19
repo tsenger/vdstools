@@ -15,9 +15,6 @@ import de.tsenger.vds_tools.seals.DigitalSeal;
 
 public class VerifierTest {
 	
-	
-	
-
 	@Test
 	public void testVerifyResidentPermit() {
 		DigitalSeal digitalSeal =  DataParser.parseVdsSeal(DataParserTest.residentPermit_rawBytes);

@@ -49,14 +49,14 @@ public class DataParser {
 
     public static DigitalSeal parseVdsSeal(String rawString) {
         byte[] rawBytes = decodeBase256(rawString);
-        Logger.trace("rawString: " + rawString);
+        Logger.trace("rawString: %s", rawString);
         return parseVdsSeal(rawBytes);
     }
 
     public static DigitalSeal parseVdsSeal(byte[] rawBytes) {
 
         ByteBuffer rawData = ByteBuffer.wrap(rawBytes);
-        Logger.debug("rawData: 0x" + Hex.toHexString(rawBytes));
+        Logger.debug("rawData: %s", () -> Hex.toHexString(rawBytes));
 
         VdsHeader vdsHeader = decodeHeader(rawData);
         VdsMessage vdsMessage = new VdsMessage();
@@ -77,7 +77,7 @@ public class DataParser {
             } else if (le == 0x83) {
                 le = ((rawData.get() & 0xff) * 0x1000) + ((rawData.get() & 0xff) * 0x100) + (rawData.get() & 0xff);
             } else if (le > 0x7F) {
-                Logger.error("can't decode length: 0x" + String.format("%02X ", le));
+                Logger.error("can't decode length: %02X", le);
                 throw new IllegalArgumentException("can't decode length: 0x" + String.format("%02X ", le));
             }
             byte[] val = getFromByteBuffer(rawData, le);
@@ -111,7 +111,7 @@ public class DataParser {
             case ALIENS_LAW:
                 return new AliensLaw(vdsHeader, vdsMessage, vdsSignature);
             default:
-                Logger.debug("unknown VDS type with reference: 0x" + String.format("%02X ", vdsHeader.getDocumentRef()));
+                Logger.debug("unknown VDS type with reference: %02X", () -> vdsHeader.getDocumentRef());
                 return null;
         }
     }
@@ -120,7 +120,7 @@ public class DataParser {
         //Magic Byte
         int magicByte = rawdata.get();
         if (magicByte != (byte) 0xdc) {
-            Logger.error("Magic Constant mismatch: 0x" + String.format("%02X ", magicByte) + "instead of 0xdc");
+            Logger.error("Magic Constant mismatch: %02X instead of 0xdc",  magicByte);
             throw new IllegalArgumentException("Magic Constant mismatch: 0x" + String.format("%02X ", magicByte) + "instead of 0xdc");
         }
 
@@ -132,7 +132,7 @@ public class DataParser {
         // value 0x03 stands for version 4 (uses variable length of Document Signer Reference)
         // Problem: German "Arrival Attestation Document" uses value 0x03 for rawVersion 3 and static length of Document Signer Reference.
         if (!(vdsHeader.rawVersion == 0x02 || vdsHeader.rawVersion == 0x03)) {
-            Logger.error("Unsupported rawVersion: 0x" + String.format("%02X ", vdsHeader.rawVersion));
+            Logger.error("Unsupported rawVersion: %02X", vdsHeader.rawVersion);
             throw new IllegalArgumentException("Unsupported rawVersion: 0x" + String.format("%02X ", vdsHeader.rawVersion));
         }
         vdsHeader.issuingCountry = decodeC40(getFromByteBuffer(rawdata, 2)); //2 bytes stores the three letter country code
@@ -142,7 +142,7 @@ public class DataParser {
 
         if (vdsHeader.rawVersion == 0x03) { //ICAO version 4
             int certRefLength = Integer.parseInt(signerIdentifierAndCertRefLength.substring(4), 16); // the last two characters store the length of the following Certificate Reference
-            Logger.debug("version 4: certRefLength: " + certRefLength);
+            Logger.debug("version 4: certRefLength: %s", certRefLength);
 
             /* GAAD HACK: If signer is DEME and rawVersion is 0x03 (which is version 4 according to ICAO spec) then anyhow use fixed size certification reference length
              * and the length characters also used as certificate reference.
@@ -151,16 +151,16 @@ public class DataParser {
              * length of certificate reference: 03
              * certRef = 03123 <-see: here the length is part of the certificate reference which is not the case in all other seals except the German "Arrival Attestation Document"
              */
-            boolean GAAD_Hack = (vdsHeader.signerIdentifier.equals("DEME") || vdsHeader.signerIdentifier.equals("DES1"));
-            if (GAAD_Hack) {
+            boolean gaadHack = (vdsHeader.signerIdentifier.equals("DEME") || vdsHeader.signerIdentifier.equals("DES1"));
+            if (gaadHack) {
                 Logger.debug("Maybe we found a German Arrival Attestation. GAAD Hack will be applied!");
                 certRefLength = 3;
             }
             // get number of bytes we have to decode to get the given certification reference length
             int bytesToDecode = ((certRefLength - 1) / 3 * 2) + 2;
-            Logger.debug("version 4: bytesToDecode: " + bytesToDecode);
+            Logger.debug("version 4: bytesToDecode: %s", bytesToDecode);
             vdsHeader.certificateReference = decodeC40(getFromByteBuffer(rawdata, bytesToDecode));
-            if (GAAD_Hack) {
+            if (gaadHack) {
                 vdsHeader.certificateReference = signerIdentifierAndCertRefLength.substring(4) + vdsHeader.certificateReference;
             }
         } else { // rawVersion=0x02 -> ICAO version 3
@@ -174,7 +174,7 @@ public class DataParser {
         vdsHeader.docFeatureRef = rawdata.get();
         vdsHeader.docTypeCat = rawdata.get();
         vdsHeader.rawBytes = Arrays.copyOfRange(rawdata.array(), 0, rawdata.position());
-        Logger.debug("VdsHeader: " + vdsHeader);
+        Logger.debug("VdsHeader: %s", vdsHeader);
         return vdsHeader;
     }
 
