@@ -15,7 +15,7 @@ import de.tsenger.vds_tools.seals.VdsHeader;
 
 public class DataParserTest extends TestCase {
 
-    byte[] residentPermit_rawBytes = Hex.decode("DC03D9C5D9CAC8A73A990F71346ECF47\n" +
+    static byte[] residentPermit_rawBytes = Hex.decode("DC03D9C5D9CAC8A73A990F71346ECF47\n" +
             "FB0602305CBA135875976EC066D417B5\n" +
             "9E8C6ABC133C133C133C133C3FEF3A29\n" +
             "38EE43F1593D1AE52DBB26751FE64B7C\n" +
@@ -25,7 +25,7 @@ public class DataParserTest extends TestCase {
             "0A833B51FD2A846622E847B1F3791803\n" +
             "F26D734B9BD18178FA22CFF2A31A");
 
-    byte[] addressStickerId_rawBytes = Hex.decode("DC03D9C56D32C8A72CB16ECF476ECF47\n" +
+    static byte[] addressStickerId_rawBytes = Hex.decode("DC03D9C56D32C8A72CB16ECF476ECF47\n" +
             "F9080106CF3519AF974C02061A702085\n" +
             "19A1030E395E463E740C749FAD19D31E\n" +
             "FE32FF388F16D14E828A86E0F8E31DDF\n" +
@@ -33,7 +33,7 @@ public class DataParserTest extends TestCase {
             "AD6C0FA84154607D70975E5B7DFB2E36\n" +
             "197988ECE64345D37AD9B97C");
 
-    byte[] socialInsurance_rawBytes = Hex.decode("DC02D9C56D32C8A519FC0F71346F1D67\n" +
+    static byte[] socialInsurance_rawBytes = Hex.decode("DC02D9C56D32C8A519FC0F71346F1D67\n" +
             "FC0401083FEE456D2DE019A8020B5065\n" +
             "72736368776569C39F03054F73636172\n" +
             "04134AC3A2636F62C3A96E6964696374\n" +
@@ -43,7 +43,7 @@ public class DataParserTest extends TestCase {
             "3CB4CEA3AFEF1C382B44ED8DA7105372\n" +
             "FC1D2E8D91A393");
 
-    byte[] arrivalAttestationV02_rawBytes = Hex.decode("DC02D9C56D32C8A51A540F71346F1D67\n" +
+    static byte[] arrivalAttestationV02_rawBytes = Hex.decode("DC02D9C56D32C8A51A540F71346F1D67\n" +
             "FD020230A56213535BD4CAECC87CA4CC\n" +
             "AEB4133C133C133C133C133C3FEF3A29\n" +
             "38EE43F1593D1AE52DBB26751FE64B7C\n" +
@@ -52,6 +52,26 @@ public class DataParserTest extends TestCase {
             "F80212EB06EDD7B1DC29889A6B735B7E\n" +
             "A1D7D78FF60D2AECB87B0247628C3211\n" +
             "9BA335B6BD87A7E07333C83ED16B091F");
+    
+    static byte[] visa_224bitSig_rawBytes = Hex.decode("DC03D9C56D32C8A72CB10F71347D0017\n"
+    		+ "5D01022CDD52134A74DA1347C6FED95C\n"
+    		+ "B89F9FCE133C133C133C133C20383373\n"
+    		+ "4AAF47F0C32F1A1E20EB2625393AFE31\n"
+    		+ "0403A00000050633BE1FED20C6FF389F\n"
+    		+ "D029C66FB2E4BF361CDBFFD8F5931B62\n"
+    		+ "59F645B077702C617F453D0B898A55E6\n"
+    		+ "E7870974FFE7B3AC416ACDE6B03B3C3A\n"
+    		+ "8CB5A22B456816");
+    
+    static byte[] visa_224bitSig_rawBytes2 = Hex.decode("DC03D9C56D32C8A72CB10F71347D0017\n"
+    		+ "5D01022CDD52134A74DA1347C6FED95C\n"
+    		+ "B89F9FCE133C133C133C133C20383373\n"
+    		+ "4AAF47F0C32F1A1E20EB2625393AFE31\n"
+    		+ "0403A00000050633BE1FED20C6FF3886\n"
+    		+ "62B1A66F37A077E287F4447D77C0104A\n"
+    		+ "63B6DA32666A2CE462A02F9DB80C60D9\n"
+    		+ "AEBF9A7E0B291490C325124171EE1509\n"
+    		+ "CFDD698E180EB5");
 
     public void testDecodeHeader_ResidentPermit() {
         ByteBuffer bb = ByteBuffer.wrap(residentPermit_rawBytes);
