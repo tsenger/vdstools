@@ -26,7 +26,9 @@ public class IcaoVisa extends DigitalSeal {
                 // fill mrz to the full length of 88 characters because ICAO cuts last 16
                 // characters
                 String mrz = String.format("%1$-88s", short_mrz).replace(' ', '<');
-                featureMap.put(Feature.MRZ, mrz);
+                StringBuilder sb = new StringBuilder(mrz);
+                sb.insert(44, '\n');
+                featureMap.put(Feature.MRZ, sb.toString());
                 break;
             case 0x02:
                 // MRZ chars per line: 36
@@ -34,7 +36,9 @@ public class IcaoVisa extends DigitalSeal {
                 // fill mrz to the full length of 72 characters because ICAO cuts last 8
                 // characters
                 mrz = String.format("%1$-72s", short_mrz).replace(' ', '<');
-                featureMap.put(Feature.MRZ, mrz);
+                sb = new StringBuilder(mrz);
+                sb.insert(36, '\n');
+                featureMap.put(Feature.MRZ, sb.toString());
                 break;
             case 0x03:
                 int numberOfEntries = feature.getValue()[0] & 0xff;

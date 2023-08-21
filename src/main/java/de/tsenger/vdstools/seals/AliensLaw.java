@@ -27,7 +27,9 @@ public class AliensLaw extends DigitalSeal {
             case 0x02:
                 String short_mrz = DataParser.decodeC40(feature.getValue()).replace(' ', '<');
                 String mrz = String.format("%1$-72s", short_mrz).replace(' ', '<');
-                featureMap.put(Feature.MRZ, mrz);
+                StringBuilder sb = new StringBuilder(mrz);
+                sb.insert(36, '\n');
+                featureMap.put(Feature.MRZ, sb.toString());
                 break;
             case 0x03:
                 String passportNumber = DataParser.decodeC40(feature.getValue());

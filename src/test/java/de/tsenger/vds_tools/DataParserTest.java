@@ -67,6 +67,37 @@ public class DataParserTest extends TestCase {
             + "59F645B077702C617F453D0B898A55E6\n" 
             + "E7870974FFE7B3AC416ACDE6B03B3C3A\n" 
             + "8CB5A22B456816");
+    
+    static byte[] supplementSheet_rawBytes = Hex.decode(
+            "DC03D9C5D9CAC8A73A990F71347D4E37\n"
+            + "FA0604305CBA135875976EC066D417B5\n"
+            + "9E8C6ABC133C133C133C133C3FEF3A29\n"
+            + "38EE43F1593D1AE52DBB26751FE64B7C\n"
+            + "133C136B0506B77519A519AAFF4008F9\n"
+            + "E9B4B79BE5703048A4879A4F420C433C\n"
+            + "375295A355FB0D29DCBED211CF6F5F57\n"
+            + "38BA2B74E2FE5F1D2D2021E054BFFD0E\n"
+            + "4CE17D98E5BCED26A85C91C68B2F");
+    
+    static byte[] addressStickerPassport_rawBytes = Hex.decode(
+            "DC03D9C5D9CAC8A73A990F71347D4E37\n"
+            + "F80A0106B77A38E596CE02061A203A4D\n"
+            + "1FE1030426532081FF4027436CE719F9\n"
+            + "13CCD3EBFAEEAE175171450DB6CA1B62\n"
+            + "FF188748834D2DC5299A5F418BE8D4DC\n"
+            + "052E0536CB6DE711B4CC645651C6B0EA\n"
+            + "FE5713E96290DC149169");
+    
+    static byte[] emergenyTravelDoc_rawBytes = Hex.decode(
+            "DC03D9C5D9CAC8A73A990F71347D4E37\n"
+            + "5E0302308A0D62B9D917A4CCA93CA4D0\n"
+            + "EDFC133C133C133C133C133C3FEF3A29\n"
+            + "38EE43F1593D1AE52DBB26751FE64B7C\n"
+            + "133C136BFF4022F8BD19ECCBA4EF24F2\n"
+            + "04787796DD914FEC61F605B153B22A6E\n"
+            + "F307D3869938A4E7E908F0A63B837988\n"
+            + "0B395C7FDBAC720D7F2836D08E1DA626\n"
+            + "11614A00120B");
 
 
   //@formatter:on    
@@ -97,14 +128,37 @@ public class DataParserTest extends TestCase {
     @Test
     public void testParseArrivalAttestationV02() {
         DigitalSeal seal = DataParser.parseVdsSeal(arrivalAttestationV02_rawBytes);
-        assertEquals("MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06",
+        assertEquals("MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
                 seal.getFeature(Feature.MRZ));
         assertEquals("ABC123456DEF", seal.getFeature(Feature.AZR));
         assertEquals(null, seal.getFeature(Feature.FIRST_NAME));
     }
+    
+    @Test
+    public void testParseResidentPermit() {
+        DigitalSeal seal = DataParser.parseVdsSeal(residentPermit_rawBytes);
+        assertEquals("ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
+                seal.getFeature(Feature.MRZ));
+        assertEquals("UFO001979", seal.getFeature(Feature.PASSPORT_NUMBER));
+    }
+    
+    @Test
+    public void testParseSupplementSheet() {
+        DigitalSeal seal = DataParser.parseVdsSeal(supplementSheet_rawBytes);
+        assertEquals("ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
+                seal.getFeature(Feature.MRZ));
+        assertEquals("PA0000005", seal.getFeature(Feature.SHEET_NUMBER));
+    }
+    
+    @Test
+    public void testEmergencyTravelDoc() {
+        DigitalSeal seal = DataParser.parseVdsSeal(emergenyTravelDoc_rawBytes);
+        assertEquals("I<GBRSUPAMANN<<MARY<<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
+                seal.getFeature(Feature.MRZ));
+    }
 
     @Test
-    public void testParseVdsSeal_AddressStickerId() {
+    public void testParseAddressStickerId() {
         DigitalSeal seal = DataParser.parseVdsSeal(addressStickerId_rawBytes);
         assertEquals("T2000AK47", seal.getFeature(Feature.DOCUMENT_NUMBER));
         assertEquals("05314000", seal.getFeature(Feature.AGS));
@@ -113,11 +167,19 @@ public class DataParserTest extends TestCase {
         assertEquals("HEINEMANNSTR", seal.getFeature(Feature.STREET));
         assertEquals("11", seal.getFeature(Feature.STREET_NR));
     }
+    
+    @Test
+    public void testParseAddressStickerPassport() {
+        DigitalSeal seal = DataParser.parseVdsSeal(addressStickerPassport_rawBytes);
+        assertEquals("PA5500K11", seal.getFeature(Feature.DOCUMENT_NUMBER));
+        assertEquals("03359010", seal.getFeature(Feature.AGS));
+        assertEquals("21614", seal.getFeature(Feature.POSTAL_CODE));
+    }
 
     @Test
     public void testParseVisa() {
         DigitalSeal seal = DataParser.parseVdsSeal(visa_224bitSig_rawBytes);
-        assertEquals("VCD<<DENT<<ARTHUR<PHILIP<<<<<<<<<<<<1234567XY7GBR5203116M2005250<<<<<<<<",
+        assertEquals("VCD<<DENT<<ARTHUR<PHILIP<<<<<<<<<<<<\n1234567XY7GBR5203116M2005250<<<<<<<<",
                 seal.getFeature(Feature.MRZ));
         assertEquals("47110815P", seal.getFeature(Feature.PASSPORT_NUMBER));
         assertEquals(0, seal.getFeature(Feature.DURATION_OF_STAY_YEARS));
@@ -130,26 +192,6 @@ public class DataParserTest extends TestCase {
         DigitalSeal seal = DataParser.parseVdsSeal(visa_224bitSig_rawBytes);
         seal.getFeatureMap()
                 .forEach((key, value) -> System.out.println(String.format("Key: %s, Value: %s", key, value)));
-    }
-
-    @Test
-    public void testGetFeature_ArrivalAttestationV02() {
-        DigitalSeal seal = DataParser.parseVdsSeal(arrivalAttestationV02_rawBytes);
-        assertEquals("ABC123456DEF", seal.getFeature(Feature.AZR));
-    }
-
-    @Test
-    public void testGetFeature_ResidentPermit() {
-        DigitalSeal seal = DataParser.parseVdsSeal(residentPermit_rawBytes);
-        assertEquals("ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06",
-                seal.getFeature(Feature.MRZ));
-    }
-
-    @Test
-    public void testGetFeature_Null_ArrivalAttestationV02() {
-        DigitalSeal seal = DataParser.parseVdsSeal(arrivalAttestationV02_rawBytes);
-        // ArrivalAttestation doesn't have feature ADDITIONAL_FEATURES
-        assertEquals(null, seal.getFeature(Feature.ADDITIONAL_FEATURES));
     }
 
 }

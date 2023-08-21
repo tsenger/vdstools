@@ -22,7 +22,9 @@ public class ArrivalAttestation extends DigitalSeal {
             switch (feature.getTag()) {
             case 0x02:
                 String mrz = DataParser.decodeC40(feature.getValue()).replace(' ', '<');
-                featureMap.put(Feature.MRZ, mrz);
+                StringBuilder sb = new StringBuilder(mrz);
+                sb.insert(36, '\n');
+                featureMap.put(Feature.MRZ, sb.toString());
                 break;
             case 0x03:
                 String azr = DataParser.decodeC40(feature.getValue());
