@@ -2,6 +2,10 @@ package de.tsenger.vdstools.seals;
 
 import java.time.LocalDate;
 
+/**
+ * @author Tobias Senger
+ *
+ */
 public class VdsHeader {
 
     public byte[] rawBytes;

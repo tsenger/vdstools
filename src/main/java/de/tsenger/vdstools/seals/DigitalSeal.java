@@ -10,7 +10,8 @@ import org.bouncycastle.util.Arrays;
 import de.tsenger.vdstools.DataParser;
 
 /**
- * Created by Tobias Senger on 03.08.2016.
+ * @author Tobias Senger
+ *
  */
 public abstract class DigitalSeal {
 
@@ -43,7 +44,7 @@ public abstract class DigitalSeal {
         return vdsType;
     }
 
-    public ArrayList<DocumentFeature> getDocumentFeatures() {
+    public ArrayList<DocumentFeatureDto> getDocumentFeatures() {
         return vdsMessage.getDocumentFeatures();
     }
 

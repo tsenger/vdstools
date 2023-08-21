@@ -12,7 +12,7 @@ import de.tsenger.vdstools.seals.AddressStickerPass;
 import de.tsenger.vdstools.seals.AliensLaw;
 import de.tsenger.vdstools.seals.ArrivalAttestation;
 import de.tsenger.vdstools.seals.DigitalSeal;
-import de.tsenger.vdstools.seals.DocumentFeature;
+import de.tsenger.vdstools.seals.DocumentFeatureDto;
 import de.tsenger.vdstools.seals.IcaoEmergencyTravelDocument;
 import de.tsenger.vdstools.seals.IcaoVisa;
 import de.tsenger.vdstools.seals.ResidencePermit;
@@ -70,7 +70,7 @@ public class DataParser {
                         Arrays.copyOfRange(rawData.array(), messageStartPosition, signatureStartPosition));
                 break;
             }
-            vdsMessage.addDocumentFeature(new DocumentFeature((byte) (tag & 0xff), le, val));
+            vdsMessage.addDocumentFeature(new DocumentFeatureDto((byte) (tag & 0xff), le, val));
         }
 
         VdsType vdsType = VdsType.valueOf(vdsHeader.getDocumentRef());

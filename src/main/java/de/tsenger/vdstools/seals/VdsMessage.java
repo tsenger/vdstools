@@ -2,19 +2,23 @@ package de.tsenger.vdstools.seals;
 
 import java.util.ArrayList;
 
+/**
+ * @author Tobias Senger
+ *
+ */
 public class VdsMessage {
     private byte[] rawBytes;
-    private ArrayList<DocumentFeature> documentFeatures = new ArrayList<>(5);
+    private ArrayList<DocumentFeatureDto> documentFeatures = new ArrayList<>(5);
 
     public byte[] getRawBytes() {
         return rawBytes;
     }
 
-    public void addDocumentFeature(DocumentFeature docFeature) {
+    public void addDocumentFeature(DocumentFeatureDto docFeature) {
         documentFeatures.add(docFeature);
     }
 
-    public ArrayList<DocumentFeature> getDocumentFeatures() {
+    public ArrayList<DocumentFeatureDto> getDocumentFeatures() {
         return documentFeatures;
     }
 

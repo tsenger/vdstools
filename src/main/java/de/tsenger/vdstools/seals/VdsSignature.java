@@ -9,6 +9,10 @@ import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.util.encoders.Hex;
 import org.tinylog.Logger;
 
+/**
+ * @author Tobias Senger
+ *
+ */
 public class VdsSignature {
     private byte[] rawSignatureBytes;
     private byte[] signatureBytes = null;
