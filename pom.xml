@@ -15,12 +15,6 @@
     <url>https://tsenger.de</url>
   </organization>
 
-  <scm>
-    <connection>...</connection>
-    <developerConnection>...</developerConnection>
-    <url>...</url>
-  </scm>
-
   <licenses>
     <license>
       <name>GNU Lesser General Public License (LGPL), Version 3</name>

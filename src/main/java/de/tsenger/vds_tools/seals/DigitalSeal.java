@@ -1,35 +1,13 @@
-/*
- * Sealva VDS Validator scans and verifies visible digital seals in barcodes
- *     Copyright (C) 2023.  Tobias Senger <sealva@tsenger.de>
- *
- *     This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU Affero General Public License as
- *     published by the Free Software Foundation, either version 3 of the
- *     License, or (at your option) any later version.
- *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU Affero General Public License for more details.
- *
- *     You should have received a copy of the GNU Affero General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 package de.tsenger.vds_tools.seals;
-
-
-
-import de.tsenger.vds_tools.DataParser;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.EnumMap;
 
 import org.bouncycastle.util.Arrays;
 
+import de.tsenger.vds_tools.DataParser;
 
 /**
  * Created by Tobias Senger on 03.08.2016.
@@ -46,8 +24,7 @@ public abstract class DigitalSeal {
 
     private String rawString;
 
-    @SuppressWarnings("rawtypes")
-    protected Map<Enum, Object> featureMap = new HashMap<>();
+    protected EnumMap<Feature, Object> featureMap = new EnumMap<>(Feature.class);
 
     public DigitalSeal(VdsHeader vdsHeader, VdsMessage vdsMessage, VdsSignature vdsSignature) {
         this.vdsHeader = vdsHeader;
@@ -68,6 +45,10 @@ public abstract class DigitalSeal {
 
     public ArrayList<DocumentFeature> getDocumentFeatures() {
         return vdsMessage.getDocumentFeatures();
+    }
+
+    public EnumMap<Feature, Object> getFeatureMap() {
+        return featureMap.clone();
     }
 
     public String getIssuingCountry() {
@@ -114,7 +95,7 @@ public abstract class DigitalSeal {
         return rawString;
     }
 
-    public Object getFeature(Enum feature) {
+    public Object getFeature(Enum<Feature> feature) {
         try {
             return featureMap.get(feature);
         } catch (Exception e) {
