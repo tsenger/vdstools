@@ -11,7 +11,9 @@ import java.security.cert.X509Certificate;
 
 import org.junit.Test;
 
-import de.tsenger.vds_tools.seals.DigitalSeal;
+import de.tsenger.vdstools.DataParser;
+import de.tsenger.vdstools.Verifier;
+import de.tsenger.vdstools.seals.DigitalSeal;
 
 public class VerifierTest {
 	

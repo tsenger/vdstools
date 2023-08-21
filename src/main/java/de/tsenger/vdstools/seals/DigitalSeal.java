@@ -1,4 +1,4 @@
-package de.tsenger.vds_tools.seals;
+package de.tsenger.vdstools.seals;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -7,7 +7,7 @@ import java.util.EnumMap;
 
 import org.bouncycastle.util.Arrays;
 
-import de.tsenger.vds_tools.DataParser;
+import de.tsenger.vdstools.DataParser;
 
 /**
  * Created by Tobias Senger on 03.08.2016.

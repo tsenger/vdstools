@@ -1,4 +1,4 @@
-package de.tsenger.vds_tools.seals;
+package de.tsenger.vdstools.seals;
 
 import java.util.ArrayList;
 

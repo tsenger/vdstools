@@ -1,10 +1,10 @@
-package de.tsenger.vds_tools.seals;
+package de.tsenger.vdstools.seals;
 
 import java.util.List;
 
 import org.tinylog.Logger;
 
-import de.tsenger.vds_tools.DataParser;
+import de.tsenger.vdstools.DataParser;
 
 /**
  * Created by Tobias Senger on 04.11.2019.

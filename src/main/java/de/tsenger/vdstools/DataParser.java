@@ -1,4 +1,4 @@
-package de.tsenger.vds_tools;
+package de.tsenger.vdstools;
 
 import java.nio.ByteBuffer;
 import java.time.LocalDate;
@@ -7,21 +7,21 @@ import java.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
 import org.tinylog.Logger;
 
-import de.tsenger.vds_tools.seals.AddressStickerIdCard;
-import de.tsenger.vds_tools.seals.AddressStickerPass;
-import de.tsenger.vds_tools.seals.AliensLaw;
-import de.tsenger.vds_tools.seals.ArrivalAttestation;
-import de.tsenger.vds_tools.seals.DigitalSeal;
-import de.tsenger.vds_tools.seals.DocumentFeature;
-import de.tsenger.vds_tools.seals.IcaoEmergencyTravelDocument;
-import de.tsenger.vds_tools.seals.IcaoVisa;
-import de.tsenger.vds_tools.seals.ResidencePermit;
-import de.tsenger.vds_tools.seals.SocialInsuranceCard;
-import de.tsenger.vds_tools.seals.SupplementarySheet;
-import de.tsenger.vds_tools.seals.VdsHeader;
-import de.tsenger.vds_tools.seals.VdsMessage;
-import de.tsenger.vds_tools.seals.VdsSignature;
-import de.tsenger.vds_tools.seals.VdsType;
+import de.tsenger.vdstools.seals.AddressStickerIdCard;
+import de.tsenger.vdstools.seals.AddressStickerPass;
+import de.tsenger.vdstools.seals.AliensLaw;
+import de.tsenger.vdstools.seals.ArrivalAttestation;
+import de.tsenger.vdstools.seals.DigitalSeal;
+import de.tsenger.vdstools.seals.DocumentFeature;
+import de.tsenger.vdstools.seals.IcaoEmergencyTravelDocument;
+import de.tsenger.vdstools.seals.IcaoVisa;
+import de.tsenger.vdstools.seals.ResidencePermit;
+import de.tsenger.vdstools.seals.SocialInsuranceCard;
+import de.tsenger.vdstools.seals.SupplementarySheet;
+import de.tsenger.vdstools.seals.VdsHeader;
+import de.tsenger.vdstools.seals.VdsMessage;
+import de.tsenger.vdstools.seals.VdsSignature;
+import de.tsenger.vdstools.seals.VdsType;
 
 /**
  * Created by Tobias Senger on 18.01.2017.

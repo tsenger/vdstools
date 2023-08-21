@@ -1,4 +1,4 @@
-package de.tsenger.vds_tools;
+package de.tsenger.vdstools;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -13,11 +13,11 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Hex;
 import org.tinylog.Logger;
 
-import de.tsenger.vds_tools.seals.DigitalSeal;
+import de.tsenger.vdstools.seals.DigitalSeal;
 
 public class Verifier {
 
-    enum Result {
+    public enum Result {
         SignatureValid, SignatureInvalid, VerifyError,
     }
 

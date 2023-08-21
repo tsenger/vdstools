@@ -5,9 +5,10 @@ import java.time.LocalDate;
 
 import org.bouncycastle.util.encoders.Hex;
 
-import de.tsenger.vds_tools.seals.DigitalSeal;
-import de.tsenger.vds_tools.seals.Feature;
-import de.tsenger.vds_tools.seals.VdsHeader;
+import de.tsenger.vdstools.DataParser;
+import de.tsenger.vdstools.seals.DigitalSeal;
+import de.tsenger.vdstools.seals.Feature;
+import de.tsenger.vdstools.seals.VdsHeader;
 import junit.framework.TestCase;
 
 public class DataParserTest extends TestCase {

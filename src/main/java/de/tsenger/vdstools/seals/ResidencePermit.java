@@ -1,37 +1,39 @@
-package de.tsenger.vds_tools.seals;
+package de.tsenger.vdstools.seals;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.tinylog.Logger;
 
-import de.tsenger.vds_tools.DataParser;
+import de.tsenger.vdstools.DataParser;
 
 /**
- * Created by Tobias Senger on 12.01.2017.
+ * Created by Tobias Senger on 08.11.2019
  */
-public class ArrivalAttestation extends DigitalSeal {
+public class ResidencePermit extends DigitalSeal {
 
     private String mrz = "";
-    private String azr = "";
+    private String passportNumber = "";
 
-    public ArrivalAttestation(VdsHeader vdsHeader, VdsMessage vdsMessage, VdsSignature vdsSignature) {
+    public ResidencePermit(VdsHeader vdsHeader, VdsMessage vdsMessage, VdsSignature vdsSignature) {
         super(vdsHeader, vdsMessage, vdsSignature);
         parseDocumentFeatures(vdsMessage.getDocumentFeatures());
         featureMap.put(Feature.MRZ, mrz);
-        featureMap.put(Feature.AZR, azr);
+        featureMap.put(Feature.PASSPORT_NUMBER, passportNumber);
     }
 
-    private void parseDocumentFeatures(ArrayList<DocumentFeature> features) {
+    private void parseDocumentFeatures(List<DocumentFeature> features) {
         for (DocumentFeature feature : features) {
             if (feature.getTag() == 0x02) {
                 mrz = DataParser.decodeC40(feature.getValue()).replace(' ', '<');
+                Logger.debug("Decoded MRZ: " + mrz);
             } else if (feature.getTag() == 0x03) {
-                azr = DataParser.decodeC40(feature.getValue());
+                passportNumber = DataParser.decodeC40(feature.getValue());
             } else {
                 Logger.info("found unknown tag: 0x" + String.format("%02X ", feature.getTag()));
                 throw new IllegalArgumentException("found unknown tag: 0x" + String.format("%02X ", feature.getTag()));
             }
         }
+
     }
 
 }
