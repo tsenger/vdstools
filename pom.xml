@@ -4,7 +4,7 @@
 
   <groupId>de.tsenger</groupId>
   <artifactId>vdstools</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.1</version>
   <name>VDS Tools java library</name>
   <description>VDS Tools - LGPL Java library</description>
   <packaging>jar</packaging>

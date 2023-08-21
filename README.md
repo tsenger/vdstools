@@ -37,3 +37,7 @@ and the dependency:
         <version>0.1</version>
     </dependency>
 ```
+## Documentation
+JavaDoc can be found here:
+
+[https://javadoc.jitpack.io/com/github/tsenger/vdstools/latest/javadoc/index.html](https://javadoc.jitpack.io/com/github/tsenger/vdstools/latest/javadoc/index.html)
