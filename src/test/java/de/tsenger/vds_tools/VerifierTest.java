@@ -49,4 +49,9 @@ public class VerifierTest {
         assertEquals(Verifier.Result.SignatureValid, verifier.verify());
     }
 
+    @Test
+    public void testString() {
+        System.out.println(String.format("test 0x%02X", 0xF234));
+    }
+
 }

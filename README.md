@@ -1,4 +1,4 @@
-# VdsTools - Parser and Verifier for Visible Digital Seals
+# VdsTools - lib to parse and verify Visible Digital Seals
 
 
 A Java library to parse and verify visible digital seals (VDS) as specified in

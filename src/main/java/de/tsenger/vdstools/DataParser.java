@@ -38,7 +38,7 @@ public class DataParser {
     public static DigitalSeal parseVdsSeal(byte[] rawBytes) {
 
         ByteBuffer rawData = ByteBuffer.wrap(rawBytes);
-        Logger.debug("rawData: {}", () -> Hex.toHexString(rawBytes));
+        Logger.trace("rawData: {}", () -> Hex.toHexString(rawBytes));
 
         VdsHeader vdsHeader = decodeHeader(rawData);
         VdsMessage vdsMessage = new VdsMessage();
@@ -59,8 +59,8 @@ public class DataParser {
             } else if (le == 0x83) {
                 le = ((rawData.get() & 0xff) * 0x1000) + ((rawData.get() & 0xff) * 0x100) + (rawData.get() & 0xff);
             } else if (le > 0x7F) {
-                Logger.error("can't decode length: {}", String.format("%02X ", le));
-                throw new IllegalArgumentException("can't decode length: 0x" + String.format("%02X ", le));
+                Logger.error(String.format("can't decode length: 0x%02X", le));
+                throw new IllegalArgumentException(String.format("can't decode length: 0x%02X", le));
             }
             byte[] val = getFromByteBuffer(rawData, le);
             // Tag 0xFF marks the Signature
@@ -94,7 +94,7 @@ public class DataParser {
         case ALIENS_LAW:
             return new AliensLaw(vdsHeader, vdsMessage, vdsSignature);
         default:
-            Logger.debug("unknown VDS type with reference: %02X", () -> vdsHeader.getDocumentRef());
+            Logger.warn("unknown VDS type with reference: {}", String.format("0x%02X", vdsHeader.getDocumentRef()));
             return null;
         }
     }
@@ -103,41 +103,38 @@ public class DataParser {
         // Magic Byte
         int magicByte = rawdata.get();
         if (magicByte != (byte) 0xdc) {
-            Logger.error("Magic Constant mismatch: {} instead of 0xdc", String.format("%02X ", magicByte));
+            Logger.error(String.format("Magic Constant mismatch: 0x%02X instead of 0xdc", magicByte));
             throw new IllegalArgumentException(
-                    "Magic Constant mismatch: 0x" + String.format("%02X ", magicByte) + "instead of 0xdc");
+                    String.format("Magic Constant mismatch: 0x%02X instead of 0xdc", magicByte));
         }
 
         VdsHeader vdsHeader = new VdsHeader();
 
         vdsHeader.rawVersion = rawdata.get();
-        // new in ICAO spec for "Visual Digital Seals for Non-Electronic Documents":
-        // value 0x02 stands for version 3 (uses fix length of Document Signer
-        // Reference: 5 characters)
-        // value 0x03 stands for version 4 (uses variable length of Document Signer
-        // Reference)
-        // Problem: German "Arrival Attestation Document" uses value 0x03 for rawVersion
-        // 3 and static length of Document Signer Reference.
+        /*
+         * new in ICAO spec for "Visual Digital Seals for Non-Electronic Documents":
+         * value 0x02 stands for version 3 (uses fix length of Document Signer
+         * Reference: 5 characters) value 0x03 stands for version 4 (uses variable
+         * length of Document Signer Reference) Problem: German "Arrival Attestation
+         * Document" uses value 0x03 for rawVersion 3 and static length of Document
+         * Signer Reference.
+         */
         if (!(vdsHeader.rawVersion == 0x02 || vdsHeader.rawVersion == 0x03)) {
-            Logger.error("Unsupported rawVersion: 0x{}", String.format("%02X ", vdsHeader.rawVersion));
-            throw new IllegalArgumentException(
-                    "Unsupported rawVersion: 0x" + String.format("%02X ", vdsHeader.rawVersion));
+            Logger.error(String.format("Unsupported rawVersion: 0x%02X", vdsHeader.rawVersion));
+            throw new IllegalArgumentException(String.format("Unsupported rawVersion: 0x%02X", vdsHeader.rawVersion));
         }
         vdsHeader.issuingCountry = decodeC40(getFromByteBuffer(rawdata, 2)); // 2 bytes stores the three letter country
                                                                              // code
         rawdata.mark();
-        String signerIdentifierAndCertRefLength = decodeC40(getFromByteBuffer(rawdata, 4)); // 4 bytes stores first 6
-                                                                                            // characters of Signer &
-                                                                                            // Certificate Reference
+
+        // 4 bytes stores first 6 characters of Signer & Certificate Reference
+        String signerIdentifierAndCertRefLength = decodeC40(getFromByteBuffer(rawdata, 4));
         vdsHeader.signerIdentifier = signerIdentifierAndCertRefLength.substring(0, 4);
 
         if (vdsHeader.rawVersion == 0x03) { // ICAO version 4
-            int certRefLength = Integer.parseInt(signerIdentifierAndCertRefLength.substring(4), 16); // the last two
-                                                                                                     // characters store
-                                                                                                     // the length of
-                                                                                                     // the following
-                                                                                                     // Certificate
-                                                                                                     // Reference
+            // the last two characters store the length of the following Certificate
+            // Reference
+            int certRefLength = Integer.parseInt(signerIdentifierAndCertRefLength.substring(4), 16);
             Logger.debug("version 4: certRefLength: {}", certRefLength);
 
             /*
