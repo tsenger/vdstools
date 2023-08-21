@@ -10,7 +10,7 @@ See [DataParserTest.java](https://github.com/tsenger/vdstools/blob/main/src/test
 Test VDS can be generated with help of the [Sealgen](https://sealgen.tsenger.de) tool. 
 There is also the [Sealva](https://play.google.com/store/apps/details?id=de.tsenger.sealver) Android app which scans, verifies and displays all VDS profiles defined in the above specifications.
 
-[https://jitpack.io/#jitpack/maven-simple](https://jitpack.io/#tsenger/vdstools)
+[https://jitpack.io/#tsenger/vdstools](https://jitpack.io/#tsenger/vdstools)
 
 [![Release](https://jitpack.io/v/tsenger/vdstools.svg)](https://jitpack.io/#tsenger/vdstools)
 
