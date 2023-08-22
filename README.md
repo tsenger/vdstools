@@ -27,7 +27,7 @@ import de.tsenger.vdstools.seals.Feature;
 	DigitalSeal digitalSeal = DataParser.parseVdsSeal(rawBytes);
 	VdsType vdsType = digitalSeal.getVdsType()
 	
-	// Depending on the return VDS type you can access the seals content
+	// Depending on the returned VDS type you can access the seals content
 	String mrz = (String) seal.getFeature(Feature.MRZ);
 	String azr = (String) seal.getFeature(Feature.AZR);
    
@@ -44,6 +44,11 @@ import de.tsenger.vdstools.seals.Feature;
 
 Also have a look at [DataParserTest.java](https://github.com/tsenger/vdstools/blob/main/src/test/java/de/tsenger/vds_tools/DataParserTest.java) and [VerifierTest.java](https://github.com/tsenger/vdstools/blob/main/src/test/java/de/tsenger/vds_tools/VerifierTest.java) for some more examples.
 
+## Documentation
+JavaDoc can be found here:
+
+[https://javadoc.jitpack.io/com/github/tsenger/vdstools/latest/javadoc/index.html](https://javadoc.jitpack.io/com/github/tsenger/vdstools/latest/javadoc/index.html)
+
 ## How to include
 [https://jitpack.io/#tsenger/vdstools](https://jitpack.io/#tsenger/vdstools)
 
@@ -54,45 +59,41 @@ Also have a look at [DataParserTest.java](https://github.com/tsenger/vdstools/bl
 To include this library to your Gradle build add:
 
 ```groovy
-   allprojects {
-		repositories {
-			...
-			maven { url 'https://jitpack.io' }
-		}
+allprojects {
+	repositories {
+		...
+		maven { url 'https://jitpack.io' }
 	}
+}
 ```
 
 and the dependency:
 
 ```groovy
-   dependencies {
-	        implementation 'com.github.tsenger:vdstools:0.2'
-	}
+dependencies {
+	implementation 'com.github.tsenger:vdstools:0.2'
+}
 ```
 
-''' Maven
+### Maven
 
 To include this library to your Maven build add:
 
 ```xml
-  <repositories>
-    <repository>
-        <id>jitpack.io</id>
-        <url>https://jitpack.io</url>
-    </repository>
-  </repositories>
+<repositories>
+	<repository>
+		<id>jitpack.io</id>
+		<url>https://jitpack.io</url>
+	</repository>
+</repositories>
 ```
 
 and the dependency:
 
 ```xml
-    <dependency>
-        <groupId>com.github.tsenger</groupId>
-        <artifactId>vdstools</artifactId>
-        <version>0.2</version>
-    </dependency>
+<dependency>
+	<groupId>com.github.tsenger</groupId>
+	<artifactId>vdstools</artifactId>
+	<version>0.2</version>
+</dependency>
 ```
-## Documentation
-JavaDoc can be found here:
-
-[https://javadoc.jitpack.io/com/github/tsenger/vdstools/latest/javadoc/index.html](https://javadoc.jitpack.io/com/github/tsenger/vdstools/latest/javadoc/index.html)
