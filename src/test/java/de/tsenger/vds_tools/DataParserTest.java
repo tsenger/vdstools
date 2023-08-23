@@ -57,6 +57,18 @@ public class DataParserTest extends TestCase {
             + "A1D7D78FF60D2AECB87B0247628C3211\n" 
             + "9BA335B6BD87A7E07333C83ED16B091F");
 
+    static byte[] arrivalAttestation_rawBytes = Hex.decode(
+            "dc026abc6d32c8a519fc0f71341145f4" +
+                "fd020230a5621353d9a275735bd4134b" +
+                "c549133c133c133c133c133ca32519a5" +
+                "19a4344a5e681ae7204b20d532cf4b7c" +
+                "133c133f030820d5201019a51aeaff40" +
+                "4a1f218ca4392647ecff6c8abf9e796a" +
+                "78eebe0b1ac8cc25c4ee17eed961d118" +
+                "9091358d7d616f1a517abc747f6c4490" +
+                "ff159d4dcf50248b00b1e32e9e7805e7");
+
+
     static byte[] visa_224bitSig_rawBytes = Hex.decode(
             "DC03D9C56D32C8A72CB10F71347D0017\n" 
             + "5D01022CDD52134A74DA1347C6FED95C\n"

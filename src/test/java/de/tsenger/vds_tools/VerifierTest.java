@@ -1,13 +1,22 @@
 package de.tsenger.vds_tools;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateFactory;
+import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.Locale;
 
 import org.junit.Test;
 
@@ -16,6 +25,40 @@ import de.tsenger.vdstools.Verifier;
 import de.tsenger.vdstools.seals.DigitalSeal;
 
 public class VerifierTest {
+
+    @Test
+    public void testVerifyArrivalAttestationDETS00027() throws ParseException {
+        DigitalSeal digitalSeal = DataParser.parseVdsSeal(DataParserTest.arrivalAttestation_rawBytes);
+        assert digitalSeal != null;
+        String signerCertRef = digitalSeal.getSignerCertRef();
+        assertEquals("DETS00027", signerCertRef); // input validation
+        X509Certificate cert = null;
+        try {
+            // do not copy this to production code as signerCertRef is external data and must be input validated
+            String certFilename = String.format("src/test/resources/%s.crt", signerCertRef);
+            FileInputStream inStream = new FileInputStream(certFilename);
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            cert = (X509Certificate) cf.generateCertificate(inStream);
+        } catch (FileNotFoundException | CertificateException e) {
+            fail(e.getMessage());
+        }
+
+        { // check validity dates
+            LocalDate sigLocalDate = digitalSeal.getSigDate();
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+            String formattedString = sigLocalDate.format(dtf);
+            assertEquals("13.01.2020", formattedString);
+            SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
+            Date sigDate = sdf.parse(formattedString);
+            try {
+                cert.checkValidity(sigDate);
+            } catch (CertificateExpiredException | CertificateNotYetValidException e) {
+                fail(e.getMessage());
+            }
+        }
+        Verifier verifier = new Verifier(digitalSeal, cert);
+        assertEquals(Verifier.Result.SignatureValid, verifier.verify());
+    }
 
     @Test
     public void testVerifyResidentPermit() {
