@@ -1,6 +1,5 @@
 package de.tsenger.vdstools.seals;
 
-import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -56,16 +55,28 @@ public abstract class DigitalSeal {
         return vdsHeader.issuingCountry;
     }
 
+    /**
+     * Returns a string that identifies the signer certificate. The SignerCertRef
+     * string is build from Signer Identifier (country code || signer id) and
+     * Certificate Reference. The Signer Identifier maps to the signer certificates
+     * subject (C || CN) The Certificate Reference will be interpreted as an hex
+     * string integer that represents the serial number of the signer certificate.
+     * Leading zeros in Certificate Reference the will be cut off. e.g. Signer
+     * Identifier 'DETS' and CertificateReference '00027' will result in 'DETS27'
+     * 
+     * @return Formated SignerCertRef all UPPERCASE
+     */
     public String getSignerCertRef() {
-        return (vdsHeader.signerIdentifier + vdsHeader.certificateReference);
+        int certRefInteger = Integer.decode("0x" + vdsHeader.certificateReference);
+        return String.format("%s%x", vdsHeader.signerIdentifier, certRefInteger).toUpperCase();
     }
 
     public String getSignerIdentifier() {
-        return getSignerCertRef().substring(0, 4);
+        return vdsHeader.signerIdentifier;
     }
 
-    public BigInteger getCertSerialNumber() {
-        return new BigInteger(getSignerCertRef().substring(4), 16);
+    public String getCertificateReference() {
+        return vdsHeader.certificateReference;
     }
 
     public LocalDate getIssuingDate() {

@@ -1,7 +1,8 @@
 # VdsTools - lib to parse and verify Visible Digital Seals
 
 A Java library to parse and verify visible digital seals (VDS) as specified in
-- [BSI TR-03137 Part1](https://www.bsi.bund.de/EN/Themen/Unternehmen-und-Organisationen/Standards-und-Zertifizierung/Technische-Richtlinien/TR-nach-Thema-sortiert/tr03137/tr-03137.html)
+- [BSI TR-03137 Part 1](https://www.bsi.bund.de/EN/Themen/Unternehmen-und-Organisationen/Standards-und-Zertifizierung/Technische-Richtlinien/TR-nach-Thema-sortiert/tr03137/tr-03137.html)
+- [ICAO Doc 9303 Part 13: Visible Digital Seals](https://www.icao.int/publications/Documents/9303_p13_cons_en.pdf)
 - [ICAO TR "VDS for Non-Electronic Documents"](https://www.icao.int/Security/FAL/TRIP/Documents/TR%20-%20Visible%20Digital%20Seals%20for%20Non-Electronic%20Documents%20V1.7.pdf)
 
 
@@ -34,7 +35,7 @@ import de.tsenger.vdstools.seals.Feature;
 	// Get the VDS signer certificate reference
 	String signerCertRef = digitalSeal.getSignerCertRef();
    
-	// Depending on your implementation search for the matching X509 signer certificate
+	// Provide for the matching X509 signer certificate
 	// and use this to verify the VDS signature   
 	Verifier verifier = new Verifier(digitalSeal, x509SignerCert);
 	Verifier.Result result = verifier.verify();

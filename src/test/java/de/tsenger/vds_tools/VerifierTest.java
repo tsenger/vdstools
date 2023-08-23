@@ -1,7 +1,6 @@
 package de.tsenger.vds_tools;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.FileInputStream;
@@ -16,8 +15,11 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
-import java.util.Locale;
 
+import org.bouncycastle.asn1.x500.RDN;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.asn1.x500.style.IETFUtils;
 import org.junit.Test;
 
 import de.tsenger.vdstools.DataParser;
@@ -31,14 +33,20 @@ public class VerifierTest {
         DigitalSeal digitalSeal = DataParser.parseVdsSeal(DataParserTest.arrivalAttestation_rawBytes);
         assert digitalSeal != null;
         String signerCertRef = digitalSeal.getSignerCertRef();
-        assertEquals("DETS00027", signerCertRef); // input validation
+        assertEquals("DETS27", signerCertRef); // input validation
         X509Certificate cert = null;
         try {
-            // do not copy this to production code as signerCertRef is external data and must be input validated
+            // do not copy this to production code as signerCertRef is external data and
+            // must be input validated
             String certFilename = String.format("src/test/resources/%s.crt", signerCertRef);
             FileInputStream inStream = new FileInputStream(certFilename);
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             cert = (X509Certificate) cf.generateCertificate(inStream);
+
+            String signerIdentifier = getCCNString(cert);
+            int serialNumber = cert.getSerialNumber().intValue();
+            String x509SignerCertRef = String.format("%s%x", signerIdentifier, serialNumber);
+            assertEquals(signerCertRef, x509SignerCertRef);
         } catch (FileNotFoundException | CertificateException e) {
             fail(e.getMessage());
         }
@@ -63,9 +71,12 @@ public class VerifierTest {
     @Test
     public void testVerifyResidentPermit() {
         DigitalSeal digitalSeal = DataParser.parseVdsSeal(DataParserTest.residentPermit_rawBytes);
+        String signerCertRef = digitalSeal.getSignerCertRef();
+        assertEquals("UTTS5B", signerCertRef);
         X509Certificate cert = null;
         try {
-            FileInputStream inStream = new FileInputStream("src/test/resources/sealgen_UTTS5B.crt");
+            String certFilename = String.format("src/test/resources/%s.crt", signerCertRef);
+            FileInputStream inStream = new FileInputStream(certFilename);
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             cert = (X509Certificate) cf.generateCertificate(inStream);
         } catch (FileNotFoundException | CertificateException e) {
@@ -79,9 +90,12 @@ public class VerifierTest {
     @Test
     public void testVerifyVisa224BitSig() {
         DigitalSeal digitalSeal = DataParser.parseVdsSeal(DataParserTest.visa_224bitSig_rawBytes);
+        String signerCertRef = digitalSeal.getSignerCertRef();
+        assertEquals("DETS32", signerCertRef);
         X509Certificate cert = null;
         try {
-            FileInputStream inStream = new FileInputStream("src/test/resources/sealgen_DETS32.crt");
+            String certFilename = String.format("src/test/resources/%s.crt", signerCertRef);
+            FileInputStream inStream = new FileInputStream(certFilename);
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             cert = (X509Certificate) cf.generateCertificate(inStream);
         } catch (FileNotFoundException | CertificateException e) {
@@ -92,9 +106,13 @@ public class VerifierTest {
         assertEquals(Verifier.Result.SignatureValid, verifier.verify());
     }
 
-    @Test
-    public void testString() {
-        System.out.println(String.format("test 0x%02X", 0xF234));
+    public static String getCCNString(X509Certificate x509) {
+        X500Name x500name = new X500Name(x509.getSubjectX500Principal().getName());
+        RDN c = x500name.getRDNs(BCStyle.C)[0];
+        RDN cn = x500name.getRDNs(BCStyle.CN)[0];
+        String cString = IETFUtils.valueToString(c.getFirst().getValue());
+        String cnString = IETFUtils.valueToString(cn.getFirst().getValue());
+        return cString + cnString;
     }
 
 }
