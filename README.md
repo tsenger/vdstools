@@ -72,7 +72,7 @@ and the dependency:
 
 ```groovy
 dependencies {
-	implementation 'com.github.tsenger:vdstools:0.2'
+	implementation 'com.github.tsenger:vdstools:0.2.1'
 }
 ```
 
@@ -95,6 +95,6 @@ and the dependency:
 <dependency>
 	<groupId>com.github.tsenger</groupId>
 	<artifactId>vdstools</artifactId>
-	<version>0.2</version>
+	<version>0.2.1</version>
 </dependency>
 ```
