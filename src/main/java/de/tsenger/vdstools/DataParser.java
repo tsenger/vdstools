@@ -13,11 +13,14 @@ import de.tsenger.vdstools.seals.AliensLaw;
 import de.tsenger.vdstools.seals.ArrivalAttestation;
 import de.tsenger.vdstools.seals.DigitalSeal;
 import de.tsenger.vdstools.seals.DocumentFeatureDto;
+import de.tsenger.vdstools.seals.FictionCert;
 import de.tsenger.vdstools.seals.IcaoEmergencyTravelDocument;
 import de.tsenger.vdstools.seals.IcaoVisa;
 import de.tsenger.vdstools.seals.ResidencePermit;
 import de.tsenger.vdstools.seals.SocialInsuranceCard;
 import de.tsenger.vdstools.seals.SupplementarySheet;
+import de.tsenger.vdstools.seals.TempPassport;
+import de.tsenger.vdstools.seals.TempPerso;
 import de.tsenger.vdstools.seals.VdsHeader;
 import de.tsenger.vdstools.seals.VdsMessage;
 import de.tsenger.vdstools.seals.VdsSignature;
@@ -93,6 +96,12 @@ public class DataParser {
             return new AddressStickerPass(vdsHeader, vdsMessage, vdsSignature);
         case ALIENS_LAW:
             return new AliensLaw(vdsHeader, vdsMessage, vdsSignature);
+        case TEMP_PASSPORT:
+            return new TempPassport(vdsHeader, vdsMessage, vdsSignature);
+        case TEMP_PERSO:
+        	return new TempPerso(vdsHeader, vdsMessage, vdsSignature);
+        case FICTION_CERT:
+        	return new FictionCert(vdsHeader, vdsMessage, vdsSignature);
         default:
             Logger.warn("unknown VDS type with reference: {}", String.format("0x%02X", vdsHeader.getDocumentRef()));
             return null;
