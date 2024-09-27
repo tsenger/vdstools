@@ -1,6 +1,7 @@
 package de.tsenger.vdstools;
 
 import java.nio.ByteBuffer;
+import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.Arrays;
 
@@ -49,6 +50,7 @@ public class DataParser {
 
         int messageStartPosition = rawData.position();
         int signatureStartPosition = 0;
+        byte[] vdsMessageRawDataBytes = null;
         while (rawData.hasRemaining()) {
             int tag = (rawData.get() & 0xff);
             if (tag == 0xff) {
@@ -68,13 +70,19 @@ public class DataParser {
             byte[] val = getFromByteBuffer(rawData, le);
             // Tag 0xFF marks the Signature
             if (tag == 0xff) {
-                vdsSignature = new VdsSignature(val);
-                vdsMessage.setRawDataBytes(
-                        Arrays.copyOfRange(rawData.array(), messageStartPosition, signatureStartPosition));
+                vdsSignature = new VdsSignature(val);                
+                vdsMessageRawDataBytes = Arrays.copyOfRange(rawData.array(), messageStartPosition, signatureStartPosition);
                 break;
             }
             vdsMessage.addDocumentFeature(new DocumentFeatureDto((byte) (tag & 0xff), le, val));
         }
+        
+        // Test if message raw bytes are equal to the calculate raw bytes from vdsMessage.getRawBytes method
+        if (!Arrays.equals(vdsMessageRawDataBytes, vdsMessage.getRawBytes())) {
+        	Logger.error("Message raw bytes and calculated message raw bytes from vdsMessage.getRawBytes are not equal!");
+        	return null;
+        }
+        
 
         VdsType vdsType = VdsType.valueOf(vdsHeader.getDocumentRef());
         switch (vdsType) {
@@ -179,7 +187,7 @@ public class DataParser {
         vdsHeader.sigDate = decodeDate(getFromByteBuffer(rawdata, 3));
         vdsHeader.docFeatureRef = rawdata.get();
         vdsHeader.docTypeCat = rawdata.get();
-        vdsHeader.rawBytes = Arrays.copyOfRange(rawdata.array(), 0, rawdata.position());
+//        vdsHeader.setRawBytes(Arrays.copyOfRange(rawdata.array(), 0, rawdata.position()));
         Logger.debug("VdsHeader: {}", vdsHeader);
         return vdsHeader;
     }
@@ -192,7 +200,7 @@ public class DataParser {
         return tmpByteArray;
     }
 
-    private static LocalDate decodeDate(byte[] bytes) {
+    public static LocalDate decodeDate(byte[] bytes) {
 
         if (bytes.length != 3)
             throw new IllegalArgumentException("expected three bytes for date decoding");

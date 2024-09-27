@@ -21,6 +21,10 @@ public class DocumentFeatureDto {
     byte getTag() {
         return tag;
     }
+    
+    int getLen() {
+    	return length;
+    }
 
     byte[] getValue() {
         return value;

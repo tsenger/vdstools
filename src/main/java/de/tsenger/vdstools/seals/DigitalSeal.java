@@ -1,5 +1,6 @@
 package de.tsenger.vdstools.seals;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -96,7 +97,7 @@ public abstract class DigitalSeal {
     }
 
     public byte[] getHeaderAndMessageBytes() {
-        return Arrays.concatenate(vdsHeader.rawBytes, vdsMessage.getRawBytes());
+        return Arrays.concatenate(vdsHeader.getRawBytes(), vdsMessage.getRawBytes());
     }
 
     public byte[] getSignatureBytes() {
@@ -107,12 +108,17 @@ public abstract class DigitalSeal {
         return rawString;
     }
 
-    public Object getFeature(Enum<Feature> feature) {
+    public Object getFeature(Feature feature) {
         try {
             return featureMap.get(feature);
         } catch (Exception e) {
             return null;
         }
+    }
+    
+    public void setFeature(Feature feature, Object object) {
+    	featureMap.put(feature, object);
+
     }
 
 }

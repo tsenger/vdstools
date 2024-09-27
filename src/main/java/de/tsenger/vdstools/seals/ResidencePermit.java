@@ -36,5 +36,7 @@ public class ResidencePermit extends DigitalSeal {
         }
 
     }
+    
+    
 
 }
