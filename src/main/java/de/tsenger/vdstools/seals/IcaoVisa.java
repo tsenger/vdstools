@@ -14,15 +14,15 @@ public class IcaoVisa extends DigitalSeal {
 
     public IcaoVisa(VdsHeader vdsHeader, VdsMessage vdsMessage, VdsSignature vdsSignature) {
         super(vdsHeader, vdsMessage, vdsSignature);
-        parseDocumentFeatures(vdsMessage.getDocumentFeatures());
+        parseMessageTlvList(vdsMessage.getMessageTlvList());
     }
 
-    private void parseDocumentFeatures(List<DocumentFeatureDto> features) {
-        for (DocumentFeatureDto feature : features) {
-            switch (feature.getTag()) {
+    private void parseMessageTlvList(List<MessageTlv> tlvList) {
+        for (MessageTlv tlv : tlvList) {
+            switch (tlv.getTag()) {
             case 0x01:
                 // MRZ chars per line: 44
-                String short_mrz = DataParser.decodeC40(feature.getValue()).replace(' ', '<');
+                String short_mrz = DataParser.decodeC40(tlv.getValue()).replace(' ', '<');
                 // fill mrz to the full length of 88 characters because ICAO cuts last 16
                 // characters
                 String mrz = String.format("%1$-88s", short_mrz).replace(' ', '<');
@@ -32,7 +32,7 @@ public class IcaoVisa extends DigitalSeal {
                 break;
             case 0x02:
                 // MRZ chars per line: 36
-                short_mrz = DataParser.decodeC40(feature.getValue()).replace(' ', '<');
+                short_mrz = DataParser.decodeC40(tlv.getValue()).replace(' ', '<');
                 // fill mrz to the full length of 72 characters because ICAO cuts last 8
                 // characters
                 mrz = String.format("%1$-72s", short_mrz).replace(' ', '<');
@@ -41,26 +41,26 @@ public class IcaoVisa extends DigitalSeal {
                 featureMap.put(Feature.MRZ, sb.toString());
                 break;
             case 0x03:
-                int numberOfEntries = feature.getValue()[0] & 0xff;
+                int numberOfEntries = tlv.getValue()[0] & 0xff;
                 featureMap.put(Feature.NUMBER_OF_ENTRIES, numberOfEntries);
                 break;
             case 0x04:
-                decodeDuration(feature.getValue());
+                decodeDuration(tlv.getValue());
                 break;
             case 0x05:
-                String passportNumber = DataParser.decodeC40(feature.getValue());
+                String passportNumber = DataParser.decodeC40(tlv.getValue());
                 featureMap.put(Feature.PASSPORT_NUMBER, passportNumber);
                 break;
             case 0x06:
-                byte[] visaType = feature.getValue();
+                byte[] visaType = tlv.getValue();
                 featureMap.put(Feature.VISA_TYPE, visaType);
                 break;
             case 0x07:
-                byte[] additionalFeatures = feature.getValue();
+                byte[] additionalFeatures = tlv.getValue();
                 featureMap.put(Feature.ADDITIONAL_FEATURES, additionalFeatures);
                 break;
             default:
-                Logger.warn("found unknown tag: 0x" + String.format("%02X ", feature.getTag()));
+                Logger.warn("found unknown tag: 0x" + String.format("%02X ", tlv.getTag()));
             }
         }
     }

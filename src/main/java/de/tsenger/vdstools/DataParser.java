@@ -13,7 +13,7 @@ import de.tsenger.vdstools.seals.AddressStickerPass;
 import de.tsenger.vdstools.seals.AliensLaw;
 import de.tsenger.vdstools.seals.ArrivalAttestation;
 import de.tsenger.vdstools.seals.DigitalSeal;
-import de.tsenger.vdstools.seals.DocumentFeatureDto;
+import de.tsenger.vdstools.seals.MessageTlv;
 import de.tsenger.vdstools.seals.FictionCert;
 import de.tsenger.vdstools.seals.IcaoEmergencyTravelDocument;
 import de.tsenger.vdstools.seals.IcaoVisa;
@@ -74,7 +74,7 @@ public class DataParser {
                 vdsMessageRawDataBytes = Arrays.copyOfRange(rawData.array(), messageStartPosition, signatureStartPosition);
                 break;
             }
-            vdsMessage.addDocumentFeature(new DocumentFeatureDto((byte) (tag & 0xff), le, val));
+            vdsMessage.addMessageTlv(new MessageTlv((byte) (tag & 0xff), le, val));
         }
         
         // Test if message raw bytes are equal to the calculate raw bytes from vdsMessage.getRawBytes method

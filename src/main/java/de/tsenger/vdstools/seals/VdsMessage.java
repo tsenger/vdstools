@@ -3,8 +3,8 @@ package de.tsenger.vdstools.seals;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
-import org.bouncycastle.asn1.DEROctetString;
 import org.tinylog.Logger;
 
 import de.tsenger.vdstools.DataEncoder;
@@ -14,12 +14,21 @@ import de.tsenger.vdstools.DataEncoder;
  *
  */
 public class VdsMessage {
-	private ArrayList<DocumentFeatureDto> documentFeatures = new ArrayList<>(5);
+	
+	private ArrayList<MessageTlv> messageTlvList;
+	
+	public VdsMessage(List<MessageTlv> messageTlvList) {
+		this.messageTlvList = (ArrayList<MessageTlv>) messageTlvList;
+	}
+	
+	public VdsMessage() {
+		this.messageTlvList = new ArrayList<>(5);	
+	}
 
 	public byte[] getRawBytes() {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
-			for (DocumentFeatureDto feature : documentFeatures) {
+			for (MessageTlv feature : this.messageTlvList) {
 				baos.write(DataEncoder.buildTLVStructure(feature.getTag(), feature.getValue()));
 			}
 		} catch (IOException e) {
@@ -29,12 +38,14 @@ public class VdsMessage {
 		return baos.toByteArray();
 	}
 
-	public void addDocumentFeature(DocumentFeatureDto docFeature) {
-		documentFeatures.add(docFeature);
+	public void addMessageTlv(MessageTlv tlv) {
+		this.messageTlvList.add(tlv);
 	}
 
-	public ArrayList<DocumentFeatureDto> getDocumentFeatures() {
-		return documentFeatures;
+	public ArrayList<MessageTlv> getMessageTlvList() {
+		return this.messageTlvList;
 	}
+	
+	
 	
 }

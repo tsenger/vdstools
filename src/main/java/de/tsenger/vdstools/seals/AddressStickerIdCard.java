@@ -10,27 +10,27 @@ public class AddressStickerIdCard extends DigitalSeal {
 
     public AddressStickerIdCard(VdsHeader vdsHeader, VdsMessage vdsMessage, VdsSignature vdsSignature) {
         super(vdsHeader, vdsMessage, vdsSignature);
-        parseDocumentFeatures(vdsMessage.getDocumentFeatures());
+        parseMessageTlvList(vdsMessage.getMessageTlvList());
     }
 
-    private void parseDocumentFeatures(List<DocumentFeatureDto> features) {
-        for (DocumentFeatureDto feature : features) {
-            switch (feature.getTag()) {
+    private void parseMessageTlvList(List<MessageTlv> tlvList) {
+        for (MessageTlv tlv : tlvList) {
+            switch (tlv.getTag()) {
             case 0x01:
-                String docNr = DataParser.decodeC40(feature.getValue());
+                String docNr = DataParser.decodeC40(tlv.getValue());
                 featureMap.put(Feature.DOCUMENT_NUMBER, docNr);
                 break;
             case 0x02:
-                String ags = DataParser.decodeC40(feature.getValue());
+                String ags = DataParser.decodeC40(tlv.getValue());
                 featureMap.put(Feature.AGS, ags);
                 break;
             case 0x03:
-                String rawAddress = DataParser.decodeC40(feature.getValue());
+                String rawAddress = DataParser.decodeC40(tlv.getValue());
                 featureMap.put(Feature.RAW_ADDRESS, rawAddress);
                 parseAddress(rawAddress);
                 break;
             default:
-                Logger.warn("found unknown tag: 0x" + String.format("%02X ", feature.getTag()));
+                Logger.warn("found unknown tag: 0x" + String.format("%02X ", tlv.getTag()));
             }
         }
     }

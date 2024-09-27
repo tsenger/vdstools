@@ -13,7 +13,11 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
@@ -23,9 +27,13 @@ import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.util.Arrays;
 import org.tinylog.Logger;
 
+import de.tsenger.vdstools.seals.Feature;
+import de.tsenger.vdstools.seals.MessageTlv;
+import de.tsenger.vdstools.seals.ResidencePermit;
 import de.tsenger.vdstools.seals.VdsHeader;
 import de.tsenger.vdstools.seals.VdsMessage;
 import de.tsenger.vdstools.seals.VdsSignature;
+import de.tsenger.vdstools.seals.VdsType;
 
 public class DataEncoder {
 
@@ -39,6 +47,8 @@ public class DataEncoder {
 		this.vdsMessage = vdsMessage;
 		this.vdsSignature = createVdsSignature(vdsHeader, vdsMessage, signer);
 	}
+	
+	
 
 
 	private VdsSignature createVdsSignature(VdsHeader vdsHeader, VdsMessage vdsMessage, Signer signer) {
@@ -51,6 +61,21 @@ public class DataEncoder {
 			Logger.error("Signature creation failed: "+e.getMessage());
 			return null;
 		}
+	}
+	
+	public static VdsMessage buildVdsMessage(VdsType vdsType, Map<Feature, Object> featureMap) {
+		List<MessageTlv> messageTlvList= null;
+		switch (vdsType) {
+		case RESIDENCE_PERMIT:
+			 messageTlvList =  ResidencePermit.parseFeatures(featureMap);
+			 break;
+		default:
+			break;
+		}
+		
+		VdsMessage vdsMessage = new VdsMessage(messageTlvList);
+		
+		return vdsMessage;
 	}
 	
 	public byte[] getEncodedBytes() {

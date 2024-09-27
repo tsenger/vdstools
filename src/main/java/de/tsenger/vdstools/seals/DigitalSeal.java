@@ -8,6 +8,7 @@ import java.util.EnumMap;
 import org.bouncycastle.util.Arrays;
 
 import de.tsenger.vdstools.DataParser;
+import de.tsenger.vdstools.Signer;
 
 /**
  * @author Tobias Senger
@@ -44,8 +45,8 @@ public abstract class DigitalSeal {
         return vdsType;
     }
 
-    public ArrayList<DocumentFeatureDto> getDocumentFeatures() {
-        return vdsMessage.getDocumentFeatures();
+    public ArrayList<MessageTlv> getMessageTlvList() {
+        return vdsMessage.getMessageTlvList();
     }
 
     public EnumMap<Feature, Object> getFeatureMap() {
