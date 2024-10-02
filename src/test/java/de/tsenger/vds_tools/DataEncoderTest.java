@@ -13,6 +13,7 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 
 import javax.naming.InvalidNameException;
 
@@ -46,7 +47,7 @@ public class DataEncoderTest extends TestCase {
 	}
 
 	@Test
-	public void testGetSignerCertRef_V3() throws InvalidNameException {
+	public void testGetSignerCertRef() throws InvalidNameException {
 		X509Certificate cert = null;
 		try {
 			String certFilename = "src/test/resources/DETS32.crt";
@@ -57,24 +58,15 @@ public class DataEncoderTest extends TestCase {
 			fail(e.getMessage());
 		}
 
-		String signerCertRef = DataEncoder.getSignerCertRef(cert, (byte) 0x03);
-		assertEquals("DETS0232", signerCertRef);
+		String signerCertRef[] = DataEncoder.getSignerCertRef(cert);
+		assertEquals("DETS", signerCertRef[0]);
+		assertEquals("32", signerCertRef[1]);
 	}
 
 	@Test
-	public void testGetSignerCertRef_V2() throws InvalidNameException {
-		X509Certificate cert = null;
-		try {
-			String certFilename = "src/test/resources/DETS32.crt";
-			FileInputStream inStream = new FileInputStream(certFilename);
-			CertificateFactory cf = CertificateFactory.getInstance("X.509");
-			cert = (X509Certificate) cf.generateCertificate(inStream);
-		} catch (FileNotFoundException | CertificateException e) {
-			fail(e.getMessage());
-		}
-
-		String signerCertRef = DataEncoder.getSignerCertRef(cert, (byte) 0x02);
-		assertEquals("DETS00032", signerCertRef);
+	public void testIsoCountryCode() {
+		Locale locale = new Locale("","DE");
+	    System.out.println("Country=" + locale.getISO3Country());
 	}
 
 	@Test

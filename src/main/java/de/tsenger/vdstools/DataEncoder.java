@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.naming.InvalidNameException;
@@ -27,6 +28,7 @@ import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.util.Arrays;
 import org.tinylog.Logger;
 
+import de.tsenger.vdstools.seals.DigitalSeal;
 import de.tsenger.vdstools.seals.Feature;
 import de.tsenger.vdstools.seals.MessageTlv;
 import de.tsenger.vdstools.seals.ResidencePermit;
@@ -49,9 +51,12 @@ public class DataEncoder {
 	}
 	
 	
+	public static DigitalSeal buildDigitalSeal(VdsType vdsType, Map<Feature, Object> featureMap, X509Certificate cert, Signer signer) {
+		// TODO
+		return null;
+	}
 
-
-	private VdsSignature createVdsSignature(VdsHeader vdsHeader, VdsMessage vdsMessage, Signer signer) {
+	private static VdsSignature createVdsSignature(VdsHeader vdsHeader, VdsMessage vdsMessage, Signer signer) {
 		byte[] headerMessage = Arrays.concatenate(vdsHeader.getRawBytes(), vdsMessage.getRawBytes());
 		try {
 			byte[] signatureBytes = signer.sign(headerMessage);
@@ -71,11 +76,29 @@ public class DataEncoder {
 			 break;
 		default:
 			break;
-		}
-		
-		VdsMessage vdsMessage = new VdsMessage(messageTlvList);
-		
+		}		
+		VdsMessage vdsMessage = new VdsMessage(messageTlvList);		
 		return vdsMessage;
+	}
+	
+	private static VdsHeader buildHeader(VdsType vdsType, X509Certificate cert, String issuingCountry) {
+		return buildHeader(vdsType, cert, issuingCountry, (byte) 0x03, LocalDate.now());
+	}
+	
+	private static VdsHeader buildHeader(VdsType vdsType, X509Certificate cert, String issuingCountry, byte rawVersion, LocalDate issuingDate) {
+		VdsHeader header = new VdsHeader();
+		header.setDocumentType(vdsType);
+		header.rawVersion = rawVersion;
+		try {
+			String signerCertRef[] = getSignerCertRef(cert);
+			header.signerIdentifier = signerCertRef[0];
+			header.certificateReference = signerCertRef[1];
+		} catch (InvalidNameException e) {
+			Logger.error("Couldn't build header, because getSignerCertRef throws error: " + e.getMessage());
+		}
+		header.issuingCountry = issuingCountry;
+		header.issuingDate = issuingDate;
+		return header;
 	}
 	
 	public byte[] getEncodedBytes() {
@@ -105,13 +128,11 @@ public class DataEncoder {
 	 * Serial number value will be encoded as hexstring
 	 * 
 	 * @param cert X509 certificate to get the signer information from
-	 * @param rawVersion value to use for the encoding of the return value, use raw version number here.
-	 * 			0x02 for version 3 and 0x03 for version 4
-	 * @return String that contains the signerCertRef build as described above
+	 * @return String array that contains the signerIdentifier at index 0 and CertRef at index 1
 	 * @throws InvalidNameException
 	 */
-	public static String getSignerCertRef(X509Certificate cert, byte rawVersion) throws InvalidNameException {
-		String signerCertRef = "";
+	public static String[] getSignerCertRef(X509Certificate cert) throws InvalidNameException {
+		String signerCertRef[] = new String[2];
 		LdapName ln = new LdapName(cert.getSubjectDN().getName());
 
 		String c = "";
@@ -125,19 +146,10 @@ public class DataEncoder {
 				Logger.debug("C is: " + c);
 			}
 		}
-		String sn = cert.getSerialNumber().toString(16); // Serial Number as Hex
-		switch (rawVersion) {
-		case 0x03:
-			signerCertRef = String.format("%s%s%02x%s", c, cn, sn.length(), sn).toUpperCase();
-			break;
-		case 0x02:
-			signerCertRef = String.format("%s%s%5s", c, cn, sn).toUpperCase().replace(' ', '0');
-			break;
-		default:
-			throw new IllegalArgumentException("unknown seal raw version value: " + rawVersion);
-		}
+		signerCertRef[0] = String.format("%s%s", c, cn).toUpperCase();
+		signerCertRef[1] = cert.getSerialNumber().toString(16); // Serial Number as Hex
 
-		Logger.info("generated signerCertRef: " + signerCertRef);
+		Logger.info("generated signerCertRef: " + signerCertRef[0] + signerCertRef[1]);
 		return signerCertRef;
 	}
 

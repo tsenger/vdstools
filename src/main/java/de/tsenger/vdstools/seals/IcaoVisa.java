@@ -1,9 +1,12 @@
 package de.tsenger.vdstools.seals;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.tinylog.Logger;
 
+import de.tsenger.vdstools.DataEncoder;
 import de.tsenger.vdstools.DataParser;
 
 /**
@@ -75,6 +78,46 @@ public class IcaoVisa extends DigitalSeal {
         featureMap.put(Feature.DURATION_OF_STAY_YEARS, durationOfStay_years);
         featureMap.put(Feature.DURATION_OF_STAY_MONTHS, durationOfStay_months);
         featureMap.put(Feature.DURATION_OF_STAY_DAYS, durationOfStay_days);
+    }
+    
+    public static List<MessageTlv> parseFeatures(Map<Feature, Object> featureMap) {
+		ArrayList<MessageTlv> messageTlvList = new ArrayList<MessageTlv>(2);
+		for (var entry : featureMap.entrySet()) {
+			switch (entry.getKey()) {
+			case MRZ:
+				String valueStr = ((String) entry.getValue()).replaceAll("\r", "").replaceAll("\n", "");
+				byte[] valueBytes = DataEncoder.encodeC40(valueStr);
+				messageTlvList.add(new MessageTlv((byte) (0x02), valueBytes.length, valueBytes));
+				break;
+			case NUMBER_OF_ENTRIES:
+				valueStr = ((String) entry.getValue()).replaceAll("\r", "").replaceAll("\n", "");
+				valueBytes = DataEncoder.encodeC40(valueStr);
+				messageTlvList.add(new MessageTlv((byte) (0x03), valueBytes.length, valueBytes));
+				break;				
+				
+			case DURATION_OF_:
+				valueBytes = (byte[]) entry.getValue();
+				messageTlvList.add(new MessageTlv((byte) (0x06), valueBytes.length, valueBytes));
+				break;
+				
+			case PASSPORT_NUMBER:
+				valueStr = ((String) entry.getValue()).replaceAll("\r", "").replaceAll("\n", "");
+				valueBytes = DataEncoder.encodeC40(valueStr);
+				messageTlvList.add(new MessageTlv((byte) (0x05), valueBytes.length, valueBytes));
+				break;				
+			case VISA_TYPE:
+				valueBytes = (byte[]) entry.getValue();
+				messageTlvList.add(new MessageTlv((byte) (0x06), valueBytes.length, valueBytes));
+				break;
+			case ADDITIONAL_FEATURES:
+				valueBytes = (byte[]) entry.getValue();
+				messageTlvList.add(new MessageTlv((byte) (0x07), valueBytes.length, valueBytes));
+				break;
+			default:
+				Logger.warn("Feature " + entry.getKey().toString() + " is not supported in ResidencePermit.");
+			}
+		}
+		return messageTlvList;
     }
 
 }

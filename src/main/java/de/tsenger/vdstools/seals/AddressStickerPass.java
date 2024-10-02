@@ -1,9 +1,12 @@
 package de.tsenger.vdstools.seals;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.tinylog.Logger;
 
+import de.tsenger.vdstools.DataEncoder;
 import de.tsenger.vdstools.DataParser;
 
 /**
@@ -38,5 +41,31 @@ public class AddressStickerPass extends DigitalSeal {
         }
 
     }
+    
+    public static List<MessageTlv> parseFeatures(Map<Feature, Object> featureMap) {
+		ArrayList<MessageTlv> messageTlvList = new ArrayList<MessageTlv>(2);
+		for (var entry : featureMap.entrySet()) {
+			switch (entry.getKey()) {
+			case DOCUMENT_NUMBER:
+				String valueStr = ((String) entry.getValue()).replaceAll("\r", "").replaceAll("\n", "");
+				byte[] valueBytes = DataEncoder.encodeC40(valueStr);
+				messageTlvList.add(new MessageTlv((byte) (0x01), valueBytes.length, valueBytes));
+				break;
+			case AGS:
+				valueStr = ((String) entry.getValue()).replaceAll("\r", "").replaceAll("\n", "");
+				valueBytes = DataEncoder.encodeC40(valueStr);
+				messageTlvList.add(new MessageTlv((byte) (0x02), valueBytes.length, valueBytes));
+				break;
+			case POSTAL_CODE:
+				valueStr = ((String) entry.getValue()).replaceAll("\r", "").replaceAll("\n", "");
+				valueBytes = DataEncoder.encodeC40(valueStr);
+				messageTlvList.add(new MessageTlv((byte) (0x03), valueBytes.length, valueBytes));
+				break;
+			default:
+				Logger.warn("Feature " + entry.getKey().toString() + " is not supported in ResidencePermit.");
+			}
+		}
+		return messageTlvList;
+	}
 
 }

@@ -1,12 +1,15 @@
 package de.tsenger.vdstools.seals;
 
 import java.io.IOException;
+import java.security.cert.X509Certificate;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.Map;
 
 import org.bouncycastle.util.Arrays;
 
+import de.tsenger.vdstools.DataEncoder;
 import de.tsenger.vdstools.DataParser;
 import de.tsenger.vdstools.Signer;
 
@@ -38,6 +41,11 @@ public abstract class DigitalSeal {
     public static DigitalSeal getInstance(String rawString) {
         DigitalSeal seal = DataParser.parseVdsSeal(rawString);
         seal.rawString = rawString;
+        return seal;
+    }
+    
+    public static DigitalSeal getInstance(VdsType vdsType, Map<Feature, Object> featureMap, X509Certificate cert, Signer signer) {
+        DigitalSeal seal = DataEncoder.buildDigitalSeal(vdsType, featureMap, cert, signer);
         return seal;
     }
 
