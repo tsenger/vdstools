@@ -1,8 +1,10 @@
-package de.tsenger.vds_tools;
+package de.tsenger.vdstools;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.LocalDate;
 
+import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.Test;
 
@@ -429,6 +431,31 @@ public class DataParserTest extends TestCase {
         DigitalSeal seal = DataParser.parseVdsSeal(visa_224bitSig_rawBytes);
         seal.getFeatureMap()
                 .forEach((key, value) -> System.out.println(String.format("Key: %s, Value: %s", key, value)));
+    }
+    
+    @Test
+    public void testGetEncodedBytes_rp() throws IOException {
+    	DigitalSeal seal = DataParser.parseVdsSeal(residentPermit_rawBytes);
+    	assertTrue(Arrays.areEqual(residentPermit_rawBytes, seal.getEncodedBytes()));
+    }
+    
+    @Test
+    public void testGetEncodedBytes_aa() throws IOException {
+    	DigitalSeal seal = DataParser.parseVdsSeal(arrivalAttestation_rawBytes);
+    	assertTrue(Arrays.areEqual(arrivalAttestation_rawBytes, seal.getEncodedBytes()));
+    }
+    
+    @Test
+    public void testGetEncodedBytes_aav2() throws IOException {
+    	DigitalSeal seal = DataParser.parseVdsSeal(arrivalAttestationV02_rawBytes);
+    	assertTrue(Arrays.areEqual(arrivalAttestationV02_rawBytes, seal.getEncodedBytes()));
+    }
+    
+    
+    @Test
+    public void testGetEncodedBytes_fc() throws IOException {
+    	DigitalSeal seal = DataParser.parseVdsSeal(fictionCert_rawBytes);
+    	assertTrue(Arrays.areEqual(fictionCert_rawBytes, seal.getEncodedBytes()));
     }
 
 }

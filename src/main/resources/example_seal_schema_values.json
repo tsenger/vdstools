@@ -1,0 +1,37 @@
+Coding:
+{
+  "ArrivalAttestation": {
+    "DocumentRef": "3FC0",
+    "Version": "3",
+    "Features": [
+      {
+        "Name": "MRZ",
+        "Tag": 1,
+        "Coding": "C40",
+        "Optional": false,
+        "minLength": 72,
+        "maxLength": 88
+      },
+      {
+        "Name": "AZR",
+        "Tag": 2,
+        "Coding": "C40",
+        "Optional": false,
+        "minLength": 9,
+        "maxLength": 9
+      }
+    ]
+  }
+}
+
+Values
+{
+  "ArrivalAttestation": {
+    "IssuingDate": "2024-11-09",
+    "Signer": "DETS0005",
+    "Features": {
+      "MRZ": "PTD<<<<TTTREER",
+      "AZR": "554FDFS"
+    }
+  }
+}

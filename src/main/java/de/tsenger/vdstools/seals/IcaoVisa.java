@@ -81,7 +81,8 @@ public class IcaoVisa extends DigitalSeal {
     }
     
     public static List<MessageTlv> parseFeatures(Map<Feature, Object> featureMap) {
-		ArrayList<MessageTlv> messageTlvList = new ArrayList<MessageTlv>(2);
+		ArrayList<MessageTlv> messageTlvList = new ArrayList<MessageTlv>(3);
+		byte[] durationBytes = new byte[3];
 		for (var entry : featureMap.entrySet()) {
 			switch (entry.getKey()) {
 			case MRZ:
@@ -95,9 +96,17 @@ public class IcaoVisa extends DigitalSeal {
 				messageTlvList.add(new MessageTlv((byte) (0x03), valueBytes.length, valueBytes));
 				break;				
 				
-			case DURATION_OF_:
-				valueBytes = (byte[]) entry.getValue();
-				messageTlvList.add(new MessageTlv((byte) (0x06), valueBytes.length, valueBytes));
+			case DURATION_OF_STAY_DAYS:
+				durationBytes[0] = (byte) ((byte)entry.getValue() & 0xff);		
+				break;
+			case DURATION_OF_STAY_MONTHS:
+				durationBytes[1] = (byte) ((byte)entry.getValue() & 0xff);		
+				break;
+			case DURATION_OF_STAY_YEARS:
+				durationBytes[2] = (byte) ((byte)entry.getValue() & 0xff);	
+				break;
+			case DURATION_OF_STAY_RAWBYTES:
+				durationBytes = (byte[]) entry.getValue();
 				break;
 				
 			case PASSPORT_NUMBER:
@@ -117,6 +126,9 @@ public class IcaoVisa extends DigitalSeal {
 				Logger.warn("Feature " + entry.getKey().toString() + " is not supported in ResidencePermit.");
 			}
 		}
+		// Build duration of stays at last to be sure days, months and years are processed before.
+		messageTlvList.add(new MessageTlv((byte) (0x04), durationBytes.length, durationBytes));
+		
 		return messageTlvList;
     }
 

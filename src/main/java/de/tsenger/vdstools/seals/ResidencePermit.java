@@ -40,7 +40,6 @@ public class ResidencePermit extends DigitalSeal {
 
 	}
 	
-	// TODO do this in all other Seals too
 	public static List<MessageTlv> parseFeatures(Map<Feature, Object> featureMap) {
 		ArrayList<MessageTlv> messageTlvList = new ArrayList<MessageTlv>(2);
 		for (var entry : featureMap.entrySet()) {

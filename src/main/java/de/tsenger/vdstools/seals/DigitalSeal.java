@@ -17,7 +17,7 @@ import de.tsenger.vdstools.Signer;
  * @author Tobias Senger
  *
  */
-public abstract class DigitalSeal {
+public class DigitalSeal {
 
     private VdsType vdsType;
 
@@ -108,6 +108,10 @@ public abstract class DigitalSeal {
     public byte[] getHeaderAndMessageBytes() {
         return Arrays.concatenate(vdsHeader.getRawBytes(), vdsMessage.getRawBytes());
     }
+    
+	public byte[] getEncodedBytes() throws IOException {
+		return Arrays.concatenate(vdsHeader.getRawBytes(), vdsMessage.getRawBytes(), vdsSignature.getRawBytes());
+	}
 
     public byte[] getSignatureBytes() {
         return vdsSignature.getSignatureBytes();

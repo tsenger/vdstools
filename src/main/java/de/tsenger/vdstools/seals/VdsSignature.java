@@ -9,6 +9,8 @@ import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.util.encoders.Hex;
 import org.tinylog.Logger;
 
+import de.tsenger.vdstools.DataEncoder;
+
 /**
  * @author Tobias Senger
  *
@@ -17,9 +19,9 @@ public class VdsSignature {
     private byte[] rawSignatureBytes;
     private byte[] signatureBytes = null;
 
-    public VdsSignature(byte[] rawBytes) {
-        this.rawSignatureBytes = rawBytes;
-        parseSignature(rawBytes);
+    public VdsSignature(byte[] rawSignatureBytes) {
+        this.rawSignatureBytes = rawSignatureBytes;
+        parseSignature(rawSignatureBytes);
     }
 
     /**
@@ -39,6 +41,11 @@ public class VdsSignature {
      */
     public byte[] getRawSignatureBytes() {
         return rawSignatureBytes;
+    }
+    
+
+    public byte[] getRawBytes() throws IOException {
+        return DataEncoder.buildTLVStructure((byte) 0xff, rawSignatureBytes);
     }
 
     private void parseSignature(byte[] rsBytes) {

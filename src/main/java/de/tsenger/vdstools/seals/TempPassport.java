@@ -1,9 +1,12 @@
 package de.tsenger.vdstools.seals;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import org.tinylog.Logger;
 
+import de.tsenger.vdstools.DataEncoder;
 import de.tsenger.vdstools.DataParser;
 
 /**
@@ -34,6 +37,26 @@ public class TempPassport extends DigitalSeal {
                 Logger.warn("found unknown tag: 0x" + String.format("%02X ", tlv.getTag()));
             }
         }
+    }
+    
+    public static List<MessageTlv> parseFeatures(Map<Feature, Object> featureMap) {
+		ArrayList<MessageTlv> messageTlvList = new ArrayList<MessageTlv>(2);
+		for (var entry : featureMap.entrySet()) {
+			switch (entry.getKey()) {
+			case FACE_IMAGE:
+				byte[] valueBytes = (byte[]) entry.getValue();
+				messageTlvList.add(new MessageTlv((byte) (0x01), valueBytes.length, valueBytes));
+				break;
+			case MRZ:
+				String valueStr = ((String) entry.getValue()).replaceAll("\r", "").replaceAll("\n", "");
+				valueBytes = DataEncoder.encodeC40(valueStr);
+				messageTlvList.add(new MessageTlv((byte) (0x02), valueBytes.length, valueBytes));
+				break;
+			default:
+				Logger.warn("Feature " + entry.getKey().toString() + " is not supported in ResidencePermit.");
+			}
+		}
+		return messageTlvList;
     }
 
 }

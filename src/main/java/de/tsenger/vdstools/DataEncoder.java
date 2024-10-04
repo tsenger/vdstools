@@ -2,6 +2,7 @@ package de.tsenger.vdstools;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -28,10 +29,21 @@ import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.util.Arrays;
 import org.tinylog.Logger;
 
+import de.tsenger.vdstools.seals.AddressStickerIdCard;
+import de.tsenger.vdstools.seals.AddressStickerPass;
+import de.tsenger.vdstools.seals.AliensLaw;
+import de.tsenger.vdstools.seals.ArrivalAttestation;
 import de.tsenger.vdstools.seals.DigitalSeal;
 import de.tsenger.vdstools.seals.Feature;
+import de.tsenger.vdstools.seals.FictionCert;
+import de.tsenger.vdstools.seals.IcaoEmergencyTravelDocument;
+import de.tsenger.vdstools.seals.IcaoVisa;
 import de.tsenger.vdstools.seals.MessageTlv;
 import de.tsenger.vdstools.seals.ResidencePermit;
+import de.tsenger.vdstools.seals.SocialInsuranceCard;
+import de.tsenger.vdstools.seals.SupplementarySheet;
+import de.tsenger.vdstools.seals.TempPassport;
+import de.tsenger.vdstools.seals.TempPerso;
 import de.tsenger.vdstools.seals.VdsHeader;
 import de.tsenger.vdstools.seals.VdsMessage;
 import de.tsenger.vdstools.seals.VdsSignature;
@@ -52,15 +64,17 @@ public class DataEncoder {
 	
 	
 	public static DigitalSeal buildDigitalSeal(VdsType vdsType, Map<Feature, Object> featureMap, X509Certificate cert, Signer signer) {
-		// TODO
-		return null;
+		VdsHeader vdsHeader = buildHeader(vdsType, cert, "D<<");
+		VdsMessage vdsMessage = buildVdsMessage(vdsType, featureMap);
+		VdsSignature vdsSignature = createVdsSignature(vdsHeader, vdsMessage, signer);
+		return new DigitalSeal(vdsHeader, vdsMessage, vdsSignature);
 	}
 
-	private static VdsSignature createVdsSignature(VdsHeader vdsHeader, VdsMessage vdsMessage, Signer signer) {
+	public static VdsSignature createVdsSignature(VdsHeader vdsHeader, VdsMessage vdsMessage, Signer signer) {
 		byte[] headerMessage = Arrays.concatenate(vdsHeader.getRawBytes(), vdsMessage.getRawBytes());
 		try {
 			byte[] signatureBytes = signer.sign(headerMessage);
-			return new VdsSignature(buildTLVStructure((byte) 0xff, signatureBytes));
+			return new VdsSignature(signatureBytes);
 		} catch (InvalidKeyException | NoSuchAlgorithmException | SignatureException
 				| InvalidAlgorithmParameterException | NoSuchProviderException | IOException e) {
 			Logger.error("Signature creation failed: "+e.getMessage());
@@ -74,18 +88,57 @@ public class DataEncoder {
 		case RESIDENCE_PERMIT:
 			 messageTlvList =  ResidencePermit.parseFeatures(featureMap);
 			 break;
+		case ADDRESS_STICKER_ID:
+			 messageTlvList =  AddressStickerIdCard.parseFeatures(featureMap);
+			 break;
+		case ADDRESS_STICKER_PASSPORT:
+			 messageTlvList =  AddressStickerPass.parseFeatures(featureMap);
+			 break;
+		case ALIENS_LAW:
+			 messageTlvList =  AliensLaw.parseFeatures(featureMap);
+			 break;
+		case ARRIVAL_ATTESTATION:
+			 messageTlvList =  ArrivalAttestation.parseFeatures(featureMap);
+			 break;
+		case FICTION_CERT:
+			 messageTlvList =  FictionCert.parseFeatures(featureMap);
+			 break;
+		case ICAO_EMERGENCY_TRAVEL_DOCUMENT:
+			 messageTlvList =  IcaoEmergencyTravelDocument.parseFeatures(featureMap);
+			 break;
+		case ICAO_VISA:
+			 messageTlvList =  IcaoVisa.parseFeatures(featureMap);
+			 break;
+		case SOCIAL_INSURANCE_CARD:
+			 try {
+				messageTlvList =  SocialInsuranceCard.parseFeatures(featureMap);
+			} catch (UnsupportedEncodingException e) {
+				Logger.error("Couldn't build VdsMessage for SocialInsuranceCard: "+e.getMessage());
+				return null;
+			}
+			 break;	
+		case SUPPLEMENTARY_SHEET:
+			 messageTlvList =  SupplementarySheet.parseFeatures(featureMap);
+			 break;	 
+		case TEMP_PASSPORT:
+			 messageTlvList =  TempPassport.parseFeatures(featureMap);
+			 break;
+		case TEMP_PERSO:
+			 messageTlvList =  TempPerso.parseFeatures(featureMap);
+			 break;
 		default:
 			break;
 		}		
 		VdsMessage vdsMessage = new VdsMessage(messageTlvList);		
 		return vdsMessage;
 	}
+
 	
-	private static VdsHeader buildHeader(VdsType vdsType, X509Certificate cert, String issuingCountry) {
+	public static VdsHeader buildHeader(VdsType vdsType, X509Certificate cert, String issuingCountry) {
 		return buildHeader(vdsType, cert, issuingCountry, (byte) 0x03, LocalDate.now());
 	}
 	
-	private static VdsHeader buildHeader(VdsType vdsType, X509Certificate cert, String issuingCountry, byte rawVersion, LocalDate issuingDate) {
+	public static VdsHeader buildHeader(VdsType vdsType, X509Certificate cert, String issuingCountry, byte rawVersion, LocalDate issuingDate) {
 		VdsHeader header = new VdsHeader();
 		header.setDocumentType(vdsType);
 		header.rawVersion = rawVersion;
@@ -99,10 +152,6 @@ public class DataEncoder {
 		header.issuingCountry = issuingCountry;
 		header.issuingDate = issuingDate;
 		return header;
-	}
-	
-	public byte[] getEncodedBytes() {
-		return Arrays.concatenate(vdsHeader.getRawBytes(), vdsMessage.getRawBytes(), vdsSignature.getRawSignatureBytes());
 	}
 	
 	/**
