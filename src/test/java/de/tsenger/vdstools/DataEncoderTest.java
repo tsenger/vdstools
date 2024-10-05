@@ -5,7 +5,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -21,25 +20,22 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 
 import javax.naming.InvalidNameException;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.tinylog.Logger;
 
-import de.tsenger.vdstools.DataEncoder;
-import de.tsenger.vdstools.DataParser;
 import de.tsenger.vdstools.seals.DigitalSeal;
 import de.tsenger.vdstools.seals.Feature;
 import de.tsenger.vdstools.seals.VdsHeader;
 import de.tsenger.vdstools.seals.VdsMessage;
 import de.tsenger.vdstools.seals.VdsSignature;
 import de.tsenger.vdstools.seals.VdsType;
-import junit.framework.TestCase;
 
 public class DataEncoderTest{
 	
@@ -48,7 +44,6 @@ public class DataEncoderTest{
 
 	@BeforeClass
 	public static void loadBC() {
-		System.out.println("BEFORE CLASS");
 		Security.addProvider(new BouncyCastleProvider());
 	}
 
@@ -85,12 +80,7 @@ public class DataEncoderTest{
 		assertEquals("32", signerCertRef[1]);
 	}
 
-	@Test
-	public void testIsoCountryCode() {
-		Locale locale = new Locale("","DE");
-	    System.out.println("Country=" + locale.getISO3Country());
-	}
-
+	
 	@Test
 	public void testBuildVdsMessage() {
 		String mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<" + "6525845096USA7008038M2201018<<<<<<06";
@@ -147,14 +137,128 @@ public class DataEncoderTest{
 		
 		DigitalSeal digitalSeal = DataEncoder.buildDigitalSeal(VdsType.RESIDENCE_PERMIT, featureMap, cert, signer);
 		assertNotNull(digitalSeal);
-		System.out.println(Hex.toHexString(digitalSeal.getEncodedBytes()));
+		byte[] expectedHeaderMessage = Hex.decode("dc036abc6d32c8a72cb19961b89961b8fb0602305cba135875976ec066d417b59e8c6abc133c133c133c133c3fef3a2938ee43f1593d1ae52dbb26751fe64b7c133c136b0306d79519a65306");
+		byte[] headerMessage = Arrays.copyOfRange(digitalSeal.getEncodedBytes(), 0, 76);
+		//System.out.println(Hex.toHexString(digitalSeal.getEncodedBytes()));
+		assertTrue(Arrays.areEqual(expectedHeaderMessage, headerMessage));
+	}
+	
+	@Test 
+	public void testBuildDigitalSeal2() throws IOException {			
+		String mrz = "MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<" + "6525845096USA7008038M2201018<<<<<<06";
+		String azr = "ABC123456DEF";
+		HashMap<Feature, Object> featureMap = new LinkedHashMap<Feature, Object>(2);
+		featureMap.put(Feature.MRZ, mrz);
+		featureMap.put(Feature.AZR, azr);
+		
+		Signer signer = new Signer(getKeystore(), keyStorePassword, "dets32");
+		
+		DigitalSeal digitalSeal = DataEncoder.buildDigitalSeal(buildHeader(), featureMap, signer);
+		assertNotNull(digitalSeal);
+		byte[] expectedHeaderMessage = Hex.decode("dc036abc6d32c8a72cb18d7ad88d7ad8fd020230a56213535bd4caecc87ca4ccaeb4133c133c133c133c133c3fef3a2938ee43f1593d1ae52dbb26751fe64b7c133c136b030859e9203833736d24");
+		byte[] headerMessage = Arrays.copyOfRange(digitalSeal.getEncodedBytes(), 0, 78);
+		//System.out.println(Hex.toHexString(digitalSeal.getEncodedBytes()));
+		assertTrue(Arrays.areEqual(expectedHeaderMessage, headerMessage));
+	}
+	
+	@Test
+	public void testBuildHeader_2parameter() {
+		X509Certificate cert = null;
+		try {
+			String certFilename = "src/test/resources/DETS32.crt";
+			FileInputStream inStream = new FileInputStream(certFilename);
+			CertificateFactory cf = CertificateFactory.getInstance("X.509");
+			cert = (X509Certificate) cf.generateCertificate(inStream);
+		} catch (FileNotFoundException | CertificateException e) {
+			fail(e.getMessage());
+		}
+		
+		LocalDate ldNow = LocalDate.now();
+		byte[] encodedDate = DataEncoder.encodeDate(ldNow);
+		
+		VdsHeader vdsHeader = DataEncoder.buildHeader(VdsType.RESIDENCE_PERMIT, cert );
+		byte[] headerBytes = vdsHeader.getRawBytes();		
+		byte[] expectedHeaderBytes = Arrays.concatenate(Hex.decode("dc036abc6d32c8a72cb1"), encodedDate, encodedDate, Hex.decode("fb06"));
+		assertTrue(Arrays.areEqual(expectedHeaderBytes, headerBytes));		
+	}
+	
+	@Test
+	public void testBuildHeader_3parameter() {
+		X509Certificate cert = null;
+		try {
+			String certFilename = "src/test/resources/DETS32.crt";
+			FileInputStream inStream = new FileInputStream(certFilename);
+			CertificateFactory cf = CertificateFactory.getInstance("X.509");
+			cert = (X509Certificate) cf.generateCertificate(inStream);
+		} catch (FileNotFoundException | CertificateException e) {
+			fail(e.getMessage());
+		}
+				
+		LocalDate ldNow = LocalDate.now();
+		byte[] encodedDate = DataEncoder.encodeDate(ldNow);
+		
+		VdsHeader vdsHeader = DataEncoder.buildHeader(VdsType.RESIDENCE_PERMIT, cert, "XYZ" );
+		byte[] headerBytes = vdsHeader.getRawBytes();
+		
+		byte[] expectedHeaderBytes = Arrays.concatenate(Hex.decode("dc03ed586d32c8a72cb1"), encodedDate, encodedDate, Hex.decode("fb06"));
+		assertTrue(Arrays.areEqual(expectedHeaderBytes, headerBytes));		
+	}
+	
+	@Test
+	public void testBuildHeader_4parameter() {
+		X509Certificate cert = null;
+		try {
+			String certFilename = "src/test/resources/DETS32.crt";
+			FileInputStream inStream = new FileInputStream(certFilename);
+			CertificateFactory cf = CertificateFactory.getInstance("X.509");
+			cert = (X509Certificate) cf.generateCertificate(inStream);
+		} catch (FileNotFoundException | CertificateException e) {
+			fail(e.getMessage());
+		}		
+
+		LocalDate ldate = LocalDate.parse("2016-08-16");
+		byte[] issuingDate = DataEncoder.encodeDate(ldate);
+		
+		LocalDate ldNow = LocalDate.now();
+		byte[] signDate = DataEncoder.encodeDate(ldNow);
+		
+		VdsHeader vdsHeader = DataEncoder.buildHeader(VdsType.RESIDENCE_PERMIT, cert, "XYZ", (byte)0x03, ldate);
+		byte[] headerBytes = vdsHeader.getRawBytes();
+		
+		byte[] expectedHeaderBytes = Arrays.concatenate(Hex.decode("dc03ed586d32c8a72cb1"), issuingDate, signDate, Hex.decode("fb06"));
+		assertTrue(Arrays.areEqual(expectedHeaderBytes, headerBytes));		
+	}
+	
+	@Test
+	public void testBuildHeader_4parameterV2() {
+		X509Certificate cert = null;
+		try {
+			String certFilename = "src/test/resources/DETS32.crt";
+			FileInputStream inStream = new FileInputStream(certFilename);
+			CertificateFactory cf = CertificateFactory.getInstance("X.509");
+			cert = (X509Certificate) cf.generateCertificate(inStream);
+		} catch (FileNotFoundException | CertificateException e) {
+			fail(e.getMessage());
+		}		
+
+		LocalDate ldate = LocalDate.parse("2016-08-16");
+		byte[] issuingDate = DataEncoder.encodeDate(ldate);
+		
+		LocalDate ldNow = LocalDate.now();
+		byte[] signDate = DataEncoder.encodeDate(ldNow);
+		
+		VdsHeader vdsHeader = DataEncoder.buildHeader(VdsType.TEMP_PASSPORT, cert, "XYZ", (byte)0x02, ldate);
+		byte[] headerBytes = vdsHeader.getRawBytes();
+		System.out.println(Hex.toHexString(headerBytes));
+		byte[] expectedHeaderBytes = Arrays.concatenate(Hex.decode("dc02ed586d32c8a51a1f"), issuingDate, signDate, Hex.decode("f60d"));
+		assertTrue(Arrays.areEqual(expectedHeaderBytes, headerBytes));		
 	}
 
 
 	private VdsHeader buildHeader() {
 		VdsHeader header = new VdsHeader();
 		// RESIDENCE_PERMIT 0xfb06
-		header.setDocumentType(VdsType.RESIDENCE_PERMIT);
+		header.setDocumentType(VdsType.ARRIVAL_ATTESTATION);
 		header.signerIdentifier = "DETS";
 		header.certificateReference = "32";
 		header.issuingDate = LocalDate.parse("2024-09-27");

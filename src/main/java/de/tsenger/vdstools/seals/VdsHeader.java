@@ -45,6 +45,10 @@ public class VdsHeader {
     	docTypeCat = (byte) (vdsType.getValue() & 0xFF);
     }
     
+    public VdsType getVdsType() {
+    	return VdsType.valueOf(getDocumentRef());
+    }
+    
     // TODO: remove this if possible - with help of parser or constructor/parser
 //    public void setRawBytes(byte[] rawBytes) {
 //    	this.rawBytes = rawBytes.clone();

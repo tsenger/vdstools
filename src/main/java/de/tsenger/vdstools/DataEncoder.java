@@ -9,16 +9,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.SignatureException;
 import java.security.cert.X509Certificate;
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.EnumMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import javax.naming.InvalidNameException;
@@ -50,22 +44,17 @@ import de.tsenger.vdstools.seals.VdsSignature;
 import de.tsenger.vdstools.seals.VdsType;
 
 public class DataEncoder {
-
-	private VdsHeader vdsHeader;
-	private VdsMessage vdsMessage;
-	private VdsSignature vdsSignature;
-
-
-	public DataEncoder(VdsHeader vdsHeader, VdsMessage vdsMessage, Signer signer) {
-		this.vdsHeader = vdsHeader;
-		this.vdsMessage = vdsMessage;
-		this.vdsSignature = createVdsSignature(vdsHeader, vdsMessage, signer);
-	}
 	
 	
 	public static DigitalSeal buildDigitalSeal(VdsType vdsType, Map<Feature, Object> featureMap, X509Certificate cert, Signer signer) {
-		VdsHeader vdsHeader = buildHeader(vdsType, cert, "D<<");
+		VdsHeader vdsHeader = buildHeader(vdsType, cert);
 		VdsMessage vdsMessage = buildVdsMessage(vdsType, featureMap);
+		VdsSignature vdsSignature = createVdsSignature(vdsHeader, vdsMessage, signer);
+		return new DigitalSeal(vdsHeader, vdsMessage, vdsSignature);
+	}
+	
+	public static DigitalSeal buildDigitalSeal(VdsHeader vdsHeader, Map<Feature, Object> featureMap, Signer signer) {
+		VdsMessage vdsMessage = buildVdsMessage(vdsHeader.getVdsType(), featureMap);
 		VdsSignature vdsSignature = createVdsSignature(vdsHeader, vdsMessage, signer);
 		return new DigitalSeal(vdsHeader, vdsMessage, vdsSignature);
 	}
@@ -133,6 +122,9 @@ public class DataEncoder {
 		return vdsMessage;
 	}
 
+	public static VdsHeader buildHeader(VdsType vdsType, X509Certificate cert) {
+		return buildHeader(vdsType, cert, null, (byte) 0x03, LocalDate.now());
+	}
 	
 	public static VdsHeader buildHeader(VdsType vdsType, X509Certificate cert, String issuingCountry) {
 		return buildHeader(vdsType, cert, issuingCountry, (byte) 0x03, LocalDate.now());
@@ -149,10 +141,17 @@ public class DataEncoder {
 		} catch (InvalidNameException e) {
 			Logger.error("Couldn't build header, because getSignerCertRef throws error: " + e.getMessage());
 		}
-		header.issuingCountry = issuingCountry;
+		
+		if (issuingCountry != null) {
+			header.issuingCountry = issuingCountry;
+		} else {
+			header.issuingCountry = Doc9303CountryCodes.convertToIcaoOrIso3(header.signerIdentifier.substring(0, 2));
+		}
+		
 		header.issuingDate = issuingDate;
 		return header;
 	}
+
 	
 	/**
 	 * wraps the given data (Value) in a TLV object with free choice of the tag
