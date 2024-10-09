@@ -12,8 +12,8 @@ There is also the [Sealva](https://play.google.com/store/apps/details?id=de.tsen
 
 <a href='https://play.google.com/store/apps/details?id=de.tsenger.sealver&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png' width='155' height='60'/></a>
 
-## How to use
 
+## Parse and verify a VDS
 Here is a quick overview how to use the VDS parser and verifier.
 When you have the decoded raw string or raw bytes from your favorite datamatrix decoder, just put them to the VDS Tools Dataparser like this:
 
@@ -43,7 +43,43 @@ import de.tsenger.vdstools.seals.Feature;
 	
 ```
 
-Also have a look at [DataParserTest.java](https://github.com/tsenger/vdstools/blob/main/src/test/java/de/tsenger/vds_tools/DataParserTest.java) and [VerifierTest.java](https://github.com/tsenger/vdstools/blob/main/src/test/java/de/tsenger/vds_tools/VerifierTest.java) for some more examples.
+Also have a look at [DataParserTest.java](https://github.com/tsenger/vdstools/blob/main/src/test/java/de/tsenger/vdstools/DataParserTest.java) and [VerifierTest.java](https://github.com/tsenger/vdstools/blob/main/src/test/java/de/tsenger/vdstools/VerifierTest.java) for some more examples.
+
+## Build a new VDS
+Since version 0.3.0 you can also generate VDS with this library. Here is an example:
+
+```java
+KeyStore keystore = ...
+...
+String mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06";
+String passportNumber = "UFO001979";
+VdsMessage vdsMessage = new VdsMessage(VdsType.RESIDENCE_PERMIT);
+vdsMessage.addDocumentFeature(Feature.MRZ, mrz);
+vdsMessage.addDocumentFeature(Feature.PASSPORT_NUMBER, passportNumber);
+
+// Here we use a keystore to get the certificate (for the header information)
+// and the private key for signing the seals data
+X509Certificate cert = (X509Certificate) keystore.getCertificate(keyAlias);
+ECPrivateKey ecKey = (ECPrivateKey) keystore.getKey(certAlias, keyStorePassword.toCharArray());
+
+// initialize the Signer
+Signer signer = new Signer(ecKey); 
+	
+// Build the the VDS
+// Here the header information will be read from the certificate content and the message.
+DigitalSeal digitalSeal = DataEncoder.buildDigitalSeal(vdsMessage, cert, signer);
+
+// The encoded bytes can now be used to build a datamatrix (or other) code - which is not part of this library
+byte[] encodedBytes = digitalSeal.getEncodedBytes();
+
+```
+
+There are many other ways to define the content of the VDS. In the example above, a lot of data such as the signature or issuing date is generated automatically. However, it is also possible to set your own values. There are various buildDigitalSeal methods in the DataEncoder for this purpose. The VdsHeader and VdsMessage classes offer the option of setting the content in a finely granular manner.
+ 
+Alternatively, it is also possible to generate many values automatically with as little input as possible or to use default values.
+
+Also have a look at [DataEncoderTest.java](https://github.com/tsenger/vdstools/blob/main/src/test/java/de/tsenger/vdstools/DataEncoderTest.java) for some examples how to use the different options. 
+In [DataMatrixTest.java](https://github.com/tsenger/vdstools/blob/main/src/test/java/de/tsenger/vdstools/DataMatrixTest.java) you will find an example on how to generated a datamatrix image file from the encoded bytes of the DataEncoder.
 
 ## Documentation
 JavaDoc can be found here:
@@ -72,7 +108,7 @@ and the dependency:
 
 ```groovy
 dependencies {
-	implementation 'com.github.tsenger:vdstools:0.2.1'
+	implementation 'com.github.tsenger:vdstools:0.3.0'
 }
 ```
 
@@ -95,6 +131,6 @@ and the dependency:
 <dependency>
 	<groupId>com.github.tsenger</groupId>
 	<artifactId>vdstools</artifactId>
-	<version>0.2.1</version>
+	<version>0.3.0</version>
 </dependency>
 ```
