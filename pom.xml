@@ -3,7 +3,7 @@
 
 	<groupId>de.tsenger</groupId>
 	<artifactId>vdstools</artifactId>
-	<version>0.2.2</version>
+	<version>0.3.0</version>
 	<name>VDS Tools java library</name>
 	<description>VDS Tools</description>
 	<packaging>jar</packaging>
