@@ -1,7 +1,6 @@
 package de.tsenger.vdstools;
 
 import java.nio.ByteBuffer;
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.Arrays;
 
@@ -13,10 +12,10 @@ import de.tsenger.vdstools.seals.AddressStickerPass;
 import de.tsenger.vdstools.seals.AliensLaw;
 import de.tsenger.vdstools.seals.ArrivalAttestation;
 import de.tsenger.vdstools.seals.DigitalSeal;
-import de.tsenger.vdstools.seals.MessageTlv;
 import de.tsenger.vdstools.seals.FictionCert;
 import de.tsenger.vdstools.seals.IcaoEmergencyTravelDocument;
 import de.tsenger.vdstools.seals.IcaoVisa;
+import de.tsenger.vdstools.seals.MessageTlv;
 import de.tsenger.vdstools.seals.ResidencePermit;
 import de.tsenger.vdstools.seals.SocialInsuranceCard;
 import de.tsenger.vdstools.seals.SupplementarySheet;

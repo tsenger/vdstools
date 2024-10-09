@@ -2,7 +2,6 @@ package de.tsenger.vdstools;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -12,8 +11,6 @@ import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Map;
 
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
@@ -23,21 +20,7 @@ import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.util.Arrays;
 import org.tinylog.Logger;
 
-import de.tsenger.vdstools.seals.AddressStickerIdCard;
-import de.tsenger.vdstools.seals.AddressStickerPass;
-import de.tsenger.vdstools.seals.AliensLaw;
-import de.tsenger.vdstools.seals.ArrivalAttestation;
 import de.tsenger.vdstools.seals.DigitalSeal;
-import de.tsenger.vdstools.seals.Feature;
-import de.tsenger.vdstools.seals.FictionCert;
-import de.tsenger.vdstools.seals.IcaoEmergencyTravelDocument;
-import de.tsenger.vdstools.seals.IcaoVisa;
-import de.tsenger.vdstools.seals.MessageTlv;
-import de.tsenger.vdstools.seals.ResidencePermit;
-import de.tsenger.vdstools.seals.SocialInsuranceCard;
-import de.tsenger.vdstools.seals.SupplementarySheet;
-import de.tsenger.vdstools.seals.TempPassport;
-import de.tsenger.vdstools.seals.TempPerso;
 import de.tsenger.vdstools.seals.VdsHeader;
 import de.tsenger.vdstools.seals.VdsMessage;
 import de.tsenger.vdstools.seals.VdsSignature;
