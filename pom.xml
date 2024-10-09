@@ -43,9 +43,6 @@
 					<source>10</source>
 					<target>10</target>
 					<showDeprecation>true</showDeprecation>
-					<testExcludes>
-                        <exclude>de/tsenger/vdstools/DataMatrixTest.java</exclude>
-                    </testExcludes>
 				</configuration>
 			</plugin>
 			<plugin>
