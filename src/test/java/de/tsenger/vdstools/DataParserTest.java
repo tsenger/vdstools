@@ -8,7 +8,6 @@ import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.Test;
 
-import de.tsenger.vdstools.DataParser;
 import de.tsenger.vdstools.seals.DigitalSeal;
 import de.tsenger.vdstools.seals.Feature;
 import de.tsenger.vdstools.seals.VdsHeader;

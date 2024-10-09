@@ -3,9 +3,8 @@ package de.tsenger.vdstools.seals;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.Map;
+import java.util.List;
 
 import org.bouncycastle.util.Arrays;
 
@@ -20,13 +19,9 @@ import de.tsenger.vdstools.Signer;
 public class DigitalSeal {
 
     private VdsType vdsType;
-
     private VdsHeader vdsHeader;
-
     private VdsMessage vdsMessage;
-
     private VdsSignature vdsSignature;
-
     private String rawString;
 
     protected EnumMap<Feature, Object> featureMap = new EnumMap<>(Feature.class);
@@ -44,8 +39,13 @@ public class DigitalSeal {
         return seal;
     }
     
-    public static DigitalSeal getInstance(VdsType vdsType, Map<Feature, Object> featureMap, X509Certificate cert, Signer signer) {
-        DigitalSeal seal = DataEncoder.buildDigitalSeal(vdsType, featureMap, cert, signer);
+    public static DigitalSeal getInstance(VdsMessage vdsMessage, X509Certificate cert, Signer signer) {
+        DigitalSeal seal = DataEncoder.buildDigitalSeal(vdsMessage, cert, signer);
+        return seal;
+    }
+    
+    public static DigitalSeal getInstance(VdsHeader vdsHeader, VdsMessage vdsMessage, Signer signer) {
+        DigitalSeal seal = DataEncoder.buildDigitalSeal(vdsHeader, vdsMessage,  signer);
         return seal;
     }
 
@@ -53,7 +53,7 @@ public class DigitalSeal {
         return vdsType;
     }
 
-    public ArrayList<MessageTlv> getMessageTlvList() {
+    public List<MessageTlv> getMessageTlvList() {
         return vdsMessage.getMessageTlvList();
     }
 

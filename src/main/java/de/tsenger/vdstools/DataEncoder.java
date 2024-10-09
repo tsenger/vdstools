@@ -44,17 +44,14 @@ import de.tsenger.vdstools.seals.VdsSignature;
 import de.tsenger.vdstools.seals.VdsType;
 
 public class DataEncoder {
-	
-	
-	public static DigitalSeal buildDigitalSeal(VdsType vdsType, Map<Feature, Object> featureMap, X509Certificate cert, Signer signer) {
-		VdsHeader vdsHeader = buildHeader(vdsType, cert);
-		VdsMessage vdsMessage = buildVdsMessage(vdsType, featureMap);
+
+	public static DigitalSeal buildDigitalSeal(VdsMessage vdsMessage, X509Certificate cert, Signer signer) {
+		VdsHeader vdsHeader = buildHeader(vdsMessage.getVdsType(), cert);
 		VdsSignature vdsSignature = createVdsSignature(vdsHeader, vdsMessage, signer);
 		return new DigitalSeal(vdsHeader, vdsMessage, vdsSignature);
 	}
-	
-	public static DigitalSeal buildDigitalSeal(VdsHeader vdsHeader, Map<Feature, Object> featureMap, Signer signer) {
-		VdsMessage vdsMessage = buildVdsMessage(vdsHeader.getVdsType(), featureMap);
+
+	public static DigitalSeal buildDigitalSeal(VdsHeader vdsHeader, VdsMessage vdsMessage, Signer signer) {
 		VdsSignature vdsSignature = createVdsSignature(vdsHeader, vdsMessage, signer);
 		return new DigitalSeal(vdsHeader, vdsMessage, vdsSignature);
 	}
@@ -66,71 +63,21 @@ public class DataEncoder {
 			return new VdsSignature(signatureBytes);
 		} catch (InvalidKeyException | NoSuchAlgorithmException | SignatureException
 				| InvalidAlgorithmParameterException | NoSuchProviderException | IOException e) {
-			Logger.error("Signature creation failed: "+e.getMessage());
+			Logger.error("Signature creation failed: " + e.getMessage());
 			return null;
 		}
-	}
-	
-	public static VdsMessage buildVdsMessage(VdsType vdsType, Map<Feature, Object> featureMap) {
-		List<MessageTlv> messageTlvList= null;
-		switch (vdsType) {
-		case RESIDENCE_PERMIT:
-			 messageTlvList =  ResidencePermit.parseFeatures(featureMap);
-			 break;
-		case ADDRESS_STICKER_ID:
-			 messageTlvList =  AddressStickerIdCard.parseFeatures(featureMap);
-			 break;
-		case ADDRESS_STICKER_PASSPORT:
-			 messageTlvList =  AddressStickerPass.parseFeatures(featureMap);
-			 break;
-		case ALIENS_LAW:
-			 messageTlvList =  AliensLaw.parseFeatures(featureMap);
-			 break;
-		case ARRIVAL_ATTESTATION:
-			 messageTlvList =  ArrivalAttestation.parseFeatures(featureMap);
-			 break;
-		case FICTION_CERT:
-			 messageTlvList =  FictionCert.parseFeatures(featureMap);
-			 break;
-		case ICAO_EMERGENCY_TRAVEL_DOCUMENT:
-			 messageTlvList =  IcaoEmergencyTravelDocument.parseFeatures(featureMap);
-			 break;
-		case ICAO_VISA:
-			 messageTlvList =  IcaoVisa.parseFeatures(featureMap);
-			 break;
-		case SOCIAL_INSURANCE_CARD:
-			 try {
-				messageTlvList =  SocialInsuranceCard.parseFeatures(featureMap);
-			} catch (UnsupportedEncodingException e) {
-				Logger.error("Couldn't build VdsMessage for SocialInsuranceCard: "+e.getMessage());
-				return null;
-			}
-			 break;	
-		case SUPPLEMENTARY_SHEET:
-			 messageTlvList =  SupplementarySheet.parseFeatures(featureMap);
-			 break;	 
-		case TEMP_PASSPORT:
-			 messageTlvList =  TempPassport.parseFeatures(featureMap);
-			 break;
-		case TEMP_PERSO:
-			 messageTlvList =  TempPerso.parseFeatures(featureMap);
-			 break;
-		default:
-			break;
-		}		
-		VdsMessage vdsMessage = new VdsMessage(messageTlvList);		
-		return vdsMessage;
 	}
 
 	public static VdsHeader buildHeader(VdsType vdsType, X509Certificate cert) {
 		return buildHeader(vdsType, cert, null, (byte) 0x03, LocalDate.now());
 	}
-	
+
 	public static VdsHeader buildHeader(VdsType vdsType, X509Certificate cert, String issuingCountry) {
 		return buildHeader(vdsType, cert, issuingCountry, (byte) 0x03, LocalDate.now());
 	}
-	
-	public static VdsHeader buildHeader(VdsType vdsType, X509Certificate cert, String issuingCountry, byte rawVersion, LocalDate issuingDate) {
+
+	public static VdsHeader buildHeader(VdsType vdsType, X509Certificate cert, String issuingCountry, byte rawVersion,
+			LocalDate issuingDate) {
 		VdsHeader header = new VdsHeader();
 		header.setDocumentType(vdsType);
 		header.rawVersion = rawVersion;
@@ -141,18 +88,17 @@ public class DataEncoder {
 		} catch (InvalidNameException e) {
 			Logger.error("Couldn't build header, because getSignerCertRef throws error: " + e.getMessage());
 		}
-		
+
 		if (issuingCountry != null) {
 			header.issuingCountry = issuingCountry;
 		} else {
 			header.issuingCountry = Doc9303CountryCodes.convertToIcaoOrIso3(header.signerIdentifier.substring(0, 2));
 		}
-		
+
 		header.issuingDate = issuingDate;
 		return header;
 	}
 
-	
 	/**
 	 * wraps the given data (Value) in a TLV object with free choice of the tag
 	 * Length will be calculated as defined in ASN.1 DER length encoding
@@ -160,7 +106,7 @@ public class DataEncoder {
 	 * @param tag   Tag
 	 * @param value Value
 	 * @return value with added tag and length
-	 * @throws IOException
+	 * @throws IOException - on encoding error.
 	 */
 	public static byte[] buildTLVStructure(byte tag, byte[] value) throws IOException {
 		DEROctetString dos = new DEROctetString(value);
@@ -176,8 +122,9 @@ public class DataEncoder {
 	 * Serial number value will be encoded as hexstring
 	 * 
 	 * @param cert X509 certificate to get the signer information from
-	 * @return String array that contains the signerIdentifier at index 0 and CertRef at index 1
-	 * @throws InvalidNameException
+	 * @return String array that contains the signerIdentifier at index 0 and
+	 *         CertRef at index 1
+	 * @throws InvalidNameException if a syntax violation is detected.
 	 */
 	public static String[] getSignerCertRef(X509Certificate cert) throws InvalidNameException {
 		String signerCertRef[] = new String[2];
@@ -204,7 +151,7 @@ public class DataEncoder {
 	/**
 	 * @param dateString Date as String formated as yyyy-MM-dd
 	 * @return date encoded in 3 bytes
-	 * @throws ParseException
+	 * @throws ParseException if dateString is not in format yyyy-MM-dd
 	 */
 	public static byte[] encodeDate(String dateString) throws ParseException {
 		LocalDate dt = LocalDate.parse(dateString);
@@ -214,7 +161,6 @@ public class DataEncoder {
 	/**
 	 * @param localDate Date
 	 * @return date encoded in 3 bytes
-	 * @throws ParseException
 	 */
 	public static byte[] encodeDate(LocalDate localDate) {
 		DateTimeFormatter pattern = DateTimeFormatter.ofPattern("MMddyyyy");
@@ -275,6 +221,14 @@ public class DataEncoder {
 
 	public static int toUnsignedInt(byte value) {
 		return (value & 0x7F) + (value < 0 ? 128 : 0);
+	}
+
+	public static String encodeBase256(byte[] ba) {
+		char[] ca = new char[ba.length];
+		for (int i = 0; i < ba.length; i++) {
+			ca[i] = (char) (ba[i] & 0xFF);
+		}
+		return new String(ca);
 	}
 
 }

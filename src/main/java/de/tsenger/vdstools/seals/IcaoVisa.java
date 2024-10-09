@@ -3,6 +3,7 @@ package de.tsenger.vdstools.seals;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.tinylog.Logger;
 
@@ -81,9 +82,9 @@ public class IcaoVisa extends DigitalSeal {
     }
     
     public static List<MessageTlv> parseFeatures(Map<Feature, Object> featureMap) {
-		ArrayList<MessageTlv> messageTlvList = new ArrayList<MessageTlv>(3);
+		ArrayList<MessageTlv> messageTlvList = new ArrayList<MessageTlv>(featureMap.size());
 		byte[] durationBytes = new byte[3];
-		for (var entry : featureMap.entrySet()) {
+		for (Entry<Feature, Object> entry : featureMap.entrySet()) {
 			switch (entry.getKey()) {
 			case MRZ:
 				String valueStr = ((String) entry.getValue()).replaceAll("\r", "").replaceAll("\n", "");

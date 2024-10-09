@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.tinylog.Logger;
 
@@ -48,8 +49,8 @@ public class SocialInsuranceCard extends DigitalSeal {
     }
     
     public static List<MessageTlv> parseFeatures(Map<Feature, Object> featureMap) throws UnsupportedEncodingException {
-		ArrayList<MessageTlv> messageTlvList = new ArrayList<MessageTlv>(4);
-		for (var entry : featureMap.entrySet()) {
+		ArrayList<MessageTlv> messageTlvList = new ArrayList<MessageTlv>(featureMap.size());
+		for (Entry<Feature, Object> entry : featureMap.entrySet()) {
 			switch (entry.getKey()) {
 			case SOCIAL_INSURANCE_NUMBER:
 				String valueStr = ((String) entry.getValue()).replaceAll("\r", "").replaceAll("\n", "");

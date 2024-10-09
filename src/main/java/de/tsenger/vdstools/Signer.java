@@ -28,6 +28,7 @@ import java.security.PrivateKey;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.UnrecoverableKeyException;
+import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
@@ -38,7 +39,7 @@ public class Signer {
     private BCECPrivateKey ecPrivKey;
 
 
-    public Signer(PrivateKey privKey) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
+    public Signer(ECPrivateKey privKey) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
         this.ecPrivKey = (BCECPrivateKey) privKey;
     }
     

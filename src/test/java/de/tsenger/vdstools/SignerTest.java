@@ -19,26 +19,30 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.tinylog.Logger;
 
 public class SignerTest {
-	String keyStorePassword = "jFd853v_+RL4";
-	String keyStoreFile = "src/test/resources/sealgen_ds.bks";
+	static String keyStorePassword = "vdstools";
+	static String keyStoreFile = "src/test/resources/vdstools_testcerts.bks";
+	static KeyStore keystore;	
 
 	@BeforeClass
-	public static void loadBC() {
+	public static void loadKeyStore() throws NoSuchAlgorithmException, CertificateException, IOException, KeyStoreException, NoSuchProviderException {
 		Security.addProvider(new BouncyCastleProvider());
+		keystore = KeyStore.getInstance("BKS", "BC");
+		FileInputStream fis = new FileInputStream(keyStoreFile);
+		keystore.load(fis, keyStorePassword.toCharArray());
+		fis.close();
 	}
 
 	@Test
 	public void testKeyStoreConstructor() {
-		Signer signer = new Signer(getKeystore(), keyStorePassword, "dets32");
+		Signer signer = new Signer(keystore, keyStorePassword, "dets32");
 		assertEquals(224, signer.getFieldSize());
 	}
 	
 	@Test
 	public void testSign() throws InvalidKeyException, NoSuchAlgorithmException, SignatureException, InvalidAlgorithmParameterException, NoSuchProviderException, IOException {
-		Signer signer = new Signer(getKeystore(), keyStorePassword, "dets32");		
+		Signer signer = new Signer(keystore, keyStorePassword, "dets32");		
 		byte[] dataBytes = new byte[32];
 		Random rnd = new Random();
 		rnd.nextBytes(dataBytes);		
@@ -47,20 +51,5 @@ public class SignerTest {
 		assertTrue(signatureBytes.length*4==signer.getFieldSize());
 	}
 
-	private KeyStore getKeystore() {
-		KeyStore keystore;
-
-		try {
-			keystore = KeyStore.getInstance("BKS", "BC");
-			FileInputStream fis = new FileInputStream(keyStoreFile);
-			keystore.load(fis, keyStorePassword.toCharArray());
-			fis.close();
-			return keystore;
-		} catch (KeyStoreException | NoSuchProviderException | NoSuchAlgorithmException | CertificateException
-				| IOException e) {
-			Logger.warn("Error while opening keystore '" + keyStoreFile + "': " + e.getMessage());
-			return null;
-		}
-	}
 
 }

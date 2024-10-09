@@ -3,6 +3,7 @@ package de.tsenger.vdstools.seals;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.tinylog.Logger;
 
@@ -43,8 +44,8 @@ public class AddressStickerPass extends DigitalSeal {
     }
     
     public static List<MessageTlv> parseFeatures(Map<Feature, Object> featureMap) {
-		ArrayList<MessageTlv> messageTlvList = new ArrayList<MessageTlv>(2);
-		for (var entry : featureMap.entrySet()) {
+		ArrayList<MessageTlv> messageTlvList = new ArrayList<MessageTlv>(featureMap.size());
+		for (Entry<Feature, Object> entry : featureMap.entrySet()) {
 			switch (entry.getKey()) {
 			case DOCUMENT_NUMBER:
 				String valueStr = ((String) entry.getValue()).replaceAll("\r", "").replaceAll("\n", "");

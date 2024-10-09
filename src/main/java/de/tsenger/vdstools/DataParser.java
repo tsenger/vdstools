@@ -45,7 +45,7 @@ public class DataParser {
         Logger.trace("rawData: {}", () -> Hex.toHexString(rawBytes));
 
         VdsHeader vdsHeader = decodeHeader(rawData);
-        VdsMessage vdsMessage = new VdsMessage();
+        VdsMessage vdsMessage = new VdsMessage(vdsHeader.getVdsType());
         VdsSignature vdsSignature = null;
 
         int messageStartPosition = rawData.position();
@@ -80,6 +80,7 @@ public class DataParser {
         // Test if message raw bytes are equal to the calculate raw bytes from vdsMessage.getRawBytes method
         if (!Arrays.equals(vdsMessageRawDataBytes, vdsMessage.getRawBytes())) {
         	Logger.error("Message raw bytes and calculated message raw bytes from vdsMessage.getRawBytes are not equal!");
+        	Logger.debug("Expected: "+ Hex.toHexString(vdsMessageRawDataBytes) + " Actual: " +Hex.toHexString(vdsMessage.getRawBytes()));
         	return null;
         }
         
