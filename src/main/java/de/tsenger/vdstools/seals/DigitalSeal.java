@@ -1,27 +1,27 @@
 package de.tsenger.vdstools.seals;
 
+import java.io.IOException;
+import java.security.cert.X509Certificate;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.List;
 
 import org.bouncycastle.util.Arrays;
 
+import de.tsenger.vdstools.DataEncoder;
 import de.tsenger.vdstools.DataParser;
+import de.tsenger.vdstools.Signer;
 
 /**
  * @author Tobias Senger
  *
  */
-public abstract class DigitalSeal {
+public class DigitalSeal {
 
     private VdsType vdsType;
-
     private VdsHeader vdsHeader;
-
     private VdsMessage vdsMessage;
-
     private VdsSignature vdsSignature;
-
     private String rawString;
 
     protected EnumMap<Feature, Object> featureMap = new EnumMap<>(Feature.class);
@@ -38,13 +38,23 @@ public abstract class DigitalSeal {
         seal.rawString = rawString;
         return seal;
     }
+    
+    public static DigitalSeal getInstance(VdsMessage vdsMessage, X509Certificate cert, Signer signer) {
+        DigitalSeal seal = DataEncoder.buildDigitalSeal(vdsMessage, cert, signer);
+        return seal;
+    }
+    
+    public static DigitalSeal getInstance(VdsHeader vdsHeader, VdsMessage vdsMessage, Signer signer) {
+        DigitalSeal seal = DataEncoder.buildDigitalSeal(vdsHeader, vdsMessage,  signer);
+        return seal;
+    }
 
     public VdsType getVdsType() {
         return vdsType;
     }
 
-    public ArrayList<DocumentFeatureDto> getDocumentFeatures() {
-        return vdsMessage.getDocumentFeatures();
+    public List<MessageTlv> getMessageTlvList() {
+        return vdsMessage.getMessageTlvList();
     }
 
     public EnumMap<Feature, Object> getFeatureMap() {
@@ -96,8 +106,12 @@ public abstract class DigitalSeal {
     }
 
     public byte[] getHeaderAndMessageBytes() {
-        return Arrays.concatenate(vdsHeader.rawBytes, vdsMessage.getRawBytes());
+        return Arrays.concatenate(vdsHeader.getRawBytes(), vdsMessage.getRawBytes());
     }
+    
+	public byte[] getEncodedBytes() throws IOException {
+		return Arrays.concatenate(vdsHeader.getRawBytes(), vdsMessage.getRawBytes(), vdsSignature.getRawBytes());
+	}
 
     public byte[] getSignatureBytes() {
         return vdsSignature.getSignatureBytes();
@@ -107,12 +121,17 @@ public abstract class DigitalSeal {
         return rawString;
     }
 
-    public Object getFeature(Enum<Feature> feature) {
+    public Object getFeature(Feature feature) {
         try {
             return featureMap.get(feature);
         } catch (Exception e) {
             return null;
         }
+    }
+    
+    public void setFeature(Feature feature, Object object) {
+    	featureMap.put(feature, object);
+
     }
 
 }
