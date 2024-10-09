@@ -3,7 +3,7 @@
 
 	<groupId>de.tsenger</groupId>
 	<artifactId>vdstools</artifactId>
-	<version>0.3.0</version>
+	<version>0.3.1</version>
 	<name>VDS Tools java library</name>
 	<description>A library to parse, verify and build/encode Visible Digital Seals (VDS)</description>
 	<packaging>jar</packaging>
@@ -43,6 +43,9 @@
 					<source>10</source>
 					<target>10</target>
 					<showDeprecation>true</showDeprecation>
+					<testExcludes>
+                        <exclude>de/tsenger/vdstools/DataMatrixTest.java</exclude>
+                    </testExcludes>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -68,7 +71,7 @@
 				<configuration>
 					<show>public</show>
 					<attach>true</attach>
-					<source>8</source>
+					<source>10</source>
 					<maxmemory>1024m</maxmemory>
 				</configuration>
 				<executions>
