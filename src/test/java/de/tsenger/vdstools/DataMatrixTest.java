@@ -2,7 +2,6 @@ package de.tsenger.vdstools;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -20,7 +19,6 @@ import org.junit.Test;
 import org.tinylog.Logger;
 
 import com.google.zxing.BarcodeFormat;
-import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.datamatrix.DataMatrixWriter;
 
@@ -60,8 +58,9 @@ public class DataMatrixTest {
 		DataMatrixWriter dmw = new DataMatrixWriter();
 		BitMatrix bitMatrix = dmw.encode(DataEncoder.encodeBase256(digitalSeal.getEncodedBytes()), BarcodeFormat.DATA_MATRIX, 450, 450);
 
-		Path path = Path.of("test/test.png");
-		MatrixToImageWriter.writeToPath(bitMatrix, "PNG", path);
+		// Define your own export Path and uncomment if needed
+//		Path path = Path.of("test/test.png");
+//		MatrixToImageWriter.writeToPath(bitMatrix, "PNG", path);
 	}
 	
 
