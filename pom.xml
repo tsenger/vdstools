@@ -82,6 +82,24 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.5.1</version>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>3.2.7</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<keyname>AF2AC2693290F49F</keyname>	
+					<useAgent>false</useAgent>			
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
