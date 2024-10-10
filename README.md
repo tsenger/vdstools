@@ -1,5 +1,5 @@
 # VdsTools - lib to decode/verify and encode/sign  Visible Digital Seals
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)  [![Release](https://jitpack.io/v/tsenger/vdstools.svg)](https://jitpack.io/#tsenger/vdstools)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)  [![Release](https://jitpack.io/v/tsenger/vdstools.svg)](https://jitpack.io/#tsenger/vdstools) [![Java CI with Maven](https://github.com/tsenger/vdstools/actions/workflows/maven.yml/badge.svg?branch=main)](https://github.com/tsenger/vdstools/actions/workflows/maven.yml)
 
 A library to decode/verify and encode/sign Visible Digital Seals (VDS) as specified in
 - [BSI TR-03137 Part 1](https://www.bsi.bund.de/EN/Themen/Unternehmen-und-Organisationen/Standards-und-Zertifizierung/Technische-Richtlinien/TR-nach-Thema-sortiert/tr03137/tr-03137.html)
