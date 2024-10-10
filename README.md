@@ -1,17 +1,15 @@
-# VdsTools - lib to parse and verify Visible Digital Seals
+# VdsTools - lib to encode/decode and verify Visible Digital Seals
 
-A Java library to parse and verify visible digital seals (VDS) as specified in
+A library to parse/verify and build/sign Visible Digital Seals (VDS) as specified in
 - [BSI TR-03137 Part 1](https://www.bsi.bund.de/EN/Themen/Unternehmen-und-Organisationen/Standards-und-Zertifizierung/Technische-Richtlinien/TR-nach-Thema-sortiert/tr03137/tr-03137.html)
 - [ICAO Doc 9303 Part 13: Visible Digital Seals](https://www.icao.int/publications/Documents/9303_p13_cons_en.pdf)
 - [ICAO TR "VDS for Non-Electronic Documents"](https://www.icao.int/Security/FAL/TRIP/Documents/TR%20-%20Visible%20Digital%20Seals%20for%20Non-Electronic%20Documents%20V1.7.pdf)
 
 
-
-Test VDS can be generated with help of the [Sealgen](https://sealgen.tsenger.de) tool. 
+VDS can be created with the help of this library or, if you want to try it out quickly, via the web [Sealgen](https://sealgen.tsenger.de) tool. 
 There is also the [Sealva](https://play.google.com/store/apps/details?id=de.tsenger.sealver) Android app which scans, verifies and displays all VDS profiles defined in the above specifications.
 
 <a href='https://play.google.com/store/apps/details?id=de.tsenger.sealver&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png' width='155' height='60'/></a>
-
 
 ## Parse and verify a VDS
 Here is a quick overview how to use the VDS parser and verifier.
@@ -46,7 +44,7 @@ import de.tsenger.vdstools.seals.Feature;
 Also have a look at [DataParserTest.java](https://github.com/tsenger/vdstools/blob/main/src/test/java/de/tsenger/vdstools/DataParserTest.java) and [VerifierTest.java](https://github.com/tsenger/vdstools/blob/main/src/test/java/de/tsenger/vdstools/VerifierTest.java) for some more examples.
 
 ## Build a new VDS
-Since version 0.3.0 you can also generate VDS with this library. Here is an example:
+Since version 0.3.0 you can also generate VDS with this library. Here is an example on how to use the DateEncoder and Signer classes:
 
 ```java
 KeyStore keystore = ...
@@ -108,7 +106,7 @@ and the dependency:
 
 ```groovy
 dependencies {
-	implementation 'com.github.tsenger:vdstools:0.3.0'
+	implementation 'com.github.tsenger:vdstools:0.3.1'
 }
 ```
 
@@ -131,6 +129,6 @@ and the dependency:
 <dependency>
 	<groupId>com.github.tsenger</groupId>
 	<artifactId>vdstools</artifactId>
-	<version>0.3.0</version>
+	<version>0.3.1</version>
 </dependency>
 ```
