@@ -1,6 +1,6 @@
-# VdsTools - lib to encode/decode and verify Visible Digital Seals
+# VdsTools - lib to decode/verify and encode/sign  Visible Digital Seals
 
-A library to parse/verify and build/sign Visible Digital Seals (VDS) as specified in
+A library to decode/verify and encode/sign Visible Digital Seals (VDS) as specified in
 - [BSI TR-03137 Part 1](https://www.bsi.bund.de/EN/Themen/Unternehmen-und-Organisationen/Standards-und-Zertifizierung/Technische-Richtlinien/TR-nach-Thema-sortiert/tr03137/tr-03137.html)
 - [ICAO Doc 9303 Part 13: Visible Digital Seals](https://www.icao.int/publications/Documents/9303_p13_cons_en.pdf)
 - [ICAO TR "VDS for Non-Electronic Documents"](https://www.icao.int/Security/FAL/TRIP/Documents/TR%20-%20Visible%20Digital%20Seals%20for%20Non-Electronic%20Documents%20V1.7.pdf)
