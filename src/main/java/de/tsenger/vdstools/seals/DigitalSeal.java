@@ -1,6 +1,7 @@
 package de.tsenger.vdstools.seals;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.security.cert.X509Certificate;
 import java.time.LocalDate;
 import java.util.EnumMap;
@@ -77,8 +78,8 @@ public class DigitalSeal {
      * @return Formated SignerCertRef all UPPERCASE
      */
     public String getSignerCertRef() {
-        int certRefInteger = Integer.decode("0x" + vdsHeader.certificateReference);
-        return String.format("%s%x", vdsHeader.signerIdentifier, certRefInteger).toUpperCase();
+    	BigInteger certRefInteger = new BigInteger(vdsHeader.certificateReference, 16);
+    	return String.format("%s%x", vdsHeader.signerIdentifier, certRefInteger).toUpperCase();
     }
 
     public String getSignerIdentifier() {
