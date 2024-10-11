@@ -1,5 +1,5 @@
 # VdsTools - lib to decode/verify and encode/sign  Visible Digital Seals
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)  [![Release](https://jitpack.io/v/tsenger/vdstools.svg)](https://jitpack.io/#tsenger/vdstools) [![Java CI with Maven](https://github.com/tsenger/vdstools/actions/workflows/maven.yml/badge.svg?branch=main)](https://github.com/tsenger/vdstools/actions/workflows/maven.yml)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)  ![Maven Central Version](https://img.shields.io/maven-central/v/de.tsenger/vdstools?color=green) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/tsenger/vdstools/maven.yml)
 
 A library to decode/verify and encode/sign Visible Digital Seals (VDS) as specified in
 - [BSI TR-03137 Part 1](https://www.bsi.bund.de/EN/Themen/Unternehmen-und-Organisationen/Standards-und-Zertifizierung/Technische-Richtlinien/TR-nach-Thema-sortiert/tr03137/tr-03137.html)
@@ -86,50 +86,24 @@ JavaDoc can be found here:
 [https://javadoc.jitpack.io/com/github/tsenger/vdstools/latest/javadoc/index.html](https://javadoc.jitpack.io/com/github/tsenger/vdstools/latest/javadoc/index.html)
 
 ## How to include
-[https://jitpack.io/#tsenger/vdstools](https://jitpack.io/#tsenger/vdstools)
-
-[![Release](https://jitpack.io/v/tsenger/vdstools.svg)](https://jitpack.io/#tsenger/vdstools)
+The vdstools library is available on the [Maven Central Repository](https://central.sonatype.com/artifact/de.tsenger/vdstools) and can be easly integrated in your projects.
 
 ### Gradle
-
-To include this library to your Gradle build add:
-
-```groovy
-allprojects {
-	repositories {
-		...
-		maven { url 'https://jitpack.io' }
-	}
-}
-```
-
-and the dependency:
+To include this library to your Gradle build add this dependency:
 
 ```groovy
 dependencies {
-	implementation 'com.github.tsenger:vdstools:0.3.1'
+    implementation 'de.tsenger:vdstools:0.3.2'
 }
 ```
 
 ### Maven
-
-To include this library to your Maven build add:
-
-```xml
-<repositories>
-	<repository>
-		<id>jitpack.io</id>
-		<url>https://jitpack.io</url>
-	</repository>
-</repositories>
-```
-
-and the dependency:
+To include this library to your Maven build add this dependency:
 
 ```xml
 <dependency>
-	<groupId>com.github.tsenger</groupId>
-	<artifactId>vdstools</artifactId>
-	<version>0.3.1</version>
+    <groupId>de.tsenger</groupId>
+    <artifactId>vdstools</artifactId>
+    <version>0.3.2</version>
 </dependency>
 ```
