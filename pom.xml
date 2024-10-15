@@ -28,6 +28,10 @@
 			<email>info@tsenger.de</email>
 		</developer>
 	</developers>
+	
+	<scm>
+        <url>https://github.com/tsenger/vdstools</url>
+    </scm>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -96,8 +100,17 @@
 					</execution>
 				</executions>
 				<configuration>
-					<keyname>AF2AC2693290F49F</keyname>	
-					<useAgent>false</useAgent>			
+					<keyname>AF2AC2693290F49F</keyname>
+					<useAgent>false</useAgent>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.sonatype.central</groupId>
+				<artifactId>central-publishing-maven-plugin</artifactId>
+				<version>0.6.0</version>
+				<extensions>true</extensions>
+				<configuration>
+					<publishingServerId>central</publishingServerId>
 				</configuration>
 			</plugin>
 		</plugins>
