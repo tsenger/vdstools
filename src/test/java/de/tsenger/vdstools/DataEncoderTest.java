@@ -54,6 +54,48 @@ public class DataEncoderTest{
 		System.out.println("encodedDate: " + Hex.toHexString(encodedDate));
 		assertEquals(ldNow, DataParser.decodeDate(encodedDate));
 	}
+	
+	@Test
+	public void testEncodeDate1_Mask0() {
+		byte[] encodedDate = DataEncoder.encodeMaskedDate("1900-00-01", (byte) 0);
+		System.out.println("encodedDate: " + Hex.toHexString(encodedDate));
+		assertEquals("00002e7c", Hex.toHexString(encodedDate));
+	}
+	
+	@Test
+	public void testEncodeDate2_Mask0() {
+		byte[] encodedDate = DataEncoder.encodeMaskedDate("2100-12-31", (byte) 0);
+		System.out.println("encodedDate: " + Hex.toHexString(encodedDate));
+		assertEquals("00bbde24", Hex.toHexString(encodedDate));
+	}
+	
+	@Test
+	public void testEncodeDate3_Mask0() {
+		byte[] encodedDate = DataEncoder.encodeMaskedDate("0001-00-00", (byte) 0);
+		System.out.println("encodedDate: " + Hex.toHexString(encodedDate));
+		assertEquals("00000001", Hex.toHexString(encodedDate));
+	}
+	
+	@Test
+	public void testEncodeDate1_Mask1() {
+		byte[] encodedDate = DataEncoder.encodeMaskedDate("1900-00-01", (byte) 0b11000011);
+		System.out.println("encodedDate: " + Hex.toHexString(encodedDate));
+		assertEquals("c3002e7c", Hex.toHexString(encodedDate));
+	}
+	
+	@Test
+	public void testEncodeDate2_Mask1() {
+		byte[] encodedDate = DataEncoder.encodeMaskedDate("2100-12-31", (byte) 0b00000011);
+		System.out.println("encodedDate: " + Hex.toHexString(encodedDate));
+		assertEquals("03bbde24", Hex.toHexString(encodedDate));
+	}
+	
+	@Test
+	public void testEncodeDate3_Mask1() {
+		byte[] encodedDate = DataEncoder.encodeMaskedDate("0001-00-00", (byte)  0xFC);
+		System.out.println("encodedDate: " + Hex.toHexString(encodedDate));
+		assertEquals("fc000001", Hex.toHexString(encodedDate));
+	}
 
 	@Test
 	public void testEncodeDate_String() throws ParseException {

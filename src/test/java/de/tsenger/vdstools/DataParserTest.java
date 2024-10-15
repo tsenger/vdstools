@@ -316,6 +316,13 @@ public class DataParserTest extends TestCase {
     		+ "69a60d687bb2cd");
 
   //@formatter:on    
+    
+    
+    @Test
+    public void testDecodeMaskedDate() {
+    	String dateString = DataParser.decodeMaskedDate(Hex.decode("c3002e7c"));
+    	assertEquals("00011900", dateString);
+    }
 
     @Test
     public void testDecodeHeader() {

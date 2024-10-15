@@ -142,6 +142,9 @@ public class DataEncoder {
 	}
 
 	/**
+	 * Encode a LocalDate as described in ICAO Doc9303 Part 13 in three bytes
+	 * pattern of date is MMddyyy
+	 * 
 	 * @param localDate Date
 	 * @return date encoded in 3 bytes
 	 */
@@ -150,7 +153,26 @@ public class DataEncoder {
 		String formattedDate = localDate.format(pattern);
 		int dateInt = Integer.parseInt(formattedDate);
 		return new byte[] { (byte) (dateInt >>> 16), (byte) (dateInt >>> 8), (byte) dateInt };
+	}
 
+	/**
+	 * Encode a LocalDate as described in ICAO TR "Datastructure for Barcode" in
+	 * four bytes pattern of date is xxMMddyyy where xx is the date mask
+	 * 
+	 * @param dateString date as String formated as yyyy-MM-dd
+	 * @param dateMask  binary Date Mask encoded in one byte, masks a MMddyy date
+	 *                  with a '1' at every unknown part of the date
+	 * @return date encoded in 4 bytes
+	 */
+	public static byte[] encodeMaskedDate(String dateString, byte dateMask) {
+		String[] splittedDate = dateString.split("-");
+		if (splittedDate.length!=3) throw new IllegalArgumentException("Date string must be formated as yyyy-MM-dd.");
+		// Bring it to String 'MMddyyyy'
+		String formattedDate = splittedDate[1]+splittedDate[2]+splittedDate[0];
+		int dateInt = Integer.parseInt(formattedDate);
+		byte[] encodedDateString = new byte[] { dateMask, (byte) (dateInt >>> 16), (byte) (dateInt >>> 8), (byte) dateInt };
+		
+		return encodedDateString;
 	}
 
 	public static byte[] encodeC40(String dataString) {

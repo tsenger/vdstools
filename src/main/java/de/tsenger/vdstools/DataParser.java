@@ -199,6 +199,22 @@ public class DataParser {
         }
         return tmpByteArray;
     }
+    
+    public static String decodeMaskedDate(byte[] maskedDateBytes) {
+    	if (maskedDateBytes.length != 4)
+            throw new IllegalArgumentException("expected four bytes for masked date decoding");
+    	byte mask = maskedDateBytes[0];
+    	long intval = (long) toUnsignedInt(maskedDateBytes[1]) * 256 * 256 + toUnsignedInt(maskedDateBytes[2]) * 256L
+                + toUnsignedInt(maskedDateBytes[3]);
+        int day = (int) ((intval % 1000000) / 10000);
+        int month = (int) (intval / 1000000);
+        int year = (int) (intval % 10000);
+        //MMddyyyy
+        String unmaskedDateString = String.format("%02d%02d%04d", month, day, year);
+        return unmaskedDateString;
+        
+        //TODO add masking to unmaskedDateString
+    }
 
     public static LocalDate decodeDate(byte[] bytes) {
 
@@ -213,6 +229,8 @@ public class DataParser {
 
         return LocalDate.of(year, month, day);
     }
+    
+ 
 
     private static int toUnsignedInt(byte value) {
         return (value & 0x7F) + (value < 0 ? 128 : 0);
