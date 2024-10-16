@@ -1,8 +1,13 @@
 package de.tsenger.vdstools;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
@@ -13,7 +18,7 @@ import de.tsenger.vdstools.seals.Feature;
 import de.tsenger.vdstools.seals.VdsHeader;
 import junit.framework.TestCase;
 
-public class DataParserTest extends TestCase {
+public class DataParserTest {
 
   //@formatter:off
     static byte[] residentPermit_rawBytes = Hex.decode(
@@ -319,10 +324,69 @@ public class DataParserTest extends TestCase {
     
     
     @Test
-    public void testDecodeMaskedDate() {
-    	String dateString = DataParser.decodeMaskedDate(Hex.decode("c3002e7c"));
-    	assertEquals("00011900", dateString);
-    }
+	public void testDecodeMaskedDate1() {
+		String decodedDate = DataParser.decodeMaskedDate(Hex.decode("c3002e7c"));
+		assertEquals("19xx-xx-01", decodedDate);
+	}
+    
+    @Test
+	public void testDecodeMaskedDate2() {
+		String decodedDate = DataParser.decodeMaskedDate(Hex.decode("313d10da"));
+		assertEquals("201x-04-xx", decodedDate);
+	}
+	
+    @Test
+	public void testDecodeMaskedDate3() {
+		String decodedDate = DataParser.decodeMaskedDate(Hex.decode("f000076c"));
+		assertEquals("1900-xx-xx", decodedDate);
+	}
+    
+    @Test
+   	public void testDecodeMaskedDate4() {
+   		String decodedDate = DataParser.decodeMaskedDate(Hex.decode("00bbddbf"));
+   		assertEquals("1999-12-31", decodedDate);
+   	}
+    
+    @Test
+   	public void testDecodeMaskedDate5() {
+   		String decodedDate = DataParser.decodeMaskedDate(Hex.decode("ff000000"));
+   		assertEquals("xxxx-xx-xx", decodedDate);
+   	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void testDecodeMaskedDate6_invalidFormat() {
+		String decodedDate = DataParser.decodeMaskedDate(Hex.decode("ff0000"));
+		assertNull(decodedDate);
+	}
+	
+	@Test
+   	public void testDecodeDateTime1() {
+   		LocalDateTime localDateTime = DataParser.decodeDateTime(Hex.decode("0aecc4c7fb80"));
+   		System.out.println(localDateTime);
+   		assertTrue(LocalDateTime.parse("2030-12-01T00:00:00").isEqual(localDateTime));
+   	}
+	
+	@Test
+   	public void testDecodeDateTime2() {
+   		LocalDateTime localDateTime = DataParser.decodeDateTime(Hex.decode("02f527bf25b2"));
+   		System.out.println(localDateTime);
+   		assertTrue(LocalDateTime.parse("1957-03-25T08:15:22").isEqual(localDateTime));
+   	}
+	
+	@Test
+   	public void testDecodeDateTime3() {
+   		LocalDateTime localDateTime = DataParser.decodeDateTime(Hex.decode("00eb28c03640"));
+   		System.out.println(localDateTime);
+   		assertTrue(LocalDateTime.parse("0001-01-01T00:00:00").isEqual(localDateTime));
+   	}
+	
+	@Test
+   	public void testDecodeDateTime4() {
+   		LocalDateTime localDateTime = DataParser.decodeDateTime(Hex.decode("0b34792d9777"));
+   		System.out.println(localDateTime);
+   		assertTrue(LocalDateTime.parse("9999-12-31T23:59:59").isEqual(localDateTime));
+   	}
+
 
     @Test
     public void testDecodeHeader() {

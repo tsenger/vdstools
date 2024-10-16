@@ -15,6 +15,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import javax.naming.InvalidNameException;
 
@@ -56,45 +57,82 @@ public class DataEncoderTest{
 	}
 	
 	@Test
-	public void testEncodeDate1_Mask0() {
-		byte[] encodedDate = DataEncoder.encodeMaskedDate("1900-00-01", (byte) 0);
+	public void testEncodeDateString() throws ParseException {
+		byte[] encodedDate = DataEncoder.encodeDate("1979-10-09");
 		System.out.println("encodedDate: " + Hex.toHexString(encodedDate));
-		assertEquals("00002e7c", Hex.toHexString(encodedDate));
+		assertEquals("99fdcb", Hex.toHexString(encodedDate));
 	}
+
 	
 	@Test
-	public void testEncodeDate2_Mask0() {
-		byte[] encodedDate = DataEncoder.encodeMaskedDate("2100-12-31", (byte) 0);
-		System.out.println("encodedDate: " + Hex.toHexString(encodedDate));
-		assertEquals("00bbde24", Hex.toHexString(encodedDate));
-	}
-	
-	@Test
-	public void testEncodeDate3_Mask0() {
-		byte[] encodedDate = DataEncoder.encodeMaskedDate("0001-00-00", (byte) 0);
-		System.out.println("encodedDate: " + Hex.toHexString(encodedDate));
-		assertEquals("00000001", Hex.toHexString(encodedDate));
-	}
-	
-	@Test
-	public void testEncodeDate1_Mask1() {
-		byte[] encodedDate = DataEncoder.encodeMaskedDate("1900-00-01", (byte) 0b11000011);
-		System.out.println("encodedDate: " + Hex.toHexString(encodedDate));
+	public void testEncodeMaskedDate1() {
+		byte[] encodedDate = DataEncoder.encodeMaskedDate("19xx-xx-01");
 		assertEquals("c3002e7c", Hex.toHexString(encodedDate));
 	}
 	
 	@Test
-	public void testEncodeDate2_Mask1() {
-		byte[] encodedDate = DataEncoder.encodeMaskedDate("2100-12-31", (byte) 0b00000011);
-		System.out.println("encodedDate: " + Hex.toHexString(encodedDate));
-		assertEquals("03bbde24", Hex.toHexString(encodedDate));
+	public void testEncodeMaskedDate2() {
+		byte[] encodedDate = DataEncoder.encodeMaskedDate("201x-04-XX");
+		assertEquals("313d10da", Hex.toHexString(encodedDate));
 	}
 	
 	@Test
-	public void testEncodeDate3_Mask1() {
-		byte[] encodedDate = DataEncoder.encodeMaskedDate("0001-00-00", (byte)  0xFC);
-		System.out.println("encodedDate: " + Hex.toHexString(encodedDate));
-		assertEquals("fc000001", Hex.toHexString(encodedDate));
+	public void testEncodeMaskedDate3() {
+		byte[] encodedDate = DataEncoder.encodeMaskedDate("1900-xx-xx");
+		assertEquals("f000076c", Hex.toHexString(encodedDate));
+	}
+	
+	@Test
+	public void testEncodeMaskedDate4() {
+		byte[] encodedDate = DataEncoder.encodeMaskedDate("1999-12-31");
+		assertEquals("00bbddbf", Hex.toHexString(encodedDate));
+	}
+	
+	@Test
+	public void testEncodeMaskedDate5() {
+		byte[] encodedDate = DataEncoder.encodeMaskedDate("xxxx-xx-xx");
+		assertEquals("ff000000", Hex.toHexString(encodedDate));
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void testEncodeMaskedDate6_invalidFormat() {
+		byte[] encodedDate = DataEncoder.encodeMaskedDate("19-03-2010");
+		assertEquals("ff000000", Hex.toHexString(encodedDate));
+	}
+	
+	@Test 
+	public void testEncodeDateTime1() {
+		LocalDateTime dateTime = LocalDateTime.parse("1957-03-25T08:15:22");
+		byte[] dateTimeBytes = DataEncoder.encodeDateTime(dateTime);
+		assertEquals("02f527bf25b2", Hex.toHexString(dateTimeBytes));
+	}
+	
+	@Test 
+	public void testEncodeDateTime2() {
+		LocalDateTime dateTime = LocalDateTime.parse("2030-12-01T00:00:00");
+		byte[] dateTimeBytes = DataEncoder.encodeDateTime(dateTime);
+		assertEquals("0aecc4c7fb80", Hex.toHexString(dateTimeBytes));
+	}
+	
+	@Test 
+	public void testEncodeDateTime3() {
+		LocalDateTime dateTime = LocalDateTime.parse("0001-01-01T00:00:00");
+		byte[] dateTimeBytes = DataEncoder.encodeDateTime(dateTime);
+		assertEquals("00eb28c03640", Hex.toHexString(dateTimeBytes));
+	}
+	
+	@Test 
+	public void testEncodeDateTime4() {
+		LocalDateTime dateTime = LocalDateTime.parse("9999-12-31T23:59:59");
+		byte[] dateTimeBytes = DataEncoder.encodeDateTime(dateTime);
+		assertEquals("0b34792d9777", Hex.toHexString(dateTimeBytes));
+	}
+	
+	@Test
+	public void testRegex() {
+		String dateString = "1979-10-09";
+		String formattedDate = dateString.replaceAll("(.{4})-(.{2})-(.{2})", "$2$3$1");
+		assertEquals("10091979", formattedDate);
 	}
 
 	@Test

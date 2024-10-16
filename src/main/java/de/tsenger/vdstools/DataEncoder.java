@@ -2,6 +2,7 @@ package de.tsenger.vdstools;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -10,7 +11,9 @@ import java.security.SignatureException;
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.regex.Pattern;
 
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
@@ -143,7 +146,6 @@ public class DataEncoder {
 
 	/**
 	 * Encode a LocalDate as described in ICAO Doc9303 Part 13 in three bytes
-	 * pattern of date is MMddyyy
 	 * 
 	 * @param localDate Date
 	 * @return date encoded in 3 bytes
@@ -154,23 +156,42 @@ public class DataEncoder {
 		int dateInt = Integer.parseInt(formattedDate);
 		return new byte[] { (byte) (dateInt >>> 16), (byte) (dateInt >>> 8), (byte) dateInt };
 	}
+	
+	/**
+	 * Encode a LocalDate as described in as described in ICAO TR "Datastructure for Barcode" in six bytes.
+	 * 
+	 * @param localDate Date
+	 * @return date encoded in 6 bytes
+	 */
+	public static byte[] encodeDateTime(LocalDateTime localDatetime) {
+		DateTimeFormatter pattern = DateTimeFormatter.ofPattern("MMddyyyyHHmmss");
+		String formattedDate = localDatetime.format(pattern);
+		BigInteger dateInt = new BigInteger(formattedDate);
+		return dateInt.toByteArray();
+	}
 
 	/**
-	 * Encode a LocalDate as described in ICAO TR "Datastructure for Barcode" in
-	 * four bytes pattern of date is xxMMddyyy where xx is the date mask
+	 * Encodes a date string with unknown date parts as described in ICAO TR "Datastructure for Barcode".
+	 * Unknown parts of the date string shall be filled with an 'x', e.g. 19xx-10-xx
 	 * 
-	 * @param dateString date as String formated as yyyy-MM-dd
-	 * @param dateMask  binary Date Mask encoded in one byte, masks a MMddyy date
-	 *                  with a '1' at every unknown part of the date
-	 * @return date encoded in 4 bytes
+	 * @param dateString date as String formated as yyyy-MM-dd where unknown parts could be replaced by an x
+	 * @return masked date encoded in 4 bytes
 	 */
-	public static byte[] encodeMaskedDate(String dateString, byte dateMask) {
-		String[] splittedDate = dateString.split("-");
-		if (splittedDate.length!=3) throw new IllegalArgumentException("Date string must be formated as yyyy-MM-dd.");
-		// Bring it to String 'MMddyyyy'
-		String formattedDate = splittedDate[1]+splittedDate[2]+splittedDate[0];
-		int dateInt = Integer.parseInt(formattedDate);
-		byte[] encodedDateString = new byte[] { dateMask, (byte) (dateInt >>> 16), (byte) (dateInt >>> 8), (byte) dateInt };
+	public static byte[] encodeMaskedDate(String dateString) {
+		if (!dateString.matches("(.{4})-(.{2})-(.{2})")) throw new IllegalArgumentException("Date string must be formated as yyyy-MM-dd.");
+		
+		String formattedDate = dateString.replaceAll("(.{4})-(.{2})-(.{2})", "$2$3$1").toLowerCase();
+		int dateInt = Integer.parseInt(formattedDate.replaceAll("x", "0"));
+		char[] dateCharArray = formattedDate.toCharArray();
+		
+		byte mask = 0;
+		for (int i=0;i<8;i++) {
+        	if (dateCharArray[i] == 'x') {
+        		mask = (byte) (mask | (0x80>>i));
+        	}
+        }
+		
+		byte[] encodedDateString = new byte[] { mask, (byte) (dateInt >>> 16), (byte) (dateInt >>> 8), (byte) dateInt };
 		
 		return encodedDateString;
 	}
