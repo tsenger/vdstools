@@ -28,8 +28,8 @@ public enum IdbMessageType {
         }
     }
 
-    public static IdbMessageType valueOf(byte messageType) {
-        return map.get(messageType);
+    public static IdbMessageType valueOf(byte messageTag) {
+        return map.get(messageTag);
     }
 
     public byte getValue() {

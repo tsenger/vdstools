@@ -6,7 +6,6 @@ import java.math.BigInteger;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.DERSequence;
-import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
 import org.tinylog.Logger;
 
@@ -19,9 +18,9 @@ public class IdbSignature {
 	private byte[] rawSignatureBytes;
 	private byte[] derSignatureBytes = null;
 
-	public IdbSignature(byte[] rawSignatureBytes) {
+	public IdbSignature(byte[] rawSignatureBytes) throws IOException {
 		if (rawSignatureBytes[0] == TAG) {
-			rawSignatureBytes = Arrays.copyOfRange(rawSignatureBytes, 1, rawSignatureBytes.length);
+			rawSignatureBytes = DerTlv.fromByteArray(rawSignatureBytes).getValue();
 		}
 		this.rawSignatureBytes = rawSignatureBytes;
 		this.derSignatureBytes = buildDerSignature(rawSignatureBytes);
@@ -47,7 +46,7 @@ public class IdbSignature {
 	}
 
 	public byte[] getEncoded() throws IOException {
-		DerTlv derSignature = new DerTlv((byte) 0xff, rawSignatureBytes);
+		DerTlv derSignature = new DerTlv(TAG, rawSignatureBytes);
 		return derSignature.getEncoded();
 	}
 

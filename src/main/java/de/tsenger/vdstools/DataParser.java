@@ -52,6 +52,8 @@ public class DataParser {
 		int messageStartPosition = rawData.position();
 		int signatureStartPosition = 0;
 		byte[] vdsMessageRawDataBytes = null;
+
+		// TODO find "cleaner" solution, duplicated in IdbMessageGroup
 		while (rawData.hasRemaining()) {
 			int tag = (rawData.get() & 0xff);
 			if (tag == 0xff) {
