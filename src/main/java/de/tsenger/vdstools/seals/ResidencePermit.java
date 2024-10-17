@@ -9,6 +9,7 @@ import org.tinylog.Logger;
 
 import de.tsenger.vdstools.DataEncoder;
 import de.tsenger.vdstools.DataParser;
+import de.tsenger.vdstools.DerTlv;
 
 /**
  * @author Tobias Senger
@@ -18,11 +19,11 @@ public class ResidencePermit extends DigitalSeal {
 
 	public ResidencePermit(VdsHeader vdsHeader, VdsMessage vdsMessage, VdsSignature vdsSignature) {
 		super(vdsHeader, vdsMessage, vdsSignature);
-		parseMessageTlvList(vdsMessage.getMessageTlvList());
+		parseMessageTlvList(vdsMessage.getDerTlvList());
 	}
 
-	private void parseMessageTlvList(List<MessageTlv> tlvList) {
-		for (MessageTlv tlv : tlvList) {
+	private void parseMessageTlvList(List<DerTlv> tlvList) {
+		for (DerTlv tlv : tlvList) {
 			switch (tlv.getTag()) {
 			case 0x02:
 				String mrz = DataParser.decodeC40(tlv.getValue()).replace(' ', '<');
@@ -40,26 +41,24 @@ public class ResidencePermit extends DigitalSeal {
 		}
 
 	}
-	
-	public static List<MessageTlv> parseFeatures(Map<Feature, Object> featureMap) {
-		ArrayList<MessageTlv> messageTlvList = new ArrayList<MessageTlv>(featureMap.size());
+
+	public static List<DerTlv> parseFeatures(Map<Feature, Object> featureMap) {
+		ArrayList<DerTlv> derTlvList = new ArrayList<DerTlv>(featureMap.size());
 		for (Entry<Feature, Object> entry : featureMap.entrySet()) {
 			switch (entry.getKey()) {
 			case MRZ:
 				String mrz = ((String) entry.getValue()).replaceAll("\r", "").replaceAll("\n", "");
-				byte[] encodedMrz = DataEncoder.encodeC40(mrz);
-				messageTlvList.add(new MessageTlv((byte) (0x02), encodedMrz.length, encodedMrz));
+				derTlvList.add(new DerTlv((byte) (0x02), DataEncoder.encodeC40(mrz)));
 				break;
 			case PASSPORT_NUMBER:
 				String ppNo = ((String) entry.getValue()).replaceAll("\r", "").replaceAll("\n", "");
-				byte[] encodedPpNo = DataEncoder.encodeC40(ppNo);
-				messageTlvList.add(new MessageTlv((byte) (0x03), encodedPpNo.length, encodedPpNo));
+				derTlvList.add(new DerTlv((byte) (0x03), DataEncoder.encodeC40(ppNo)));
 				break;
 			default:
 				Logger.warn("Feature " + entry.getKey().toString() + " is not supported in ResidencePermit.");
 			}
 		}
-		return messageTlvList;
+		return derTlvList;
 	}
 
 }

@@ -18,17 +18,17 @@ import de.tsenger.vdstools.DerTlv;
  */
 public class VdsMessage {
 
-	private List<MessageTlv> messageTlvList;
+	private List<DerTlv> derTlvList;
 	private HashMap<Feature, Object> featureMap = new LinkedHashMap<Feature, Object>(2);
 	private VdsType vdsType = null;
 
-	public VdsMessage(List<MessageTlv> messageTlvList) {
-		this.messageTlvList = messageTlvList;
+	public VdsMessage(List<DerTlv> derTlvList) {
+		this.derTlvList = derTlvList;
 	}
 
 	public VdsMessage(VdsType vdsType) {
 		this.vdsType = vdsType;
-		this.messageTlvList = new ArrayList<>(5);
+		this.derTlvList = new ArrayList<>(5);
 	}
 
 	public VdsType getVdsType() {
@@ -37,17 +37,16 @@ public class VdsMessage {
 
 	public byte[] getRawBytes() {
 		if (!featureMap.isEmpty()) {
-			if (messageTlvList.size() != 0) {
-				Logger.warn("messageTlvList for " + vdsType.name() + " is NOT empty(size: " + messageTlvList.size()
+			if (derTlvList.size() != 0) {
+				Logger.warn("messageTlvList for " + vdsType.name() + " is NOT empty(size: " + derTlvList.size()
 						+ ")! Parsing featureMap will override messageTlvList.");
 			}
 			parseFeatures();
 		}
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
-			for (MessageTlv feature : this.messageTlvList) {
-				DerTlv derFeature = new DerTlv(feature.getTag(), feature.getValue());
-				baos.write(derFeature.getEncoded());
+			for (DerTlv feature : this.derTlvList) {
+				baos.write(feature.getEncoded());
 			}
 		} catch (IOException e) {
 			Logger.error("Can't build raw bytes: " + e.getMessage());
@@ -59,44 +58,44 @@ public class VdsMessage {
 	private void parseFeatures() {
 		switch (vdsType) {
 		case RESIDENCE_PERMIT:
-			messageTlvList = ResidencePermit.parseFeatures(featureMap);
+			derTlvList = ResidencePermit.parseFeatures(featureMap);
 			break;
 		case ADDRESS_STICKER_ID:
-			messageTlvList = AddressStickerIdCard.parseFeatures(featureMap);
+			derTlvList = AddressStickerIdCard.parseFeatures(featureMap);
 			break;
 		case ADDRESS_STICKER_PASSPORT:
-			messageTlvList = AddressStickerPass.parseFeatures(featureMap);
+			derTlvList = AddressStickerPass.parseFeatures(featureMap);
 			break;
 		case ALIENS_LAW:
-			messageTlvList = AliensLaw.parseFeatures(featureMap);
+			derTlvList = AliensLaw.parseFeatures(featureMap);
 			break;
 		case ARRIVAL_ATTESTATION:
-			messageTlvList = ArrivalAttestation.parseFeatures(featureMap);
+			derTlvList = ArrivalAttestation.parseFeatures(featureMap);
 			break;
 		case FICTION_CERT:
-			messageTlvList = FictionCert.parseFeatures(featureMap);
+			derTlvList = FictionCert.parseFeatures(featureMap);
 			break;
 		case ICAO_EMERGENCY_TRAVEL_DOCUMENT:
-			messageTlvList = IcaoEmergencyTravelDocument.parseFeatures(featureMap);
+			derTlvList = IcaoEmergencyTravelDocument.parseFeatures(featureMap);
 			break;
 		case ICAO_VISA:
-			messageTlvList = IcaoVisa.parseFeatures(featureMap);
+			derTlvList = IcaoVisa.parseFeatures(featureMap);
 			break;
 		case SOCIAL_INSURANCE_CARD:
 			try {
-				messageTlvList = SocialInsuranceCard.parseFeatures(featureMap);
+				derTlvList = SocialInsuranceCard.parseFeatures(featureMap);
 			} catch (UnsupportedEncodingException e) {
 				Logger.error("Couldn't build VdsMessage for SocialInsuranceCard: " + e.getMessage());
 			}
 			break;
 		case SUPPLEMENTARY_SHEET:
-			messageTlvList = SupplementarySheet.parseFeatures(featureMap);
+			derTlvList = SupplementarySheet.parseFeatures(featureMap);
 			break;
 		case TEMP_PASSPORT:
-			messageTlvList = TempPassport.parseFeatures(featureMap);
+			derTlvList = TempPassport.parseFeatures(featureMap);
 			break;
 		case TEMP_PERSO:
-			messageTlvList = TempPerso.parseFeatures(featureMap);
+			derTlvList = TempPerso.parseFeatures(featureMap);
 			break;
 		default:
 			Logger.warn("unknown VdsType: " + vdsType);
@@ -104,12 +103,12 @@ public class VdsMessage {
 		}
 	}
 
-	public void addMessageTlv(MessageTlv tlv) {
-		this.messageTlvList.add(tlv);
+	public void addDerTlv(DerTlv derTlv) {
+		this.derTlvList.add(derTlv);
 	}
 
-	public List<MessageTlv> getMessageTlvList() {
-		return this.messageTlvList;
+	public List<DerTlv> getDerTlvList() {
+		return this.derTlvList;
 	}
 
 	public void addDocumentFeature(Feature feature, Object obj) {

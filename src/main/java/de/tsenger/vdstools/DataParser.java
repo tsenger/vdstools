@@ -18,7 +18,6 @@ import de.tsenger.vdstools.seals.DigitalSeal;
 import de.tsenger.vdstools.seals.FictionCert;
 import de.tsenger.vdstools.seals.IcaoEmergencyTravelDocument;
 import de.tsenger.vdstools.seals.IcaoVisa;
-import de.tsenger.vdstools.seals.MessageTlv;
 import de.tsenger.vdstools.seals.ResidencePermit;
 import de.tsenger.vdstools.seals.SocialInsuranceCard;
 import de.tsenger.vdstools.seals.SupplementarySheet;
@@ -77,7 +76,7 @@ public class DataParser {
 						signatureStartPosition);
 				break;
 			}
-			vdsMessage.addMessageTlv(new MessageTlv((byte) (tag & 0xff), le, val));
+			vdsMessage.addDerTlv(new DerTlv((byte) (tag & 0xff), val));
 		}
 
 		// Test if message raw bytes are equal to the calculate raw bytes from
@@ -215,8 +214,9 @@ public class DataParser {
 	 * @return date string where unknown parts of the date are marked with an 'x'
 	 */
 	public static String decodeMaskedDate(byte[] maskedDateBytes) throws IllegalArgumentException {
-		if (maskedDateBytes.length != 4)
+		if (maskedDateBytes.length != 4) {
 			throw new IllegalArgumentException("expected four bytes for masked date decoding");
+		}
 		byte mask = maskedDateBytes[0];
 		long intval = (long) toUnsignedInt(maskedDateBytes[1]) * 256 * 256 + toUnsignedInt(maskedDateBytes[2]) * 256L
 				+ toUnsignedInt(maskedDateBytes[3]);
@@ -238,8 +238,9 @@ public class DataParser {
 	}
 
 	public static LocalDate decodeDate(byte[] dateBytes) {
-		if (dateBytes.length != 3)
+		if (dateBytes.length != 3) {
 			throw new IllegalArgumentException("expected three bytes for date decoding");
+		}
 
 		long intval = (long) toUnsignedInt(dateBytes[0]) * 256 * 256 + toUnsignedInt(dateBytes[1]) * 256L
 				+ toUnsignedInt(dateBytes[2]);
@@ -258,8 +259,9 @@ public class DataParser {
 	 * @return LocalDateTime object
 	 */
 	public static LocalDateTime decodeDateTime(byte[] dateTimeBytes) {
-		if (dateTimeBytes.length != 6)
+		if (dateTimeBytes.length != 6) {
 			throw new IllegalArgumentException("expected three bytes for date decoding");
+		}
 		BigInteger dateBigInt = new BigInteger(dateTimeBytes);
 		DateTimeFormatter pattern = DateTimeFormatter.ofPattern("MMddyyyyHHmmss");
 		LocalDateTime localDateTime = LocalDateTime.parse(String.format("%014d", dateBigInt), pattern);
@@ -289,12 +291,15 @@ public class DataParser {
 					int u2 = temp;
 					int u3 = v16 - temp * 40;
 
-					if (u1 != 0)
+					if (u1 != 0) {
 						sb.append(toChar(u1));
-					if (u2 != 0)
+					}
+					if (u2 != 0) {
 						sb.append(toChar(u2));
-					if (u3 != 0)
+					}
+					if (u3 != 0) {
 						sb.append(toChar(u3));
+					}
 				}
 			}
 		}
@@ -302,12 +307,13 @@ public class DataParser {
 	}
 
 	private static char toChar(int intValue) {
-		if (intValue == 3)
+		if (intValue == 3) {
 			return (char) 32;
-		else if (intValue >= 4 && intValue <= 13)
+		} else if (intValue >= 4 && intValue <= 13) {
 			return (char) (intValue + 44);
-		else if (intValue >= 14 && intValue <= 39)
+		} else if (intValue >= 14 && intValue <= 39) {
 			return (char) (intValue + 51);
+		}
 
 		// if character is unknown return "?"
 		return (char) 63;
