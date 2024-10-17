@@ -111,7 +111,7 @@ public class DigitalSeal {
     }
     
 	public byte[] getEncodedBytes() throws IOException {
-		return Arrays.concatenate(vdsHeader.getRawBytes(), vdsMessage.getRawBytes(), vdsSignature.getRawBytes());
+		return Arrays.concatenate(vdsHeader.getRawBytes(), vdsMessage.getRawBytes(), vdsSignature.getEncoded());
 	}
 
     public byte[] getSignatureBytes() {

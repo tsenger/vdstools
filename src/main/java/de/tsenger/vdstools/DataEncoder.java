@@ -13,13 +13,11 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.regex.Pattern;
 
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
-import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.util.Arrays;
 import org.tinylog.Logger;
 
@@ -86,22 +84,6 @@ public class DataEncoder {
 	}
 
 	/**
-	 * wraps the given data (Value) in a TLV object with free choice of the tag
-	 * Length will be calculated as defined in ASN.1 DER length encoding
-	 * 
-	 * @param tag   Tag
-	 * @param value Value
-	 * @return value with added tag and length
-	 * @throws IOException - on encoding error.
-	 */
-	public static byte[] buildTLVStructure(byte tag, byte[] value) throws IOException {
-		DEROctetString dos = new DEROctetString(value);
-		byte[] encodeBytes = dos.getEncoded();
-		encodeBytes[0] = tag;
-		return encodeBytes;
-	}
-
-	/**
 	 * Builds the signer certificate reference based on the the given X.509
 	 * certificate signer certificate reference is C + CN + serial number for
 	 * version 0x02 or C + CN + len(serial number) + serial number for versions 0x03
@@ -156,9 +138,10 @@ public class DataEncoder {
 		int dateInt = Integer.parseInt(formattedDate);
 		return new byte[] { (byte) (dateInt >>> 16), (byte) (dateInt >>> 8), (byte) dateInt };
 	}
-	
+
 	/**
-	 * Encode a LocalDate as described in as described in ICAO TR "Datastructure for Barcode" in six bytes.
+	 * Encode a LocalDate as described in as described in ICAO TR "Datastructure for
+	 * Barcode" in six bytes.
 	 * 
 	 * @param localDate Date
 	 * @return date encoded in 6 bytes
@@ -171,28 +154,32 @@ public class DataEncoder {
 	}
 
 	/**
-	 * Encodes a date string with unknown date parts as described in ICAO TR "Datastructure for Barcode".
-	 * Unknown parts of the date string shall be filled with an 'x', e.g. 19xx-10-xx
+	 * Encodes a date string with unknown date parts as described in ICAO TR
+	 * "Datastructure for Barcode". Unknown parts of the date string shall be filled
+	 * with an 'x', e.g. 19xx-10-xx
 	 * 
-	 * @param dateString date as String formated as yyyy-MM-dd where unknown parts could be replaced by an x
+	 * @param dateString date as String formated as yyyy-MM-dd where unknown parts
+	 *                   could be replaced by an x
 	 * @return masked date encoded in 4 bytes
 	 */
 	public static byte[] encodeMaskedDate(String dateString) {
-		if (!dateString.matches("(.{4})-(.{2})-(.{2})")) throw new IllegalArgumentException("Date string must be formated as yyyy-MM-dd.");
-		
+		if (!dateString.matches("(.{4})-(.{2})-(.{2})")) {
+			throw new IllegalArgumentException("Date string must be formated as yyyy-MM-dd.");
+		}
+
 		String formattedDate = dateString.replaceAll("(.{4})-(.{2})-(.{2})", "$2$3$1").toLowerCase();
 		int dateInt = Integer.parseInt(formattedDate.replaceAll("x", "0"));
 		char[] dateCharArray = formattedDate.toCharArray();
-		
+
 		byte mask = 0;
-		for (int i=0;i<8;i++) {
-        	if (dateCharArray[i] == 'x') {
-        		mask = (byte) (mask | (0x80>>i));
-        	}
-        }
-		
+		for (int i = 0; i < 8; i++) {
+			if (dateCharArray[i] == 'x') {
+				mask = (byte) (mask | (0x80 >> i));
+			}
+		}
+
 		byte[] encodedDateString = new byte[] { mask, (byte) (dateInt >>> 16), (byte) (dateInt >>> 8), (byte) dateInt };
-		
+
 		return encodedDateString;
 	}
 

@@ -1,4 +1,4 @@
-package de.tsenger.vdstools.seals;
+package de.tsenger.vdstools.idb;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -6,23 +6,25 @@ import java.math.BigInteger;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.DERSequence;
+import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
 import org.tinylog.Logger;
 
 import de.tsenger.vdstools.DerTlv;
 
-/**
- * @author Tobias Senger
- *
- */
-public class VdsSignature {
-	private static final byte TAG = (byte) 0xff;
-	private byte[] rawSignatureBytes;
-	private byte[] signatureBytes = null;
+public class IdbSignature {
 
-	public VdsSignature(byte[] rawSignatureBytes) {
+	public final static byte TAG = 0x7F;
+
+	private byte[] rawSignatureBytes;
+	private byte[] derSignatureBytes = null;
+
+	public IdbSignature(byte[] rawSignatureBytes) {
+		if (rawSignatureBytes[0] == TAG) {
+			rawSignatureBytes = Arrays.copyOfRange(rawSignatureBytes, 1, rawSignatureBytes.length);
+		}
 		this.rawSignatureBytes = rawSignatureBytes;
-		parseSignature(rawSignatureBytes);
+		this.derSignatureBytes = buildDerSignature(rawSignatureBytes);
 	}
 
 	/**
@@ -31,8 +33,8 @@ public class VdsSignature {
 	 *
 	 * @return ASN1 DER encoded signature as byte array
 	 */
-	public byte[] getSignatureBytes() {
-		return signatureBytes;
+	public byte[] getDerSignatureBytes() {
+		return derSignatureBytes;
 	}
 
 	/**
@@ -45,11 +47,17 @@ public class VdsSignature {
 	}
 
 	public byte[] getEncoded() throws IOException {
-		DerTlv derSignature = new DerTlv(TAG, rawSignatureBytes);
+		DerTlv derSignature = new DerTlv((byte) 0xff, rawSignatureBytes);
 		return derSignature.getEncoded();
 	}
 
-	private void parseSignature(byte[] rsBytes) {
+	/**
+	 * Builds signature in format ECDSASignature ::= SEQUENCE { r INTEGER, s INTEGER
+	 * } from raw signature bytes
+	 *
+	 * @return ASN1 DER encoded signature as byte array
+	 */
+	private byte[] buildDerSignature(byte[] rsBytes) {
 		byte[] r = new byte[(rsBytes.length / 2)];
 		byte[] s = new byte[(rsBytes.length / 2)];
 
@@ -61,12 +69,16 @@ public class VdsSignature {
 		v.add(new ASN1Integer(new BigInteger(1, s)));
 		DERSequence derSeq = new DERSequence(v);
 
+		byte[] derSignatureBytes = null;
 		try {
-			signatureBytes = derSeq.getEncoded();
-			Logger.debug("Signature sequence bytes: 0x" + Hex.toHexString(signatureBytes));
+			derSignatureBytes = derSeq.getEncoded();
+			Logger.debug("Signature sequence bytes: 0x" + Hex.toHexString(derSignatureBytes));
 		} catch (IOException e) {
-			Logger.error("Couldn't parse r and s to signatureBytes.");
+			Logger.error("Couldn't parse r and s to DER-encoded signature.");
 		}
 
+		return derSignatureBytes;
+
 	}
+
 }
