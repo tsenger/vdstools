@@ -34,49 +34,49 @@ import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
 import org.tinylog.Logger;
 
 public class Signer {
-	
-    private BCECPrivateKey ecPrivKey;
 
+	private BCECPrivateKey ecPrivKey;
 
-    public Signer(ECPrivateKey privKey) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
-        this.ecPrivKey = (BCECPrivateKey) privKey;
-    }
-    
-    public Signer(KeyStore keyStore, String keyStorePassword, String keyAlias) {
-    	try {
-    		this.ecPrivKey = (BCECPrivateKey) keyStore.getKey(keyAlias, keyStorePassword.toCharArray());
+	public Signer(ECPrivateKey privKey) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
+		this.ecPrivKey = (BCECPrivateKey) privKey;
+	}
+
+	public Signer(KeyStore keyStore, String keyStorePassword, String keyAlias) {
+		try {
+			this.ecPrivKey = (BCECPrivateKey) keyStore.getKey(keyAlias, keyStorePassword.toCharArray());
 		} catch (KeyStoreException | UnrecoverableKeyException | NoSuchAlgorithmException e) {
 			Logger.error("getPrivateKeyByAlias failed: " + e.getMessage());
 		}
-    }
+	}
 
-    public int getFieldSize() {
-        return ecPrivKey.getParameters().getCurve().getFieldSize();
-    }
+	public int getFieldSize() {
+		return ecPrivKey.getParameters().getCurve().getFieldSize();
+	}
 
-    public byte[] sign(byte[] dataToSign) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException, InvalidAlgorithmParameterException, IOException, NoSuchProviderException {
-        if (ecPrivKey == null) {
-            throw new InvalidKeyException("private key not initialized. Load from file or generate new one.");
-        }
-        
-        // Changed 02.12.2021:
-        // Signature depends now on curves bit length according to BSI TR-03116-2
-        Signature ecdsaSign;
-        switch (getFieldSize()) {
-        case 224:
-        	ecdsaSign = Signature.getInstance("SHA224withPLAIN-ECDSA", "BC");
-        	break;
-        case 256:
-        default:
-        	ecdsaSign = Signature.getInstance("SHA256withPLAIN-ECDSA", "BC");
-        	break;
-        }
-        
-        Logger.info("ECDSA algorithm: " + ecdsaSign.getAlgorithm());
+	public byte[] sign(byte[] dataToSign) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException,
+			InvalidAlgorithmParameterException, IOException, NoSuchProviderException {
+		if (ecPrivKey == null) {
+			throw new InvalidKeyException("private key not initialized. Load from file or generate new one.");
+		}
 
-        ecdsaSign.initSign(ecPrivKey);
-        ecdsaSign.update(dataToSign);
+		// Changed 02.12.2021:
+		// Signature depends now on curves bit length according to BSI TR-03116-2
+		Signature ecdsaSign;
+		switch (getFieldSize()) {
+		case 224:
+			ecdsaSign = Signature.getInstance("SHA224withPLAIN-ECDSA", "BC");
+			break;
+		case 256:
+		default:
+			ecdsaSign = Signature.getInstance("SHA256withPLAIN-ECDSA", "BC");
+			break;
+		}
 
-        return ecdsaSign.sign();
-    }
+		Logger.info("ECDSA algorithm: " + ecdsaSign.getAlgorithm());
+
+		ecdsaSign.initSign(ecPrivKey);
+		ecdsaSign.update(dataToSign);
+
+		return ecdsaSign.sign();
+	}
 }

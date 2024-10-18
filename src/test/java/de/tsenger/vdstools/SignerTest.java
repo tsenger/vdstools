@@ -1,6 +1,7 @@
 package de.tsenger.vdstools;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -23,10 +24,11 @@ import org.junit.Test;
 public class SignerTest {
 	static String keyStorePassword = "vdstools";
 	static String keyStoreFile = "src/test/resources/vdstools_testcerts.bks";
-	static KeyStore keystore;	
+	static KeyStore keystore;
 
 	@BeforeClass
-	public static void loadKeyStore() throws NoSuchAlgorithmException, CertificateException, IOException, KeyStoreException, NoSuchProviderException {
+	public static void loadKeyStore() throws NoSuchAlgorithmException, CertificateException, IOException,
+			KeyStoreException, NoSuchProviderException {
 		Security.addProvider(new BouncyCastleProvider());
 		keystore = KeyStore.getInstance("BKS", "BC");
 		FileInputStream fis = new FileInputStream(keyStoreFile);
@@ -39,17 +41,17 @@ public class SignerTest {
 		Signer signer = new Signer(keystore, keyStorePassword, "dets32");
 		assertEquals(224, signer.getFieldSize());
 	}
-	
+
 	@Test
-	public void testSign() throws InvalidKeyException, NoSuchAlgorithmException, SignatureException, InvalidAlgorithmParameterException, NoSuchProviderException, IOException {
-		Signer signer = new Signer(keystore, keyStorePassword, "dets32");		
+	public void testSign() throws InvalidKeyException, NoSuchAlgorithmException, SignatureException,
+			InvalidAlgorithmParameterException, NoSuchProviderException, IOException {
+		Signer signer = new Signer(keystore, keyStorePassword, "dets32");
 		byte[] dataBytes = new byte[32];
 		Random rnd = new Random();
-		rnd.nextBytes(dataBytes);		
+		rnd.nextBytes(dataBytes);
 		byte[] signatureBytes = signer.sign(dataBytes);
-		System.out.println(Hex.toHexString(signatureBytes));
-		assertTrue(signatureBytes.length*4==signer.getFieldSize());
+		System.out.println("Signature: " + Hex.toHexString(signatureBytes));
+		assertTrue(signatureBytes.length * 4 == signer.getFieldSize());
 	}
-
 
 }

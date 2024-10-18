@@ -9,28 +9,28 @@ public class IcaoBarcodeFormatTest {
 
 	@Test
 	public void testIsNotSignedIsNotZipped() {
-		IcaoBarcodeFormat icb = new IcaoBarcodeFormat('A', new BarcodePayload());
+		IcaoBarcodeFormat icb = new IcaoBarcodeFormat('A', new BarcodePayload(null, null, null, null));
 		assertFalse(icb.isSigned());
 		assertFalse(icb.isZipped());
 	}
 
 	@Test
 	public void testIsSignedIsNotZipped() {
-		IcaoBarcodeFormat icb = new IcaoBarcodeFormat('B', new BarcodePayload());
+		IcaoBarcodeFormat icb = new IcaoBarcodeFormat('B', new BarcodePayload(null, null, null, null));
 		assertTrue(icb.isSigned());
 		assertFalse(icb.isZipped());
 	}
 
 	@Test
 	public void testIsNotSignedIsZipped() {
-		IcaoBarcodeFormat icb = new IcaoBarcodeFormat('C', new BarcodePayload());
+		IcaoBarcodeFormat icb = new IcaoBarcodeFormat('C', new BarcodePayload(null, null, null, null));
 		assertFalse(icb.isSigned());
 		assertTrue(icb.isZipped());
 	}
 
 	@Test
 	public void testIsSignedIsZipped() {
-		IcaoBarcodeFormat icb = new IcaoBarcodeFormat('D', new BarcodePayload());
+		IcaoBarcodeFormat icb = new IcaoBarcodeFormat('D', new BarcodePayload(null, null, null, null));
 		assertTrue(icb.isSigned());
 		assertTrue(icb.isZipped());
 	}

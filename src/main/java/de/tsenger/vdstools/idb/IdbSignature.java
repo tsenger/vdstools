@@ -15,15 +15,13 @@ public class IdbSignature {
 
 	public final static byte TAG = 0x7F;
 
-	private byte[] rawSignatureBytes;
-	private byte[] derSignatureBytes = null;
+	private byte[] plainSignatureBytes;
 
 	public IdbSignature(byte[] rawSignatureBytes) throws IOException {
 		if (rawSignatureBytes[0] == TAG) {
 			rawSignatureBytes = DerTlv.fromByteArray(rawSignatureBytes).getValue();
 		}
-		this.rawSignatureBytes = rawSignatureBytes;
-		this.derSignatureBytes = buildDerSignature(rawSignatureBytes);
+		this.plainSignatureBytes = rawSignatureBytes;
 	}
 
 	/**
@@ -33,35 +31,11 @@ public class IdbSignature {
 	 * @return ASN1 DER encoded signature as byte array
 	 */
 	public byte[] getDerSignatureBytes() {
-		return derSignatureBytes;
-	}
+		byte[] r = new byte[(plainSignatureBytes.length / 2)];
+		byte[] s = new byte[(plainSignatureBytes.length / 2)];
 
-	/**
-	 * Returns signature in raw format: r||s
-	 *
-	 * @return r||s signature byte array
-	 */
-	public byte[] getRawSignatureBytes() {
-		return rawSignatureBytes;
-	}
-
-	public byte[] getEncoded() throws IOException {
-		DerTlv derSignature = new DerTlv(TAG, rawSignatureBytes);
-		return derSignature.getEncoded();
-	}
-
-	/**
-	 * Builds signature in format ECDSASignature ::= SEQUENCE { r INTEGER, s INTEGER
-	 * } from raw signature bytes
-	 *
-	 * @return ASN1 DER encoded signature as byte array
-	 */
-	private byte[] buildDerSignature(byte[] rsBytes) {
-		byte[] r = new byte[(rsBytes.length / 2)];
-		byte[] s = new byte[(rsBytes.length / 2)];
-
-		System.arraycopy(rsBytes, 0, r, 0, r.length);
-		System.arraycopy(rsBytes, r.length, s, 0, s.length);
+		System.arraycopy(plainSignatureBytes, 0, r, 0, r.length);
+		System.arraycopy(plainSignatureBytes, r.length, s, 0, s.length);
 
 		ASN1EncodableVector v = new ASN1EncodableVector();
 		v.add(new ASN1Integer(new BigInteger(1, r)));
@@ -75,9 +49,21 @@ public class IdbSignature {
 		} catch (IOException e) {
 			Logger.error("Couldn't parse r and s to DER-encoded signature.");
 		}
-
 		return derSignatureBytes;
+	}
 
+	/**
+	 * Returns signature in plain format: r||s
+	 *
+	 * @return r||s signature byte array
+	 */
+	public byte[] getPlainSignatureBytes() {
+		return plainSignatureBytes;
+	}
+
+	public byte[] getEncoded() throws IOException {
+		DerTlv derSignature = new DerTlv(TAG, plainSignatureBytes);
+		return derSignature.getEncoded();
 	}
 
 }

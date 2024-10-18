@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
+import java.time.LocalDate;
 
 import org.tinylog.Logger;
 
@@ -18,7 +19,6 @@ public class IdbHeader {
 
 	private IdbHeader(byte[] countryIdentifier, byte signatureAlgorithm, byte[] certificateReference,
 			byte[] signatureCreationDate) {
-		super();
 		this.countryIdentifier = countryIdentifier;
 		this.signatureAlgorithm = signatureAlgorithm;
 		this.certificateReference = certificateReference;
@@ -27,6 +27,10 @@ public class IdbHeader {
 
 	public IdbHeader(String countryIdentifier) {
 		this(countryIdentifier, null, null, null);
+	}
+
+	public IdbHeader(String countryIdentifier, IdbSignatureAlgorithm signatureAlgorithm, byte[] certificateReference) {
+		this(countryIdentifier, signatureAlgorithm, certificateReference, LocalDate.now().toString());
 	}
 
 	public IdbHeader(String countryIdentifier, IdbSignatureAlgorithm signatureAlgorithm, byte[] certificateReference,

@@ -9,22 +9,23 @@ import java.security.cert.X509Certificate;
 
 import de.tsenger.vdstools.DerTlv;
 
-public class IdbSignerCertifcate {
+public class IdbSignerCertificate {
 
 	public final static byte TAG = 0x7E;
 
 	private X509Certificate cert;
 
-	public IdbSignerCertifcate(X509Certificate cert) {
+	public IdbSignerCertificate(X509Certificate cert) {
 		this.cert = cert;
 	}
 
-	public IdbSignerCertifcate(byte[] certBytes) throws CertificateException, IOException {
+	public static IdbSignerCertificate fromByteArray(byte[] certBytes) throws CertificateException, IOException {
 		if (certBytes[0] == TAG) {
 			certBytes = DerTlv.fromByteArray(certBytes).getValue();
 		}
-		this.cert = (X509Certificate) CertificateFactory.getInstance("X.509")
+		X509Certificate cert = (X509Certificate) CertificateFactory.getInstance("X.509")
 				.generateCertificate(new ByteArrayInputStream(certBytes));
+		return new IdbSignerCertificate(cert);
 	}
 
 	public byte[] getEncoded() throws CertificateEncodingException, IOException {
