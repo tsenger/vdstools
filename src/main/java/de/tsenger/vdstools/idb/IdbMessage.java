@@ -25,4 +25,12 @@ public class IdbMessage {
 		return new DerTlv(messageType.getValue(), messageContent).getEncoded();
 	}
 
+	public IdbMessageType getMessageType() {
+		return messageType;
+	}
+
+	public byte[] getMessageContent() {
+		return messageContent;
+	}
+
 }
