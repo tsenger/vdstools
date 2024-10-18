@@ -199,7 +199,16 @@ public class DataParser {
 		return vdsHeader;
 	}
 
-	private static byte[] getFromByteBuffer(ByteBuffer buffer, int size) {
+	/**
+	 * Returns a byte array of the requested size which contains the number of bytes
+	 * from the given ByteBuffer beginning at the current pointer of the ByteBuffer.
+	 * 
+	 * @param buffer The ByteBuffer to get the number of bytes from.
+	 * @param size   Number of bytes to get from ByteBuffer. Starting from the
+	 *               internal ByteBuffers pointer
+	 * @return byte array of length 'size' with bytes from ByteBuffer
+	 */
+	public static byte[] getFromByteBuffer(ByteBuffer buffer, int size) {
 		byte[] tmpByteArray = new byte[size];
 		if (buffer.position() + size <= buffer.capacity()) {
 			buffer.get(tmpByteArray);

@@ -16,11 +16,10 @@ import org.junit.Test;
 import de.tsenger.vdstools.seals.DigitalSeal;
 import de.tsenger.vdstools.seals.Feature;
 import de.tsenger.vdstools.seals.VdsHeader;
-import junit.framework.TestCase;
 
 public class DataParserTest {
 
-  //@formatter:off
+	//@formatter:off
     static byte[] residentPermit_rawBytes = Hex.decode(
             "DC03D9C5D9CAC8A73A990F71346ECF47\n"
             + "FB0602305CBA135875976EC066D417B5\n" 
@@ -321,211 +320,207 @@ public class DataParserTest {
     		+ "69a60d687bb2cd");
 
   //@formatter:on    
-    
-    
-    @Test
+
+	@Test
 	public void testDecodeMaskedDate1() {
 		String decodedDate = DataParser.decodeMaskedDate(Hex.decode("c3002e7c"));
 		assertEquals("19xx-xx-01", decodedDate);
 	}
-    
-    @Test
+
+	@Test
 	public void testDecodeMaskedDate2() {
 		String decodedDate = DataParser.decodeMaskedDate(Hex.decode("313d10da"));
 		assertEquals("201x-04-xx", decodedDate);
 	}
-	
-    @Test
+
+	@Test
 	public void testDecodeMaskedDate3() {
 		String decodedDate = DataParser.decodeMaskedDate(Hex.decode("f000076c"));
 		assertEquals("1900-xx-xx", decodedDate);
 	}
-    
-    @Test
-   	public void testDecodeMaskedDate4() {
-   		String decodedDate = DataParser.decodeMaskedDate(Hex.decode("00bbddbf"));
-   		assertEquals("1999-12-31", decodedDate);
-   	}
-    
-    @Test
-   	public void testDecodeMaskedDate5() {
-   		String decodedDate = DataParser.decodeMaskedDate(Hex.decode("ff000000"));
-   		assertEquals("xxxx-xx-xx", decodedDate);
-   	}
-	
+
+	@Test
+	public void testDecodeMaskedDate4() {
+		String decodedDate = DataParser.decodeMaskedDate(Hex.decode("00bbddbf"));
+		assertEquals("1999-12-31", decodedDate);
+	}
+
+	@Test
+	public void testDecodeMaskedDate5() {
+		String decodedDate = DataParser.decodeMaskedDate(Hex.decode("ff000000"));
+		assertEquals("xxxx-xx-xx", decodedDate);
+	}
+
 	@Test(expected = IllegalArgumentException.class)
 	public void testDecodeMaskedDate6_invalidFormat() {
 		String decodedDate = DataParser.decodeMaskedDate(Hex.decode("ff0000"));
 		assertNull(decodedDate);
 	}
-	
+
 	@Test
-   	public void testDecodeDateTime1() {
-   		LocalDateTime localDateTime = DataParser.decodeDateTime(Hex.decode("0aecc4c7fb80"));
-   		System.out.println(localDateTime);
-   		assertTrue(LocalDateTime.parse("2030-12-01T00:00:00").isEqual(localDateTime));
-   	}
-	
+	public void testDecodeDateTime1() {
+		LocalDateTime localDateTime = DataParser.decodeDateTime(Hex.decode("0aecc4c7fb80"));
+		System.out.println(localDateTime);
+		assertTrue(LocalDateTime.parse("2030-12-01T00:00:00").isEqual(localDateTime));
+	}
+
 	@Test
-   	public void testDecodeDateTime2() {
-   		LocalDateTime localDateTime = DataParser.decodeDateTime(Hex.decode("02f527bf25b2"));
-   		System.out.println(localDateTime);
-   		assertTrue(LocalDateTime.parse("1957-03-25T08:15:22").isEqual(localDateTime));
-   	}
-	
+	public void testDecodeDateTime2() {
+		LocalDateTime localDateTime = DataParser.decodeDateTime(Hex.decode("02f527bf25b2"));
+		System.out.println(localDateTime);
+		assertTrue(LocalDateTime.parse("1957-03-25T08:15:22").isEqual(localDateTime));
+	}
+
 	@Test
-   	public void testDecodeDateTime3() {
-   		LocalDateTime localDateTime = DataParser.decodeDateTime(Hex.decode("00eb28c03640"));
-   		System.out.println(localDateTime);
-   		assertTrue(LocalDateTime.parse("0001-01-01T00:00:00").isEqual(localDateTime));
-   	}
-	
+	public void testDecodeDateTime3() {
+		LocalDateTime localDateTime = DataParser.decodeDateTime(Hex.decode("00eb28c03640"));
+		System.out.println(localDateTime);
+		assertTrue(LocalDateTime.parse("0001-01-01T00:00:00").isEqual(localDateTime));
+	}
+
 	@Test
-   	public void testDecodeDateTime4() {
-   		LocalDateTime localDateTime = DataParser.decodeDateTime(Hex.decode("0b34792d9777"));
-   		System.out.println(localDateTime);
-   		assertTrue(LocalDateTime.parse("9999-12-31T23:59:59").isEqual(localDateTime));
-   	}
+	public void testDecodeDateTime4() {
+		LocalDateTime localDateTime = DataParser.decodeDateTime(Hex.decode("0b34792d9777"));
+		System.out.println(localDateTime);
+		assertTrue(LocalDateTime.parse("9999-12-31T23:59:59").isEqual(localDateTime));
+	}
 
+	@Test
+	public void testDecodeHeader() {
+		ByteBuffer bb = ByteBuffer.wrap(residentPermit_rawBytes);
+		VdsHeader vdsHeader = DataParser.decodeHeader(bb);
+		assertEquals(0x03, vdsHeader.rawVersion);
+		assertEquals("UTO", vdsHeader.issuingCountry);
+		assertEquals("UTTS", vdsHeader.signerIdentifier);
+		assertEquals("5B", vdsHeader.certificateReference);
+		assertEquals(LocalDate.parse("2020-01-01"), vdsHeader.issuingDate);
+		assertEquals(LocalDate.parse("2023-07-26"), vdsHeader.sigDate);
+		assertEquals(0xfb, vdsHeader.docFeatureRef & 0xff);
+		assertEquals(0x06, vdsHeader.docTypeCat & 0xff);
+	}
 
-    @Test
-    public void testDecodeHeader() {
-        ByteBuffer bb = ByteBuffer.wrap(residentPermit_rawBytes);
-        VdsHeader vdsHeader = DataParser.decodeHeader(bb);
-        assertEquals(0x03, vdsHeader.rawVersion);
-        assertEquals("UTO", vdsHeader.issuingCountry);
-        assertEquals("UTTS", vdsHeader.signerIdentifier);
-        assertEquals("5B", vdsHeader.certificateReference);
-        assertEquals(LocalDate.parse("2020-01-01"), vdsHeader.issuingDate);
-        assertEquals(LocalDate.parse("2023-07-26"), vdsHeader.sigDate);
-        assertEquals(0xfb, vdsHeader.docFeatureRef & 0xff);
-        assertEquals(0x06, vdsHeader.docTypeCat & 0xff);
-    }
+	@Test
+	public void testParseSocialInsurranceCard() {
+		DigitalSeal seal = DataParser.parseVdsSeal(socialInsurance_rawBytes);
+		assertEquals("65170839J003", seal.getFeature(Feature.SOCIAL_INSURANCE_NUMBER));
+		assertEquals("Perschweiß", seal.getFeature(Feature.SURNAME));
+		assertEquals("Oscar", seal.getFeature(Feature.FIRST_NAME));
+		assertEquals("Jâcobénidicturius", seal.getFeature(Feature.BIRTH_NAME));
+	}
 
-    @Test
-    public void testParseSocialInsurranceCard() {
-        DigitalSeal seal = DataParser.parseVdsSeal(socialInsurance_rawBytes);
-        assertEquals("65170839J003", seal.getFeature(Feature.SOCIAL_INSURANCE_NUMBER));
-        assertEquals("Perschweiß", seal.getFeature(Feature.SURNAME));
-        assertEquals("Oscar", seal.getFeature(Feature.FIRST_NAME));
-        assertEquals("Jâcobénidicturius", seal.getFeature(Feature.BIRTH_NAME));
-    }
+	@Test
+	public void testParseArrivalAttestationV02() {
+		DigitalSeal seal = DataParser.parseVdsSeal(arrivalAttestationV02_rawBytes);
+		assertEquals("MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
+				seal.getFeature(Feature.MRZ));
+		assertEquals("ABC123456DEF", seal.getFeature(Feature.AZR));
+		assertEquals(null, seal.getFeature(Feature.FIRST_NAME));
+	}
 
-    @Test
-    public void testParseArrivalAttestationV02() {
-        DigitalSeal seal = DataParser.parseVdsSeal(arrivalAttestationV02_rawBytes);
-        assertEquals("MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
-                seal.getFeature(Feature.MRZ));
-        assertEquals("ABC123456DEF", seal.getFeature(Feature.AZR));
-        assertEquals(null, seal.getFeature(Feature.FIRST_NAME));
-    }
-    
-    @Test
-    public void testParseResidentPermit() {
-        DigitalSeal seal = DataParser.parseVdsSeal(residentPermit_rawBytes);
-        assertEquals("ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
-                seal.getFeature(Feature.MRZ));
-        assertEquals("UFO001979", seal.getFeature(Feature.PASSPORT_NUMBER));
-    }
-    
-    @Test
-    public void testParseSupplementSheet() {
-        DigitalSeal seal = DataParser.parseVdsSeal(supplementSheet_rawBytes);
-        assertEquals("ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
-                seal.getFeature(Feature.MRZ));
-        assertEquals("PA0000005", seal.getFeature(Feature.SHEET_NUMBER));
-    }
-    
-    @Test
-    public void testEmergencyTravelDoc() {
-        DigitalSeal seal = DataParser.parseVdsSeal(emergenyTravelDoc_rawBytes);
-        assertEquals("I<GBRSUPAMANN<<MARY<<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
-                seal.getFeature(Feature.MRZ));
-    }
+	@Test
+	public void testParseResidentPermit() {
+		DigitalSeal seal = DataParser.parseVdsSeal(residentPermit_rawBytes);
+		assertEquals("ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
+				seal.getFeature(Feature.MRZ));
+		assertEquals("UFO001979", seal.getFeature(Feature.PASSPORT_NUMBER));
+	}
 
-    @Test
-    public void testParseAddressStickerId() {
-        DigitalSeal seal = DataParser.parseVdsSeal(addressStickerId_rawBytes);
-        assertEquals("T2000AK47", seal.getFeature(Feature.DOCUMENT_NUMBER));
-        assertEquals("05314000", seal.getFeature(Feature.AGS));
-        assertEquals("53175HEINEMANNSTR11", seal.getFeature(Feature.RAW_ADDRESS));
-        assertEquals("53175", seal.getFeature(Feature.POSTAL_CODE));
-        assertEquals("HEINEMANNSTR", seal.getFeature(Feature.STREET));
-        assertEquals("11", seal.getFeature(Feature.STREET_NR));
-    }
-    
-    @Test
-    public void testParseAddressStickerPassport() {
-        DigitalSeal seal = DataParser.parseVdsSeal(addressStickerPassport_rawBytes);
-        assertEquals("PA5500K11", seal.getFeature(Feature.DOCUMENT_NUMBER));
-        assertEquals("03359010", seal.getFeature(Feature.AGS));
-        assertEquals("21614", seal.getFeature(Feature.POSTAL_CODE));
-    }
+	@Test
+	public void testParseSupplementSheet() {
+		DigitalSeal seal = DataParser.parseVdsSeal(supplementSheet_rawBytes);
+		assertEquals("ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
+				seal.getFeature(Feature.MRZ));
+		assertEquals("PA0000005", seal.getFeature(Feature.SHEET_NUMBER));
+	}
 
-    @Test
-    public void testParseVisa() {
-        DigitalSeal seal = DataParser.parseVdsSeal(visa_224bitSig_rawBytes);
-        assertEquals("VCD<<DENT<<ARTHUR<PHILIP<<<<<<<<<<<<\n1234567XY7GBR5203116M2005250<<<<<<<<",
-                seal.getFeature(Feature.MRZ));
-        assertEquals("47110815P", seal.getFeature(Feature.PASSPORT_NUMBER));
-        assertEquals(0, seal.getFeature(Feature.DURATION_OF_STAY_YEARS));
-        assertEquals(0, seal.getFeature(Feature.DURATION_OF_STAY_MONTHS));
-        assertEquals(160, seal.getFeature(Feature.DURATION_OF_STAY_DAYS));
-    }
-    
-    @Test
-    public void testParseFictionCert() {
-        DigitalSeal seal = DataParser.parseVdsSeal(fictionCert_rawBytes);
-        assertEquals("NFD<<MUSTERMANN<<CLEOPATRE<<<<<<<<<<\nL000000007TUR8308126F2701312T2611011",
-                seal.getFeature(Feature.MRZ));
-        assertEquals("X98723021", seal.getFeature(Feature.PASSPORT_NUMBER));
-        assertEquals("160113000085", seal.getFeature(Feature.AZR));
-    }
-    
-    @Test
-    public void testParseTempPerso() {
-        DigitalSeal seal = DataParser.parseVdsSeal(tempPerso_rawBytes);
-        assertEquals("ITD<<MUSTERMANN<<ERIKA<<<<<<<<<<<<<<\nD000000001D<<8308126<2701312<<<<<<<0",
-                seal.getFeature(Feature.MRZ));
-    }
-    
-    @Test
-    public void testParseTempPassport() {
-        DigitalSeal seal = DataParser.parseVdsSeal(tempPassport_rawBytes);
-        assertEquals("PPD<<MUSTERMANN<<ERIKA<<<<<<<<<<<<<<<<<<<<<<\nA000000000D<<8308126<2710316<<<<<<<<<<<<<<<8",
-                seal.getFeature(Feature.MRZ));
-    }
+	@Test
+	public void testEmergencyTravelDoc() {
+		DigitalSeal seal = DataParser.parseVdsSeal(emergenyTravelDoc_rawBytes);
+		assertEquals("I<GBRSUPAMANN<<MARY<<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
+				seal.getFeature(Feature.MRZ));
+	}
 
-    @Test
-    public void testFeatureMap() {
-        DigitalSeal seal = DataParser.parseVdsSeal(visa_224bitSig_rawBytes);
-        seal.getFeatureMap()
-                .forEach((key, value) -> System.out.println(String.format("Key: %s, Value: %s", key, value)));
-    }
-    
-    @Test
-    public void testGetEncodedBytes_rp() throws IOException {
-    	DigitalSeal seal = DataParser.parseVdsSeal(residentPermit_rawBytes);
-    	assertTrue(Arrays.areEqual(residentPermit_rawBytes, seal.getEncodedBytes()));
-    }
-    
-    @Test
-    public void testGetEncodedBytes_aa() throws IOException {
-    	DigitalSeal seal = DataParser.parseVdsSeal(arrivalAttestation_rawBytes);
-    	assertTrue(Arrays.areEqual(arrivalAttestation_rawBytes, seal.getEncodedBytes()));
-    }
-    
-    @Test
-    public void testGetEncodedBytes_aav2() throws IOException {
-    	DigitalSeal seal = DataParser.parseVdsSeal(arrivalAttestationV02_rawBytes);
-    	assertTrue(Arrays.areEqual(arrivalAttestationV02_rawBytes, seal.getEncodedBytes()));
-    }
-    
-    
-    @Test
-    public void testGetEncodedBytes_fc() throws IOException {
-    	DigitalSeal seal = DataParser.parseVdsSeal(fictionCert_rawBytes);
-    	assertTrue(Arrays.areEqual(fictionCert_rawBytes, seal.getEncodedBytes()));
-    }
+	@Test
+	public void testParseAddressStickerId() {
+		DigitalSeal seal = DataParser.parseVdsSeal(addressStickerId_rawBytes);
+		assertEquals("T2000AK47", seal.getFeature(Feature.DOCUMENT_NUMBER));
+		assertEquals("05314000", seal.getFeature(Feature.AGS));
+		assertEquals("53175HEINEMANNSTR11", seal.getFeature(Feature.RAW_ADDRESS));
+		assertEquals("53175", seal.getFeature(Feature.POSTAL_CODE));
+		assertEquals("HEINEMANNSTR", seal.getFeature(Feature.STREET));
+		assertEquals("11", seal.getFeature(Feature.STREET_NR));
+	}
 
+	@Test
+	public void testParseAddressStickerPassport() {
+		DigitalSeal seal = DataParser.parseVdsSeal(addressStickerPassport_rawBytes);
+		assertEquals("PA5500K11", seal.getFeature(Feature.DOCUMENT_NUMBER));
+		assertEquals("03359010", seal.getFeature(Feature.AGS));
+		assertEquals("21614", seal.getFeature(Feature.POSTAL_CODE));
+	}
+
+	@Test
+	public void testParseVisa() {
+		DigitalSeal seal = DataParser.parseVdsSeal(visa_224bitSig_rawBytes);
+		assertEquals("VCD<<DENT<<ARTHUR<PHILIP<<<<<<<<<<<<\n1234567XY7GBR5203116M2005250<<<<<<<<",
+				seal.getFeature(Feature.MRZ));
+		assertEquals("47110815P", seal.getFeature(Feature.PASSPORT_NUMBER));
+		assertEquals(0, seal.getFeature(Feature.DURATION_OF_STAY_YEARS));
+		assertEquals(0, seal.getFeature(Feature.DURATION_OF_STAY_MONTHS));
+		assertEquals(160, seal.getFeature(Feature.DURATION_OF_STAY_DAYS));
+	}
+
+	@Test
+	public void testParseFictionCert() {
+		DigitalSeal seal = DataParser.parseVdsSeal(fictionCert_rawBytes);
+		assertEquals("NFD<<MUSTERMANN<<CLEOPATRE<<<<<<<<<<\nL000000007TUR8308126F2701312T2611011",
+				seal.getFeature(Feature.MRZ));
+		assertEquals("X98723021", seal.getFeature(Feature.PASSPORT_NUMBER));
+		assertEquals("160113000085", seal.getFeature(Feature.AZR));
+	}
+
+	@Test
+	public void testParseTempPerso() {
+		DigitalSeal seal = DataParser.parseVdsSeal(tempPerso_rawBytes);
+		assertEquals("ITD<<MUSTERMANN<<ERIKA<<<<<<<<<<<<<<\nD000000001D<<8308126<2701312<<<<<<<0",
+				seal.getFeature(Feature.MRZ));
+	}
+
+	@Test
+	public void testParseTempPassport() {
+		DigitalSeal seal = DataParser.parseVdsSeal(tempPassport_rawBytes);
+		assertEquals("PPD<<MUSTERMANN<<ERIKA<<<<<<<<<<<<<<<<<<<<<<\nA000000000D<<8308126<2710316<<<<<<<<<<<<<<<8",
+				seal.getFeature(Feature.MRZ));
+	}
+
+	@Test
+	public void testFeatureMap() {
+		DigitalSeal seal = DataParser.parseVdsSeal(visa_224bitSig_rawBytes);
+		seal.getFeatureMap()
+				.forEach((key, value) -> System.out.println(String.format("Key: %s, Value: %s", key, value)));
+	}
+
+	@Test
+	public void testGetEncodedBytes_rp() throws IOException {
+		DigitalSeal seal = DataParser.parseVdsSeal(residentPermit_rawBytes);
+		assertTrue(Arrays.areEqual(residentPermit_rawBytes, seal.getEncodedBytes()));
+	}
+
+	@Test
+	public void testGetEncodedBytes_aa() throws IOException {
+		DigitalSeal seal = DataParser.parseVdsSeal(arrivalAttestation_rawBytes);
+		assertTrue(Arrays.areEqual(arrivalAttestation_rawBytes, seal.getEncodedBytes()));
+	}
+
+	@Test
+	public void testGetEncodedBytes_aav2() throws IOException {
+		DigitalSeal seal = DataParser.parseVdsSeal(arrivalAttestationV02_rawBytes);
+		assertTrue(Arrays.areEqual(arrivalAttestationV02_rawBytes, seal.getEncodedBytes()));
+	}
+
+	@Test
+	public void testGetEncodedBytes_fc() throws IOException {
+		DigitalSeal seal = DataParser.parseVdsSeal(fictionCert_rawBytes);
+		assertTrue(Arrays.areEqual(fictionCert_rawBytes, seal.getEncodedBytes()));
+	}
 }

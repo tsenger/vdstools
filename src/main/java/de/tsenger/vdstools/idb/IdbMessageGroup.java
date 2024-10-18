@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.tinylog.Logger;
 
+import de.tsenger.vdstools.DataParser;
 import de.tsenger.vdstools.DerTlv;
 
 public class IdbMessageGroup {
@@ -56,18 +57,10 @@ public class IdbMessageGroup {
 				Logger.error(String.format("can't decode length: 0x%02X", le));
 				throw new IllegalArgumentException(String.format("can't decode length: 0x%02X", le));
 			}
-			byte[] val = getFromByteBuffer(rawData, le);
+			byte[] val = DataParser.getFromByteBuffer(rawData, le);
 			messageGroup.addMessage(new IdbMessage(IdbMessageType.valueOf(tag), val));
 		}
 		return messageGroup;
-	}
-
-	private static byte[] getFromByteBuffer(ByteBuffer buffer, int size) {
-		byte[] tmpByteArray = new byte[size];
-		if (buffer.position() + size <= buffer.capacity()) {
-			buffer.get(tmpByteArray);
-		}
-		return tmpByteArray;
 	}
 
 }
