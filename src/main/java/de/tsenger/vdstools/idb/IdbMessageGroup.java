@@ -2,10 +2,8 @@ package de.tsenger.vdstools.idb;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
-
-import org.tinylog.Logger;
 
 import de.tsenger.vdstools.DataParser;
 import de.tsenger.vdstools.DerTlv;
@@ -13,7 +11,7 @@ import de.tsenger.vdstools.DerTlv;
 public class IdbMessageGroup {
 	public final static byte TAG = 0x61;
 
-	List<IdbMessage> messagesList;
+	private List<IdbMessage> messagesList = new ArrayList<IdbMessage>();
 
 	public IdbMessageGroup() {
 	}
@@ -24,6 +22,10 @@ public class IdbMessageGroup {
 
 	public void addMessage(IdbMessage idbMessage) {
 		messagesList.add(idbMessage);
+	}
+
+	public List<IdbMessage> getMessagesList() {
+		return messagesList;
 	}
 
 	public byte[] getEncoded() throws IOException {
@@ -38,27 +40,10 @@ public class IdbMessageGroup {
 		if (rawBytes[0] == TAG) {
 			rawBytes = DerTlv.fromByteArray(rawBytes).getValue();
 		}
-
 		IdbMessageGroup messageGroup = new IdbMessageGroup();
-
-		// TODO find "cleaner" solution, duplicated in DataParser
-		ByteBuffer rawData = ByteBuffer.wrap(rawBytes);
-		while (rawData.hasRemaining()) {
-			byte tag = rawData.get();
-
-			int le = rawData.get() & 0xff;
-			if (le == 0x81) {
-				le = rawData.get() & 0xff;
-			} else if (le == 0x82) {
-				le = ((rawData.get() & 0xff) * 0x100) + (rawData.get() & 0xff);
-			} else if (le == 0x83) {
-				le = ((rawData.get() & 0xff) * 0x1000) + ((rawData.get() & 0xff) * 0x100) + (rawData.get() & 0xff);
-			} else if (le > 0x7F) {
-				Logger.error(String.format("can't decode length: 0x%02X", le));
-				throw new IllegalArgumentException(String.format("can't decode length: 0x%02X", le));
-			}
-			byte[] val = DataParser.getFromByteBuffer(rawData, le);
-			messageGroup.addMessage(new IdbMessage(IdbMessageType.valueOf(tag), val));
+		List<DerTlv> derTlvMessagesList = DataParser.parseDerTLvs(rawBytes);
+		for (DerTlv derTlvMessage : derTlvMessagesList) {
+			messageGroup.addMessage(IdbMessage.fromDerTlv(derTlvMessage));
 		}
 		return messageGroup;
 	}

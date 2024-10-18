@@ -5,7 +5,9 @@ import java.nio.ByteBuffer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.bouncycastle.util.encoders.Hex;
 import org.tinylog.Logger;
@@ -53,7 +55,7 @@ public class DataParser {
 		int signatureStartPosition = 0;
 		byte[] vdsMessageRawDataBytes = null;
 
-		// TODO find "cleaner" solution, duplicated in IdbMessageGroup
+		// TODO find "cleaner" solution, duplicated in parseDerTlvs()
 		while (rawData.hasRemaining()) {
 			int tag = (rawData.get() & 0xff);
 			if (tag == 0xff) {
@@ -277,6 +279,29 @@ public class DataParser {
 		DateTimeFormatter pattern = DateTimeFormatter.ofPattern("MMddyyyyHHmmss");
 		LocalDateTime localDateTime = LocalDateTime.parse(String.format("%014d", dateBigInt), pattern);
 		return localDateTime;
+	}
+
+	public static List<DerTlv> parseDerTLvs(byte[] rawBytes) {
+		ByteBuffer rawData = ByteBuffer.wrap(rawBytes);
+		List<DerTlv> derTlvList = new ArrayList<DerTlv>();
+		while (rawData.hasRemaining()) {
+			byte tag = rawData.get();
+
+			int le = rawData.get() & 0xff;
+			if (le == 0x81) {
+				le = rawData.get() & 0xff;
+			} else if (le == 0x82) {
+				le = ((rawData.get() & 0xff) * 0x100) + (rawData.get() & 0xff);
+			} else if (le == 0x83) {
+				le = ((rawData.get() & 0xff) * 0x1000) + ((rawData.get() & 0xff) * 0x100) + (rawData.get() & 0xff);
+			} else if (le > 0x7F) {
+				Logger.error(String.format("can't decode length: 0x%02X", le));
+				throw new IllegalArgumentException(String.format("can't decode length: 0x%02X", le));
+			}
+			byte[] val = DataParser.getFromByteBuffer(rawData, le);
+			derTlvList.add(new DerTlv(tag, val));
+		}
+		return derTlvList;
 	}
 
 	private static int toUnsignedInt(byte value) {
