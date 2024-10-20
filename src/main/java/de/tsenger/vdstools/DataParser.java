@@ -1,5 +1,7 @@
 package de.tsenger.vdstools;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.time.LocalDate;
@@ -8,6 +10,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.zip.InflaterOutputStream;
 
 import org.bouncycastle.util.encoders.Hex;
 import org.tinylog.Logger;
@@ -362,5 +365,16 @@ public class DataParser {
 			ba[i] = (byte) ca[i];
 		}
 		return ba;
+	}
+
+	public static byte[] unzip(byte[] bytesToDecompress) throws IOException {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		InflaterOutputStream infos = new InflaterOutputStream(bos);
+		infos.write(bytesToDecompress);
+		infos.finish();
+		byte[] decompressedBytes = bos.toByteArray();
+		bos.close();
+		infos.close();
+		return decompressedBytes;
 	}
 }

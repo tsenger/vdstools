@@ -13,6 +13,8 @@ import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.zip.Deflater;
+import java.util.zip.DeflaterOutputStream;
 
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
@@ -242,6 +244,18 @@ public class DataEncoder {
 			ca[i] = (char) (ba[i] & 0xFF);
 		}
 		return new String(ca);
+	}
+
+	public static byte[] zip(byte[] bytesToCompress) throws IOException {
+		Deflater compresser = new Deflater(Deflater.BEST_COMPRESSION);
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		DeflaterOutputStream defos = new DeflaterOutputStream(bos, compresser);
+		defos.write(bytesToCompress);
+		defos.finish();
+		byte[] compressedBytes = bos.toByteArray();
+		bos.close();
+		defos.close();
+		return compressedBytes;
 	}
 
 }

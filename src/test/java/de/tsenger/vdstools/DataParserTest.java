@@ -523,4 +523,15 @@ public class DataParserTest {
 		DigitalSeal seal = DataParser.parseVdsSeal(fictionCert_rawBytes);
 		assertTrue(Arrays.areEqual(fictionCert_rawBytes, seal.getEncodedBytes()));
 	}
+
+	@Test
+	public void testUnzip() throws IOException {
+		byte[] compressedBytes = Hex.decode(
+				"78da014e00b1ff61120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c743d4280b");
+		byte[] decompressedBytes = DataParser.unzip(compressedBytes);
+		System.out.println("Decompressed: " + Hex.toHexString(decompressedBytes));
+		assertEquals(
+				"61120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7",
+				Hex.toHexString(decompressedBytes));
+	}
 }
