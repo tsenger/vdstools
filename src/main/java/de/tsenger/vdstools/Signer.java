@@ -61,15 +61,21 @@ public class Signer {
 
 		// Changed 02.12.2021:
 		// Signature depends now on curves bit length according to BSI TR-03116-2
+		// 2024-10-20: even more precise Doc9309-13 chapter 2.4
+		int fieldBitLength = getFieldSize();
 		Signature ecdsaSign;
-		switch (getFieldSize()) {
-		case 224:
+		if (fieldBitLength <= 224) {
 			ecdsaSign = Signature.getInstance("SHA224withPLAIN-ECDSA", "BC");
-			break;
-		case 256:
-		default:
+		} else if (fieldBitLength <= 256) {
 			ecdsaSign = Signature.getInstance("SHA256withPLAIN-ECDSA", "BC");
-			break;
+		} else if (fieldBitLength <= 384) {
+			ecdsaSign = Signature.getInstance("SHA384withPLAIN-ECDSA", "BC");
+		} else if (fieldBitLength <= 512) {
+			ecdsaSign = Signature.getInstance("SHA512withPLAIN-ECDSA", "BC");
+		} else {
+			Logger.error("Bit length of Field is out of definied value: " + fieldBitLength);
+			throw new InvalidAlgorithmParameterException(
+					"Bit length of Field is out of definied value (224 to 512 bits): " + fieldBitLength);
 		}
 
 		Logger.info("ECDSA algorithm: " + ecdsaSign.getAlgorithm());

@@ -22,11 +22,11 @@ public class Verifier {
 	}
 
 	private ECPublicKey ecPubKey;
-	private int keySize = 256;
+	private int fieldBitLength = 256;
 	private byte[] messageBytes;
 	private byte[] signatureBytes;
 
-	String signaturAlgorithmName = "SHA256WITHECDSA";
+	String signatureAlgorithmName = "SHA256WITHECDSA";
 
 	public Verifier(DigitalSeal digitalSeal, X509Certificate sealSignerCertificate) {
 		Security.addProvider(new BouncyCastleProvider());
@@ -34,29 +34,37 @@ public class Verifier {
 			throw new IllegalArgumentException("Certificate should contain EC public key!");
 		}
 		ecPubKey = (ECPublicKey) sealSignerCertificate.getPublicKey();
-		this.keySize = ecPubKey.getParams().getCurve().getField().getFieldSize();
+		this.fieldBitLength = ecPubKey.getParams().getCurve().getField().getFieldSize();
 		this.messageBytes = digitalSeal.getHeaderAndMessageBytes();
 		this.signatureBytes = digitalSeal.getSignatureBytes();
 
 		Logger.debug("Public Key bytes: 0x{}", Hex.toHexString(ecPubKey.getEncoded()));
-		Logger.debug("Public Key size: {}", this.keySize);
+		Logger.debug("Field bit length: {}", this.fieldBitLength);
 		Logger.debug("Message bytes: {}", Hex.toHexString(messageBytes));
 		Logger.debug("Signature bytes: {}", Hex.toHexString(signatureBytes));
 	}
 
 	public Result verify() {
-		// Based on the length of the signature, the hash algorithm is determined
-		// TODO is there a better solution? Maybe based on the Public Key size?
-		// TODO in ICAO9303 p13 ch2.4 it is defined!
-		// Should be based on bit length of the order of the base point generator G
-		if (signatureBytes[1] > 0x46) {
-			signaturAlgorithmName = "SHA384WITHECDSA";
-		} else if (signatureBytes[1] < 0x3F) {
-			signaturAlgorithmName = "SHA224WITHECDSA";
+		// Changed 2024-10-20
+		// Signature Algorithm is selected based on the field bit length of the curve
+		// as defined in ICAO9303 p13 ch2.4
+
+		if (fieldBitLength <= 224) {
+			signatureAlgorithmName = "SHA224withPLAIN-ECDSA";
+		} else if (fieldBitLength <= 256) {
+			signatureAlgorithmName = "SHA256withPLAIN-ECDSA";
+		} else if (fieldBitLength <= 384) {
+			signatureAlgorithmName = "SHA384withPLAIN-ECDSA";
+		} else if (fieldBitLength <= 512) {
+			signatureAlgorithmName = "SHA512withPLAIN-ECDSA";
+		} else {
+			Logger.error("Bit length of Field is out of definied value: " + fieldBitLength);
+			return Result.VerifyError;
 		}
 
 		try {
-			Signature ecdsaVerify = Signature.getInstance(signaturAlgorithmName, "BC");
+			Logger.debug("Verify with signatureAlgorithmName: " + signatureAlgorithmName);
+			Signature ecdsaVerify = Signature.getInstance(signatureAlgorithmName, "BC");
 			ecdsaVerify.initVerify(ecPubKey);
 			ecdsaVerify.update(messageBytes);
 

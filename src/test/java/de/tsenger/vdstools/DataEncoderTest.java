@@ -177,9 +177,9 @@ public class DataEncoderTest{
 		
 		Signer signer = new Signer(keystore, keyStorePassword, "dets32");		
 		VdsSignature vdsSignature = DataEncoder.createVdsSignature(vdsHeader, vdsMessage, signer);
-		byte[] rawSignatureBytes = vdsSignature.getRawSignatureBytes();
+		byte[] plainSignatureBytes = vdsSignature.getPlainSignatureBytes();
 		
-		assertTrue(rawSignatureBytes.length*4==signer.getFieldSize());		
+		assertTrue(plainSignatureBytes.length*4==signer.getFieldSize());		
 	}	
 	
 	@Test 

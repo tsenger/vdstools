@@ -116,7 +116,7 @@ public class DigitalSeal {
 	}
 
 	public byte[] getSignatureBytes() {
-		return vdsSignature.getSignatureBytes();
+		return vdsSignature.getPlainSignatureBytes();
 	}
 
 	public String getRawString() {
