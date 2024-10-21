@@ -1,4 +1,4 @@
-package de.tsenger.vdstools.seals;
+package de.tsenger.vdstools.vds.seals;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
@@ -12,6 +12,10 @@ import org.tinylog.Logger;
 import de.tsenger.vdstools.DataEncoder;
 import de.tsenger.vdstools.DataParser;
 import de.tsenger.vdstools.DerTlv;
+import de.tsenger.vdstools.vds.Feature;
+import de.tsenger.vdstools.vds.VdsHeader;
+import de.tsenger.vdstools.vds.VdsMessage;
+import de.tsenger.vdstools.vds.VdsSignature;
 
 /**
  * @author Tobias Senger

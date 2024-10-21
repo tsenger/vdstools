@@ -1,4 +1,4 @@
-package de.tsenger.vdstools.seals;
+package de.tsenger.vdstools.vds;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -10,7 +10,20 @@ import java.util.List;
 
 import org.tinylog.Logger;
 
+import de.tsenger.vdstools.DataParser;
 import de.tsenger.vdstools.DerTlv;
+import de.tsenger.vdstools.vds.seals.AddressStickerIdCard;
+import de.tsenger.vdstools.vds.seals.AddressStickerPass;
+import de.tsenger.vdstools.vds.seals.AliensLaw;
+import de.tsenger.vdstools.vds.seals.ArrivalAttestation;
+import de.tsenger.vdstools.vds.seals.FictionCert;
+import de.tsenger.vdstools.vds.seals.IcaoEmergencyTravelDocument;
+import de.tsenger.vdstools.vds.seals.IcaoVisa;
+import de.tsenger.vdstools.vds.seals.ResidencePermit;
+import de.tsenger.vdstools.vds.seals.SocialInsuranceCard;
+import de.tsenger.vdstools.vds.seals.SupplementarySheet;
+import de.tsenger.vdstools.vds.seals.TempPassport;
+import de.tsenger.vdstools.vds.seals.TempPerso;
 
 /**
  * @author Tobias Senger
@@ -22,7 +35,8 @@ public class VdsMessage {
 	private HashMap<Feature, Object> featureMap = new LinkedHashMap<Feature, Object>(2);
 	private VdsType vdsType = null;
 
-	public VdsMessage(List<DerTlv> derTlvList) {
+	public VdsMessage(VdsType vdsType, List<DerTlv> derTlvList) {
+		this.vdsType = vdsType;
 		this.derTlvList = derTlvList;
 	}
 
@@ -35,7 +49,7 @@ public class VdsMessage {
 		return vdsType;
 	}
 
-	public byte[] getRawBytes() {
+	public byte[] getEncoded() {
 		if (!featureMap.isEmpty()) {
 			if (derTlvList.size() != 0) {
 				Logger.warn("messageTlvList for " + vdsType.name() + " is NOT empty(size: " + derTlvList.size()
@@ -113,6 +127,11 @@ public class VdsMessage {
 
 	public void addDocumentFeature(Feature feature, Object obj) {
 		featureMap.put(feature, obj);
+	}
+
+	public static VdsMessage fromByteArray(byte[] rawBytes, VdsType vdsType) {
+		List<DerTlv> derTlvList = DataParser.parseDerTLvs(rawBytes);
+		return new VdsMessage(vdsType, derTlvList);
 	}
 
 }

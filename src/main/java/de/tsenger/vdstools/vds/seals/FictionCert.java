@@ -1,4 +1,4 @@
-package de.tsenger.vdstools.seals;
+package de.tsenger.vdstools.vds.seals;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,14 +10,18 @@ import org.tinylog.Logger;
 import de.tsenger.vdstools.DataEncoder;
 import de.tsenger.vdstools.DataParser;
 import de.tsenger.vdstools.DerTlv;
+import de.tsenger.vdstools.vds.Feature;
+import de.tsenger.vdstools.vds.VdsHeader;
+import de.tsenger.vdstools.vds.VdsMessage;
+import de.tsenger.vdstools.vds.VdsSignature;
 
 /**
  * @author Tobias Senger
  *
  */
-public class TempPerso extends DigitalSeal {
+public class FictionCert extends DigitalSeal {
 
-	public TempPerso(VdsHeader vdsHeader, VdsMessage vdsMessage, VdsSignature vdsSignature) {
+	public FictionCert(VdsHeader vdsHeader, VdsMessage vdsMessage, VdsSignature vdsSignature) {
 		super(vdsHeader, vdsMessage, vdsSignature);
 		parseDerTlvList(vdsMessage.getDerTlvList());
 	}
@@ -35,6 +39,14 @@ public class TempPerso extends DigitalSeal {
 				sb.insert(36, '\n');
 				featureMap.put(Feature.MRZ, sb.toString());
 				break;
+			case 0x03:
+				String passportNumber = DataParser.decodeC40(tlv.getValue());
+				featureMap.put(Feature.PASSPORT_NUMBER, passportNumber);
+				break;
+			case 0x04:
+				String azr = DataParser.decodeC40(tlv.getValue());
+				featureMap.put(Feature.AZR, azr);
+				break;
 			default:
 				Logger.warn("found unknown tag: 0x" + String.format("%02X ", tlv.getTag()));
 			}
@@ -51,6 +63,14 @@ public class TempPerso extends DigitalSeal {
 			case MRZ:
 				String valueStr = ((String) entry.getValue()).replaceAll("\r", "").replaceAll("\n", "");
 				derTlvList.add(new DerTlv((byte) (0x02), DataEncoder.encodeC40(valueStr)));
+				break;
+			case PASSPORT_NUMBER:
+				valueStr = ((String) entry.getValue()).replaceAll("\r", "").replaceAll("\n", "");
+				derTlvList.add(new DerTlv((byte) (0x03), DataEncoder.encodeC40(valueStr)));
+				break;
+			case AZR:
+				valueStr = ((String) entry.getValue()).replaceAll("\r", "").replaceAll("\n", "");
+				derTlvList.add(new DerTlv((byte) (0x04), DataEncoder.encodeC40(valueStr)));
 				break;
 			default:
 				Logger.warn("Feature " + entry.getKey().toString() + " is not supported in ResidencePermit.");

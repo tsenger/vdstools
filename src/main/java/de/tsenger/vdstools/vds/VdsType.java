@@ -1,4 +1,4 @@
-package de.tsenger.vdstools.seals;
+package de.tsenger.vdstools.vds;
 
 import java.util.HashMap;
 

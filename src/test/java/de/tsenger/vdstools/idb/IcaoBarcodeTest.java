@@ -68,8 +68,8 @@ public class IcaoBarcodeTest {
 
 	@Test
 	public void testConstructor_notSigned_zipped() throws CertificateException, IOException {
-		IdbPayload payload = IdbPayload
-				.fromByteArray(Hex.decode("6abc61120510b0b1b2b3b4b5b6b7b8b9babbbcbdbebf"), false);
+		IdbPayload payload = IdbPayload.fromByteArray(Hex.decode("6abc61120510b0b1b2b3b4b5b6b7b8b9babbbcbdbebf"),
+				false);
 		IcaoBarcode icb = new IcaoBarcode(false, true, payload);
 		System.out.println(icb.getEncoded());
 		assertEquals("NDB1CPDNACFQA5H7WVPDBCICRBMFRWKZ3JNNWW64LTOV3XS635P4DDIGSO", icb.getEncoded());
@@ -77,8 +77,8 @@ public class IcaoBarcodeTest {
 
 	@Test
 	public void testConstructor_notSigned_notZipped() throws CertificateException, IOException {
-		IdbPayload payload = IdbPayload
-				.fromByteArray(Hex.decode("6abc61120510b0b1b2b3b4b5b6b7b8b9babbbcbdbebf"), false);
+		IdbPayload payload = IdbPayload.fromByteArray(Hex.decode("6abc61120510b0b1b2b3b4b5b6b7b8b9babbbcbdbebf"),
+				false);
 		IcaoBarcode icb = new IcaoBarcode(false, false, payload);
 		System.out.println(icb.getEncoded());
 		assertEquals("NDB1ANK6GCEQFCCYLDMVTWS23NN5YXG5LXPF5X27Q", icb.getEncoded());
@@ -119,8 +119,7 @@ public class IcaoBarcodeTest {
 
 	@Test
 	public void testFromString_notSigned_zipped() throws CertificateException, IOException {
-		IcaoBarcode barcode = IcaoBarcode
-				.fromString("NDB1CPDNACFQA5H7WVPDBCICRBMFRWKZ3JNNWW64LTOV3XS635P4DDIGSO");
+		IcaoBarcode barcode = IcaoBarcode.fromString("NDB1CPDNACFQA5H7WVPDBCICRBMFRWKZ3JNNWW64LTOV3XS635P4DDIGSO");
 		assertEquals("6abc61120510b0b1b2b3b4b5b6b7b8b9babbbcbdbebf",
 				Hex.toHexString(barcode.getPayLoad().getEncoded()));
 //		System.out.println(Hex.toHexString(barcode.getPayLoad().getEncoded()));
@@ -136,8 +135,7 @@ public class IcaoBarcodeTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testFromString_invalid_BarcodeIdentifier() throws CertificateException, IOException {
-		IcaoBarcode barcode = IcaoBarcode.fromString("ADB1ANK6GCEQFCCYLDMVTWS23NN5YXG5LXPF5X27Q");
-
+		IcaoBarcode.fromString("ADB1ANK6GCEQFCCYLDMVTWS23NN5YXG5LXPF5X27Q");
 	}
 
 }

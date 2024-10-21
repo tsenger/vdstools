@@ -1,4 +1,4 @@
-package de.tsenger.vdstools.seals;
+package de.tsenger.vdstools.vds;
 
 //@formatter:off
 public enum Feature {  

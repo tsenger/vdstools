@@ -28,7 +28,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import de.tsenger.vdstools.seals.DigitalSeal;
+import de.tsenger.vdstools.vds.seals.DigitalSeal;
 
 public class VerifierTest {
 

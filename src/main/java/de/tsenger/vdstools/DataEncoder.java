@@ -23,11 +23,11 @@ import javax.naming.ldap.Rdn;
 import org.bouncycastle.util.Arrays;
 import org.tinylog.Logger;
 
-import de.tsenger.vdstools.seals.DigitalSeal;
-import de.tsenger.vdstools.seals.VdsHeader;
-import de.tsenger.vdstools.seals.VdsMessage;
-import de.tsenger.vdstools.seals.VdsSignature;
-import de.tsenger.vdstools.seals.VdsType;
+import de.tsenger.vdstools.vds.VdsHeader;
+import de.tsenger.vdstools.vds.VdsMessage;
+import de.tsenger.vdstools.vds.VdsSignature;
+import de.tsenger.vdstools.vds.VdsType;
+import de.tsenger.vdstools.vds.seals.DigitalSeal;
 
 public class DataEncoder {
 
@@ -43,7 +43,7 @@ public class DataEncoder {
 	}
 
 	public static VdsSignature createVdsSignature(VdsHeader vdsHeader, VdsMessage vdsMessage, Signer signer) {
-		byte[] headerMessage = Arrays.concatenate(vdsHeader.getRawBytes(), vdsMessage.getRawBytes());
+		byte[] headerMessage = Arrays.concatenate(vdsHeader.getEncded(), vdsMessage.getEncoded());
 		try {
 			byte[] signatureBytes = signer.sign(headerMessage);
 			return new VdsSignature(signatureBytes);

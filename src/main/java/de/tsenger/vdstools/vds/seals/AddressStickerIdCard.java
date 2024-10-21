@@ -1,4 +1,4 @@
-package de.tsenger.vdstools.seals;
+package de.tsenger.vdstools.vds.seals;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,19 +10,19 @@ import org.tinylog.Logger;
 import de.tsenger.vdstools.DataEncoder;
 import de.tsenger.vdstools.DataParser;
 import de.tsenger.vdstools.DerTlv;
+import de.tsenger.vdstools.vds.Feature;
+import de.tsenger.vdstools.vds.VdsHeader;
+import de.tsenger.vdstools.vds.VdsMessage;
+import de.tsenger.vdstools.vds.VdsSignature;
 
-/**
- * @author Tobias Senger
- *
- */
-public class AddressStickerPass extends DigitalSeal {
+public class AddressStickerIdCard extends DigitalSeal {
 
-	public AddressStickerPass(VdsHeader vdsHeader, VdsMessage vdsMessage, VdsSignature vdsSignature) {
+	public AddressStickerIdCard(VdsHeader vdsHeader, VdsMessage vdsMessage, VdsSignature vdsSignature) {
 		super(vdsHeader, vdsMessage, vdsSignature);
-		parseDerTlvList(vdsMessage.getDerTlvList());
+		parseMessageTlvList(vdsMessage.getDerTlvList());
 	}
 
-	private void parseDerTlvList(List<DerTlv> tlvList) {
+	private void parseMessageTlvList(List<DerTlv> tlvList) {
 		for (DerTlv tlv : tlvList) {
 			switch (tlv.getTag()) {
 			case 0x01:
@@ -34,14 +34,26 @@ public class AddressStickerPass extends DigitalSeal {
 				featureMap.put(Feature.AGS, ags);
 				break;
 			case 0x03:
-				String postalCode = DataParser.decodeC40(tlv.getValue());
-				featureMap.put(Feature.POSTAL_CODE, postalCode);
+				String rawAddress = DataParser.decodeC40(tlv.getValue());
+				featureMap.put(Feature.RAW_ADDRESS, rawAddress);
+				parseAddress(rawAddress);
 				break;
 			default:
 				Logger.warn("found unknown tag: 0x" + String.format("%02X ", tlv.getTag()));
 			}
 		}
+	}
 
+	private void parseAddress(String rawAddress) {
+		String postalCode = rawAddress.substring(0, 5);
+		String street = rawAddress.substring(5).replaceAll("(\\d+\\w+)(?!.*\\d)", "");
+		String streetNr = rawAddress.substring(5).replaceAll(street, "");
+
+		featureMap.put(Feature.POSTAL_CODE, postalCode);
+		featureMap.put(Feature.STREET, street);
+		featureMap.put(Feature.STREET_NR, streetNr);
+
+		Logger.debug("parsed address: " + String.format("%s:%s:%s", postalCode, street, streetNr));
 	}
 
 	public static List<DerTlv> parseFeatures(Map<Feature, Object> featureMap) {
@@ -56,7 +68,7 @@ public class AddressStickerPass extends DigitalSeal {
 				valueStr = ((String) entry.getValue()).replaceAll("\r", "").replaceAll("\n", "");
 				derTlvList.add(new DerTlv((byte) (0x02), DataEncoder.encodeC40(valueStr)));
 				break;
-			case POSTAL_CODE:
+			case RAW_ADDRESS:
 				valueStr = ((String) entry.getValue()).replaceAll("\r", "").replaceAll("\n", "");
 				derTlvList.add(new DerTlv((byte) (0x03), DataEncoder.encodeC40(valueStr)));
 				break;

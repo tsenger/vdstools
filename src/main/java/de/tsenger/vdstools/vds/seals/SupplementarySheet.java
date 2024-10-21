@@ -1,4 +1,4 @@
-package de.tsenger.vdstools.seals;
+package de.tsenger.vdstools.vds.seals;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,36 +10,39 @@ import org.tinylog.Logger;
 import de.tsenger.vdstools.DataEncoder;
 import de.tsenger.vdstools.DataParser;
 import de.tsenger.vdstools.DerTlv;
+import de.tsenger.vdstools.vds.Feature;
+import de.tsenger.vdstools.vds.VdsHeader;
+import de.tsenger.vdstools.vds.VdsMessage;
+import de.tsenger.vdstools.vds.VdsSignature;
 
 /**
  * @author Tobias Senger
  *
  */
-public class ResidencePermit extends DigitalSeal {
+public class SupplementarySheet extends DigitalSeal {
 
-	public ResidencePermit(VdsHeader vdsHeader, VdsMessage vdsMessage, VdsSignature vdsSignature) {
+	public SupplementarySheet(VdsHeader vdsHeader, VdsMessage vdsMessage, VdsSignature vdsSignature) {
 		super(vdsHeader, vdsMessage, vdsSignature);
-		parseMessageTlvList(vdsMessage.getDerTlvList());
+		parseDerTlvList(vdsMessage.getDerTlvList());
 	}
 
-	private void parseMessageTlvList(List<DerTlv> tlvList) {
+	private void parseDerTlvList(List<DerTlv> tlvList) {
 		for (DerTlv tlv : tlvList) {
 			switch (tlv.getTag()) {
-			case 0x02:
+			case 0x04:
 				String mrz = DataParser.decodeC40(tlv.getValue()).replace(' ', '<');
 				StringBuilder sb = new StringBuilder(mrz);
 				sb.insert(36, '\n');
 				featureMap.put(Feature.MRZ, sb.toString());
 				break;
-			case 0x03:
-				String passportNumber = DataParser.decodeC40(tlv.getValue());
-				featureMap.put(Feature.PASSPORT_NUMBER, passportNumber);
+			case 0x05:
+				String suppSheetNumber = DataParser.decodeC40(tlv.getValue());
+				featureMap.put(Feature.SHEET_NUMBER, suppSheetNumber);
 				break;
 			default:
 				Logger.warn("found unknown tag: 0x" + String.format("%02X ", tlv.getTag()));
 			}
 		}
-
 	}
 
 	public static List<DerTlv> parseFeatures(Map<Feature, Object> featureMap) {
@@ -47,12 +50,12 @@ public class ResidencePermit extends DigitalSeal {
 		for (Entry<Feature, Object> entry : featureMap.entrySet()) {
 			switch (entry.getKey()) {
 			case MRZ:
-				String mrz = ((String) entry.getValue()).replaceAll("\r", "").replaceAll("\n", "");
-				derTlvList.add(new DerTlv((byte) (0x02), DataEncoder.encodeC40(mrz)));
+				String valueStr = ((String) entry.getValue()).replaceAll("\r", "").replaceAll("\n", "");
+				derTlvList.add(new DerTlv((byte) (0x04), DataEncoder.encodeC40(valueStr)));
 				break;
-			case PASSPORT_NUMBER:
-				String ppNo = ((String) entry.getValue()).replaceAll("\r", "").replaceAll("\n", "");
-				derTlvList.add(new DerTlv((byte) (0x03), DataEncoder.encodeC40(ppNo)));
+			case SHEET_NUMBER:
+				valueStr = ((String) entry.getValue()).replaceAll("\r", "").replaceAll("\n", "");
+				derTlvList.add(new DerTlv((byte) (0x05), DataEncoder.encodeC40(valueStr)));
 				break;
 			default:
 				Logger.warn("Feature " + entry.getKey().toString() + " is not supported in ResidencePermit.");

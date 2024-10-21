@@ -15,23 +15,23 @@ import java.util.zip.InflaterOutputStream;
 import org.bouncycastle.util.encoders.Hex;
 import org.tinylog.Logger;
 
-import de.tsenger.vdstools.seals.AddressStickerIdCard;
-import de.tsenger.vdstools.seals.AddressStickerPass;
-import de.tsenger.vdstools.seals.AliensLaw;
-import de.tsenger.vdstools.seals.ArrivalAttestation;
-import de.tsenger.vdstools.seals.DigitalSeal;
-import de.tsenger.vdstools.seals.FictionCert;
-import de.tsenger.vdstools.seals.IcaoEmergencyTravelDocument;
-import de.tsenger.vdstools.seals.IcaoVisa;
-import de.tsenger.vdstools.seals.ResidencePermit;
-import de.tsenger.vdstools.seals.SocialInsuranceCard;
-import de.tsenger.vdstools.seals.SupplementarySheet;
-import de.tsenger.vdstools.seals.TempPassport;
-import de.tsenger.vdstools.seals.TempPerso;
-import de.tsenger.vdstools.seals.VdsHeader;
-import de.tsenger.vdstools.seals.VdsMessage;
-import de.tsenger.vdstools.seals.VdsSignature;
-import de.tsenger.vdstools.seals.VdsType;
+import de.tsenger.vdstools.vds.VdsHeader;
+import de.tsenger.vdstools.vds.VdsMessage;
+import de.tsenger.vdstools.vds.VdsSignature;
+import de.tsenger.vdstools.vds.VdsType;
+import de.tsenger.vdstools.vds.seals.AddressStickerIdCard;
+import de.tsenger.vdstools.vds.seals.AddressStickerPass;
+import de.tsenger.vdstools.vds.seals.AliensLaw;
+import de.tsenger.vdstools.vds.seals.ArrivalAttestation;
+import de.tsenger.vdstools.vds.seals.DigitalSeal;
+import de.tsenger.vdstools.vds.seals.FictionCert;
+import de.tsenger.vdstools.vds.seals.IcaoEmergencyTravelDocument;
+import de.tsenger.vdstools.vds.seals.IcaoVisa;
+import de.tsenger.vdstools.vds.seals.ResidencePermit;
+import de.tsenger.vdstools.vds.seals.SocialInsuranceCard;
+import de.tsenger.vdstools.vds.seals.SupplementarySheet;
+import de.tsenger.vdstools.vds.seals.TempPassport;
+import de.tsenger.vdstools.vds.seals.TempPerso;
 
 /**
  * Created by Tobias Senger on 18.01.2017.
@@ -88,11 +88,11 @@ public class DataParser {
 
 		// Test if message raw bytes are equal to the calculate raw bytes from
 		// vdsMessage.getRawBytes method
-		if (!Arrays.equals(vdsMessageRawDataBytes, vdsMessage.getRawBytes())) {
+		if (!Arrays.equals(vdsMessageRawDataBytes, vdsMessage.getEncoded())) {
 			Logger.error(
 					"Message raw bytes and calculated message raw bytes from vdsMessage.getRawBytes are not equal!");
 			Logger.debug("Expected: " + Hex.toHexString(vdsMessageRawDataBytes) + " Actual: "
-					+ Hex.toHexString(vdsMessage.getRawBytes()));
+					+ Hex.toHexString(vdsMessage.getEncoded()));
 			return null;
 		}
 

@@ -1,4 +1,4 @@
-package de.tsenger.vdstools.seals;
+package de.tsenger.vdstools.vds;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -43,7 +43,7 @@ public class VdsHeader {
 		return VdsType.valueOf(getDocumentRef());
 	}
 
-	public byte[] getRawBytes() {
+	public byte[] getEncded() {
 		if (rawBytes == null) {
 			encode();
 		}

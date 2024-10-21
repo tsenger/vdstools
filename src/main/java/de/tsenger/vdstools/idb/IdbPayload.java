@@ -18,8 +18,8 @@ public class IdbPayload {
 	private IdbSignerCertificate idbSignerCertificate;
 	private IdbSignature idbSignature;
 
-	public IdbPayload(IdbHeader idbHeader, IdbMessageGroup idbMessageGroup,
-			IdbSignerCertificate idbSignerCertificate, IdbSignature idbSignature) {
+	public IdbPayload(IdbHeader idbHeader, IdbMessageGroup idbMessageGroup, IdbSignerCertificate idbSignerCertificate,
+			IdbSignature idbSignature) {
 		this.idbHeader = idbHeader;
 		this.idbMessageGroup = idbMessageGroup;
 		this.idbSignerCertificate = idbSignerCertificate;
@@ -58,8 +58,7 @@ public class IdbPayload {
 		return bos.toByteArray();
 	}
 
-	public static IdbPayload fromByteArray(byte[] rawBytes, boolean isSigned)
-			throws CertificateException, IOException {
+	public static IdbPayload fromByteArray(byte[] rawBytes, boolean isSigned) throws CertificateException, IOException {
 		IdbHeader idbHeader = null;
 		IdbMessageGroup idbMessageGroup = null;
 		IdbSignerCertificate idbSignerCertificate = null;
@@ -75,14 +74,17 @@ public class IdbPayload {
 		for (DerTlv derTlv : derTlvList) {
 			switch (derTlv.getTag()) {
 			case IdbMessageGroup.TAG:
-				idbMessageGroup = IdbMessageGroup.fromByteArray(derTlv.getValue());
+				idbMessageGroup = IdbMessageGroup.fromByteArray(derTlv.getEncoded());
 				break;
 			case IdbSignerCertificate.TAG:
-				idbSignerCertificate = IdbSignerCertificate.fromByteArray(derTlv.getValue());
+				idbSignerCertificate = IdbSignerCertificate.fromByteArray(derTlv.getEncoded());
 				break;
 			case IdbSignature.TAG:
-				idbSignature = new IdbSignature(derTlv.getValue());
+				idbSignature = IdbSignature.fromByteArray(derTlv.getEncoded());
 				break;
+			default:
+				throw new IllegalArgumentException(
+						String.format("Found unknown tag %2X in IdbPayload!", derTlv.getTag()));
 			}
 		}
 

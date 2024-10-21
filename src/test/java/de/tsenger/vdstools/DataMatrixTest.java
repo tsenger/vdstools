@@ -22,10 +22,10 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.datamatrix.DataMatrixWriter;
 
-import de.tsenger.vdstools.seals.DigitalSeal;
-import de.tsenger.vdstools.seals.Feature;
-import de.tsenger.vdstools.seals.VdsMessage;
-import de.tsenger.vdstools.seals.VdsType;
+import de.tsenger.vdstools.vds.Feature;
+import de.tsenger.vdstools.vds.VdsMessage;
+import de.tsenger.vdstools.vds.VdsType;
+import de.tsenger.vdstools.vds.seals.DigitalSeal;
 
 public class DataMatrixTest {
 	

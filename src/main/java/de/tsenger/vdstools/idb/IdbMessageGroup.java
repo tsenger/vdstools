@@ -37,9 +37,12 @@ public class IdbMessageGroup {
 	}
 
 	public static IdbMessageGroup fromByteArray(byte[] rawBytes) throws IOException {
-		if (rawBytes[0] == TAG) {
-			rawBytes = DerTlv.fromByteArray(rawBytes).getValue();
+		if (rawBytes[0] != TAG) {
+			throw new IllegalArgumentException(String
+					.format("IdbMessageGroup shall have tag %2X, but tag %2X was found instead.", TAG, rawBytes[0]));
+
 		}
+		rawBytes = DerTlv.fromByteArray(rawBytes).getValue();
 		IdbMessageGroup messageGroup = new IdbMessageGroup();
 		List<DerTlv> derTlvMessagesList = DataParser.parseDerTLvs(rawBytes);
 		for (DerTlv derTlvMessage : derTlvMessagesList) {

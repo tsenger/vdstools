@@ -1,4 +1,4 @@
-package de.tsenger.vdstools.seals;
+package de.tsenger.vdstools.vds.seals;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -13,6 +13,11 @@ import de.tsenger.vdstools.DataEncoder;
 import de.tsenger.vdstools.DataParser;
 import de.tsenger.vdstools.DerTlv;
 import de.tsenger.vdstools.Signer;
+import de.tsenger.vdstools.vds.Feature;
+import de.tsenger.vdstools.vds.VdsHeader;
+import de.tsenger.vdstools.vds.VdsMessage;
+import de.tsenger.vdstools.vds.VdsSignature;
+import de.tsenger.vdstools.vds.VdsType;
 
 /**
  * @author Tobias Senger
@@ -108,11 +113,11 @@ public class DigitalSeal {
 	}
 
 	public byte[] getHeaderAndMessageBytes() {
-		return Arrays.concatenate(vdsHeader.getRawBytes(), vdsMessage.getRawBytes());
+		return Arrays.concatenate(vdsHeader.getEncded(), vdsMessage.getEncoded());
 	}
 
 	public byte[] getEncodedBytes() throws IOException {
-		return Arrays.concatenate(vdsHeader.getRawBytes(), vdsMessage.getRawBytes(), vdsSignature.getEncoded());
+		return Arrays.concatenate(vdsHeader.getEncded(), vdsMessage.getEncoded(), vdsSignature.getEncoded());
 	}
 
 	public byte[] getSignatureBytes() {
