@@ -17,11 +17,8 @@ public class IdbSignature {
 
 	private byte[] plainSignatureBytes;
 
-	public IdbSignature(byte[] rawSignatureBytes) throws IOException {
-		if (rawSignatureBytes[0] == TAG) {
-			rawSignatureBytes = DerTlv.fromByteArray(rawSignatureBytes).getValue();
-		}
-		this.plainSignatureBytes = rawSignatureBytes;
+	public IdbSignature(byte[] plainSignatureBytes) throws IOException {
+		this.plainSignatureBytes = plainSignatureBytes;
 	}
 
 	/**
@@ -64,6 +61,15 @@ public class IdbSignature {
 	public byte[] getEncoded() throws IOException {
 		DerTlv derSignature = new DerTlv(TAG, plainSignatureBytes);
 		return derSignature.getEncoded();
+	}
+
+	public static IdbSignature fromByteArray(byte[] rawBytes) throws IOException {
+		if (rawBytes[0] != TAG) {
+			throw new IllegalArgumentException(
+					String.format("IdbSignature shall have tag %2X, but tag %2X was found instead.", TAG, rawBytes[0]));
+		}
+		DerTlv derTlv = DerTlv.fromByteArray(rawBytes);
+		return new IdbSignature(derTlv.getValue());
 	}
 
 }
