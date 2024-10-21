@@ -11,14 +11,14 @@ import org.tinylog.Logger;
 import de.tsenger.vdstools.DataParser;
 import de.tsenger.vdstools.DerTlv;
 
-public class BarcodePayload {
+public class IdbPayload {
 
 	private IdbHeader idbHeader;
 	private IdbMessageGroup idbMessageGroup;
 	private IdbSignerCertificate idbSignerCertificate;
 	private IdbSignature idbSignature;
 
-	public BarcodePayload(IdbHeader idbHeader, IdbMessageGroup idbMessageGroup,
+	public IdbPayload(IdbHeader idbHeader, IdbMessageGroup idbMessageGroup,
 			IdbSignerCertificate idbSignerCertificate, IdbSignature idbSignature) {
 		this.idbHeader = idbHeader;
 		this.idbMessageGroup = idbMessageGroup;
@@ -58,7 +58,7 @@ public class BarcodePayload {
 		return bos.toByteArray();
 	}
 
-	public static BarcodePayload fromByteArray(byte[] rawBytes, boolean isSigned)
+	public static IdbPayload fromByteArray(byte[] rawBytes, boolean isSigned)
 			throws CertificateException, IOException {
 		IdbHeader idbHeader = null;
 		IdbMessageGroup idbMessageGroup = null;
@@ -86,7 +86,7 @@ public class BarcodePayload {
 			}
 		}
 
-		return new BarcodePayload(idbHeader, idbMessageGroup, idbSignerCertificate, idbSignature);
+		return new IdbPayload(idbHeader, idbMessageGroup, idbSignerCertificate, idbSignature);
 	}
 
 }

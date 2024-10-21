@@ -10,11 +10,11 @@ import java.security.cert.CertificateException;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.Test;
 
-public class BarcodePayloadTest {
+public class IdbPayloadTest {
 
 	@Test
 	public void testConstructor_null() {
-		BarcodePayload payload = new BarcodePayload(null, null, null, null);
+		IdbPayload payload = new IdbPayload(null, null, null, null);
 		assertNotNull(payload);
 	}
 
@@ -24,7 +24,7 @@ public class BarcodePayloadTest {
 		IdbMessageGroup messageGroup = new IdbMessageGroup();
 		messageGroup.addMessage(
 				new IdbMessage(IdbMessageType.PROOF_OF_RECOVERY, Hex.decode("b0b1b2b3b4b5b6b7b8b9babbbcbdbebf")));
-		BarcodePayload payload = new BarcodePayload(header, messageGroup, null, null);
+		IdbPayload payload = new IdbPayload(header, messageGroup, null, null);
 		assertNotNull(payload);
 	}
 
@@ -35,7 +35,7 @@ public class BarcodePayloadTest {
 				new IdbMessage(IdbMessageType.PROOF_OF_VACCINATION, Hex.decode("b0b1b2b3b4b5b6b7b8b9babbbcbdbebf")));
 		IdbSignature signature = new IdbSignature(Hex.decode(
 				"24bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7"));
-		BarcodePayload payload = new BarcodePayload(header, messageGroup, null, signature);
+		IdbPayload payload = new IdbPayload(header, messageGroup, null, signature);
 		assertNotNull(payload);
 	}
 
@@ -43,7 +43,7 @@ public class BarcodePayloadTest {
 	public void testGetIdbHeader() throws IOException, CertificateException {
 		byte[] rawBytes = Hex.decode("6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb33"
 				+ "2f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7");
-		BarcodePayload payload = BarcodePayload.fromByteArray(rawBytes, true);
+		IdbPayload payload = IdbPayload.fromByteArray(rawBytes, true);
 		IdbHeader header = payload.getIdbHeader();
 		assertEquals("6abc010504030201009b5d88", Hex.toHexString(header.getEncoded()));
 	}
@@ -52,7 +52,7 @@ public class BarcodePayloadTest {
 	public void testGetIdbMessageGroup() throws CertificateException, IOException {
 		byte[] rawBytes = Hex.decode("6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb33"
 				+ "2f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7");
-		BarcodePayload payload = BarcodePayload.fromByteArray(rawBytes, true);
+		IdbPayload payload = IdbPayload.fromByteArray(rawBytes, true);
 		IdbMessageGroup messageGroup = payload.getIdbMessageGroup();
 		assertNotNull(messageGroup);
 		assertEquals("61120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf", Hex.toHexString(messageGroup.getEncoded()));
@@ -62,7 +62,7 @@ public class BarcodePayloadTest {
 	public void testGetIdbSignerCertificate_null() throws CertificateException, IOException {
 		byte[] rawBytes = Hex.decode("6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb33"
 				+ "2f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7");
-		BarcodePayload payload = BarcodePayload.fromByteArray(rawBytes, true);
+		IdbPayload payload = IdbPayload.fromByteArray(rawBytes, true);
 		IdbSignerCertificate signerCert = payload.getIdbSignerCertificate();
 		assertNull(signerCert);
 	}
@@ -71,7 +71,7 @@ public class BarcodePayloadTest {
 	public void testGetIdbSignature() throws CertificateException, IOException {
 		byte[] rawBytes = Hex.decode("6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb33"
 				+ "2f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7");
-		BarcodePayload payload = BarcodePayload.fromByteArray(rawBytes, true);
+		IdbPayload payload = IdbPayload.fromByteArray(rawBytes, true);
 		IdbSignature signature = payload.getIdbSignature();
 		assertNotNull(signature);
 		assertEquals(
@@ -85,7 +85,7 @@ public class BarcodePayloadTest {
 		IdbMessageGroup messageGroup = new IdbMessageGroup();
 		messageGroup.addMessage(
 				new IdbMessage(IdbMessageType.PROOF_OF_RECOVERY, Hex.decode("b0b1b2b3b4b5b6b7b8b9babbbcbdbebf")));
-		BarcodePayload payload = new BarcodePayload(header, messageGroup, null, null);
+		IdbPayload payload = new IdbPayload(header, messageGroup, null, null);
 		byte[] encodedBytes = payload.getEncoded();
 		assertEquals("6abc61120510b0b1b2b3b4b5b6b7b8b9babbbcbdbebf", Hex.toHexString(encodedBytes));
 	}
@@ -98,7 +98,7 @@ public class BarcodePayloadTest {
 				new IdbMessage(IdbMessageType.PROOF_OF_VACCINATION, Hex.decode("b0b1b2b3b4b5b6b7b8b9babbbcbdbebf")));
 		IdbSignature signature = new IdbSignature(Hex.decode(
 				"24bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7"));
-		BarcodePayload payload = new BarcodePayload(header, messageGroup, null, signature);
+		IdbPayload payload = new IdbPayload(header, messageGroup, null, signature);
 		byte[] encodedBytes = payload.getEncoded();
 		assertEquals("6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb33"
 				+ "2f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7",
@@ -109,7 +109,7 @@ public class BarcodePayloadTest {
 	public void testFromByteArray() throws CertificateException, IOException {
 		byte[] rawBytes = Hex.decode("6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb33"
 				+ "2f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7");
-		BarcodePayload payload = BarcodePayload.fromByteArray(rawBytes, true);
+		IdbPayload payload = IdbPayload.fromByteArray(rawBytes, true);
 		assertNotNull(payload);
 	}
 
