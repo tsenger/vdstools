@@ -16,15 +16,19 @@ public class IdbSignerCertificate {
 	private X509Certificate cert;
 
 	public IdbSignerCertificate(X509Certificate cert) {
+		if (cert == null)
+			throw new IllegalArgumentException("Certificate must not be null!");
 		this.cert = cert;
 	}
 
-	public static IdbSignerCertificate fromByteArray(byte[] certBytes) throws CertificateException, IOException {
-		if (certBytes[0] == TAG) {
-			certBytes = DerTlv.fromByteArray(certBytes).getValue();
+	public static IdbSignerCertificate fromByteArray(byte[] rawBytes) throws CertificateException, IOException {
+		if (rawBytes[0] != TAG) {
+			throw new IllegalArgumentException(String.format(
+					"IdbSignerCertificate shall have tag %2X, but tag %2X was found instead.", TAG, rawBytes[0]));
 		}
+		DerTlv derTlv = DerTlv.fromByteArray(rawBytes);
 		X509Certificate cert = (X509Certificate) CertificateFactory.getInstance("X.509")
-				.generateCertificate(new ByteArrayInputStream(certBytes));
+				.generateCertificate(new ByteArrayInputStream(derTlv.getValue()));
 		return new IdbSignerCertificate(cert);
 	}
 
