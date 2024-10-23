@@ -67,4 +67,13 @@ public class VdsSignature {
 		DerTlv derSignature = new DerTlv(TAG, plainSignatureBytes);
 		return derSignature.getEncoded();
 	}
+
+	public static VdsSignature fromByteArray(byte[] rawBytes) throws IOException {
+		if (rawBytes[0] != TAG) {
+			throw new IllegalArgumentException(
+					String.format("VdsSignature shall have tag %2X, but tag %2X was found instead.", TAG, rawBytes[0]));
+		}
+		DerTlv derTlv = DerTlv.fromByteArray(rawBytes);
+		return new VdsSignature(derTlv.getValue());
+	}
 }

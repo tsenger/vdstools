@@ -43,7 +43,7 @@ public class VdsHeader {
 		return VdsType.valueOf(getDocumentRef());
 	}
 
-	public byte[] getEncded() {
+	public byte[] getEncoded() {
 		if (rawBytes == null) {
 			encode();
 		}

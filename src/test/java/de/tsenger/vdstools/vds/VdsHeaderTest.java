@@ -40,7 +40,7 @@ public class VdsHeaderTest {
 		header.sigDate = LocalDate.parse("2024-09-27");
 		header.issuingCountry = "D<<";
 		header.rawVersion = 0x03;
-		byte [] headerBytes = header.getEncded();
+		byte [] headerBytes = header.getEncoded();
 		System.out.println("Header bytes:\n"+Hex.toHexString(headerBytes));
 		assertEquals("dc036abc6d32c8a72cb18d7ad88d7ad8fb06", Hex.toHexString(headerBytes));
 	}
@@ -56,7 +56,7 @@ public class VdsHeaderTest {
 		header.sigDate = LocalDate.parse("2024-09-27");
 		header.issuingCountry = "D<<";
 		header.rawVersion = 0x02;
-		byte [] headerBytes = header.getEncded();
+		byte [] headerBytes = header.getEncoded();
 		System.out.println("Header bytes:\n"+Hex.toHexString(headerBytes));
 		assertEquals("dc026abc6d32c8a51a1f8d7ad88d7ad8fd02", Hex.toHexString(headerBytes));
 	}

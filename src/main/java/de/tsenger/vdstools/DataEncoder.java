@@ -1,6 +1,7 @@
 package de.tsenger.vdstools;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
@@ -31,6 +32,8 @@ import de.tsenger.vdstools.vds.seals.DigitalSeal;
 
 public class DataEncoder {
 
+	private static FeatureConverter featureEncoder = null;
+
 	public static DigitalSeal buildDigitalSeal(VdsMessage vdsMessage, X509Certificate cert, Signer signer) {
 		VdsHeader vdsHeader = buildHeader(vdsMessage.getVdsType(), cert);
 		VdsSignature vdsSignature = createVdsSignature(vdsHeader, vdsMessage, signer);
@@ -43,7 +46,7 @@ public class DataEncoder {
 	}
 
 	public static VdsSignature createVdsSignature(VdsHeader vdsHeader, VdsMessage vdsMessage, Signer signer) {
-		byte[] headerMessage = Arrays.concatenate(vdsHeader.getEncded(), vdsMessage.getEncoded());
+		byte[] headerMessage = Arrays.concatenate(vdsHeader.getEncoded(), vdsMessage.getEncoded());
 		try {
 			byte[] signatureBytes = signer.sign(headerMessage);
 			return new VdsSignature(signatureBytes);
@@ -256,6 +259,17 @@ public class DataEncoder {
 		bos.close();
 		defos.close();
 		return compressedBytes;
+	}
+
+	public static FeatureConverter getDefaultFeatureEncoder() {
+		if (featureEncoder == null) {
+			try {
+				featureEncoder = new FeatureConverter(FeatureConverter.DEFAULT_SEAL_CODINGS);
+			} catch (FileNotFoundException e) {
+				Logger.error(e);
+			}
+		}
+		return featureEncoder;
 	}
 
 }

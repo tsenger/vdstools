@@ -230,7 +230,7 @@ public class DataEncoderTest {
 		byte[] encodedDate = DataEncoder.encodeDate(ldNow);
 
 		VdsHeader vdsHeader = DataEncoder.buildHeader(VdsType.RESIDENCE_PERMIT, cert);
-		byte[] headerBytes = vdsHeader.getEncded();
+		byte[] headerBytes = vdsHeader.getEncoded();
 		byte[] expectedHeaderBytes = Arrays.concatenate(Hex.decode("dc036abc6d32c8a72cb1"), encodedDate, encodedDate,
 				Hex.decode("fb06"));
 		assertTrue(Arrays.areEqual(expectedHeaderBytes, headerBytes));
@@ -244,7 +244,7 @@ public class DataEncoderTest {
 		byte[] encodedDate = DataEncoder.encodeDate(ldNow);
 
 		VdsHeader vdsHeader = DataEncoder.buildHeader(VdsType.RESIDENCE_PERMIT, cert, "XYZ");
-		byte[] headerBytes = vdsHeader.getEncded();
+		byte[] headerBytes = vdsHeader.getEncoded();
 
 		byte[] expectedHeaderBytes = Arrays.concatenate(Hex.decode("dc03ed586d32c8a72cb1"), encodedDate, encodedDate,
 				Hex.decode("fb06"));
@@ -262,7 +262,7 @@ public class DataEncoderTest {
 		byte[] signDate = DataEncoder.encodeDate(ldNow);
 
 		VdsHeader vdsHeader = DataEncoder.buildHeader(VdsType.RESIDENCE_PERMIT, cert, "XYZ", (byte) 0x03, ldate);
-		byte[] headerBytes = vdsHeader.getEncded();
+		byte[] headerBytes = vdsHeader.getEncoded();
 
 		byte[] expectedHeaderBytes = Arrays.concatenate(Hex.decode("dc03ed586d32c8a72cb1"), issuingDate, signDate,
 				Hex.decode("fb06"));
@@ -280,7 +280,7 @@ public class DataEncoderTest {
 		byte[] signDate = DataEncoder.encodeDate(ldNow);
 
 		VdsHeader vdsHeader = DataEncoder.buildHeader(VdsType.TEMP_PASSPORT, cert, "XYZ", (byte) 0x02, ldate);
-		byte[] headerBytes = vdsHeader.getEncded();
+		byte[] headerBytes = vdsHeader.getEncoded();
 		byte[] expectedHeaderBytes = Arrays.concatenate(Hex.decode("dc02ed586d32c8a51a1f"), issuingDate, signDate,
 				Hex.decode("f60d"));
 		assertTrue(Arrays.areEqual(expectedHeaderBytes, headerBytes));

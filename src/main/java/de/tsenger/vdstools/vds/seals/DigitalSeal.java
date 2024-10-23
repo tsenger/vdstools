@@ -8,6 +8,7 @@ import java.util.EnumMap;
 import java.util.List;
 
 import org.bouncycastle.util.Arrays;
+import org.tinylog.Logger;
 
 import de.tsenger.vdstools.DataEncoder;
 import de.tsenger.vdstools.DataParser;
@@ -41,7 +42,12 @@ public class DigitalSeal {
 	}
 
 	public static DigitalSeal getInstance(String rawString) {
-		DigitalSeal seal = DataParser.parseVdsSeal(rawString);
+		DigitalSeal seal = null;
+		try {
+			seal = DataParser.parseVdsSeal(rawString);
+		} catch (IOException e) {
+			Logger.error(e.getMessage());
+		}
 		seal.rawString = rawString;
 		return seal;
 	}
@@ -113,11 +119,11 @@ public class DigitalSeal {
 	}
 
 	public byte[] getHeaderAndMessageBytes() {
-		return Arrays.concatenate(vdsHeader.getEncded(), vdsMessage.getEncoded());
+		return Arrays.concatenate(vdsHeader.getEncoded(), vdsMessage.getEncoded());
 	}
 
 	public byte[] getEncodedBytes() throws IOException {
-		return Arrays.concatenate(vdsHeader.getEncded(), vdsMessage.getEncoded(), vdsSignature.getEncoded());
+		return Arrays.concatenate(vdsHeader.getEncoded(), vdsMessage.getEncoded(), vdsSignature.getEncoded());
 	}
 
 	public byte[] getSignatureBytes() {
@@ -129,15 +135,11 @@ public class DigitalSeal {
 	}
 
 	public Object getFeature(Feature feature) {
-		try {
-			return featureMap.get(feature);
-		} catch (Exception e) {
-			return null;
-		}
+		return vdsMessage.getDocumentFeature(feature);
 	}
 
 	public void setFeature(Feature feature, Object object) {
-		featureMap.put(feature, object);
+		vdsMessage.addDocumentFeature(feature, object);
 
 	}
 

@@ -18,20 +18,7 @@ import org.tinylog.Logger;
 import de.tsenger.vdstools.vds.VdsHeader;
 import de.tsenger.vdstools.vds.VdsMessage;
 import de.tsenger.vdstools.vds.VdsSignature;
-import de.tsenger.vdstools.vds.VdsType;
-import de.tsenger.vdstools.vds.seals.AddressStickerIdCard;
-import de.tsenger.vdstools.vds.seals.AddressStickerPass;
-import de.tsenger.vdstools.vds.seals.AliensLaw;
-import de.tsenger.vdstools.vds.seals.ArrivalAttestation;
 import de.tsenger.vdstools.vds.seals.DigitalSeal;
-import de.tsenger.vdstools.vds.seals.FictionCert;
-import de.tsenger.vdstools.vds.seals.IcaoEmergencyTravelDocument;
-import de.tsenger.vdstools.vds.seals.IcaoVisa;
-import de.tsenger.vdstools.vds.seals.ResidencePermit;
-import de.tsenger.vdstools.vds.seals.SocialInsuranceCard;
-import de.tsenger.vdstools.vds.seals.SupplementarySheet;
-import de.tsenger.vdstools.vds.seals.TempPassport;
-import de.tsenger.vdstools.vds.seals.TempPerso;
 
 /**
  * Created by Tobias Senger on 18.01.2017.
@@ -39,13 +26,13 @@ import de.tsenger.vdstools.vds.seals.TempPerso;
 
 public class DataParser {
 
-	public static DigitalSeal parseVdsSeal(String rawString) {
+	public static DigitalSeal parseVdsSeal(String rawString) throws IOException {
 		byte[] rawBytes = decodeBase256(rawString);
 		Logger.trace("rawString: {}", rawString);
 		return parseVdsSeal(rawBytes);
 	}
 
-	public static DigitalSeal parseVdsSeal(byte[] rawBytes) {
+	public static DigitalSeal parseVdsSeal(byte[] rawBytes) throws IOException {
 
 		ByteBuffer rawData = ByteBuffer.wrap(rawBytes);
 		Logger.trace("rawData: {}", () -> Hex.toHexString(rawBytes));
@@ -55,77 +42,18 @@ public class DataParser {
 		VdsSignature vdsSignature = null;
 
 		int messageStartPosition = rawData.position();
-		int signatureStartPosition = 0;
-		byte[] vdsMessageRawDataBytes = null;
 
-		// TODO find "cleaner" solution, duplicated in parseDerTlvs()
-		while (rawData.hasRemaining()) {
-			int tag = (rawData.get() & 0xff);
-			if (tag == 0xff) {
-				signatureStartPosition = rawData.position() - 1;
-			}
-			int le = rawData.get() & 0xff;
-			if (le == 0x81) {
-				le = rawData.get() & 0xff;
-			} else if (le == 0x82) {
-				le = ((rawData.get() & 0xff) * 0x100) + (rawData.get() & 0xff);
-			} else if (le == 0x83) {
-				le = ((rawData.get() & 0xff) * 0x1000) + ((rawData.get() & 0xff) * 0x100) + (rawData.get() & 0xff);
-			} else if (le > 0x7F) {
-				Logger.error(String.format("can't decode length: 0x%02X", le));
-				throw new IllegalArgumentException(String.format("can't decode length: 0x%02X", le));
-			}
-			byte[] val = getFromByteBuffer(rawData, le);
-			// Tag 0xFF marks the Signature
-			if (tag == 0xff) {
-				vdsSignature = new VdsSignature(val);
-				vdsMessageRawDataBytes = Arrays.copyOfRange(rawData.array(), messageStartPosition,
-						signatureStartPosition);
-				break;
-			}
-			vdsMessage.addDerTlv(new DerTlv((byte) (tag & 0xff), val));
-		}
+		List<DerTlv> derTlvList = DataParser
+				.parseDerTLvs(Arrays.copyOfRange(rawBytes, messageStartPosition, rawBytes.length));
 
-		// Test if message raw bytes are equal to the calculate raw bytes from
-		// vdsMessage.getRawBytes method
-		if (!Arrays.equals(vdsMessageRawDataBytes, vdsMessage.getEncoded())) {
-			Logger.error(
-					"Message raw bytes and calculated message raw bytes from vdsMessage.getRawBytes are not equal!");
-			Logger.debug("Expected: " + Hex.toHexString(vdsMessageRawDataBytes) + " Actual: "
-					+ Hex.toHexString(vdsMessage.getEncoded()));
-			return null;
+		for (DerTlv derTlv : derTlvList) {
+			if (derTlv.getTag() == (byte) 0xff)
+				vdsSignature = VdsSignature.fromByteArray(derTlv.getEncoded());
+			else
+				vdsMessage.addDerTlv(derTlv);
 		}
+		return new DigitalSeal(vdsHeader, vdsMessage, vdsSignature);
 
-		VdsType vdsType = VdsType.valueOf(vdsHeader.getDocumentRef());
-		switch (vdsType) {
-		case ARRIVAL_ATTESTATION:
-			return new ArrivalAttestation(vdsHeader, vdsMessage, vdsSignature);
-		case SOCIAL_INSURANCE_CARD:
-			return new SocialInsuranceCard(vdsHeader, vdsMessage, vdsSignature);
-		case ICAO_VISA:
-			return new IcaoVisa(vdsHeader, vdsMessage, vdsSignature);
-		case RESIDENCE_PERMIT:
-			return new ResidencePermit(vdsHeader, vdsMessage, vdsSignature);
-		case ICAO_EMERGENCY_TRAVEL_DOCUMENT:
-			return new IcaoEmergencyTravelDocument(vdsHeader, vdsMessage, vdsSignature);
-		case SUPPLEMENTARY_SHEET:
-			return new SupplementarySheet(vdsHeader, vdsMessage, vdsSignature);
-		case ADDRESS_STICKER_ID:
-			return new AddressStickerIdCard(vdsHeader, vdsMessage, vdsSignature);
-		case ADDRESS_STICKER_PASSPORT:
-			return new AddressStickerPass(vdsHeader, vdsMessage, vdsSignature);
-		case ALIENS_LAW:
-			return new AliensLaw(vdsHeader, vdsMessage, vdsSignature);
-		case TEMP_PASSPORT:
-			return new TempPassport(vdsHeader, vdsMessage, vdsSignature);
-		case TEMP_PERSO:
-			return new TempPerso(vdsHeader, vdsMessage, vdsSignature);
-		case FICTION_CERT:
-			return new FictionCert(vdsHeader, vdsMessage, vdsSignature);
-		default:
-			Logger.warn("unknown VDS type with reference: {}", String.format("0x%02X", vdsHeader.getDocumentRef()));
-			return null;
-		}
 	}
 
 	public static VdsHeader decodeHeader(ByteBuffer rawdata) {

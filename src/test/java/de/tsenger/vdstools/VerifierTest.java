@@ -47,7 +47,7 @@ public class VerifierTest {
 	}
 
 	@Test
-	public void testVerifyArrivalAttestationDETS00027() throws ParseException, KeyStoreException {
+	public void testVerifyArrivalAttestationDETS00027() throws ParseException, KeyStoreException, IOException {
 		DigitalSeal digitalSeal = DataParser.parseVdsSeal(DataParserTest.arrivalAttestation_rawBytes);
 		assert digitalSeal != null;
 		String signerCertRef = digitalSeal.getSignerCertRef();
@@ -77,7 +77,7 @@ public class VerifierTest {
 	}
 
 	@Test
-	public void testVerifyResidentPermit256BitSig() throws KeyStoreException {
+	public void testVerifyResidentPermit256BitSig() throws KeyStoreException, IOException {
 		DigitalSeal digitalSeal = DataParser.parseVdsSeal(DataParserTest.residentPermit_rawBytes);
 		String signerCertRef = digitalSeal.getSignerCertRef();
 		assertEquals("UTTS5B", signerCertRef);
@@ -88,7 +88,7 @@ public class VerifierTest {
 	}
 
 	@Test
-	public void testVerifyVisa224BitSig() throws KeyStoreException {
+	public void testVerifyVisa224BitSig() throws KeyStoreException, IOException {
 		DigitalSeal digitalSeal = DataParser.parseVdsSeal(DataParserTest.visa_224bitSig_rawBytes);
 		String signerCertRef = digitalSeal.getSignerCertRef();
 		assertEquals("DETS32", signerCertRef);

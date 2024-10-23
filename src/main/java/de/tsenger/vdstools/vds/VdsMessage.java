@@ -2,28 +2,15 @@ package de.tsenger.vdstools.vds;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.tinylog.Logger;
 
+import de.tsenger.vdstools.DataEncoder;
 import de.tsenger.vdstools.DataParser;
 import de.tsenger.vdstools.DerTlv;
-import de.tsenger.vdstools.vds.seals.AddressStickerIdCard;
-import de.tsenger.vdstools.vds.seals.AddressStickerPass;
-import de.tsenger.vdstools.vds.seals.AliensLaw;
-import de.tsenger.vdstools.vds.seals.ArrivalAttestation;
-import de.tsenger.vdstools.vds.seals.FictionCert;
-import de.tsenger.vdstools.vds.seals.IcaoEmergencyTravelDocument;
-import de.tsenger.vdstools.vds.seals.IcaoVisa;
-import de.tsenger.vdstools.vds.seals.ResidencePermit;
-import de.tsenger.vdstools.vds.seals.SocialInsuranceCard;
-import de.tsenger.vdstools.vds.seals.SupplementarySheet;
-import de.tsenger.vdstools.vds.seals.TempPassport;
-import de.tsenger.vdstools.vds.seals.TempPerso;
+import de.tsenger.vdstools.FeatureConverter;
 
 /**
  * @author Tobias Senger
@@ -32,15 +19,21 @@ import de.tsenger.vdstools.vds.seals.TempPerso;
 public class VdsMessage {
 
 	private List<DerTlv> derTlvList;
-	private HashMap<Feature, Object> featureMap = new LinkedHashMap<Feature, Object>(2);
 	private VdsType vdsType = null;
+	private FeatureConverter featureEncoder;
+
+	private VdsMessage() {
+		featureEncoder = DataEncoder.getDefaultFeatureEncoder();
+	}
 
 	public VdsMessage(VdsType vdsType, List<DerTlv> derTlvList) {
+		this();
 		this.vdsType = vdsType;
 		this.derTlvList = derTlvList;
 	}
 
 	public VdsMessage(VdsType vdsType) {
+		this();
 		this.vdsType = vdsType;
 		this.derTlvList = new ArrayList<>(5);
 	}
@@ -50,13 +43,6 @@ public class VdsMessage {
 	}
 
 	public byte[] getEncoded() {
-		if (!featureMap.isEmpty()) {
-			if (derTlvList.size() != 0) {
-				Logger.warn("messageTlvList for " + vdsType.name() + " is NOT empty(size: " + derTlvList.size()
-						+ ")! Parsing featureMap will override messageTlvList.");
-			}
-			parseFeatures();
-		}
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
 			for (DerTlv feature : this.derTlvList) {
@@ -69,54 +55,6 @@ public class VdsMessage {
 		return baos.toByteArray();
 	}
 
-	private void parseFeatures() {
-		switch (vdsType) {
-		case RESIDENCE_PERMIT:
-			derTlvList = ResidencePermit.parseFeatures(featureMap);
-			break;
-		case ADDRESS_STICKER_ID:
-			derTlvList = AddressStickerIdCard.parseFeatures(featureMap);
-			break;
-		case ADDRESS_STICKER_PASSPORT:
-			derTlvList = AddressStickerPass.parseFeatures(featureMap);
-			break;
-		case ALIENS_LAW:
-			derTlvList = AliensLaw.parseFeatures(featureMap);
-			break;
-		case ARRIVAL_ATTESTATION:
-			derTlvList = ArrivalAttestation.parseFeatures(featureMap);
-			break;
-		case FICTION_CERT:
-			derTlvList = FictionCert.parseFeatures(featureMap);
-			break;
-		case ICAO_EMERGENCY_TRAVEL_DOCUMENT:
-			derTlvList = IcaoEmergencyTravelDocument.parseFeatures(featureMap);
-			break;
-		case ICAO_VISA:
-			derTlvList = IcaoVisa.parseFeatures(featureMap);
-			break;
-		case SOCIAL_INSURANCE_CARD:
-			try {
-				derTlvList = SocialInsuranceCard.parseFeatures(featureMap);
-			} catch (UnsupportedEncodingException e) {
-				Logger.error("Couldn't build VdsMessage for SocialInsuranceCard: " + e.getMessage());
-			}
-			break;
-		case SUPPLEMENTARY_SHEET:
-			derTlvList = SupplementarySheet.parseFeatures(featureMap);
-			break;
-		case TEMP_PASSPORT:
-			derTlvList = TempPassport.parseFeatures(featureMap);
-			break;
-		case TEMP_PERSO:
-			derTlvList = TempPerso.parseFeatures(featureMap);
-			break;
-		default:
-			Logger.warn("unknown VdsType: " + vdsType);
-			break;
-		}
-	}
-
 	public void addDerTlv(DerTlv derTlv) {
 		this.derTlvList.add(derTlv);
 	}
@@ -125,8 +63,19 @@ public class VdsMessage {
 		return this.derTlvList;
 	}
 
-	public void addDocumentFeature(Feature feature, Object obj) {
-		featureMap.put(feature, obj);
+	public void addDocumentFeature(Feature feature, Object obj) throws IllegalArgumentException {
+		DerTlv derTlv = featureEncoder.encodeFeature(vdsType, feature, obj);
+		this.derTlvList.add(derTlv);
+	}
+
+	public Object getDocumentFeature(Feature feature) {
+		Object returnObj = null;
+		byte tag = featureEncoder.getTag(vdsType, feature);
+		for (DerTlv derTlv : derTlvList) {
+			if (derTlv.getTag() == tag)
+				returnObj = featureEncoder.decodeFeature(vdsType, derTlv);
+		}
+		return returnObj;
 	}
 
 	public static VdsMessage fromByteArray(byte[] rawBytes, VdsType vdsType) {
