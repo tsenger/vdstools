@@ -148,8 +148,8 @@ public class DataEncoder {
 	 * Encode a LocalDate as described in as described in ICAO TR "Datastructure for
 	 * Barcode" in six bytes.
 	 * 
-	 * @param localDate Date
-	 * @return date encoded in 6 bytes
+	 * @param localDatetime LocalDateTime to encode
+	 * @return local date time encoded in 6 bytes
 	 */
 	public static byte[] encodeDateTime(LocalDateTime localDatetime) {
 		DateTimeFormatter pattern = DateTimeFormatter.ofPattern("MMddyyyyHHmmss");
