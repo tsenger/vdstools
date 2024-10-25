@@ -30,7 +30,6 @@ public class DigitalSeal {
 	private VdsHeader vdsHeader;
 	private VdsMessage vdsMessage;
 	private VdsSignature vdsSignature;
-	private String rawString;
 
 	protected EnumMap<Feature, Object> featureMap = new EnumMap<>(Feature.class);
 
@@ -48,7 +47,16 @@ public class DigitalSeal {
 		} catch (IOException e) {
 			Logger.error(e.getMessage());
 		}
-		seal.rawString = rawString;
+		return seal;
+	}
+
+	public static DigitalSeal getInstance(byte[] rawBytes) {
+		DigitalSeal seal = null;
+		try {
+			seal = DataParser.parseVdsSeal(rawBytes);
+		} catch (IOException e) {
+			Logger.error(e.getMessage());
+		}
 		return seal;
 	}
 
@@ -130,8 +138,8 @@ public class DigitalSeal {
 		return vdsSignature.getPlainSignatureBytes();
 	}
 
-	public String getRawString() {
-		return rawString;
+	public String getRawString() throws IOException {
+		return DataEncoder.encodeBase256(getEncodedBytes());
 	}
 
 	public Object getFeature(Feature feature) {

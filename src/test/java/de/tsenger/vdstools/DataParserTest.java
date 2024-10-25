@@ -533,4 +533,22 @@ public class DataParserTest {
 				"61120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7",
 				Hex.toHexString(decompressedBytes));
 	}
+
+	@Test
+	public void testgetRawString1() throws IOException {
+		DigitalSeal seal = DigitalSeal.getInstance(arrivalAttestationV02_rawBytes);
+		String rawString = seal.getRawString();
+		DigitalSeal seal2 = DigitalSeal.getInstance(rawString);
+		assertEquals(rawString, seal2.getRawString());
+		assertEquals(Hex.toHexString(arrivalAttestationV02_rawBytes), Hex.toHexString(seal2.getEncodedBytes()));
+	}
+
+	@Test
+	public void testgetRawString2() throws IOException {
+		DigitalSeal seal = DigitalSeal.getInstance(tempPerso_rawBytes);
+		String rawString = seal.getRawString();
+		DigitalSeal seal2 = DigitalSeal.getInstance(rawString);
+		assertEquals(rawString, seal2.getRawString());
+		assertEquals(Hex.toHexString(tempPerso_rawBytes), Hex.toHexString(seal2.getEncodedBytes()));
+	}
 }
