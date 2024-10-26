@@ -5,7 +5,11 @@ import java.io.FileReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.tinylog.Logger;
 
@@ -21,7 +25,10 @@ public class FeatureConverter {
 
 	public static String DEFAULT_SEAL_CODINGS = "src/main/resources/SealCodings.json";
 
-	private List<SealDto> documents;
+	private List<SealDto> sealDtoList;
+
+	private static Map<String, Integer> vdsTypes = new HashMap<>();
+	private static Set<String> vdsFeatures = new HashSet<>();
 
 	public FeatureConverter() throws FileNotFoundException {
 		this(DEFAULT_SEAL_CODINGS);
@@ -34,77 +41,115 @@ public class FeatureConverter {
 		}.getType();
 
 		FileReader reader = new FileReader(jsonFile);
-		this.documents = gson.fromJson(reader, listType);
+		this.sealDtoList = gson.fromJson(reader, listType);
+
+		for (SealDto sealDto : sealDtoList) {
+			vdsTypes.put(sealDto.documentType, Integer.parseInt(sealDto.documentRef, 16));
+			for (FeaturesDto featureDto : sealDto.features) {
+				vdsFeatures.add(featureDto.name);
+			}
+		}
 	}
 
 	public Feature getFeature(VdsType vdsType, DerTlv derTlv) {
-		SealDto document = getDocument(vdsType);
-		if (document == null)
+		SealDto sealDto = getSealDto(vdsType);
+		if (sealDto == null)
 			return null;
-		return getFeature(document, derTlv.getTag());
+		return getFeature(sealDto, derTlv.getTag());
+	}
+
+	public String getFeature(String vdsType, DerTlv derTlv) {
+		SealDto sealDto = getSealDto(vdsType);
+		if (sealDto == null)
+			return null;
+		return getFeatureName(sealDto, derTlv.getTag());
 	}
 
 	public byte getTag(VdsType vdsType, Feature feature) {
-		SealDto document = getDocument(vdsType);
-		if (document == null)
+		SealDto sealDto = getSealDto(vdsType);
+		if (sealDto == null)
 			return 0;
-		return getTag(document, feature);
+		return getTag(sealDto, feature);
 	}
 
-	public Object decodeFeature(VdsType vdsType, DerTlv derTlv) {
-		SealDto document = getDocument(vdsType);
-		if (document == null)
+	public byte getTag(String vdsType, String feature) {
+		SealDto sealDto = getSealDto(vdsType);
+		if (sealDto == null)
+			return 0;
+		return getTag(sealDto, feature);
+	}
+
+	public <T> T decodeFeature(VdsType vdsType, DerTlv derTlv) {
+		SealDto sealDto = getSealDto(vdsType);
+		if (sealDto == null)
 			return null;
-		String coding = getCoding(document, derTlv.getTag());
-		switch (coding) {
-		case "C40":
-			return DataParser.decodeC40(derTlv.getValue()).replace(' ', '<');
-		case "ByteArray":
-			return derTlv.getValue();
-		case "Utf8String":
-			return new String(derTlv.getValue(), StandardCharsets.UTF_8);
-		default:
-			return derTlv.getValue();
-		}
+		return decodeFeature(sealDto, derTlv);
 	}
 
-	public DerTlv encodeFeature(VdsType vdsType, Feature feature, Object object) throws IllegalArgumentException {
-		SealDto document = getDocument(vdsType);
-		if (document == null) {
-			Logger.warn("Couldn't find VdsType " + vdsType.toString());
-			throw new IllegalArgumentException("Couldn't find VdsType " + vdsType.toString());
-		}
-		byte tag = getTag(document, feature);
+	public <T> T decodeFeature(String vdsType, DerTlv derTlv) {
+		SealDto sealDto = getSealDto(vdsType);
+		if (sealDto == null)
+			return null;
+		return decodeFeature(sealDto, derTlv);
+	}
+
+	public <T> DerTlv encodeFeature(VdsType vdsType, Feature feature, T inputValue) throws IllegalArgumentException {
+		SealDto sealDto = getSealDto(vdsType);
+		return encodeFeature(sealDto, feature.name(), inputValue);
+	}
+
+	public <T> DerTlv encodeFeature(String vdsType, String feature, T inputValue) throws IllegalArgumentException {
+		SealDto sealDto = getSealDto(vdsType);
+		return encodeFeature(sealDto, feature, inputValue);
+	}
+
+	private <T> DerTlv encodeFeature(SealDto sealDto, String feature, T inputValue) throws IllegalArgumentException {
+
+		byte tag = getTag(sealDto, feature);
 		if (tag == 0) {
-			Logger.warn("VdsType: " + vdsType.toString() + " has no Feature " + feature.toString());
-			throw new IllegalArgumentException(
-					"VdsType: " + vdsType.toString() + " has no Feature " + feature.toString());
+			Logger.warn("VdsType: " + sealDto.documentType + " has no Feature " + feature);
+			throw new IllegalArgumentException("VdsType: " + sealDto.documentType + " has no Feature " + feature);
 		}
-		String coding = getCoding(document, feature);
+		String coding = getCoding(sealDto, feature);
 		byte[] value = null;
 		switch (coding) {
 		case "C40":
-			String valueStr = ((String) object).replaceAll("\r", "").replaceAll("\n", "");
+			String valueStr = ((String) inputValue).replaceAll("\r", "").replaceAll("\n", "");
 			value = DataEncoder.encodeC40(valueStr);
 			break;
 		case "ByteArray":
-			value = (byte[]) object;
+			value = (byte[]) inputValue;
 			break;
 		case "Utf8String":
 			try {
-				value = ((String) object).getBytes("UTF-8");
+				value = ((String) inputValue).getBytes("UTF-8");
 			} catch (UnsupportedEncodingException e) {
-				Logger.error("Couldn't encode String " + (String) object + " to UTF-8 bytes: " + e.getMessage());
+				Logger.error("Couldn't encode String " + (String) inputValue + " to UTF-8 bytes: " + e.getMessage());
 			}
 			break;
 		default:
-			value = (byte[]) object;
+			value = (byte[]) inputValue;
 		}
 		return new DerTlv(tag, value);
 	}
 
-	private byte getTag(SealDto document, Feature feature) {
-		for (FeaturesDto featureDto : document.features) {
+	@SuppressWarnings("unchecked")
+	private <T> T decodeFeature(SealDto sealDto, DerTlv derTlv) {
+		String coding = getCoding(sealDto, derTlv.getTag());
+		switch (coding) {
+		case "C40":
+			return (T) DataParser.decodeC40(derTlv.getValue()).replace(' ', '<');
+		case "ByteArray":
+			return (T) derTlv.getValue();
+		case "Utf8String":
+			return (T) new String(derTlv.getValue(), StandardCharsets.UTF_8);
+		default:
+			return (T) derTlv.getValue();
+		}
+	}
+
+	private byte getTag(SealDto sealDto, Feature feature) {
+		for (FeaturesDto featureDto : sealDto.features) {
 			if (featureDto.name.equalsIgnoreCase(feature.toString())) {
 				return (byte) featureDto.tag;
 			}
@@ -112,9 +157,18 @@ public class FeatureConverter {
 		return 0;
 	}
 
-	private Feature getFeature(SealDto document, int tag) {
+	private byte getTag(SealDto sealDto, String feature) {
+		for (FeaturesDto featureDto : sealDto.features) {
+			if (featureDto.name.equalsIgnoreCase(feature)) {
+				return (byte) featureDto.tag;
+			}
+		}
+		return 0;
+	}
+
+	private Feature getFeature(SealDto sealDto, int tag) {
 		Feature feature = null;
-		for (FeaturesDto featureDto : document.features) {
+		for (FeaturesDto featureDto : sealDto.features) {
 			if (featureDto.tag == tag) {
 				try {
 					feature = Feature.valueOf(featureDto.name);
@@ -126,16 +180,25 @@ public class FeatureConverter {
 		return feature;
 	}
 
-	private String getCoding(SealDto document, Feature feature) {
-		for (FeaturesDto featureDto : document.features) {
-			if (featureDto.name.equalsIgnoreCase(feature.toString()))
+	private String getFeatureName(SealDto sealDto, int tag) {
+		for (FeaturesDto featureDto : sealDto.features) {
+			if (featureDto.tag == tag) {
+				return featureDto.name;
+			}
+		}
+		return null;
+	}
+
+	private String getCoding(SealDto sealDto, String feature) {
+		for (FeaturesDto featureDto : sealDto.features) {
+			if (featureDto.name.equalsIgnoreCase(feature))
 				return featureDto.coding;
 		}
 		return null;
 	}
 
-	private String getCoding(SealDto document, byte tag) {
-		for (FeaturesDto featureDto : document.features) {
+	private String getCoding(SealDto sealDto, byte tag) {
+		for (FeaturesDto featureDto : sealDto.features) {
 			if (featureDto.tag == tag) {
 				return featureDto.coding;
 			}
@@ -143,12 +206,20 @@ public class FeatureConverter {
 		return null;
 	}
 
-	private SealDto getDocument(VdsType vdsType) {
-		for (SealDto document : documents) {
-			int docRefInt = Integer.parseInt(document.documentRef, 16);
+	private SealDto getSealDto(VdsType vdsType) {
+		for (SealDto sealdto : sealDtoList) {
+			int docRefInt = Integer.parseInt(sealdto.documentRef, 16);
 			VdsType docVdsType = VdsType.valueOf(docRefInt);
 			if (docVdsType == vdsType)
-				return document;
+				return sealdto;
+		}
+		return null;
+	}
+
+	private SealDto getSealDto(String vdsType) {
+		for (SealDto sealDto : sealDtoList) {
+			if (sealDto.documentType.equals(vdsType))
+				return sealDto;
 		}
 		return null;
 	}

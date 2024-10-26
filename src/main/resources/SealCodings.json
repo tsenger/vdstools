@@ -1,6 +1,6 @@
 [
   {
-    "documentType": "ArrivalAttestation",
+    "documentType": "ARRIVAL_ATTESTATION",
     "documentRef": "FD02",
     "version": 3,
     "features": [
@@ -23,7 +23,7 @@
     ]
   },
   {
-    "documentType": "AddressStickerIdCard",
+    "documentType": "ADDRESS_STICKER_ID",
     "documentRef": "F908",
     "version": 4,
     "features": [
@@ -54,7 +54,7 @@
     ]
   },
   {
-    "documentType": "AddressStickerPass",
+    "documentType": "ADDRESS_STICKER_PASSPORT",
     "documentRef": "F80A",
     "version": 4,
     "features": [
@@ -85,7 +85,7 @@
     ]
   },
   {
-    "documentType": "AliensLaw",
+    "documentType": "ALIENS_LAW",
     "documentRef": "01FE",
     "version": 4,
     "features": [
@@ -124,7 +124,7 @@
     ]
   },
   {
-    "documentType": "FictionCert",
+    "documentType": "FICTION_CERT",
     "documentRef": "f50c",
     "version": 4,
     "features": [
@@ -163,7 +163,7 @@
     ]
   },
   {
-    "documentType": "IcaoEmergencyTravelDocument",
+    "documentType": "ICAO_EMERGENCY_TRAVEL_DOCUMENT",
     "documentRef": "5e03",
     "version": 4,
     "features": [
@@ -178,7 +178,7 @@
     ]
   },
   {
-    "documentType": "IcaoVisa",
+    "documentType": "ICAO_VISA",
     "documentRef": "5d01",
     "version": 4,
     "features": [
@@ -241,7 +241,7 @@
     ]
   },
   {
-    "documentType": "ResidencePermit",
+    "documentType": "RESIDENCE_PERMIT",
     "documentRef": "FB06",
     "version": 4,
     "features": [
@@ -264,7 +264,7 @@
     ]
   },
   {
-    "documentType": "SocialInsuranceCard",
+    "documentType": "SOCIAL_INSURANCE_CARD",
     "documentRef": "FC04",
     "version": 4,
     "features": [
@@ -303,7 +303,7 @@
     ]
   },
   {
-    "documentType": "SupplementarySheet",
+    "documentType": "SUPPLEMENTARY_SHEET",
     "documentRef": "FA06",
     "version": 4,
     "features": [
@@ -326,7 +326,7 @@
     ]
   },
   {
-    "documentType": "TempPassport",
+    "documentType": "TEMP_PASSPORT",
     "documentRef": "F60D",
     "version": 4,
     "features": [
@@ -349,7 +349,7 @@
     ]
   },
   {
-    "documentType": "TempPerso",
+    "documentType": "TEMP_PERSO",
     "documentRef": "F70B",
     "version": 4,
     "features": [
