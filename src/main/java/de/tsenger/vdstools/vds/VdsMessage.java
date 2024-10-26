@@ -60,19 +60,19 @@ public class VdsMessage {
 		return this.derTlvList;
 	}
 
-	public void addDocumentFeature(Feature feature, Object obj) throws IllegalArgumentException {
-		DerTlv derTlv = DataEncoder.getFeatureEncoder().encodeFeature(vdsType, feature, obj);
+	public <T> void addDocumentFeature(Feature feature, T value) throws IllegalArgumentException {
+		DerTlv derTlv = DataEncoder.getFeatureEncoder().encodeFeature(vdsType, feature, value);
 		this.derTlvList.add(derTlv);
 	}
 
-	public Object getDocumentFeature(Feature feature) {
-		Object returnObj = null;
+	public <T> T getDocumentFeature(Feature feature) {
+		T value = null;
 		byte tag = DataEncoder.getFeatureEncoder().getTag(vdsType, feature);
 		for (DerTlv derTlv : derTlvList) {
 			if (derTlv.getTag() == tag)
-				returnObj = DataEncoder.getFeatureEncoder().decodeFeature(vdsType, derTlv);
+				value = DataEncoder.getFeatureEncoder().decodeFeature(vdsType, derTlv);
 		}
-		return returnObj;
+		return value;
 	}
 
 	public static VdsMessage fromByteArray(byte[] rawBytes, VdsType vdsType) {

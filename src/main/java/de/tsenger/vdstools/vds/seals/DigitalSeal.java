@@ -142,12 +142,12 @@ public class DigitalSeal {
 		return DataEncoder.encodeBase256(getEncodedBytes());
 	}
 
-	public Object getFeature(Feature feature) {
+	public <T> T getFeature(Feature feature) {
 		return vdsMessage.getDocumentFeature(feature);
 	}
 
-	public void setFeature(Feature feature, Object object) {
-		vdsMessage.addDocumentFeature(feature, object);
+	public <T> void setFeature(Feature feature, T value) {
+		vdsMessage.addDocumentFeature(feature, value);
 
 	}
 
