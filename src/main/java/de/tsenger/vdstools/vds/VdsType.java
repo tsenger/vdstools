@@ -15,7 +15,8 @@ public enum VdsType {
     ALIENS_LAW(0x01fe),
 	TEMP_PASSPORT(0xf60d),
 	TEMP_PERSO(0xf70b),
-	FICTION_CERT(0xf50c);
+	FICTION_CERT(0xf50c),
+	PERMANT_RESIDENCE_CERT(0xf48f);
 
     private final int reference;
     private static HashMap<Integer, VdsType> map = new HashMap<>();

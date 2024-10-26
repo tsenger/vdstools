@@ -261,15 +261,19 @@ public class DataEncoder {
 		return compressedBytes;
 	}
 
-	public static FeatureConverter getDefaultFeatureEncoder() {
-		if (featureEncoder == null) {
+	public static FeatureConverter getFeatureEncoder() {
+		if (DataEncoder.featureEncoder == null) {
 			try {
-				featureEncoder = new FeatureConverter(FeatureConverter.DEFAULT_SEAL_CODINGS);
+				DataEncoder.featureEncoder = new FeatureConverter(FeatureConverter.DEFAULT_SEAL_CODINGS);
 			} catch (FileNotFoundException e) {
 				Logger.error(e);
 			}
 		}
 		return featureEncoder;
+	}
+
+	public static void setFeatureEncoder(FeatureConverter featureEncoder) {
+		DataEncoder.featureEncoder = featureEncoder;
 	}
 
 }

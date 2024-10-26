@@ -10,7 +10,6 @@ import org.tinylog.Logger;
 import de.tsenger.vdstools.DataEncoder;
 import de.tsenger.vdstools.DataParser;
 import de.tsenger.vdstools.DerTlv;
-import de.tsenger.vdstools.FeatureConverter;
 
 /**
  * @author Tobias Senger
@@ -20,10 +19,8 @@ public class VdsMessage {
 
 	private List<DerTlv> derTlvList;
 	private VdsType vdsType = null;
-	private FeatureConverter featureEncoder;
 
 	private VdsMessage() {
-		featureEncoder = DataEncoder.getDefaultFeatureEncoder();
 	}
 
 	public VdsMessage(VdsType vdsType, List<DerTlv> derTlvList) {
@@ -64,16 +61,16 @@ public class VdsMessage {
 	}
 
 	public void addDocumentFeature(Feature feature, Object obj) throws IllegalArgumentException {
-		DerTlv derTlv = featureEncoder.encodeFeature(vdsType, feature, obj);
+		DerTlv derTlv = DataEncoder.getFeatureEncoder().encodeFeature(vdsType, feature, obj);
 		this.derTlvList.add(derTlv);
 	}
 
 	public Object getDocumentFeature(Feature feature) {
 		Object returnObj = null;
-		byte tag = featureEncoder.getTag(vdsType, feature);
+		byte tag = DataEncoder.getFeatureEncoder().getTag(vdsType, feature);
 		for (DerTlv derTlv : derTlvList) {
 			if (derTlv.getTag() == tag)
-				returnObj = featureEncoder.decodeFeature(vdsType, derTlv);
+				returnObj = DataEncoder.getFeatureEncoder().decodeFeature(vdsType, derTlv);
 		}
 		return returnObj;
 	}
