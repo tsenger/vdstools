@@ -16,8 +16,6 @@ import org.tinylog.Logger;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import de.tsenger.vdstools.vds.Feature;
-import de.tsenger.vdstools.vds.VdsType;
 import de.tsenger.vdstools.vds.seals.FeaturesDto;
 import de.tsenger.vdstools.vds.seals.SealDto;
 
@@ -28,6 +26,7 @@ public class FeatureConverter {
 	private List<SealDto> sealDtoList;
 
 	private static Map<String, Integer> vdsTypes = new HashMap<>();
+	private static Map<Integer, String> vdsTypesReverse = new HashMap<>();
 	private static Set<String> vdsFeatures = new TreeSet<>();
 
 	public FeatureConverter() throws FileNotFoundException {
@@ -45,6 +44,7 @@ public class FeatureConverter {
 
 		for (SealDto sealDto : sealDtoList) {
 			vdsTypes.put(sealDto.documentType, Integer.parseInt(sealDto.documentRef, 16));
+			vdsTypesReverse.put(Integer.parseInt(sealDto.documentRef, 16), sealDto.documentType);
 			for (FeaturesDto featureDto : sealDto.features) {
 				vdsFeatures.add(featureDto.name);
 			}
@@ -55,15 +55,16 @@ public class FeatureConverter {
 		return new TreeSet<String>(vdsTypes.keySet());
 	}
 
-	public Set<String> getAvailableVdsFeatures() {
-		return vdsFeatures;
+	public int getDocumentRef(String vdsType) {
+		return vdsTypes.get(vdsType);
 	}
 
-	public Feature getFeature(VdsType vdsType, DerTlv derTlv) {
-		SealDto sealDto = getSealDto(vdsType);
-		if (sealDto == null)
-			return null;
-		return getFeature(sealDto, derTlv.getTag());
+	public String getVdsType(Integer docRef) {
+		return vdsTypesReverse.get(docRef);
+	}
+
+	public Set<String> getAvailableVdsFeatures() {
+		return vdsFeatures;
 	}
 
 	public String getFeature(String vdsType, DerTlv derTlv) {
@@ -75,13 +76,6 @@ public class FeatureConverter {
 		if (sealDto == null)
 			return null;
 		return getFeatureName(sealDto, derTlv.getTag());
-	}
-
-	public byte getTag(VdsType vdsType, Feature feature) {
-		SealDto sealDto = getSealDto(vdsType);
-		if (sealDto == null)
-			return 0;
-		return getTag(sealDto, feature);
 	}
 
 	public byte getTag(String vdsType, String feature) {
@@ -99,13 +93,6 @@ public class FeatureConverter {
 		return getTag(sealDto, feature);
 	}
 
-	public <T> T decodeFeature(VdsType vdsType, DerTlv derTlv) {
-		SealDto sealDto = getSealDto(vdsType);
-		if (sealDto == null)
-			return null;
-		return decodeFeature(sealDto, derTlv);
-	}
-
 	public <T> T decodeFeature(String vdsType, DerTlv derTlv) {
 		if (!vdsTypes.containsKey(vdsType)) {
 			Logger.warn("No seal type with name '" + vdsType + "' was found.");
@@ -115,11 +102,6 @@ public class FeatureConverter {
 		if (sealDto == null)
 			return null;
 		return decodeFeature(sealDto, derTlv);
-	}
-
-	public <T> DerTlv encodeFeature(VdsType vdsType, Feature feature, T inputValue) throws IllegalArgumentException {
-		SealDto sealDto = getSealDto(vdsType);
-		return encodeFeature(sealDto, feature.name(), inputValue);
 	}
 
 	public <T> DerTlv encodeFeature(String vdsType, String feature, T inputValue) throws IllegalArgumentException {
@@ -180,15 +162,6 @@ public class FeatureConverter {
 		}
 	}
 
-	private byte getTag(SealDto sealDto, Feature feature) {
-		for (FeaturesDto featureDto : sealDto.features) {
-			if (featureDto.name.equalsIgnoreCase(feature.toString())) {
-				return (byte) featureDto.tag;
-			}
-		}
-		return 0;
-	}
-
 	private byte getTag(SealDto sealDto, String feature) {
 		for (FeaturesDto featureDto : sealDto.features) {
 			if (featureDto.name.equalsIgnoreCase(feature)) {
@@ -196,20 +169,6 @@ public class FeatureConverter {
 			}
 		}
 		return 0;
-	}
-
-	private Feature getFeature(SealDto sealDto, int tag) {
-		Feature feature = null;
-		for (FeaturesDto featureDto : sealDto.features) {
-			if (featureDto.tag == tag) {
-				try {
-					feature = Feature.valueOf(featureDto.name);
-				} catch (IllegalArgumentException e) {
-					Logger.error("Couldn't parse " + featureDto.name + " to an Feature enum value.");
-				}
-			}
-		}
-		return feature;
 	}
 
 	private String getFeatureName(SealDto sealDto, int tag) {
@@ -234,16 +193,6 @@ public class FeatureConverter {
 			if (featureDto.tag == tag) {
 				return featureDto.coding;
 			}
-		}
-		return null;
-	}
-
-	private SealDto getSealDto(VdsType vdsType) {
-		for (SealDto sealdto : sealDtoList) {
-			int docRefInt = Integer.parseInt(sealdto.documentRef, 16);
-			VdsType docVdsType = VdsType.valueOf(docRefInt);
-			if (docVdsType == vdsType)
-				return sealdto;
 		}
 		return null;
 	}

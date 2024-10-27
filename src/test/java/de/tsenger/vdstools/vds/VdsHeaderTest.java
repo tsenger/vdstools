@@ -1,14 +1,11 @@
 package de.tsenger.vdstools.vds;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.time.LocalDate;
 
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.Test;
-
-import de.tsenger.vdstools.vds.VdsHeader;
-import de.tsenger.vdstools.vds.VdsType;
 
 public class VdsHeaderTest {
 
@@ -24,7 +21,7 @@ public class VdsHeaderTest {
 	public void testSetDocumentType() {
 		VdsHeader header = new VdsHeader();
 		// ARRIVAL_ATTESTATION 0xfd02
-		header.setDocumentType(VdsType.ARRIVAL_ATTESTATION);
+		header.setDocumentType("ARRIVAL_ATTESTATION");
 		assertEquals(header.docFeatureRef, (byte) 0xfd);
 		assertEquals(header.docTypeCat, (byte) 0x02);
 	}
@@ -33,31 +30,31 @@ public class VdsHeaderTest {
 	public void testGetRawBytes_V3() {
 		VdsHeader header = new VdsHeader();
 		// RESIDENCE_PERMIT 0xfb06
-		header.setDocumentType(VdsType.RESIDENCE_PERMIT);
+		header.setDocumentType("RESIDENCE_PERMIT");
 		header.signerIdentifier = "DETS";
 		header.certificateReference = "32";
 		header.issuingDate = LocalDate.parse("2024-09-27");
 		header.sigDate = LocalDate.parse("2024-09-27");
 		header.issuingCountry = "D<<";
 		header.rawVersion = 0x03;
-		byte [] headerBytes = header.getEncoded();
-		System.out.println("Header bytes:\n"+Hex.toHexString(headerBytes));
+		byte[] headerBytes = header.getEncoded();
+		System.out.println("Header bytes:\n" + Hex.toHexString(headerBytes));
 		assertEquals("dc036abc6d32c8a72cb18d7ad88d7ad8fb06", Hex.toHexString(headerBytes));
 	}
-	
+
 	@Test
 	public void testGetRawBytes_V2() {
 		VdsHeader header = new VdsHeader();
 		// RESIDENCE_PERMIT 0xfb06
-		header.setDocumentType(VdsType.ARRIVAL_ATTESTATION);
+		header.setDocumentType("ARRIVAL_ATTESTATION");
 		header.signerIdentifier = "DETS";
 		header.certificateReference = "32";
 		header.issuingDate = LocalDate.parse("2024-09-27");
 		header.sigDate = LocalDate.parse("2024-09-27");
 		header.issuingCountry = "D<<";
 		header.rawVersion = 0x02;
-		byte [] headerBytes = header.getEncoded();
-		System.out.println("Header bytes:\n"+Hex.toHexString(headerBytes));
+		byte[] headerBytes = header.getEncoded();
+		System.out.println("Header bytes:\n" + Hex.toHexString(headerBytes));
 		assertEquals("dc026abc6d32c8a51a1f8d7ad88d7ad8fd02", Hex.toHexString(headerBytes));
 	}
 

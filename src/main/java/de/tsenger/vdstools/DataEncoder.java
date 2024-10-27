@@ -27,7 +27,6 @@ import org.tinylog.Logger;
 import de.tsenger.vdstools.vds.VdsHeader;
 import de.tsenger.vdstools.vds.VdsMessage;
 import de.tsenger.vdstools.vds.VdsSignature;
-import de.tsenger.vdstools.vds.VdsType;
 import de.tsenger.vdstools.vds.seals.DigitalSeal;
 
 public class DataEncoder {
@@ -57,15 +56,15 @@ public class DataEncoder {
 		}
 	}
 
-	public static VdsHeader buildHeader(VdsType vdsType, X509Certificate cert) {
+	public static VdsHeader buildHeader(String vdsType, X509Certificate cert) {
 		return buildHeader(vdsType, cert, null, (byte) 0x03, LocalDate.now());
 	}
 
-	public static VdsHeader buildHeader(VdsType vdsType, X509Certificate cert, String issuingCountry) {
+	public static VdsHeader buildHeader(String vdsType, X509Certificate cert, String issuingCountry) {
 		return buildHeader(vdsType, cert, issuingCountry, (byte) 0x03, LocalDate.now());
 	}
 
-	public static VdsHeader buildHeader(VdsType vdsType, X509Certificate cert, String issuingCountry, byte rawVersion,
+	public static VdsHeader buildHeader(String vdsType, X509Certificate cert, String issuingCountry, byte rawVersion,
 			LocalDate issuingDate) {
 		VdsHeader header = new VdsHeader();
 		header.setDocumentType(vdsType);

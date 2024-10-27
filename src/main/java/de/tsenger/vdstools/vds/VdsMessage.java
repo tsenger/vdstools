@@ -18,24 +18,24 @@ import de.tsenger.vdstools.DerTlv;
 public class VdsMessage {
 
 	private List<DerTlv> derTlvList;
-	private VdsType vdsType = null;
+	private String vdsType = null;
 
 	private VdsMessage() {
 	}
 
-	public VdsMessage(VdsType vdsType, List<DerTlv> derTlvList) {
+	public VdsMessage(String vdsType, List<DerTlv> derTlvList) {
 		this();
 		this.vdsType = vdsType;
 		this.derTlvList = derTlvList;
 	}
 
-	public VdsMessage(VdsType vdsType) {
+	public VdsMessage(String vdsType) {
 		this();
 		this.vdsType = vdsType;
 		this.derTlvList = new ArrayList<>(5);
 	}
 
-	public VdsType getVdsType() {
+	public String getVdsType() {
 		return vdsType;
 	}
 
@@ -60,12 +60,12 @@ public class VdsMessage {
 		return this.derTlvList;
 	}
 
-	public <T> void addDocumentFeature(Feature feature, T value) throws IllegalArgumentException {
+	public <T> void addDocumentFeature(String feature, T value) throws IllegalArgumentException {
 		DerTlv derTlv = DataEncoder.getFeatureEncoder().encodeFeature(vdsType, feature, value);
 		this.derTlvList.add(derTlv);
 	}
 
-	public <T> T getDocumentFeature(Feature feature) {
+	public <T> T getDocumentFeature(String feature) {
 		T value = null;
 		byte tag = DataEncoder.getFeatureEncoder().getTag(vdsType, feature);
 		for (DerTlv derTlv : derTlvList) {
@@ -75,7 +75,7 @@ public class VdsMessage {
 		return value;
 	}
 
-	public static VdsMessage fromByteArray(byte[] rawBytes, VdsType vdsType) {
+	public static VdsMessage fromByteArray(byte[] rawBytes, String vdsType) {
 		List<DerTlv> derTlvList = DataParser.parseDerTLvs(rawBytes);
 		return new VdsMessage(vdsType, derTlvList);
 	}

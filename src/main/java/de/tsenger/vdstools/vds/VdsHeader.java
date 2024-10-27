@@ -34,13 +34,14 @@ public class VdsHeader {
 		return ((docFeatureRef & 0xFF) << 8) + (docTypeCat & 0xFF);
 	}
 
-	public void setDocumentType(VdsType vdsType) {
-		docFeatureRef = (byte) ((vdsType.getValue() >> 8) & 0xFF);
-		docTypeCat = (byte) (vdsType.getValue() & 0xFF);
+	public void setDocumentType(String vdsType) {
+		int docRef = DataEncoder.getFeatureEncoder().getDocumentRef(vdsType);
+		docFeatureRef = (byte) ((docRef >> 8) & 0xFF);
+		docTypeCat = (byte) (docRef & 0xFF);
 	}
 
-	public VdsType getVdsType() {
-		return VdsType.valueOf(getDocumentRef());
+	public String getVdsType() {
+		return DataEncoder.getFeatureEncoder().getVdsType(getDocumentRef());
 	}
 
 	public byte[] getEncoded() {

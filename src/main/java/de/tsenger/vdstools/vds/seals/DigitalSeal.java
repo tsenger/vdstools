@@ -4,8 +4,9 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.cert.X509Certificate;
 import java.time.LocalDate;
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.bouncycastle.util.Arrays;
 import org.tinylog.Logger;
@@ -14,11 +15,9 @@ import de.tsenger.vdstools.DataEncoder;
 import de.tsenger.vdstools.DataParser;
 import de.tsenger.vdstools.DerTlv;
 import de.tsenger.vdstools.Signer;
-import de.tsenger.vdstools.vds.Feature;
 import de.tsenger.vdstools.vds.VdsHeader;
 import de.tsenger.vdstools.vds.VdsMessage;
 import de.tsenger.vdstools.vds.VdsSignature;
-import de.tsenger.vdstools.vds.VdsType;
 
 /**
  * @author Tobias Senger
@@ -26,18 +25,18 @@ import de.tsenger.vdstools.vds.VdsType;
  */
 public class DigitalSeal {
 
-	private VdsType vdsType;
+	private String vdsType;
 	private VdsHeader vdsHeader;
 	private VdsMessage vdsMessage;
 	private VdsSignature vdsSignature;
 
-	protected EnumMap<Feature, Object> featureMap = new EnumMap<>(Feature.class);
+	protected Map<String, Object> featureMap = new HashMap<>();
 
 	public DigitalSeal(VdsHeader vdsHeader, VdsMessage vdsMessage, VdsSignature vdsSignature) {
 		this.vdsHeader = vdsHeader;
 		this.vdsMessage = vdsMessage;
 		this.vdsSignature = vdsSignature;
-		this.vdsType = VdsType.valueOf(vdsHeader.getDocumentRef());
+		this.vdsType = vdsHeader.getVdsType();
 	}
 
 	public static DigitalSeal getInstance(String rawString) {
@@ -70,7 +69,7 @@ public class DigitalSeal {
 		return seal;
 	}
 
-	public VdsType getVdsType() {
+	public String getVdsType() {
 		return vdsType;
 	}
 
@@ -78,8 +77,8 @@ public class DigitalSeal {
 		return vdsMessage.getDerTlvList();
 	}
 
-	public EnumMap<Feature, Object> getFeatureMap() {
-		return featureMap.clone();
+	public Map<String, Object> getFeatureMap() {
+		return featureMap;
 	}
 
 	public String getIssuingCountry() {
@@ -142,11 +141,11 @@ public class DigitalSeal {
 		return DataEncoder.encodeBase256(getEncodedBytes());
 	}
 
-	public <T> T getFeature(Feature feature) {
+	public <T> T getFeature(String feature) {
 		return vdsMessage.getDocumentFeature(feature);
 	}
 
-	public <T> void setFeature(Feature feature, T value) {
+	public <T> void setFeature(String feature, T value) {
 		vdsMessage.addDocumentFeature(feature, value);
 
 	}

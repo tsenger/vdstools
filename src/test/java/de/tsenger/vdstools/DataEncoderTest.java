@@ -25,11 +25,9 @@ import org.bouncycastle.util.encoders.Hex;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import de.tsenger.vdstools.vds.Feature;
 import de.tsenger.vdstools.vds.VdsHeader;
 import de.tsenger.vdstools.vds.VdsMessage;
 import de.tsenger.vdstools.vds.VdsSignature;
-import de.tsenger.vdstools.vds.VdsType;
 import de.tsenger.vdstools.vds.seals.DigitalSeal;
 
 public class DataEncoderTest {
@@ -156,9 +154,9 @@ public class DataEncoderTest {
 	public void testBuildVdsMessage() {
 		String mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<" + "6525845096USA7008038M2201018<<<<<<06";
 		String passportNumber = "UFO001979";
-		VdsMessage vdsMessage = new VdsMessage(VdsType.RESIDENCE_PERMIT);
-		vdsMessage.addDocumentFeature(Feature.MRZ, mrz);
-		vdsMessage.addDocumentFeature(Feature.PASSPORT_NUMBER, passportNumber);
+		VdsMessage vdsMessage = new VdsMessage("RESIDENCE_PERMIT");
+		vdsMessage.addDocumentFeature("MRZ", mrz);
+		vdsMessage.addDocumentFeature("PASSPORT_NUMBER", passportNumber);
 
 		assertEquals(
 				"02305cba135875976ec066d417b59e8c6abc133c133c133c133c3fef3a2938ee43f1593d1ae52dbb26751fe64b7c133c136b0306d79519a65306",
@@ -170,9 +168,9 @@ public class DataEncoderTest {
 		VdsHeader vdsHeader = buildHeader();
 		String mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<" + "6525845096USA7008038M2201018<<<<<<06";
 		String passportNumber = "UFO001979";
-		VdsMessage vdsMessage = new VdsMessage(VdsType.RESIDENCE_PERMIT);
-		vdsMessage.addDocumentFeature(Feature.MRZ, mrz);
-		vdsMessage.addDocumentFeature(Feature.PASSPORT_NUMBER, passportNumber);
+		VdsMessage vdsMessage = new VdsMessage("RESIDENCE_PERMIT");
+		vdsMessage.addDocumentFeature("MRZ", mrz);
+		vdsMessage.addDocumentFeature("PASSPORT_NUMBER", passportNumber);
 
 		Signer signer = new Signer(keystore, keyStorePassword, "dets32");
 		VdsSignature vdsSignature = DataEncoder.createVdsSignature(vdsHeader, vdsMessage, signer);
@@ -185,9 +183,9 @@ public class DataEncoderTest {
 	public void testBuildDigitalSeal() throws IOException, KeyStoreException {
 		String mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<" + "6525845096USA7008038M2201018<<<<<<06";
 		String passportNumber = "UFO001979";
-		VdsMessage vdsMessage = new VdsMessage(VdsType.RESIDENCE_PERMIT);
-		vdsMessage.addDocumentFeature(Feature.MRZ, mrz);
-		vdsMessage.addDocumentFeature(Feature.PASSPORT_NUMBER, passportNumber);
+		VdsMessage vdsMessage = new VdsMessage("RESIDENCE_PERMIT");
+		vdsMessage.addDocumentFeature("MRZ", mrz);
+		vdsMessage.addDocumentFeature("PASSPORT_NUMBER", passportNumber);
 
 		X509Certificate cert = (X509Certificate) keystore.getCertificate("dets32");
 		Signer signer = new Signer(keystore, keyStorePassword, "dets32");
@@ -209,9 +207,9 @@ public class DataEncoderTest {
 	public void testBuildDigitalSeal2() throws IOException {
 		String mrz = "MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<" + "6525845096USA7008038M2201018<<<<<<06";
 		String azr = "ABC123456DEF";
-		VdsMessage vdsMessage = new VdsMessage(VdsType.ARRIVAL_ATTESTATION);
-		vdsMessage.addDocumentFeature(Feature.MRZ, mrz);
-		vdsMessage.addDocumentFeature(Feature.AZR, azr);
+		VdsMessage vdsMessage = new VdsMessage("ARRIVAL_ATTESTATION");
+		vdsMessage.addDocumentFeature("MRZ", mrz);
+		vdsMessage.addDocumentFeature("AZR", azr);
 
 		Signer signer = new Signer(keystore, keyStorePassword, "dets32");
 
@@ -229,7 +227,7 @@ public class DataEncoderTest {
 		LocalDate ldNow = LocalDate.now();
 		byte[] encodedDate = DataEncoder.encodeDate(ldNow);
 
-		VdsHeader vdsHeader = DataEncoder.buildHeader(VdsType.RESIDENCE_PERMIT, cert);
+		VdsHeader vdsHeader = DataEncoder.buildHeader("RESIDENCE_PERMIT", cert);
 		byte[] headerBytes = vdsHeader.getEncoded();
 		byte[] expectedHeaderBytes = Arrays.concatenate(Hex.decode("dc036abc6d32c8a72cb1"), encodedDate, encodedDate,
 				Hex.decode("fb06"));
@@ -243,7 +241,7 @@ public class DataEncoderTest {
 		LocalDate ldNow = LocalDate.now();
 		byte[] encodedDate = DataEncoder.encodeDate(ldNow);
 
-		VdsHeader vdsHeader = DataEncoder.buildHeader(VdsType.RESIDENCE_PERMIT, cert, "XYZ");
+		VdsHeader vdsHeader = DataEncoder.buildHeader("RESIDENCE_PERMIT", cert, "XYZ");
 		byte[] headerBytes = vdsHeader.getEncoded();
 
 		byte[] expectedHeaderBytes = Arrays.concatenate(Hex.decode("dc03ed586d32c8a72cb1"), encodedDate, encodedDate,
@@ -261,7 +259,7 @@ public class DataEncoderTest {
 		LocalDate ldNow = LocalDate.now();
 		byte[] signDate = DataEncoder.encodeDate(ldNow);
 
-		VdsHeader vdsHeader = DataEncoder.buildHeader(VdsType.RESIDENCE_PERMIT, cert, "XYZ", (byte) 0x03, ldate);
+		VdsHeader vdsHeader = DataEncoder.buildHeader("RESIDENCE_PERMIT", cert, "XYZ", (byte) 0x03, ldate);
 		byte[] headerBytes = vdsHeader.getEncoded();
 
 		byte[] expectedHeaderBytes = Arrays.concatenate(Hex.decode("dc03ed586d32c8a72cb1"), issuingDate, signDate,
@@ -279,7 +277,7 @@ public class DataEncoderTest {
 		LocalDate ldNow = LocalDate.now();
 		byte[] signDate = DataEncoder.encodeDate(ldNow);
 
-		VdsHeader vdsHeader = DataEncoder.buildHeader(VdsType.TEMP_PASSPORT, cert, "XYZ", (byte) 0x02, ldate);
+		VdsHeader vdsHeader = DataEncoder.buildHeader("TEMP_PASSPORT", cert, "XYZ", (byte) 0x02, ldate);
 		byte[] headerBytes = vdsHeader.getEncoded();
 		byte[] expectedHeaderBytes = Arrays.concatenate(Hex.decode("dc02ed586d32c8a51a1f"), issuingDate, signDate,
 				Hex.decode("f60d"));
@@ -300,7 +298,7 @@ public class DataEncoderTest {
 	private VdsHeader buildHeader() {
 		VdsHeader header = new VdsHeader();
 		// RESIDENCE_PERMIT 0xfb06
-		header.setDocumentType(VdsType.ARRIVAL_ATTESTATION);
+		header.setDocumentType("ARRIVAL_ATTESTATION");
 		header.signerIdentifier = "DETS";
 		header.certificateReference = "32";
 		header.issuingDate = LocalDate.parse("2024-09-27");
