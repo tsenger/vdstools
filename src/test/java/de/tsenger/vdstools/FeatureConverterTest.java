@@ -2,6 +2,7 @@ package de.tsenger.vdstools;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -93,6 +94,20 @@ public class FeatureConverterTest {
 		assertEquals(
 				"02305cba135875976ec066d417b59e8c6abc133c133c133c133c3fef3a2938ee43f1593d1ae52dbb26751fe64b7c133c136b",
 				Hex.toHexString(derTlv.getEncoded()));
+	}
+
+	@Test
+	public void testGetAvailableVdsTypes() throws FileNotFoundException {
+		FeatureConverter featureConverter = new FeatureConverter();
+		System.out.println(featureConverter.getAvailableVdsTypes());
+		assertTrue(featureConverter.getAvailableVdsTypes().contains("ADDRESS_STICKER_ID"));
+	}
+
+	@Test
+	public void testGetAvailableVdsFeatures() throws FileNotFoundException {
+		FeatureConverter featureConverter = new FeatureConverter();
+		System.out.println(featureConverter.getAvailableVdsFeatures());
+		assertTrue(featureConverter.getAvailableVdsFeatures().contains("MRZ"));
 	}
 
 }

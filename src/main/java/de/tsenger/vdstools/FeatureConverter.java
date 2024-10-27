@@ -6,10 +6,10 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.tinylog.Logger;
 
@@ -28,7 +28,7 @@ public class FeatureConverter {
 	private List<SealDto> sealDtoList;
 
 	private static Map<String, Integer> vdsTypes = new HashMap<>();
-	private static Set<String> vdsFeatures = new HashSet<>();
+	private static Set<String> vdsFeatures = new TreeSet<>();
 
 	public FeatureConverter() throws FileNotFoundException {
 		this(DEFAULT_SEAL_CODINGS);
@@ -51,6 +51,14 @@ public class FeatureConverter {
 		}
 	}
 
+	public Set<String> getAvailableVdsTypes() {
+		return new TreeSet<String>(vdsTypes.keySet());
+	}
+
+	public Set<String> getAvailableVdsFeatures() {
+		return vdsFeatures;
+	}
+
 	public Feature getFeature(VdsType vdsType, DerTlv derTlv) {
 		SealDto sealDto = getSealDto(vdsType);
 		if (sealDto == null)
@@ -59,6 +67,10 @@ public class FeatureConverter {
 	}
 
 	public String getFeature(String vdsType, DerTlv derTlv) {
+		if (!vdsTypes.containsKey(vdsType)) {
+			Logger.warn("No seal type with name '" + vdsType + "' was found.");
+			return null;
+		}
 		SealDto sealDto = getSealDto(vdsType);
 		if (sealDto == null)
 			return null;
@@ -73,6 +85,14 @@ public class FeatureConverter {
 	}
 
 	public byte getTag(String vdsType, String feature) {
+		if (!vdsTypes.containsKey(vdsType)) {
+			Logger.warn("No VdsSeal type with name '" + vdsType + "' was found.");
+			return 0;
+		}
+		if (!vdsFeatures.contains(feature)) {
+			Logger.warn("No VdsSeal feature with name '" + feature + "' was found.");
+			return 0;
+		}
 		SealDto sealDto = getSealDto(vdsType);
 		if (sealDto == null)
 			return 0;
@@ -87,6 +107,10 @@ public class FeatureConverter {
 	}
 
 	public <T> T decodeFeature(String vdsType, DerTlv derTlv) {
+		if (!vdsTypes.containsKey(vdsType)) {
+			Logger.warn("No seal type with name '" + vdsType + "' was found.");
+			return null;
+		}
 		SealDto sealDto = getSealDto(vdsType);
 		if (sealDto == null)
 			return null;
@@ -99,6 +123,14 @@ public class FeatureConverter {
 	}
 
 	public <T> DerTlv encodeFeature(String vdsType, String feature, T inputValue) throws IllegalArgumentException {
+		if (!vdsTypes.containsKey(vdsType)) {
+			Logger.warn("No VdsSeal type with name '" + vdsType + "' was found.");
+			return null;
+		}
+		if (!vdsFeatures.contains(feature)) {
+			Logger.warn("No VdsSeal feature with name '" + feature + "' was found.");
+			return null;
+		}
 		SealDto sealDto = getSealDto(vdsType);
 		return encodeFeature(sealDto, feature, inputValue);
 	}
