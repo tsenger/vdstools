@@ -24,10 +24,10 @@ import javax.naming.ldap.Rdn;
 import org.bouncycastle.util.Arrays;
 import org.tinylog.Logger;
 
+import de.tsenger.vdstools.vds.DigitalSeal;
 import de.tsenger.vdstools.vds.VdsHeader;
 import de.tsenger.vdstools.vds.VdsMessage;
 import de.tsenger.vdstools.vds.VdsSignature;
-import de.tsenger.vdstools.vds.seals.DigitalSeal;
 
 public class DataEncoder {
 
@@ -66,8 +66,7 @@ public class DataEncoder {
 
 	public static VdsHeader buildHeader(String vdsType, X509Certificate cert, String issuingCountry, byte rawVersion,
 			LocalDate issuingDate) {
-		VdsHeader header = new VdsHeader();
-		header.setDocumentType(vdsType);
+		VdsHeader header = new VdsHeader(vdsType);
 		header.rawVersion = rawVersion;
 		try {
 			String signerCertRef[] = getSignerCertRef(cert);

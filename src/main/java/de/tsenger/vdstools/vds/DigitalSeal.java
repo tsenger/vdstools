@@ -1,23 +1,18 @@
-package de.tsenger.vdstools.vds.seals;
+package de.tsenger.vdstools.vds;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.cert.X509Certificate;
+import java.nio.ByteBuffer;
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.encoders.Hex;
 import org.tinylog.Logger;
 
 import de.tsenger.vdstools.DataEncoder;
 import de.tsenger.vdstools.DataParser;
 import de.tsenger.vdstools.DerTlv;
-import de.tsenger.vdstools.Signer;
-import de.tsenger.vdstools.vds.VdsHeader;
-import de.tsenger.vdstools.vds.VdsMessage;
-import de.tsenger.vdstools.vds.VdsSignature;
 
 /**
  * @author Tobias Senger
@@ -30,8 +25,6 @@ public class DigitalSeal {
 	private VdsMessage vdsMessage;
 	private VdsSignature vdsSignature;
 
-	protected Map<String, Object> featureMap = new HashMap<>();
-
 	public DigitalSeal(VdsHeader vdsHeader, VdsMessage vdsMessage, VdsSignature vdsSignature) {
 		this.vdsHeader = vdsHeader;
 		this.vdsMessage = vdsMessage;
@@ -39,46 +32,8 @@ public class DigitalSeal {
 		this.vdsType = vdsHeader.getVdsType();
 	}
 
-	public static DigitalSeal getInstance(String rawString) {
-		DigitalSeal seal = null;
-		try {
-			seal = DataParser.parseVdsSeal(rawString);
-		} catch (IOException e) {
-			Logger.error(e.getMessage());
-		}
-		return seal;
-	}
-
-	public static DigitalSeal getInstance(byte[] rawBytes) {
-		DigitalSeal seal = null;
-		try {
-			seal = DataParser.parseVdsSeal(rawBytes);
-		} catch (IOException e) {
-			Logger.error(e.getMessage());
-		}
-		return seal;
-	}
-
-	public static DigitalSeal getInstance(VdsMessage vdsMessage, X509Certificate cert, Signer signer) {
-		DigitalSeal seal = DataEncoder.buildDigitalSeal(vdsMessage, cert, signer);
-		return seal;
-	}
-
-	public static DigitalSeal getInstance(VdsHeader vdsHeader, VdsMessage vdsMessage, Signer signer) {
-		DigitalSeal seal = DataEncoder.buildDigitalSeal(vdsHeader, vdsMessage, signer);
-		return seal;
-	}
-
 	public String getVdsType() {
 		return vdsType;
-	}
-
-	public List<DerTlv> getMessageTlvList() {
-		return vdsMessage.getDerTlvList();
-	}
-
-	public Map<String, Object> getFeatureMap() {
-		return featureMap;
 	}
 
 	public String getIssuingCountry() {
@@ -129,7 +84,7 @@ public class DigitalSeal {
 		return Arrays.concatenate(vdsHeader.getEncoded(), vdsMessage.getEncoded());
 	}
 
-	public byte[] getEncodedBytes() throws IOException {
+	public byte[] getEncoded() throws IOException {
 		return Arrays.concatenate(vdsHeader.getEncoded(), vdsMessage.getEncoded(), vdsSignature.getEncoded());
 	}
 
@@ -138,15 +93,59 @@ public class DigitalSeal {
 	}
 
 	public String getRawString() throws IOException {
-		return DataEncoder.encodeBase256(getEncodedBytes());
+		return DataEncoder.encodeBase256(getEncoded());
 	}
 
 	public <T> T getFeature(String feature) {
 		return vdsMessage.getDocumentFeature(feature);
 	}
 
-	public <T> void setFeature(String feature, T value) {
+	public <T> void addFeature(String feature, T value) {
 		vdsMessage.addDocumentFeature(feature, value);
+	}
+
+	public static DigitalSeal fromRawString(String rawString) {
+		DigitalSeal seal = null;
+		try {
+			seal = parseVdsSeal(DataParser.decodeBase256(rawString));
+		} catch (IOException e) {
+			Logger.error(e.getMessage());
+		}
+		return seal;
+	}
+
+	public static DigitalSeal fromByteArray(byte[] rawBytes) {
+		DigitalSeal seal = null;
+		try {
+			seal = parseVdsSeal(rawBytes);
+		} catch (IOException e) {
+			Logger.error(e.getMessage());
+		}
+		return seal;
+	}
+
+	private static DigitalSeal parseVdsSeal(byte[] rawBytes) throws IOException {
+
+		ByteBuffer rawData = ByteBuffer.wrap(rawBytes);
+		Logger.trace("rawData: {}", () -> Hex.toHexString(rawBytes));
+
+		VdsHeader vdsHeader = VdsHeader.fromByteBuffer(rawData);
+		VdsMessage vdsMessage = new VdsMessage(vdsHeader.getVdsType());
+		VdsSignature vdsSignature = null;
+
+		int messageStartPosition = rawData.position();
+
+		List<DerTlv> derTlvList = DataParser
+				.parseDerTLvs(Arrays.copyOfRange(rawBytes, messageStartPosition, rawBytes.length));
+
+		for (DerTlv derTlv : derTlvList) {
+			if (derTlv.getTag() == (byte) 0xff) {
+				vdsSignature = VdsSignature.fromByteArray(derTlv.getEncoded());
+			} else {
+				vdsMessage.addDerTlv(derTlv);
+			}
+		}
+		return new DigitalSeal(vdsHeader, vdsMessage, vdsSignature);
 
 	}
 

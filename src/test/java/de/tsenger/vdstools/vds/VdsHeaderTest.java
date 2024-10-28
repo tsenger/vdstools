@@ -11,26 +11,22 @@ public class VdsHeaderTest {
 
 	@Test
 	public void testGetDocumentRef() {
-		VdsHeader header = new VdsHeader();
-		header.docFeatureRef = (byte) 0x3f;
-		header.docTypeCat = (byte) 0x9b;
-		assertEquals(header.getDocumentRef(), 0x3f9b);
+		VdsHeader header = new VdsHeader("ALIENS_LAW");
+		assertEquals(header.getDocumentRef(), 0x01fe);
 	}
 
 	@Test
 	public void testSetDocumentType() {
-		VdsHeader header = new VdsHeader();
+		VdsHeader header = new VdsHeader("ARRIVAL_ATTESTATION");
 		// ARRIVAL_ATTESTATION 0xfd02
-		header.setDocumentType("ARRIVAL_ATTESTATION");
 		assertEquals(header.docFeatureRef, (byte) 0xfd);
 		assertEquals(header.docTypeCat, (byte) 0x02);
 	}
 
 	@Test
 	public void testGetRawBytes_V3() {
-		VdsHeader header = new VdsHeader();
+		VdsHeader header = new VdsHeader("RESIDENCE_PERMIT");
 		// RESIDENCE_PERMIT 0xfb06
-		header.setDocumentType("RESIDENCE_PERMIT");
 		header.signerIdentifier = "DETS";
 		header.certificateReference = "32";
 		header.issuingDate = LocalDate.parse("2024-09-27");
@@ -44,9 +40,8 @@ public class VdsHeaderTest {
 
 	@Test
 	public void testGetRawBytes_V2() {
-		VdsHeader header = new VdsHeader();
+		VdsHeader header = new VdsHeader("ARRIVAL_ATTESTATION");
 		// RESIDENCE_PERMIT 0xfb06
-		header.setDocumentType("ARRIVAL_ATTESTATION");
 		header.signerIdentifier = "DETS";
 		header.certificateReference = "32";
 		header.issuingDate = LocalDate.parse("2024-09-27");

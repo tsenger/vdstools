@@ -13,7 +13,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Hex;
 import org.tinylog.Logger;
 
-import de.tsenger.vdstools.vds.seals.DigitalSeal;
+import de.tsenger.vdstools.vds.DigitalSeal;
 
 public class Verifier {
 

@@ -16,8 +16,8 @@ import org.tinylog.Logger;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import de.tsenger.vdstools.vds.seals.FeaturesDto;
-import de.tsenger.vdstools.vds.seals.SealDto;
+import de.tsenger.vdstools.vds.dto.FeaturesDto;
+import de.tsenger.vdstools.vds.dto.SealDto;
 
 public class FeatureConverter {
 

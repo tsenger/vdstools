@@ -25,10 +25,10 @@ import org.bouncycastle.util.encoders.Hex;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import de.tsenger.vdstools.vds.DigitalSeal;
 import de.tsenger.vdstools.vds.VdsHeader;
 import de.tsenger.vdstools.vds.VdsMessage;
 import de.tsenger.vdstools.vds.VdsSignature;
-import de.tsenger.vdstools.vds.seals.DigitalSeal;
 
 public class DataEncoderTest {
 
@@ -198,7 +198,7 @@ public class DataEncoderTest {
 		byte[] expectedHeaderMessage = Arrays.concatenate(Hex.decode("dc036abc6d32c8a72cb1"), encodedDate, encodedDate,
 				Hex.decode(
 						"fb0602305cba135875976ec066d417b59e8c6abc133c133c133c133c3fef3a2938ee43f1593d1ae52dbb26751fe64b7c133c136b0306d79519a65306"));
-		byte[] headerMessage = Arrays.copyOfRange(digitalSeal.getEncodedBytes(), 0, 76);
+		byte[] headerMessage = Arrays.copyOfRange(digitalSeal.getEncoded(), 0, 76);
 		// System.out.println(Hex.toHexString(digitalSeal.getEncodedBytes()));
 		assertTrue(Arrays.areEqual(expectedHeaderMessage, headerMessage));
 	}
@@ -217,7 +217,7 @@ public class DataEncoderTest {
 		assertNotNull(digitalSeal);
 		byte[] expectedHeaderMessage = Hex.decode(
 				"dc036abc6d32c8a72cb18d7ad88d7ad8fd020230a56213535bd4caecc87ca4ccaeb4133c133c133c133c133c3fef3a2938ee43f1593d1ae52dbb26751fe64b7c133c136b030859e9203833736d24");
-		byte[] headerMessage = Arrays.copyOfRange(digitalSeal.getEncodedBytes(), 0, 78);
+		byte[] headerMessage = Arrays.copyOfRange(digitalSeal.getEncoded(), 0, 78);
 		assertTrue(Arrays.areEqual(expectedHeaderMessage, headerMessage));
 	}
 
@@ -296,9 +296,8 @@ public class DataEncoderTest {
 	}
 
 	private VdsHeader buildHeader() {
-		VdsHeader header = new VdsHeader();
 		// RESIDENCE_PERMIT 0xfb06
-		header.setDocumentType("ARRIVAL_ATTESTATION");
+		VdsHeader header = new VdsHeader("ARRIVAL_ATTESTATION");
 		header.signerIdentifier = "DETS";
 		header.certificateReference = "32";
 		header.issuingDate = LocalDate.parse("2024-09-27");

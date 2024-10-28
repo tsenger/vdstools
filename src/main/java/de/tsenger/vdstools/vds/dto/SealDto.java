@@ -1,4 +1,4 @@
-package de.tsenger.vdstools.vds.seals;
+package de.tsenger.vdstools.vds.dto;
 
 import java.util.List;
 

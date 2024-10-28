@@ -22,8 +22,8 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.datamatrix.DataMatrixWriter;
 
+import de.tsenger.vdstools.vds.DigitalSeal;
 import de.tsenger.vdstools.vds.VdsMessage;
-import de.tsenger.vdstools.vds.seals.DigitalSeal;
 
 public class DataMatrixTest {
 
@@ -53,7 +53,7 @@ public class DataMatrixTest {
 		DigitalSeal digitalSeal = DataEncoder.buildDigitalSeal(vdsMessage, cert, signer);
 
 		DataMatrixWriter dmw = new DataMatrixWriter();
-		BitMatrix bitMatrix = dmw.encode(DataEncoder.encodeBase256(digitalSeal.getEncodedBytes()),
+		BitMatrix bitMatrix = dmw.encode(DataEncoder.encodeBase256(digitalSeal.getEncoded()),
 				BarcodeFormat.DATA_MATRIX, 450, 450);
 
 		// Define your own export Path and uncomment if needed

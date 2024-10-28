@@ -28,7 +28,8 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import de.tsenger.vdstools.vds.seals.DigitalSeal;
+import de.tsenger.vdstools.vds.DigitalSeal;
+import de.tsenger.vdstools.vds.VdsRawBytes;
 
 public class VerifierTest {
 
@@ -48,7 +49,7 @@ public class VerifierTest {
 
 	@Test
 	public void testVerifyArrivalAttestationDETS00027() throws ParseException, KeyStoreException, IOException {
-		DigitalSeal digitalSeal = DataParser.parseVdsSeal(DataParserTest.arrivalAttestation_rawBytes);
+		DigitalSeal digitalSeal = DigitalSeal.fromByteArray(VdsRawBytes.arrivalAttestation);
 		assert digitalSeal != null;
 		String signerCertRef = digitalSeal.getSignerCertRef();
 		assertEquals("DETS27", signerCertRef); // input validation
@@ -78,7 +79,7 @@ public class VerifierTest {
 
 	@Test
 	public void testVerifyResidentPermit256BitSig() throws KeyStoreException, IOException {
-		DigitalSeal digitalSeal = DataParser.parseVdsSeal(DataParserTest.residentPermit_rawBytes);
+		DigitalSeal digitalSeal = DigitalSeal.fromByteArray(VdsRawBytes.residentPermit);
 		String signerCertRef = digitalSeal.getSignerCertRef();
 		assertEquals("UTTS5B", signerCertRef);
 		X509Certificate cert = (X509Certificate) keystore.getCertificate(signerCertRef.toLowerCase());
@@ -89,7 +90,7 @@ public class VerifierTest {
 
 	@Test
 	public void testVerifyVisa224BitSig() throws KeyStoreException, IOException {
-		DigitalSeal digitalSeal = DataParser.parseVdsSeal(DataParserTest.visa_224bitSig_rawBytes);
+		DigitalSeal digitalSeal = DigitalSeal.fromByteArray(VdsRawBytes.visa_224bitSig);
 		String signerCertRef = digitalSeal.getSignerCertRef();
 		assertEquals("DETS32", signerCertRef);
 		X509Certificate cert = (X509Certificate) keystore.getCertificate(signerCertRef.toLowerCase());
