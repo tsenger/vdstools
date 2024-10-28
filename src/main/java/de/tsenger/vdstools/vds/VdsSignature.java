@@ -11,14 +11,9 @@ import org.tinylog.Logger;
 
 import de.tsenger.vdstools.DerTlv;
 
-/**
- * @author Tobias Senger
- *
- */
 public class VdsSignature {
 	public static final byte TAG = (byte) 0xff;
 	private byte[] plainSignatureBytes;
-	private byte[] derSignatureBytes = null;
 
 	/**
 	 * @param plainSignatureBytes signature bytes in plain format: r||s
@@ -45,6 +40,7 @@ public class VdsSignature {
 		v.add(new ASN1Integer(new BigInteger(1, s)));
 		DERSequence derSeq = new DERSequence(v);
 
+		byte[] derSignatureBytes = null;
 		try {
 			derSignatureBytes = derSeq.getEncoded();
 			Logger.debug("Signature sequence bytes: 0x" + Hex.toHexString(derSignatureBytes));
@@ -76,4 +72,5 @@ public class VdsSignature {
 		DerTlv derTlv = DerTlv.fromByteArray(rawBytes);
 		return new VdsSignature(derTlv.getValue());
 	}
+
 }

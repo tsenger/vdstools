@@ -11,10 +11,6 @@ import de.tsenger.vdstools.DataEncoder;
 import de.tsenger.vdstools.DataParser;
 import de.tsenger.vdstools.DerTlv;
 
-/**
- * @author Tobias Senger
- *
- */
 public class VdsMessage {
 
 	private List<DerTlv> derTlvList;
@@ -29,10 +25,9 @@ public class VdsMessage {
 		this.derTlvList = derTlvList;
 	}
 
-	public VdsMessage(String vdsType) {
-		this();
-		this.vdsType = vdsType;
-		this.derTlvList = new ArrayList<>(5);
+	private VdsMessage(Builder builder) {
+		this.derTlvList = builder.derTlvList;
+		this.vdsType = builder.vdsType;
 	}
 
 	public String getVdsType() {
@@ -52,25 +47,17 @@ public class VdsMessage {
 		return baos.toByteArray();
 	}
 
-	public void addDerTlv(DerTlv derTlv) {
-		this.derTlvList.add(derTlv);
-	}
-
 	public List<DerTlv> getDerTlvList() {
 		return this.derTlvList;
-	}
-
-	public <T> void addDocumentFeature(String feature, T value) throws IllegalArgumentException {
-		DerTlv derTlv = DataEncoder.getFeatureEncoder().encodeFeature(vdsType, feature, value);
-		this.derTlvList.add(derTlv);
 	}
 
 	public <T> T getDocumentFeature(String feature) {
 		T value = null;
 		byte tag = DataEncoder.getFeatureEncoder().getTag(vdsType, feature);
 		for (DerTlv derTlv : derTlvList) {
-			if (derTlv.getTag() == tag)
+			if (derTlv.getTag() == tag) {
 				value = DataEncoder.getFeatureEncoder().decodeFeature(vdsType, derTlv);
+			}
 		}
 		return value;
 	}
@@ -78,6 +65,25 @@ public class VdsMessage {
 	public static VdsMessage fromByteArray(byte[] rawBytes, String vdsType) {
 		List<DerTlv> derTlvList = DataParser.parseDerTLvs(rawBytes);
 		return new VdsMessage(vdsType, derTlvList);
+	}
+
+	public static class Builder {
+		private List<DerTlv> derTlvList = new ArrayList<>(5);
+		private String vdsType = null;
+
+		public Builder(String vdsType) {
+			this.vdsType = vdsType;
+		}
+
+		public <T> Builder addDocumentFeature(String feature, T value) throws IllegalArgumentException {
+			DerTlv derTlv = DataEncoder.getFeatureEncoder().encodeFeature(this.vdsType, feature, value);
+			this.derTlvList.add(derTlv);
+			return this;
+		}
+
+		public VdsMessage build() {
+			return new VdsMessage(this);
+		}
 	}
 
 }

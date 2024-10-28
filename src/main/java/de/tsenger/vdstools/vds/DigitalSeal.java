@@ -3,7 +3,13 @@ package de.tsenger.vdstools.vds;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.bouncycastle.util.Arrays;
@@ -13,11 +19,8 @@ import org.tinylog.Logger;
 import de.tsenger.vdstools.DataEncoder;
 import de.tsenger.vdstools.DataParser;
 import de.tsenger.vdstools.DerTlv;
+import de.tsenger.vdstools.Signer;
 
-/**
- * @author Tobias Senger
- *
- */
 public class DigitalSeal {
 
 	private String vdsType;
@@ -25,7 +28,7 @@ public class DigitalSeal {
 	private VdsMessage vdsMessage;
 	private VdsSignature vdsSignature;
 
-	public DigitalSeal(VdsHeader vdsHeader, VdsMessage vdsMessage, VdsSignature vdsSignature) {
+	private DigitalSeal(VdsHeader vdsHeader, VdsMessage vdsMessage, VdsSignature vdsSignature) {
 		this.vdsHeader = vdsHeader;
 		this.vdsMessage = vdsMessage;
 		this.vdsSignature = vdsSignature;
@@ -37,7 +40,7 @@ public class DigitalSeal {
 	}
 
 	public String getIssuingCountry() {
-		return vdsHeader.issuingCountry;
+		return vdsHeader.getIssuingCountry();
 	}
 
 	/**
@@ -52,32 +55,32 @@ public class DigitalSeal {
 	 * @return Formated SignerCertRef all UPPERCASE
 	 */
 	public String getSignerCertRef() {
-		BigInteger certRefInteger = new BigInteger(vdsHeader.certificateReference, 16);
-		return String.format("%s%x", vdsHeader.signerIdentifier, certRefInteger).toUpperCase();
+		BigInteger certRefInteger = new BigInteger(vdsHeader.getCertificateReference(), 16);
+		return String.format("%s%x", vdsHeader.getSignerIdentifier(), certRefInteger).toUpperCase();
 	}
 
 	public String getSignerIdentifier() {
-		return vdsHeader.signerIdentifier;
+		return vdsHeader.getSignerIdentifier();
 	}
 
 	public String getCertificateReference() {
-		return vdsHeader.certificateReference;
+		return vdsHeader.getCertificateReference();
 	}
 
 	public LocalDate getIssuingDate() {
-		return vdsHeader.issuingDate;
+		return vdsHeader.getIssuingDate();
 	}
 
 	public LocalDate getSigDate() {
-		return vdsHeader.sigDate;
+		return vdsHeader.getSigDate();
 	}
 
 	public byte getDocFeatureRef() {
-		return vdsHeader.docFeatureRef;
+		return vdsHeader.getDocFeatureRef();
 	}
 
 	public byte getDocTypeCat() {
-		return vdsHeader.docTypeCat;
+		return vdsHeader.getDocTypeCat();
 	}
 
 	public byte[] getHeaderAndMessageBytes() {
@@ -98,10 +101,6 @@ public class DigitalSeal {
 
 	public <T> T getFeature(String feature) {
 		return vdsMessage.getDocumentFeature(feature);
-	}
-
-	public <T> void addFeature(String feature, T value) {
-		vdsMessage.addDocumentFeature(feature, value);
 	}
 
 	public static DigitalSeal fromRawString(String rawString) {
@@ -130,7 +129,6 @@ public class DigitalSeal {
 		Logger.trace("rawData: {}", () -> Hex.toHexString(rawBytes));
 
 		VdsHeader vdsHeader = VdsHeader.fromByteBuffer(rawData);
-		VdsMessage vdsMessage = new VdsMessage(vdsHeader.getVdsType());
 		VdsSignature vdsSignature = null;
 
 		int messageStartPosition = rawData.position();
@@ -138,15 +136,61 @@ public class DigitalSeal {
 		List<DerTlv> derTlvList = DataParser
 				.parseDerTLvs(Arrays.copyOfRange(rawBytes, messageStartPosition, rawBytes.length));
 
+		List<DerTlv> featureList = new ArrayList<DerTlv>(derTlvList.size() - 1);
+
 		for (DerTlv derTlv : derTlvList) {
 			if (derTlv.getTag() == (byte) 0xff) {
 				vdsSignature = VdsSignature.fromByteArray(derTlv.getEncoded());
 			} else {
-				vdsMessage.addDerTlv(derTlv);
+				featureList.add(derTlv);
 			}
 		}
+		VdsMessage vdsMessage = new VdsMessage(vdsHeader.getVdsType(), featureList);
 		return new DigitalSeal(vdsHeader, vdsMessage, vdsSignature);
 
+	}
+
+	public static class Builder {
+
+		private VdsHeader vdsHeader;
+		private VdsMessage vdsMessage;
+		private VdsSignature vdsSignature;
+		private Signer signer;
+
+		public Builder() {
+		}
+
+		public Builder setHeader(VdsHeader vdsHeader) {
+			this.vdsHeader = vdsHeader;
+			return this;
+		}
+
+		public Builder setMessage(VdsMessage vdsMessage) {
+			this.vdsMessage = vdsMessage;
+			return this;
+		}
+
+		public Builder setSigner(Signer signer) {
+			this.signer = signer;
+			return this;
+		}
+
+		public DigitalSeal build() {
+			this.vdsSignature = createVdsSignature(vdsHeader, vdsMessage, signer);
+			return new DigitalSeal(vdsHeader, vdsMessage, vdsSignature);
+		}
+
+		private VdsSignature createVdsSignature(VdsHeader vdsHeader, VdsMessage vdsMessage, Signer signer) {
+			byte[] headerMessage = Arrays.concatenate(vdsHeader.getEncoded(), vdsMessage.getEncoded());
+			try {
+				byte[] signatureBytes = signer.sign(headerMessage);
+				return new VdsSignature(signatureBytes);
+			} catch (InvalidKeyException | NoSuchAlgorithmException | SignatureException
+					| InvalidAlgorithmParameterException | NoSuchProviderException | IOException e) {
+				Logger.error("Signature creation failed: " + e.getMessage());
+				return null;
+			}
+		}
 	}
 
 }

@@ -1,16 +1,47 @@
 package de.tsenger.vdstools.vds;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.Security;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.time.LocalDate;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import de.tsenger.vdstools.DataEncoder;
+import de.tsenger.vdstools.Signer;
+
 public class DigitalSealTest {
+
+	//@formatter:off
+
+	static String keyStorePassword = "vdstools";
+	static String keyStoreFile = "src/test/resources/vdstools_testcerts.bks";
+	static KeyStore keystore;
+
+	@BeforeClass
+	public static void loadKeyStore() throws NoSuchAlgorithmException, CertificateException, IOException,
+			KeyStoreException, NoSuchProviderException {
+		Security.addProvider(new BouncyCastleProvider());
+		keystore = KeyStore.getInstance("BKS", "BC");
+		FileInputStream fis = new FileInputStream(keyStoreFile);
+		keystore.load(fis, keyStorePassword.toCharArray());
+		fis.close();
+	}
 
 	@Test
 	public void testParseSocialInsurranceCard() throws IOException {
@@ -144,6 +175,69 @@ public class DigitalSealTest {
 		DigitalSeal seal2 = DigitalSeal.fromRawString(rawString);
 		assertEquals(rawString, seal2.getRawString());
 		assertEquals(Hex.toHexString(VdsRawBytes.tempPerso), Hex.toHexString(seal2.getEncoded()));
+	}
+	
+	@Test
+	public void testBuildDigitalSeal() throws IOException, KeyStoreException {
+		String mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<" + "6525845096USA7008038M2201018<<<<<<06";
+		String passportNumber = "UFO001979";
+		VdsMessage vdsMessage = new VdsMessage.Builder("RESIDENCE_PERMIT")
+				.addDocumentFeature("MRZ", mrz)
+				.addDocumentFeature("PASSPORT_NUMBER", passportNumber)
+				.build();
+
+		X509Certificate cert = (X509Certificate) keystore.getCertificate("dets32");
+		Signer signer = new Signer(keystore, keyStorePassword, "dets32");
+
+		LocalDate ldNow = LocalDate.now();
+		byte[] encodedDate = DataEncoder.encodeDate(ldNow);
+
+		VdsHeader vdsHeader = new VdsHeader.Builder(vdsMessage.getVdsType())
+				.setSignerCertRef(cert, true)
+				.build();
+		DigitalSeal digitalSeal = new DigitalSeal.Builder()
+				.setHeader(vdsHeader)
+				.setMessage(vdsMessage)
+				.setSigner(signer)
+				.build();
+		assertNotNull(digitalSeal);
+		byte[] expectedHeaderMessage = Arrays.concatenate(Hex.decode("dc036abc6d32c8a72cb1"), encodedDate, encodedDate,
+				Hex.decode(
+						"fb0602305cba135875976ec066d417b59e8c6abc133c133c133c133c3fef3a2938ee43f1593d1ae52dbb26751fe64b7c133c136b0306d79519a65306"));
+		byte[] headerMessage = Arrays.copyOfRange(digitalSeal.getEncoded(), 0, 76);
+		// System.out.println(Hex.toHexString(digitalSeal.getEncodedBytes()));
+		assertTrue(Arrays.areEqual(expectedHeaderMessage, headerMessage));
+	}
+
+	@Test
+	public void testBuildDigitalSeal2() throws IOException {
+		String mrz = "MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<" + "6525845096USA7008038M2201018<<<<<<06";
+		String azr = "ABC123456DEF";
+		VdsMessage vdsMessage = new VdsMessage.Builder("ARRIVAL_ATTESTATION")
+				.addDocumentFeature("MRZ", mrz)
+				.addDocumentFeature("AZR", azr)
+				.build();
+
+		Signer signer = new Signer(keystore, keyStorePassword, "dets32");
+
+		VdsHeader header = new VdsHeader.Builder("ARRIVAL_ATTESTATION")
+				.setIssuingCountry("D<<")
+				.setSignerIdentifier("DETS")
+				.setCertificateReference("32")
+				.setIssuingDate(LocalDate.parse("2024-09-27"))
+				.setSigDate(LocalDate.parse("2024-09-27"))
+				.build();
+		
+		DigitalSeal digitalSeal = new DigitalSeal.Builder()
+				.setHeader(header)
+				.setMessage(vdsMessage)
+				.setSigner(signer)
+				.build();
+		assertNotNull(digitalSeal);
+		byte[] expectedHeaderMessage = Hex.decode(
+				"dc036abc6d32c8a72cb18d7ad88d7ad8fd020230a56213535bd4caecc87ca4ccaeb4133c133c133c133c133c3fef3a2938ee43f1593d1ae52dbb26751fe64b7c133c136b030859e9203833736d24");
+		byte[] headerMessage = Arrays.copyOfRange(digitalSeal.getEncoded(), 0, 78);
+		assertTrue(Arrays.areEqual(expectedHeaderMessage, headerMessage));
 	}
 
 }

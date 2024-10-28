@@ -23,6 +23,7 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.datamatrix.DataMatrixWriter;
 
 import de.tsenger.vdstools.vds.DigitalSeal;
+import de.tsenger.vdstools.vds.VdsHeader;
 import de.tsenger.vdstools.vds.VdsMessage;
 
 public class DataMatrixTest {
@@ -41,20 +42,21 @@ public class DataMatrixTest {
 
 		String mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<" + "6525845096USA7008038M2201018<<<<<<06";
 		String passportNumber = "UFO001979";
-		VdsMessage vdsMessage = new VdsMessage("RESIDENCE_PERMIT");
-		vdsMessage.addDocumentFeature("MRZ", mrz);
-		vdsMessage.addDocumentFeature("PASSPORT_NUMBER", passportNumber);
+		VdsMessage vdsMessage = new VdsMessage.Builder("RESIDENCE_PERMIT").addDocumentFeature("MRZ", mrz)
+				.addDocumentFeature("PASSPORT_NUMBER", passportNumber).build();
 
 		KeyStore ks = getKeystore();
 		ECPrivateKey ecKey = (ECPrivateKey) ks.getKey("utts5b", keyStorePassword.toCharArray());
 		Signer signer = new Signer(ecKey);
 		X509Certificate cert = (X509Certificate) ks.getCertificate("utts5b");
 
-		DigitalSeal digitalSeal = DataEncoder.buildDigitalSeal(vdsMessage, cert, signer);
+		VdsHeader vdsHeader = new VdsHeader.Builder(vdsMessage.getVdsType()).setSignerCertRef(cert, true).build();
+		DigitalSeal digitalSeal = new DigitalSeal.Builder().setHeader(vdsHeader).setMessage(vdsMessage)
+				.setSigner(signer).build();
 
 		DataMatrixWriter dmw = new DataMatrixWriter();
-		BitMatrix bitMatrix = dmw.encode(DataEncoder.encodeBase256(digitalSeal.getEncoded()),
-				BarcodeFormat.DATA_MATRIX, 450, 450);
+		BitMatrix bitMatrix = dmw.encode(DataEncoder.encodeBase256(digitalSeal.getEncoded()), BarcodeFormat.DATA_MATRIX,
+				450, 450);
 
 		// Define your own export Path and uncomment if needed
 //		Path path = Path.of("test/test.png");

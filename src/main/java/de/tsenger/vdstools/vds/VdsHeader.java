@@ -3,51 +3,78 @@ package de.tsenger.vdstools.vds;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.security.cert.X509Certificate;
 import java.time.LocalDate;
+
+import javax.naming.InvalidNameException;
 
 import org.tinylog.Logger;
 
 import de.tsenger.vdstools.DataEncoder;
 import de.tsenger.vdstools.DataParser;
+import de.tsenger.vdstools.Doc9303CountryCodes;
 
-/**
- * @author Tobias Senger
- *
- */
 public class VdsHeader {
 
 	public static final byte DC = (byte) 0xDC;
 
-	private byte[] rawBytes = null;
-
-	public String issuingCountry;
-	public String signerIdentifier;
-	public String certificateReference;
-
-	public LocalDate issuingDate;
-	public LocalDate sigDate;
-
-	public byte docFeatureRef;
-	public byte docTypeCat;
-
-	public byte rawVersion;
+	private String issuingCountry;
+	private String signerIdentifier;
+	private String certificateReference;
+	private LocalDate issuingDate;
+	private LocalDate sigDate;
+	private byte docFeatureRef;
+	private byte docTypeCat;
+	private byte rawVersion;
 
 	private VdsHeader() {
 	}
 
-	public VdsHeader(String vdsType) {
-		super();
-		this.setDocumentType(vdsType);
+	private VdsHeader(Builder builder) {
+		this.issuingCountry = builder.issuingCountry;
+		this.signerIdentifier = builder.signerIdentifier;
+		this.certificateReference = builder.certificateReference;
+		this.issuingDate = builder.issuingDate;
+		this.sigDate = builder.sigDate;
+		this.docFeatureRef = builder.docFeatureRef;
+		this.docTypeCat = builder.docTypeCat;
+		this.rawVersion = builder.rawVersion;
+	}
+
+	public String getIssuingCountry() {
+		return issuingCountry;
+	}
+
+	public String getSignerIdentifier() {
+		return signerIdentifier;
+	}
+
+	public String getCertificateReference() {
+		return certificateReference;
+	}
+
+	public LocalDate getIssuingDate() {
+		return issuingDate;
+	}
+
+	public LocalDate getSigDate() {
+		return sigDate;
+	}
+
+	public byte getDocFeatureRef() {
+		return docFeatureRef;
+	}
+
+	public byte getDocTypeCat() {
+		return docTypeCat;
+	}
+
+	public byte getRawVersion() {
+		return rawVersion;
 	}
 
 	public int getDocumentRef() {
 		return ((docFeatureRef & 0xFF) << 8) + (docTypeCat & 0xFF);
-	}
-
-	public void setDocumentType(String vdsType) {
-		int docRef = DataEncoder.getFeatureEncoder().getDocumentRef(vdsType);
-		docFeatureRef = (byte) ((docRef >> 8) & 0xFF);
-		docTypeCat = (byte) (docRef & 0xFF);
 	}
 
 	public String getVdsType() {
@@ -55,19 +82,6 @@ public class VdsHeader {
 	}
 
 	public byte[] getEncoded() {
-		if (rawBytes == null) {
-			encode();
-		}
-		return rawBytes;
-	}
-
-	private void encode() {
-		if (sigDate == null) {
-			sigDate = LocalDate.now();
-		}
-		if (issuingDate == null) {
-			issuingDate = LocalDate.now();
-		}
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
 			baos.write(DC);
@@ -81,7 +95,7 @@ public class VdsHeader {
 		} catch (IOException e) {
 			Logger.error("Error while encoding header data: " + e.getMessage());
 		}
-		rawBytes = baos.toByteArray();
+		return baos.toByteArray();
 	}
 
 	private String getEncodedSignerIdentifierandCertificateReference() {
@@ -108,12 +122,11 @@ public class VdsHeader {
 
 		vdsHeader.rawVersion = rawdata.get();
 		/*
-		 * new in ICAO spec for "Visual Digital Seals for Non-Electronic Documents":
-		 * value 0x02 stands for version 3 (uses fix length of Document Signer
-		 * Reference: 5 characters) value 0x03 stands for version 4 (uses variable
-		 * length of Document Signer Reference) Problem: German "Arrival Attestation
-		 * Document" uses value 0x03 for rawVersion 3 and static length of Document
-		 * Signer Reference.
+		 * In ICAO spec for "Visual Digital Seals for Non-Electronic Documents" value
+		 * 0x02 stands for version 3 (uses fix length of Document Signer Reference: 5
+		 * characters) value 0x03 stands for version 4 (uses variable length of Document
+		 * Signer Reference) Problem: German "Arrival Attestation Document" uses value
+		 * 0x03 for rawVersion 3 and static length of Document Signer Reference.
 		 */
 		if (!(vdsHeader.rawVersion == 0x02 || vdsHeader.rawVersion == 0x03)) {
 			Logger.error(String.format("Unsupported rawVersion: 0x%02X", vdsHeader.rawVersion));
@@ -168,17 +181,90 @@ public class VdsHeader {
 		vdsHeader.sigDate = DataParser.decodeDate(DataParser.getFromByteBuffer(rawdata, 3));
 		vdsHeader.docFeatureRef = rawdata.get();
 		vdsHeader.docTypeCat = rawdata.get();
-//        vdsHeader.setRawBytes(Arrays.copyOfRange(rawdata.array(), 0, rawdata.position()));
 		Logger.debug("VdsHeader: {}", vdsHeader);
 		return vdsHeader;
 	}
 
-	@Override
-	public String toString() {
-		return ("rawVersion: " + (rawVersion & 0xff) + "\nissuingCountry: " + issuingCountry + "\nsignerIdentifier: "
-				+ signerIdentifier + "\ncertificateReference: " + certificateReference + "\nissuingDate: " + issuingDate
-				+ "\nsigDate: " + sigDate + "\ndocFeatureRef: " + String.format("%02X ", docFeatureRef)
-				+ ", docTypeCat: " + String.format("%02X ", docTypeCat));
+	public static class Builder {
+		private String issuingCountry;
+		private String signerIdentifier;
+		private String certificateReference;
+		private LocalDate issuingDate = LocalDate.now();
+		private LocalDate sigDate = LocalDate.now();
+		private byte docFeatureRef;
+		private byte docTypeCat;
+		private byte rawVersion = 3;
+
+		public Builder(String vdsType) {
+			setDocumentType(vdsType);
+		}
+
+		public Builder setIssuingCountry(String issuingCountry) {
+			this.issuingCountry = issuingCountry;
+			return this;
+		}
+
+		public Builder setSignerIdentifier(String signerIdentifier) {
+			this.signerIdentifier = signerIdentifier;
+			return this;
+		}
+
+		public Builder setCertificateReference(String certificateReference) {
+			this.certificateReference = certificateReference;
+			return this;
+		}
+
+		public Builder setIssuingDate(LocalDate issuingDate) {
+			this.issuingDate = issuingDate;
+			return this;
+		}
+
+		public Builder setSigDate(LocalDate sigDate) {
+			this.sigDate = sigDate;
+			return this;
+		}
+
+		public Builder setRawVersion(int rawVersion) {
+			this.rawVersion = (byte) rawVersion;
+			return this;
+		}
+
+		public VdsHeader build() {
+			return new VdsHeader(this);
+		}
+
+		/**
+		 * Get signerIdentifier and certificateReference from given X509Certificate.
+		 * 
+		 * @param x509Cert                      X509Certificate to get the
+		 *                                      signerIdentifier and the
+		 *                                      certificateReference from
+		 * @param setIssuingCountryFromX509Cert If true also build the issuing country
+		 *                                      code base an the X509Certificate. It
+		 *                                      will take the Country code 'C' and
+		 *                                      convert it to a 3-letter country code.
+		 * @return updated Builder instance
+		 */
+		public Builder setSignerCertRef(X509Certificate x509Cert, boolean setIssuingCountryFromX509Cert) {
+			String signerCertRef[] = null;
+			try {
+				signerCertRef = DataEncoder.getSignerCertRef(x509Cert);
+			} catch (InvalidNameException e) {
+				Logger.error("Couldn't build header, because getSignerCertRef throws error: " + e.getMessage());
+			}
+			this.signerIdentifier = signerCertRef[0];
+			this.certificateReference = signerCertRef[1];
+			if (setIssuingCountryFromX509Cert) {
+				this.issuingCountry = Doc9303CountryCodes.convertToIcaoOrIso3(signerCertRef[0].substring(0, 2));
+			}
+			return this;
+		}
+
+		private void setDocumentType(String vdsType) {
+			int docRef = DataEncoder.getFeatureEncoder().getDocumentRef(vdsType);
+			this.docFeatureRef = (byte) ((docRef >> 8) & 0xFF);
+			this.docTypeCat = (byte) (docRef & 0xFF);
+		}
 	}
 
 }

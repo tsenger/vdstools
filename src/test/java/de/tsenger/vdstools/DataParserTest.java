@@ -85,14 +85,14 @@ public class DataParserTest {
 	public void testDecodeHeader() {
 		ByteBuffer bb = ByteBuffer.wrap(VdsRawBytes.residentPermit);
 		VdsHeader vdsHeader = VdsHeader.fromByteBuffer(bb);
-		assertEquals(0x03, vdsHeader.rawVersion);
-		assertEquals("UTO", vdsHeader.issuingCountry);
-		assertEquals("UTTS", vdsHeader.signerIdentifier);
-		assertEquals("5B", vdsHeader.certificateReference);
-		assertEquals(LocalDate.parse("2020-01-01"), vdsHeader.issuingDate);
-		assertEquals(LocalDate.parse("2023-07-26"), vdsHeader.sigDate);
-		assertEquals(0xfb, vdsHeader.docFeatureRef & 0xff);
-		assertEquals(0x06, vdsHeader.docTypeCat & 0xff);
+		assertEquals(0x03, vdsHeader.getRawVersion());
+		assertEquals("UTO", vdsHeader.getIssuingCountry());
+		assertEquals("UTTS", vdsHeader.getSignerIdentifier());
+		assertEquals("5B", vdsHeader.getCertificateReference());
+		assertEquals(LocalDate.parse("2020-01-01"), vdsHeader.getIssuingDate());
+		assertEquals(LocalDate.parse("2023-07-26"), vdsHeader.getSigDate());
+		assertEquals(0xfb, vdsHeader.getDocFeatureRef() & 0xff);
+		assertEquals(0x06, vdsHeader.getDocTypeCat() & 0xff);
 	}
 
 	@Test

@@ -4,11 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.SignatureException;
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.time.LocalDate;
@@ -21,76 +16,16 @@ import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
-import org.bouncycastle.util.Arrays;
 import org.tinylog.Logger;
-
-import de.tsenger.vdstools.vds.DigitalSeal;
-import de.tsenger.vdstools.vds.VdsHeader;
-import de.tsenger.vdstools.vds.VdsMessage;
-import de.tsenger.vdstools.vds.VdsSignature;
 
 public class DataEncoder {
 
 	private static FeatureConverter featureEncoder = null;
 
-	public static DigitalSeal buildDigitalSeal(VdsMessage vdsMessage, X509Certificate cert, Signer signer) {
-		VdsHeader vdsHeader = buildHeader(vdsMessage.getVdsType(), cert);
-		VdsSignature vdsSignature = createVdsSignature(vdsHeader, vdsMessage, signer);
-		return new DigitalSeal(vdsHeader, vdsMessage, vdsSignature);
-	}
-
-	public static DigitalSeal buildDigitalSeal(VdsHeader vdsHeader, VdsMessage vdsMessage, Signer signer) {
-		VdsSignature vdsSignature = createVdsSignature(vdsHeader, vdsMessage, signer);
-		return new DigitalSeal(vdsHeader, vdsMessage, vdsSignature);
-	}
-
-	public static VdsSignature createVdsSignature(VdsHeader vdsHeader, VdsMessage vdsMessage, Signer signer) {
-		byte[] headerMessage = Arrays.concatenate(vdsHeader.getEncoded(), vdsMessage.getEncoded());
-		try {
-			byte[] signatureBytes = signer.sign(headerMessage);
-			return new VdsSignature(signatureBytes);
-		} catch (InvalidKeyException | NoSuchAlgorithmException | SignatureException
-				| InvalidAlgorithmParameterException | NoSuchProviderException | IOException e) {
-			Logger.error("Signature creation failed: " + e.getMessage());
-			return null;
-		}
-	}
-
-	public static VdsHeader buildHeader(String vdsType, X509Certificate cert) {
-		return buildHeader(vdsType, cert, null, (byte) 0x03, LocalDate.now());
-	}
-
-	public static VdsHeader buildHeader(String vdsType, X509Certificate cert, String issuingCountry) {
-		return buildHeader(vdsType, cert, issuingCountry, (byte) 0x03, LocalDate.now());
-	}
-
-	public static VdsHeader buildHeader(String vdsType, X509Certificate cert, String issuingCountry, byte rawVersion,
-			LocalDate issuingDate) {
-		VdsHeader header = new VdsHeader(vdsType);
-		header.rawVersion = rawVersion;
-		try {
-			String signerCertRef[] = getSignerCertRef(cert);
-			header.signerIdentifier = signerCertRef[0];
-			header.certificateReference = signerCertRef[1];
-		} catch (InvalidNameException e) {
-			Logger.error("Couldn't build header, because getSignerCertRef throws error: " + e.getMessage());
-		}
-
-		if (issuingCountry != null) {
-			header.issuingCountry = issuingCountry;
-		} else {
-			header.issuingCountry = Doc9303CountryCodes.convertToIcaoOrIso3(header.signerIdentifier.substring(0, 2));
-		}
-
-		header.issuingDate = issuingDate;
-		return header;
-	}
-
 	/**
-	 * Builds the signer certificate reference based on the the given X.509
-	 * certificate signer certificate reference is C + CN + serial number for
-	 * version 0x02 or C + CN + len(serial number) + serial number for versions 0x03
-	 * Serial number value will be encoded as hexstring
+	 * Return the Signer Identifier and the Certificate Reference based on the the
+	 * given X.509. Signer Identifier is C + CN Certificate Reference is the serial
+	 * number of the X509Certificate. It will be encoded as hexstring
 	 * 
 	 * @param cert X509 certificate to get the signer information from
 	 * @return String array that contains the signerIdentifier at index 0 and
@@ -99,7 +34,7 @@ public class DataEncoder {
 	 */
 	public static String[] getSignerCertRef(X509Certificate cert) throws InvalidNameException {
 		String signerCertRef[] = new String[2];
-		LdapName ln = new LdapName(cert.getSubjectDN().getName());
+		LdapName ln = new LdapName(cert.getSubjectX500Principal().getName());
 
 		String c = "";
 		String cn = "";
@@ -180,9 +115,7 @@ public class DataEncoder {
 				mask = (byte) (mask | (0x80 >> i));
 			}
 		}
-
 		byte[] encodedDateString = new byte[] { mask, (byte) (dateInt >>> 16), (byte) (dateInt >>> 8), (byte) dateInt };
-
 		return encodedDateString;
 	}
 
