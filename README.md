@@ -6,6 +6,7 @@ A library to decode/verify and encode/sign Visible Digital Seals (VDS) as specif
 - [ICAO Doc 9303 Part 13: Visible Digital Seals](https://www.icao.int/publications/Documents/9303_p13_cons_en.pdf)
 - [ICAO TR "VDS for Non-Electronic Documents"](https://www.icao.int/Security/FAL/TRIP/Documents/TR%20-%20Visible%20Digital%20Seals%20for%20Non-Electronic%20Documents%20V1.7.pdf)
 
+It also supports encoding and decoding Seals defined in the new draft of [ICAO Datastructure for Barcode](https://www.icao.int/Security/FAL/TRIP/PublishingImages/Pages/Publications/ICAO%20TR%20-%20ICAO%20Datastructure%20for%20Barcode.pdf). This is a very early stadium of the IDB encoder/decoders and differs from the VDS parser/encoder but already useable. You will find them in the package [de.tsenger.vdstools.idb](https://github.com/tsenger/vdstools/tree/main/src/main/java/de/tsenger/vdstools/idb).
 
 VDS can be created with the help of this library or, if you want to try it out quickly, via the web [Sealgen](https://sealgen.tsenger.de) tool. 
 There is also the [Sealva](https://play.google.com/store/apps/details?id=de.tsenger.sealver) Android app which scans, verifies and displays all VDS profiles defined in the above specifications.
