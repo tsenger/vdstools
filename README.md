@@ -95,6 +95,7 @@ In [DataMatrixTest.java](https://github.com/tsenger/vdstools/blob/main/src/test/
 JavaDoc can be found here:
 
 [![javadoc](https://javadoc.io/badge2/de.tsenger/vdstools/javadoc.svg)](https://javadoc.io/doc/de.tsenger/vdstools)
+
 [JavaDoc](https://javadoc.io/doc/de.tsenger/vdstools)
 
 
