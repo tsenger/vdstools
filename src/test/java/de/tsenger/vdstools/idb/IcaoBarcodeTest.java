@@ -4,13 +4,53 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.Security;
+import java.security.SignatureException;
 import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.tinylog.Logger;
+
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.datamatrix.DataMatrixWriter;
+
+import de.tsenger.vdstools.DataEncoder;
+import de.tsenger.vdstools.Signer;
+import de.tsenger.vdstools.vds.VdsMessage;
 
 public class IcaoBarcodeTest {
+
+	static String keyStorePassword = "vdstools";
+	static String keyStoreFile = "src/test/resources/vdstools_testcerts.bks";
+	static KeyStore keystore;
+
+	@BeforeClass
+	public static void loadKeyStore() throws NoSuchAlgorithmException, CertificateException, IOException,
+			KeyStoreException, NoSuchProviderException {
+		Security.addProvider(new BouncyCastleProvider());
+		keystore = KeyStore.getInstance("BKS", "BC");
+		FileInputStream fis = new FileInputStream(keyStoreFile);
+		keystore.load(fis, keyStorePassword.toCharArray());
+		fis.close();
+	}
 
 	@Test
 	public void testIsNotSignedIsNotZipped() {
@@ -136,6 +176,50 @@ public class IcaoBarcodeTest {
 	@Test(expected = IllegalArgumentException.class)
 	public void testFromString_invalid_BarcodeIdentifier() throws CertificateException, IOException {
 		IcaoBarcode.fromString("ADB1ANK6GCEQFCCYLDMVTWS23NN5YXG5LXPF5X27Q");
+	}
+
+	@Test
+	public void testBuildIdbBarcode() throws KeyStoreException, InvalidKeyException, NoSuchAlgorithmException,
+			SignatureException, InvalidAlgorithmParameterException, NoSuchProviderException, IOException {
+		X509Certificate cert = (X509Certificate) keystore.getCertificate("utts5b");
+		Signer signer = new Signer(keystore, keyStorePassword, "utts5b");
+		byte[] certRef = DataEncoder.buildCertificateReference(cert);
+		IdbHeader header = new IdbHeader("D<<", IdbSignatureAlgorithm.SHA256_WITH_ECDSA, certRef);
+
+		String mrz = "NFD<<MUSTERMANN<<CLEOPATRE<<<<<<<<<<<<<<<<<<L000000007UTO8308126F2701312T2611011<<<<<<<<";
+		String imageFile = "src/test/resources/images/Musterpassbild1_1000bytes.jp2";
+		String azr = "160113000085";
+		String passportno = "X98723021";
+		VdsMessage vdsMessage = new VdsMessage.Builder("FICTION_CERT").addDocumentFeature("MRZ", mrz)
+				.addDocumentFeature("AZR", azr).addDocumentFeature("PASSPORT_NUMBER", passportno)
+				.addDocumentFeature("FACE_IMAGE", openFile(imageFile)).build();
+		System.out.println("vdsMessage " + Hex.toHexString(vdsMessage.getEncoded()));
+		IdbMessage message = new IdbMessage((byte) 0x81, vdsMessage.getEncoded());
+		IdbMessageGroup messageGroup = new IdbMessageGroup(message);
+		IdbSignature signature = new IdbSignature(
+				signer.sign(Arrays.concatenate(header.getEncoded(), messageGroup.getEncoded())));
+		IdbPayload payload = new IdbPayload(header, messageGroup, null, signature);
+		System.out.println(
+				"Payload (" + payload.getEncoded().length + " Bytes):\n" + Hex.toHexString(payload.getEncoded()));
+		IcaoBarcode icb = new IcaoBarcode(true, false, payload);
+		String barcodeString = icb.getEncoded();
+		System.out.println("Barcode (" + barcodeString.length() + " Zeichen):\n" + barcodeString);
+
+		DataMatrixWriter dmw = new DataMatrixWriter();
+		BitMatrix bitMatrix = dmw.encode(barcodeString, BarcodeFormat.DATA_MATRIX, 450, 450);
+
+		// Define your own export Path and uncomment if needed
+		Path path = Path.of("test/IDB_FictionCert.png");
+		MatrixToImageWriter.writeToPath(bitMatrix, "PNG", path);
+	}
+
+	private byte[] openFile(String fileName) {
+		try {
+			return Files.readAllBytes(Paths.get(fileName));
+		} catch (IOException e) {
+			Logger.warn("couldn't open file: " + e.getLocalizedMessage());
+			return null;
+		}
 	}
 
 }

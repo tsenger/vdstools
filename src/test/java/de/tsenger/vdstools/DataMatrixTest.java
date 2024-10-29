@@ -51,8 +51,7 @@ public class DataMatrixTest {
 		X509Certificate cert = (X509Certificate) ks.getCertificate("utts5b");
 
 		VdsHeader vdsHeader = new VdsHeader.Builder(vdsMessage.getVdsType()).setSignerCertRef(cert, true).build();
-		DigitalSeal digitalSeal = new DigitalSeal.Builder().setHeader(vdsHeader).setMessage(vdsMessage)
-				.setSigner(signer).build();
+		DigitalSeal digitalSeal = new DigitalSeal(vdsHeader, vdsMessage, signer);
 
 		DataMatrixWriter dmw = new DataMatrixWriter();
 		BitMatrix bitMatrix = dmw.encode(DataEncoder.encodeBase256(digitalSeal.getEncoded()), BarcodeFormat.DATA_MATRIX,

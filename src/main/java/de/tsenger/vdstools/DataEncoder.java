@@ -4,6 +4,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.time.LocalDate;
@@ -16,6 +20,7 @@ import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 
+import org.bouncycastle.util.Arrays;
 import org.tinylog.Logger;
 
 public class DataEncoder {
@@ -189,6 +194,8 @@ public class DataEncoder {
 		byte[] compressedBytes = bos.toByteArray();
 		bos.close();
 		defos.close();
+		Logger.debug("Zip ratio " + ((float) bytesToCompress.length / (float) compressedBytes.length) + ", input size "
+				+ bytesToCompress.length + ", compressed size " + compressedBytes.length);
 		return compressedBytes;
 	}
 
@@ -205,6 +212,19 @@ public class DataEncoder {
 
 	public static void setFeatureEncoder(FeatureConverter featureEncoder) {
 		DataEncoder.featureEncoder = featureEncoder;
+	}
+
+	public static byte[] buildCertificateReference(X509Certificate cert) {
+		MessageDigest messageDigest;
+		try {
+			messageDigest = MessageDigest.getInstance("SHA1", "BC");
+			byte[] certSha1 = messageDigest.digest(cert.getEncoded());
+			return Arrays.copyOfRange(certSha1, 15, 20);
+		} catch (NoSuchAlgorithmException | NoSuchProviderException | CertificateEncodingException e) {
+			Logger.error("Failed building Certificate Reference: " + e.getMessage());
+			return null;
+		}
+
 	}
 
 }

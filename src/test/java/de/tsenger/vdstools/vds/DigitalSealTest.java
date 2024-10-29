@@ -195,11 +195,7 @@ public class DigitalSealTest {
 		VdsHeader vdsHeader = new VdsHeader.Builder(vdsMessage.getVdsType())
 				.setSignerCertRef(cert, true)
 				.build();
-		DigitalSeal digitalSeal = new DigitalSeal.Builder()
-				.setHeader(vdsHeader)
-				.setMessage(vdsMessage)
-				.setSigner(signer)
-				.build();
+		DigitalSeal digitalSeal = new DigitalSeal(vdsHeader, vdsMessage, signer);
 		assertNotNull(digitalSeal);
 		byte[] expectedHeaderMessage = Arrays.concatenate(Hex.decode("dc036abc6d32c8a72cb1"), encodedDate, encodedDate,
 				Hex.decode(
@@ -228,11 +224,7 @@ public class DigitalSealTest {
 				.setSigDate(LocalDate.parse("2024-09-27"))
 				.build();
 		
-		DigitalSeal digitalSeal = new DigitalSeal.Builder()
-				.setHeader(header)
-				.setMessage(vdsMessage)
-				.setSigner(signer)
-				.build();
+		DigitalSeal digitalSeal = new DigitalSeal(header, vdsMessage, signer);
 		assertNotNull(digitalSeal);
 		byte[] expectedHeaderMessage = Hex.decode(
 				"dc036abc6d32c8a72cb18d7ad88d7ad8fd020230a56213535bd4caecc87ca4ccaeb4133c133c133c133c133c3fef3a2938ee43f1593d1ae52dbb26751fe64b7c133c136b030859e9203833736d24");

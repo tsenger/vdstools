@@ -154,4 +154,12 @@ public class DataEncoderTest {
 				"78da014e00b1ff61120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c743d4280b",
 				Hex.toHexString(compressedBytes));
 	}
+	
+	@Test
+	public void testGetCertificateReference() throws KeyStoreException {
+		X509Certificate cert = (X509Certificate) keystore.getCertificate("dets32");
+		byte[] certRef = DataEncoder.buildCertificateReference(cert);
+		System.out.println(Hex.toHexString(certRef));
+		assertEquals("998b56e575", Hex.toHexString(certRef));
+	}
 }

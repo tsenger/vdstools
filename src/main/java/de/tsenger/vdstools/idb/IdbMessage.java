@@ -6,10 +6,15 @@ import de.tsenger.vdstools.DerTlv;
 
 public class IdbMessage {
 
-	private IdbMessageType messageType;
+	private byte messageType;
 	private byte[] messageContent;
 
 	public IdbMessage(IdbMessageType messageType, byte[] messageContent) {
+		this.messageType = messageType.getValue();
+		this.messageContent = messageContent;
+	}
+
+	public IdbMessage(byte messageType, byte[] messageContent) {
 		this.messageType = messageType;
 		this.messageContent = messageContent;
 	}
@@ -26,11 +31,11 @@ public class IdbMessage {
 	}
 
 	public byte[] getEncoded() throws IOException {
-		return new DerTlv(messageType.getValue(), messageContent).getEncoded();
+		return new DerTlv(messageType, messageContent).getEncoded();
 	}
 
 	public IdbMessageType getMessageType() {
-		return messageType;
+		return IdbMessageType.valueOf(messageType);
 	}
 
 	public byte[] getMessageContent() {

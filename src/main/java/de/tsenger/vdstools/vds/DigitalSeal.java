@@ -35,6 +35,13 @@ public class DigitalSeal {
 		this.vdsType = vdsHeader.getVdsType();
 	}
 
+	public DigitalSeal(VdsHeader vdsHeader, VdsMessage vdsMessage, Signer signer) {
+		this.vdsHeader = vdsHeader;
+		this.vdsMessage = vdsMessage;
+		this.vdsSignature = createVdsSignature(vdsHeader, vdsMessage, signer);
+		this.vdsType = vdsHeader.getVdsType();
+	}
+
 	public String getVdsType() {
 		return vdsType;
 	}
@@ -150,47 +157,15 @@ public class DigitalSeal {
 
 	}
 
-	public static class Builder {
-
-		private VdsHeader vdsHeader;
-		private VdsMessage vdsMessage;
-		private VdsSignature vdsSignature;
-		private Signer signer;
-
-		public Builder() {
-		}
-
-		public Builder setHeader(VdsHeader vdsHeader) {
-			this.vdsHeader = vdsHeader;
-			return this;
-		}
-
-		public Builder setMessage(VdsMessage vdsMessage) {
-			this.vdsMessage = vdsMessage;
-			return this;
-		}
-
-		public Builder setSigner(Signer signer) {
-			this.signer = signer;
-			return this;
-		}
-
-		public DigitalSeal build() {
-			this.vdsSignature = createVdsSignature(vdsHeader, vdsMessage, signer);
-			return new DigitalSeal(vdsHeader, vdsMessage, vdsSignature);
-		}
-
-		private VdsSignature createVdsSignature(VdsHeader vdsHeader, VdsMessage vdsMessage, Signer signer) {
-			byte[] headerMessage = Arrays.concatenate(vdsHeader.getEncoded(), vdsMessage.getEncoded());
-			try {
-				byte[] signatureBytes = signer.sign(headerMessage);
-				return new VdsSignature(signatureBytes);
-			} catch (InvalidKeyException | NoSuchAlgorithmException | SignatureException
-					| InvalidAlgorithmParameterException | NoSuchProviderException | IOException e) {
-				Logger.error("Signature creation failed: " + e.getMessage());
-				return null;
-			}
+	private VdsSignature createVdsSignature(VdsHeader vdsHeader, VdsMessage vdsMessage, Signer signer) {
+		byte[] headerMessage = Arrays.concatenate(vdsHeader.getEncoded(), vdsMessage.getEncoded());
+		try {
+			byte[] signatureBytes = signer.sign(headerMessage);
+			return new VdsSignature(signatureBytes);
+		} catch (InvalidKeyException | NoSuchAlgorithmException | SignatureException
+				| InvalidAlgorithmParameterException | NoSuchProviderException | IOException e) {
+			Logger.error("Signature creation failed: " + e.getMessage());
+			return null;
 		}
 	}
-
 }
