@@ -77,11 +77,7 @@ VdsMessage vdsMessage = new VdsMessage.Builder(header.getVdsType())
 		.build();
 
 // 3. Build a signed DigitalSeal
-DigitalSeal digitalSeal = new DigitalSeal.Builder()
-		.setHeader(header)
-		.setMessage(vdsMessage)
-		.setSigner(signer)
-		.build();
+DigitalSeal digitalSeal = new DigitalSeal(header, vdsMessage, signer);
 
 // The encoded bytes can now be used to build a datamatrix (or other) code - which is not part of this library
 byte[] encodedBytes = digitalSeal.getEncodedBytes();
@@ -98,7 +94,9 @@ In [DataMatrixTest.java](https://github.com/tsenger/vdstools/blob/main/src/test/
 ## Documentation
 JavaDoc can be found here:
 
-[https://javadoc.jitpack.io/com/github/tsenger/vdstools/latest/javadoc/index.html](https://javadoc.jitpack.io/com/github/tsenger/vdstools/latest/javadoc/index.html)
+[![javadoc](https://javadoc.io/badge2/de.tsenger/vdstools/javadoc.svg)](https://javadoc.io/doc/de.tsenger/vdstools)
+[JavaDoc](https://javadoc.io/doc/de.tsenger/vdstools)
+
 
 ## How to include
 The vdstools library is available on the [Maven Central Repository](https://central.sonatype.com/artifact/de.tsenger/vdstools) and can be easly integrated in your projects.
