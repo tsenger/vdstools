@@ -24,12 +24,12 @@ import de.tsenger.vdstools.seals.VdsType;
 import de.tsenger.vdstools.seals.Feature;
 
 	...
-	DigitalSeal digitalSeal = DataParser.parseVdsSeal(rawBytes);
-	VdsType vdsType = digitalSeal.getVdsType()
+	DigitalSeal digitalSeal = DigitalSeal.fromByteArray(rawBytes);
+	String vdsType = digitalSeal.getVdsType()
 	
 	// Depending on the returned VDS type you can access the seals content
-	String mrz = (String) seal.getFeature(Feature.MRZ);
-	String azr = (String) seal.getFeature(Feature.AZR);
+	String mrz = seal.getFeature("MRZ"); 
+	String azr = seal.getFeature("AZR");
    
 	// Get the VDS signer certificate reference
 	String signerCertRef = digitalSeal.getSignerCertRef();
@@ -50,11 +50,6 @@ Since version 0.3.0 you can also generate VDS with this library. Here is an exam
 ```java
 KeyStore keystore = ...
 ...
-String mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06";
-String passportNumber = "UFO001979";
-VdsMessage vdsMessage = new VdsMessage(VdsType.RESIDENCE_PERMIT);
-vdsMessage.addDocumentFeature(Feature.MRZ, mrz);
-vdsMessage.addDocumentFeature(Feature.PASSPORT_NUMBER, passportNumber);
 
 // Here we use a keystore to get the certificate (for the header information)
 // and the private key for signing the seals data
@@ -64,16 +59,36 @@ ECPrivateKey ecKey = (ECPrivateKey) keystore.getKey(certAlias, keyStorePassword.
 // initialize the Signer
 Signer signer = new Signer(ecKey); 
 	
-// Build the the VDS
-// Here the header information will be read from the certificate content and the message.
-DigitalSeal digitalSeal = DataEncoder.buildDigitalSeal(vdsMessage, cert, signer);
+// 1. Build a VdsHeader
+VdsHeader header = new VdsHeader.Builder("ARRIVAL_ATTESTATION")
+		.setIssuingCountry("D<<")
+		.setSignerIdentifier("DETS")
+		.setCertificateReference("32")
+		.setIssuingDate(LocalDate.parse("2024-09-27"))
+		.setSigDate(LocalDate.parse("2024-09-27"))
+		.build();
+
+// 2. Build a VdsMessage
+String mrz = "MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06";
+String azr = "ABC123456DEF";
+VdsMessage vdsMessage = new VdsMessage.Builder(header.getVdsType())
+		.addDocumentFeature("MRZ", mrz)
+		.addDocumentFeature("AZR", azr)
+		.build();
+
+// 3. Build a signed DigitalSeal
+DigitalSeal digitalSeal = new DigitalSeal.Builder()
+		.setHeader(header)
+		.setMessage(vdsMessage)
+		.setSigner(signer)
+		.build();
 
 // The encoded bytes can now be used to build a datamatrix (or other) code - which is not part of this library
 byte[] encodedBytes = digitalSeal.getEncodedBytes();
 
 ```
 
-There are many other ways to define the content of the VDS. In the example above, a lot of data such as the signature or issuing date is generated automatically. However, it is also possible to set your own values. There are various buildDigitalSeal methods in the DataEncoder for this purpose. The VdsHeader and VdsMessage classes offer the option of setting the content in a finely granular manner.
+There are many other ways to define the content of the VDS. In the example above, a lot of data such as the signature or issuing date is generated automatically. However, it is also possible to set your own values. There are various ways to encode a DigitalSeal by for this purpose. The VdsHeader and VdsMessage classes offer the option of setting the content in a finely granular manner.
  
 Alternatively, it is also possible to generate many values automatically with as little input as possible or to use default values.
 
