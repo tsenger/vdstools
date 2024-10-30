@@ -1,7 +1,10 @@
 package de.tsenger.vdstools;
 
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
@@ -21,7 +24,7 @@ import de.tsenger.vdstools.vds.dto.SealDto;
 
 public class FeatureConverter {
 
-	public static String DEFAULT_SEAL_CODINGS = "src/main/resources/SealCodings.json";
+	public static String DEFAULT_SEAL_CODINGS = "SealCodings.json";
 
 	private List<SealDto> sealDtoList;
 
@@ -39,8 +42,13 @@ public class FeatureConverter {
 		Type listType = new TypeToken<List<SealDto>>() {
 		}.getType();
 
-		FileReader reader = new FileReader(jsonFile);
-		this.sealDtoList = gson.fromJson(reader, listType);
+		try (InputStream in = getClass().getResourceAsStream(DEFAULT_SEAL_CODINGS);
+				BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+			this.sealDtoList = gson.fromJson(reader, listType);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 		for (SealDto sealDto : sealDtoList) {
 			vdsTypes.put(sealDto.documentType, Integer.parseInt(sealDto.documentRef, 16));
