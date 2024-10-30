@@ -46,6 +46,7 @@ public class DigitalSealTest {
 	@Test
 	public void testParseSocialInsurranceCard() throws IOException {
 		DigitalSeal seal = DigitalSeal.fromByteArray(VdsRawBytes.socialInsurance);
+		assertEquals("SOCIAL_INSURANCE_CARD", seal.getVdsType());
 		assertEquals("65170839J003", seal.getFeature("SOCIAL_INSURANCE_NUMBER"));
 		assertEquals("Perschweiß", seal.getFeature("SURNAME"));
 		assertEquals("Oscar", seal.getFeature("FIRST_NAME"));
@@ -206,25 +207,23 @@ public class DigitalSealTest {
 	}
 
 	@Test
-	public void testBuildDigitalSeal2() throws IOException {
-		String mrz = "MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<" + "6525845096USA7008038M2201018<<<<<<06";
-		String azr = "ABC123456DEF";
-		VdsMessage vdsMessage = new VdsMessage.Builder("ARRIVAL_ATTESTATION")
-				.addDocumentFeature("MRZ", mrz)
-				.addDocumentFeature("AZR", azr)
-				.build();
-
-		Signer signer = new Signer(keystore, keyStorePassword, "dets32");
-
+	public void testBuildDigitalSeal2() throws IOException {		
+		Signer signer = new Signer(keystore, keyStorePassword, "dets32");		
 		VdsHeader header = new VdsHeader.Builder("ARRIVAL_ATTESTATION")
 				.setIssuingCountry("D<<")
 				.setSignerIdentifier("DETS")
 				.setCertificateReference("32")
 				.setIssuingDate(LocalDate.parse("2024-09-27"))
 				.setSigDate(LocalDate.parse("2024-09-27"))
-				.build();
-		
+				.build();		
+		String mrz = "MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06";
+		String azr = "ABC123456DEF";
+		VdsMessage vdsMessage = new VdsMessage.Builder(header.getVdsType())
+				.addDocumentFeature("MRZ", mrz)
+				.addDocumentFeature("AZR", azr)
+				.build();		
 		DigitalSeal digitalSeal = new DigitalSeal(header, vdsMessage, signer);
+
 		assertNotNull(digitalSeal);
 		byte[] expectedHeaderMessage = Hex.decode(
 				"dc036abc6d32c8a72cb18d7ad88d7ad8fd020230a56213535bd4caecc87ca4ccaeb4133c133c133c133c133c3fef3a2938ee43f1593d1ae52dbb26751fe64b7c133c136b030859e9203833736d24");
