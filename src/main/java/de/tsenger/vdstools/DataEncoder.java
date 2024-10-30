@@ -1,7 +1,6 @@
 package de.tsenger.vdstools;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -201,11 +200,7 @@ public class DataEncoder {
 
 	public static FeatureConverter getFeatureEncoder() {
 		if (DataEncoder.featureEncoder == null) {
-			try {
-				DataEncoder.featureEncoder = new FeatureConverter(FeatureConverter.DEFAULT_SEAL_CODINGS);
-			} catch (FileNotFoundException e) {
-				Logger.error(e);
-			}
+			DataEncoder.featureEncoder = new FeatureConverter();
 		}
 		return featureEncoder;
 	}

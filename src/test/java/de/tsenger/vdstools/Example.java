@@ -1,7 +1,5 @@
 package de.tsenger.vdstools;
 
-import java.io.ByteArrayOutputStream;
-
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.Test;
 
@@ -18,12 +16,6 @@ public class Example {
 				.addDocumentFeature("DURATION_OF_STAY", Hex.decode("A00000")).build();
 		System.out.println(Hex.toHexString(vdsMessage.getEncoded()));
 
-	}
-
-	@Test
-	public void testBaos() {
-		ByteArrayOutputStream baos = new ByteArrayOutputStream(2);
-		System.out.println(baos.toByteArray().length);
 	}
 
 }

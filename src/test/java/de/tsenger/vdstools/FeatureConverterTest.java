@@ -2,8 +2,11 @@ package de.tsenger.vdstools;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -19,12 +22,16 @@ public class FeatureConverterTest {
 
 	@Test
 	public void testFeatureConverterString() throws FileNotFoundException {
-		assertNotNull(new FeatureConverter("src/test/resources/TestSealCodings.json"));
+		File fe = new File("src/test/resources/SealCodings.json");
+		FileInputStream fis = new FileInputStream(fe);
+		assertNotNull(new FeatureConverter(fis));
 	}
 
 	@Test(expected = FileNotFoundException.class)
 	public void testFeatureConverterString_notFound() throws FileNotFoundException {
-		assertNotNull(new FeatureConverter("src/test/resources/Codings.json"));
+		File fe = new File("src/test/resources/Codings.json");
+		FileInputStream fis = new FileInputStream(fe);
+		assertNull(new FeatureConverter(fis));
 	}
 
 	@Test

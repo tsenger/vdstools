@@ -1,8 +1,6 @@
 package de.tsenger.vdstools;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
@@ -24,7 +22,7 @@ import de.tsenger.vdstools.vds.dto.SealDto;
 
 public class FeatureConverter {
 
-	public static String DEFAULT_SEAL_CODINGS = "SealCodings.json";
+	public static String DEFAULT_SEAL_CODINGS = "/SealCodings.json";
 
 	private List<SealDto> sealDtoList;
 
@@ -32,23 +30,21 @@ public class FeatureConverter {
 	private static Map<Integer, String> vdsTypesReverse = new HashMap<>();
 	private static Set<String> vdsFeatures = new TreeSet<>();
 
-	public FeatureConverter() throws FileNotFoundException {
-		this(DEFAULT_SEAL_CODINGS);
+	public FeatureConverter() {
+		this(null);
 	}
 
-	public FeatureConverter(String jsonFile) throws FileNotFoundException {
+	public FeatureConverter(InputStream is) {
 		Gson gson = new Gson();
 		// Definiere den Typ für die Liste von Document-Objekten
 		Type listType = new TypeToken<List<SealDto>>() {
 		}.getType();
 
-		try (InputStream in = getClass().getResourceAsStream(DEFAULT_SEAL_CODINGS);
-				BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
-			this.sealDtoList = gson.fromJson(reader, listType);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if (is == null) {
+			is = getClass().getResourceAsStream(DEFAULT_SEAL_CODINGS);
 		}
+		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+		this.sealDtoList = gson.fromJson(reader, listType);
 
 		for (SealDto sealDto : sealDtoList) {
 			vdsTypes.put(sealDto.documentType, Integer.parseInt(sealDto.documentRef, 16));
@@ -81,8 +77,9 @@ public class FeatureConverter {
 			return null;
 		}
 		SealDto sealDto = getSealDto(vdsType);
-		if (sealDto == null)
+		if (sealDto == null) {
 			return null;
+		}
 		return getFeatureName(sealDto, derTlv.getTag());
 	}
 
@@ -96,8 +93,9 @@ public class FeatureConverter {
 			return 0;
 		}
 		SealDto sealDto = getSealDto(vdsType);
-		if (sealDto == null)
+		if (sealDto == null) {
 			return 0;
+		}
 		return getTag(sealDto, feature);
 	}
 
@@ -107,8 +105,9 @@ public class FeatureConverter {
 			return null;
 		}
 		SealDto sealDto = getSealDto(vdsType);
-		if (sealDto == null)
+		if (sealDto == null) {
 			return null;
+		}
 		return decodeFeature(sealDto, derTlv);
 	}
 
@@ -190,8 +189,9 @@ public class FeatureConverter {
 
 	private String getCoding(SealDto sealDto, String feature) {
 		for (FeaturesDto featureDto : sealDto.features) {
-			if (featureDto.name.equalsIgnoreCase(feature))
+			if (featureDto.name.equalsIgnoreCase(feature)) {
 				return featureDto.coding;
+			}
 		}
 		return null;
 	}
@@ -207,8 +207,9 @@ public class FeatureConverter {
 
 	private SealDto getSealDto(String vdsType) {
 		for (SealDto sealDto : sealDtoList) {
-			if (sealDto.documentType.equals(vdsType))
+			if (sealDto.documentType.equals(vdsType)) {
 				return sealDto;
+			}
 		}
 		return null;
 	}
