@@ -1,7 +1,7 @@
 [
   {
     "documentType": "ARRIVAL_ATTESTATION",
-    "documentRef": "FD02",
+    "documentRef": "fd02",
     "version": 3,
     "features": [
       {
@@ -9,22 +9,22 @@
         "tag": 2,
         "coding": "C40",
         "required": true,
-        "minLength": 72,
-        "maxLength": 88
+        "minLength": 48,
+        "maxLength": 48
       },
       {
         "name": "AZR",
         "tag": 3,
         "coding": "C40",
         "required": true,
-        "minLength": 9,
-        "maxLength": 12
+        "minLength": 8,
+        "maxLength": 8
       }
     ]
   },
   {
     "documentType": "ADDRESS_STICKER_ID",
-    "documentRef": "F908",
+    "documentRef": "f908",
     "version": 4,
     "features": [
       {
@@ -55,7 +55,7 @@
   },
   {
     "documentType": "ADDRESS_STICKER_PASSPORT",
-    "documentRef": "F80A",
+    "documentRef": "f80a",
     "version": 4,
     "features": [
       {
@@ -86,7 +86,7 @@
   },
   {
     "documentType": "ALIENS_LAW",
-    "documentRef": "01FE",
+    "documentRef": "01fe",
     "version": 4,
     "features": [
       {
@@ -95,31 +95,31 @@
         "coding": "ByteArray",
         "required": true,
         "minLength": 1,
-        "maxLength": 1500
+        "maxLength": 1000
       },
       {
         "name": "MRZ",
         "tag": 2,
         "coding": "C40",
         "required": true,
-        "minLength": 72,
-        "maxLength": 72
+        "minLength": 44,
+        "maxLength": 44
       },
       {
         "name": "PASSPORT_NUMBER",
         "tag": 3,
         "coding": "C40",
         "required": true,
-        "minLength": 1,
-        "maxLength": 9
+        "minLength": 6,
+        "maxLength": 6
       },
       {
         "name": "AZR",
         "tag": 4,
         "coding": "C40",
         "required": true,
-        "minLength": 1,
-        "maxLength": 12
+        "minLength": 8,
+        "maxLength": 8
       }
     ]
   },
@@ -134,31 +134,31 @@
         "coding": "ByteArray",
         "required": true,
         "minLength": 1,
-        "maxLength": 1500
+        "maxLength": 1000
       },
       {
         "name": "MRZ",
         "tag": 2,
         "coding": "C40",
         "required": true,
-        "minLength": 72,
-        "maxLength": 72
+        "minLength": 44,
+        "maxLength": 44
       },
       {
         "name": "PASSPORT_NUMBER",
         "tag": 3,
         "coding": "C40",
         "required": true,
-        "minLength": 1,
-        "maxLength": 9
+        "minLength": 6,
+        "maxLength": 6
       },
       {
         "name": "AZR",
         "tag": 4,
         "coding": "C40",
         "required": true,
-        "minLength": 1,
-        "maxLength": 12
+        "minLength": 8,
+        "maxLength": 8
       }
     ]
   },
@@ -172,8 +172,8 @@
         "tag": 2,
         "coding": "C40",
         "required": true,
-        "minLength": 72,
-        "maxLength": 72
+        "minLength": 44,
+        "maxLength": 44
       }
     ]
   },
@@ -242,7 +242,7 @@
   },
   {
     "documentType": "RESIDENCE_PERMIT",
-    "documentRef": "FB06",
+    "documentRef": "fb06",
     "version": 4,
     "features": [
       {
@@ -265,7 +265,7 @@
   },
   {
     "documentType": "SOCIAL_INSURANCE_CARD",
-    "documentRef": "FC04",
+    "documentRef": "fc04",
     "version": 4,
     "features": [
       {
@@ -304,7 +304,7 @@
   },
   {
     "documentType": "SUPPLEMENTARY_SHEET",
-    "documentRef": "FA06",
+    "documentRef": "fa06",
     "version": 4,
     "features": [
       {
@@ -336,7 +336,7 @@
         "coding": "ByteArray",
         "required": true,
         "minLength": 1,
-        "maxLength": 1500
+        "maxLength": 1000
       },
       {
         "name": "MRZ",
@@ -359,7 +359,7 @@
         "coding": "ByteArray",
         "required": true,
         "minLength": 1,
-        "maxLength": 1500
+        "maxLength": 1000
       },
       {
         "name": "MRZ",
