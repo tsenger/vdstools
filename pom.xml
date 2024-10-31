@@ -3,9 +3,9 @@
 
 	<groupId>de.tsenger</groupId>
 	<artifactId>vdstools</artifactId>
-	<version>0.5.0</version>
-	<name>VDS Tools java library</name>
-	<description>A library to parse, verify and build/encode Visible Digital Seals (VDS)</description>
+	<version>0.5.1</version>
+	<name>Visible Digital Seal Tools Java library</name>
+	<description>A Java library to encode/sign and decode/verify Visible Digital Seals</description>
 	<packaging>jar</packaging>
 	<url>https://tsenger.de</url>
 

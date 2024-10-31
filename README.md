@@ -93,11 +93,10 @@ Also have a look at [DataEncoderTest.java](https://github.com/tsenger/vdstools/b
 In [DataMatrixTest.java](https://github.com/tsenger/vdstools/blob/main/src/test/java/de/tsenger/vdstools/DataMatrixTest.java) you will find an example on how to generated a datamatrix image file from the encoded bytes of the DataEncoder.
 
 ## Documentation
-JavaDoc can be found here:
-
 [![javadoc](https://javadoc.io/badge2/de.tsenger/vdstools/javadoc.svg)](https://javadoc.io/doc/de.tsenger/vdstools)
 
-[JavaDoc](https://javadoc.io/doc/de.tsenger/vdstools)
+Online JavaDoc can be found here:
+[https://javadoc.io/doc/de.tsenger/vdstools](https://javadoc.io/doc/de.tsenger/vdstools)
 
 
 ## How to include
@@ -108,7 +107,7 @@ To include this library to your Gradle build add this dependency:
 
 ```groovy
 dependencies {
-    implementation 'de.tsenger:vdstools:0.3.2'
+    implementation 'de.tsenger:vdstools:0.5.1'
 }
 ```
 
@@ -119,6 +118,6 @@ To include this library to your Maven build add this dependency:
 <dependency>
     <groupId>de.tsenger</groupId>
     <artifactId>vdstools</artifactId>
-    <version>0.3.2</version>
+    <version>0.5.1</version>
 </dependency>
 ```
