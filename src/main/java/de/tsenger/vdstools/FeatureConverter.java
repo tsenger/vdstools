@@ -71,7 +71,7 @@ public class FeatureConverter {
 		return vdsFeatures;
 	}
 
-	public String getFeature(String vdsType, DerTlv derTlv) {
+	public String getFeatureName(String vdsType, DerTlv derTlv) {
 		if (!vdsTypes.containsKey(vdsType)) {
 			Logger.warn("No seal type with name '" + vdsType + "' was found.");
 			return null;
@@ -156,10 +156,16 @@ public class FeatureConverter {
 
 	@SuppressWarnings("unchecked")
 	private <T> T decodeFeature(SealDto sealDto, DerTlv derTlv) {
-		String coding = getCoding(sealDto, derTlv.getTag());
+		byte tag = derTlv.getTag();
+		String coding = getCoding(sealDto, tag);
 		switch (coding) {
 		case "C40":
-			return (T) DataParser.decodeC40(derTlv.getValue()).replace(' ', '<');
+			String featureValue = DataParser.decodeC40(derTlv.getValue());
+			String featureName = getFeatureName(sealDto, tag);
+			if (featureName.startsWith("MRZ")) {
+				featureValue = featureValue.replace(' ', '<');
+			}
+			return (T) featureValue;
 		case "ByteArray":
 			return (T) derTlv.getValue();
 		case "Utf8String":
@@ -200,6 +206,15 @@ public class FeatureConverter {
 		for (FeaturesDto featureDto : sealDto.features) {
 			if (featureDto.tag == tag) {
 				return featureDto.coding;
+			}
+		}
+		return null;
+	}
+
+	private FeaturesDto getFeatureDto(SealDto sealDto, byte tag) {
+		for (FeaturesDto featureDto : sealDto.features) {
+			if (featureDto.tag == tag) {
+				return featureDto;
 			}
 		}
 		return null;

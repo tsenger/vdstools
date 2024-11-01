@@ -37,7 +37,7 @@ public class FeatureConverterTest {
 	@Test
 	public void testGetFeature_String() throws IOException {
 		FeatureConverter featureConverter = new FeatureConverter();
-		String feature = featureConverter.getFeature("FICTION_CERT",
+		String feature = featureConverter.getFeatureName("FICTION_CERT",
 				DerTlv.fromByteArray(Hex.decode("0306d79519a65306")));
 		assertEquals("PASSPORT_NUMBER", feature);
 	}

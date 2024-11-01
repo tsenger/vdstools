@@ -3,7 +3,9 @@ package de.tsenger.vdstools.vds;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.tinylog.Logger;
 
@@ -51,7 +53,17 @@ public class VdsMessage {
 		return this.derTlvList;
 	}
 
-	public <T> T getDocumentFeature(String feature) {
+	public <T> Map<String, T> getFeatures() {
+		Map<String, T> featureMap = new HashMap<String, T>();
+		for (DerTlv derTlv : derTlvList) {
+			T value = DataEncoder.getFeatureEncoder().decodeFeature(vdsType, derTlv);
+			String key = DataEncoder.getFeatureEncoder().getFeatureName(vdsType, derTlv);
+			featureMap.put(key, value);
+		}
+		return featureMap;
+	}
+
+	public <T> T getFeature(String feature) {
 		T value = null;
 		byte tag = DataEncoder.getFeatureEncoder().getTag(vdsType, feature);
 		for (DerTlv derTlv : derTlvList) {
