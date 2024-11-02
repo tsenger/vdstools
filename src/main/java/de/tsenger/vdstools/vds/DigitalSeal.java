@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
@@ -107,11 +108,11 @@ public class DigitalSeal {
 		return DataEncoder.encodeBase256(getEncoded());
 	}
 
-	public <T> Map<String, T> getFeatures() {
-		return vdsMessage.getFeatures();
+	public Map<String, Feature> getFeatureMap() {
+		return vdsMessage.getFeatureMap();
 	}
 
-	public <T> T getFeature(String feature) {
+	public Optional<Feature> getFeature(String feature) {
 		return vdsMessage.getFeature(feature);
 	}
 

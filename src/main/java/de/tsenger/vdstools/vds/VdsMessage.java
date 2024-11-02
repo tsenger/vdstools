@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.tinylog.Logger;
 
@@ -53,25 +54,29 @@ public class VdsMessage {
 		return this.derTlvList;
 	}
 
-	public <T> Map<String, T> getFeatures() {
-		Map<String, T> featureMap = new HashMap<String, T>();
+	public Map<String, Feature> getFeatureMap() {
+		Map<String, Feature> featureMap = new HashMap<String, Feature>();
 		for (DerTlv derTlv : derTlvList) {
-			T value = DataEncoder.getFeatureEncoder().decodeFeature(vdsType, derTlv);
+			Object value = DataEncoder.getFeatureEncoder().decodeFeature(vdsType, derTlv);
 			String key = DataEncoder.getFeatureEncoder().getFeatureName(vdsType, derTlv);
-			featureMap.put(key, value);
+			if (value != null)
+				featureMap.put(key, new Feature(value));
 		}
 		return featureMap;
 	}
 
-	public <T> T getFeature(String feature) {
-		T value = null;
+	public Optional<Feature> getFeature(String feature) {
+		Object value = null;
 		byte tag = DataEncoder.getFeatureEncoder().getTag(vdsType, feature);
-		for (DerTlv derTlv : derTlvList) {
-			if (derTlv.getTag() == tag) {
-				value = DataEncoder.getFeatureEncoder().decodeFeature(vdsType, derTlv);
+		if (tag != 0) {
+			for (DerTlv derTlv : derTlvList) {
+				if (derTlv.getTag() == tag) {
+					value = DataEncoder.getFeatureEncoder().decodeFeature(vdsType, derTlv);
+					break;
+				}
 			}
 		}
-		return value;
+		return Optional.ofNullable(value != null ? new Feature(value) : null);
 	}
 
 	public static VdsMessage fromByteArray(byte[] rawBytes, String vdsType) {

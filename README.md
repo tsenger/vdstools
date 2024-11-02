@@ -18,19 +18,19 @@ Here is a quick overview how to use the VDS parser and verifier.
 When you have the decoded raw string or raw bytes from your favorite datamatrix decoder, just put them to the VDS Tools Dataparser like this:
 
 ```java
-import de.tsenger.vdstools.DataParser;
 import de.tsenger.vdstools.Verifier;
-import de.tsenger.vdstools.seals.DigitalSeal;
-import de.tsenger.vdstools.seals.VdsType;
-import de.tsenger.vdstools.seals.Feature;
+import de.tsenger.vdstools.vds.DigitalSeal;
 
 	...
 	DigitalSeal digitalSeal = DigitalSeal.fromByteArray(rawBytes);
 	String vdsType = digitalSeal.getVdsType()
 	
-	// Depending on the returned VDS type you can access the seals content
-	String mrz = seal.getFeature("MRZ"); 
-	String azr = seal.getFeature("AZR");
+	// getFeature() returns an Optional<Feature> which can be used as follows
+	String mrz = digitalSeal.getFeature("MRZ").get().asString(); 
+	String azr = digitalSeal.getFeature("AZR").get().asString();
+	if (seal.getFeature("FACE_IMAGE").isPresent()) {
+		byte[] imgBytes = digitalSeal.getFeature("FACE_IMAGE").get().asByteArray();
+	}
    
 	// Get the VDS signer certificate reference
 	String signerCertRef = digitalSeal.getSignerCertRef();
@@ -43,7 +43,7 @@ import de.tsenger.vdstools.seals.Feature;
 	
 ```
 
-Also have a look at [DataParserTest.java](https://github.com/tsenger/vdstools/blob/main/src/test/java/de/tsenger/vdstools/DataParserTest.java) and [VerifierTest.java](https://github.com/tsenger/vdstools/blob/main/src/test/java/de/tsenger/vdstools/VerifierTest.java) for some more examples.
+Also have a look at [DigitalSealTest.java](https://github.com/tsenger/vdstools/blob/main/src/test/java/de/tsenger/vdstools/vds/DigitalSealTest.java) and [VerifierTest.java](https://github.com/tsenger/vdstools/blob/main/src/test/java/de/tsenger/vdstools/VerifierTest.java) for some more examples.
 
 ## Build a new VDS
 Since version 0.3.0 you can also generate VDS with this library. Here is an example on how to use the DateEncoder and Signer classes:
