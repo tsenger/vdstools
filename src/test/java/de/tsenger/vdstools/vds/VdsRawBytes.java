@@ -303,6 +303,15 @@ public class VdsRawBytes {
     		+ "8d870abe6a16ae35d4ac6c8446738b9d\n"
     		+ "00551581d5124cef956cf81e5ac32d37\n"
     		+ "69a60d687bb2cd");
+    
+    public static byte[] permantResidencePermit = Hex.decode(
+    		"dc036abcd9cac8a73a99a807baa807ba"
+    		+ "f48f010659e96b0f2d0a0206e95545b8"
+    		+ "19f6ff4062672e113775b885000fa173"
+    		+ "0c6e0eeaa8508cf56f01bccce8bf8e74"
+    		+ "05de9d6544645b5c1e491c9be01a9ad5"
+    		+ "7216703257cd12c678fd3d55d7118670"
+    		+ "1e635364");
 
 	  //@formatter:on    
 

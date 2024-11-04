@@ -246,5 +246,14 @@ public class DigitalSealTest {
 		byte[] headerMessage = Arrays.copyOfRange(digitalSeal.getEncoded(), 0, 78);
 		assertTrue(Arrays.areEqual(expectedHeaderMessage, headerMessage));
 	}
+	
+	@Test
+	public void testUnknowSealType() {
+		byte[] rawBytes = VdsRawBytes.permantResidencePermit;
+		rawBytes[16] = (byte) 0x99;
+		DigitalSeal seal = DigitalSeal.fromByteArray(rawBytes);
+		assertNotNull(seal);
+		assertNotNull(seal.getVdsType());
+	}
 
 }

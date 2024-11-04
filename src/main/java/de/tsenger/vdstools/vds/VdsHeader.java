@@ -78,7 +78,11 @@ public class VdsHeader {
 	}
 
 	public String getVdsType() {
-		return DataEncoder.getFeatureEncoder().getVdsType(getDocumentRef());
+		String vdsType = DataEncoder.getFeatureEncoder().getVdsType(getDocumentRef());
+		if (vdsType == null)
+			return "UNKNOWN";
+		else
+			return vdsType;
 	}
 
 	public byte[] getEncoded() {
