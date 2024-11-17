@@ -56,7 +56,7 @@ public class DigitalSealTest {
 	@Test
 	public void testParseArrivalAttestationV02() throws IOException {
 		DigitalSeal seal = DigitalSeal.fromByteArray(VdsRawBytes.arrivalAttestationV02);
-		assertEquals("MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06",
+		assertEquals("MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
 				seal.getFeature("MRZ").get().asString());
 		assertEquals("ABC123456DEF", seal.getFeature("AZR").get().asString());
 		assertFalse(seal.getFeature("FIRST_NAME").isPresent());
@@ -65,7 +65,7 @@ public class DigitalSealTest {
 	@Test
 	public void testParseResidentPermit() throws IOException {
 		DigitalSeal seal = DigitalSeal.fromByteArray(VdsRawBytes.residentPermit);
-		assertEquals("ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06",
+		assertEquals("ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
 				seal.getFeature("MRZ").get().asString());
 		assertEquals("UFO001979", seal.getFeature("PASSPORT_NUMBER").get().asString());
 	}
@@ -73,7 +73,7 @@ public class DigitalSealTest {
 	@Test
 	public void testParseSupplementSheet() throws IOException {
 		DigitalSeal seal = DigitalSeal.fromByteArray(VdsRawBytes.supplementSheet);
-		assertEquals("ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06",
+		assertEquals("ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
 				seal.getFeature("MRZ").get().asString());
 		assertEquals("PA0000005", seal.getFeature("SHEET_NUMBER").get().asString());
 	}
@@ -81,7 +81,7 @@ public class DigitalSealTest {
 	@Test
 	public void testEmergencyTravelDoc() throws IOException {
 		DigitalSeal seal = DigitalSeal.fromByteArray(VdsRawBytes.emergenyTravelDoc);
-		assertEquals("I<GBRSUPAMANN<<MARY<<<<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06",
+		assertEquals("I<GBRSUPAMANN<<MARY<<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
 				seal.getFeature("MRZ").get().asString());
 	}
 
@@ -104,7 +104,7 @@ public class DigitalSealTest {
 	@Test
 	public void testParseVisa() throws IOException {
 		DigitalSeal seal = DigitalSeal.fromByteArray(VdsRawBytes.visa_224bitSig);
-		assertEquals("VCD<<DENT<<ARTHUR<PHILIP<<<<<<<<<<<<1234567XY7GBR5203116M2005250", seal.getFeature("MRZ_MRVB").get().asString());
+		assertEquals("VCD<<DENT<<ARTHUR<PHILIP<<<<<<<<<<<<\n1234567XY7GBR5203116M2005250<<<<<<<<", seal.getFeature("MRZ_MRVB").get().asString());
 		assertEquals("47110815P", seal.getFeature("PASSPORT_NUMBER").get().asString());
 		assertEquals("a00000", Hex.toHexString(seal.getFeature("DURATION_OF_STAY").get().asByteArray()));
 		assertTrue(seal.getFeature("NUMBER_OF_ENTRIES").isEmpty());
@@ -113,7 +113,7 @@ public class DigitalSealTest {
 	@Test
 	public void testParseFictionCert() throws IOException {
 		DigitalSeal seal = DigitalSeal.fromByteArray(VdsRawBytes.fictionCert);
-		assertEquals("NFD<<MUSTERMANN<<CLEOPATRE<<<<<<<<<<L000000007TUR8308126F2701312T2611011",
+		assertEquals("NFD<<MUSTERMANN<<CLEOPATRE<<<<<<<<<<\nL000000007TUR8308126F2701312T2611011",
 				seal.getFeature("MRZ").get().asString());
 		assertEquals("X98723021", seal.getFeature("PASSPORT_NUMBER").get().asString());
 		assertEquals("160113000085", seal.getFeature("AZR").get().asString());
@@ -122,7 +122,7 @@ public class DigitalSealTest {
 	@Test
 	public void testParseTempPerso() throws IOException {
 		DigitalSeal seal = DigitalSeal.fromByteArray(VdsRawBytes.tempPerso);
-		assertEquals("ITD<<MUSTERMANN<<ERIKA<<<<<<<<<<<<<<D000000001D<<8308126<2701312<<<<<<<0",
+		assertEquals("ITD<<MUSTERMANN<<ERIKA<<<<<<<<<<<<<<\nD000000001D<<8308126<2701312<<<<<<<0",
 				seal.getFeature("MRZ").get().asString());
 		byte[] imgBytes = null;
 		if (seal.getFeature("FACE_IMAGE").isPresent()) {
@@ -134,14 +134,14 @@ public class DigitalSealTest {
 	@Test
 	public void testParseTempPassport() throws IOException {
 		DigitalSeal seal = DigitalSeal.fromByteArray(VdsRawBytes.tempPassport);
-		assertEquals("PPD<<MUSTERMANN<<ERIKA<<<<<<<<<<<<<<<<<<<<<<A000000000D<<8308126<2710316<<<<<<<<<<<<<<<8",
+		assertEquals("PPD<<MUSTERMANN<<ERIKA<<<<<<<<<<<<<<<<<<<<<<\nA000000000D<<8308126<2710316<<<<<<<<<<<<<<<8",
 				seal.getFeature("MRZ").get().asString());
 	}
 	
 	@Test
 	public void testGetFeatureMap() throws IOException {
 		DigitalSeal seal = DigitalSeal.fromByteArray(VdsRawBytes.fictionCert);
-		assertEquals("NFD<<MUSTERMANN<<CLEOPATRE<<<<<<<<<<L000000007TUR8308126F2701312T2611011",
+		assertEquals("NFD<<MUSTERMANN<<CLEOPATRE<<<<<<<<<<\nL000000007TUR8308126F2701312T2611011",
 				seal.getFeature("MRZ").get().asString());
 		assertEquals(4, seal.getFeatureMap().size());
 		assertTrue(seal.getFeatureMap().containsKey("AZR"));
@@ -196,7 +196,7 @@ public class DigitalSealTest {
 	
 	@Test
 	public void testBuildDigitalSeal() throws IOException, KeyStoreException {
-		String mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06";
+		String mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06";
 		String passportNumber = "UFO001979";
 		VdsMessage vdsMessage = new VdsMessage.Builder("RESIDENCE_PERMIT")
 				.addDocumentFeature("MRZ", mrz)

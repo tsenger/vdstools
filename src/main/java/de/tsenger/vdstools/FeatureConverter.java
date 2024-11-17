@@ -1,24 +1,17 @@
 package de.tsenger.vdstools;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import de.tsenger.vdstools.vds.dto.FeaturesDto;
+import de.tsenger.vdstools.vds.dto.SealDto;
+import org.tinylog.Logger;
+
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-
-import org.tinylog.Logger;
-
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-
-import de.tsenger.vdstools.vds.dto.FeaturesDto;
-import de.tsenger.vdstools.vds.dto.SealDto;
+import java.util.*;
 
 public class FeatureConverter {
 
@@ -56,10 +49,11 @@ public class FeatureConverter {
 	}
 
 	public Set<String> getAvailableVdsTypes() {
-		return new TreeSet<String>(vdsTypes.keySet());
+		return new TreeSet<>(vdsTypes.keySet());
 	}
 
 	public int getDocumentRef(String vdsType) {
+		if (vdsTypes.get(vdsType) == null) throw new IllegalArgumentException("Could find seal type "+vdsType+" in "+DEFAULT_SEAL_CODINGS);
 		return vdsTypes.get(vdsType);
 	}
 
@@ -81,6 +75,22 @@ public class FeatureConverter {
 			return null;
 		}
 		return getFeatureName(sealDto, derTlv.getTag());
+	}
+
+	public int getFeatureLength(String vdsType, byte tag) {
+		if (!vdsTypes.containsKey(vdsType)) {
+			Logger.warn("No seal type with name '" + vdsType + "' was found.");
+			return -1;
+		}
+		SealDto sealDto = getSealDto(vdsType);
+		if (sealDto == null) {
+			return -1;
+		}
+		FeaturesDto featureDto = getFeatureDto(sealDto, tag);
+		if(featureDto == null) {
+			return -1;
+		}
+		return featureDto.decodedLength;
 	}
 
 	public byte getTag(String vdsType, String feature) {
@@ -132,7 +142,7 @@ public class FeatureConverter {
 			throw new IllegalArgumentException("VdsType: " + sealDto.documentType + " has no Feature " + feature);
 		}
 		String coding = getCoding(sealDto, feature);
-		byte[] value = null;
+		byte[] value;
 		switch (coding) {
 		case "C40":
 			String valueStr = ((String) inputValue).replaceAll("\r", "").replaceAll("\n", "");
@@ -142,12 +152,8 @@ public class FeatureConverter {
 			value = (byte[]) inputValue;
 			break;
 		case "Utf8String":
-			try {
-				value = ((String) inputValue).getBytes("UTF-8");
-			} catch (UnsupportedEncodingException e) {
-				Logger.error("Couldn't encode String " + (String) inputValue + " to UTF-8 bytes: " + e.getMessage());
-			}
-			break;
+            value = ((String) inputValue).getBytes(StandardCharsets.UTF_8);
+            break;
 		default:
 			value = (byte[]) inputValue;
 		}
@@ -162,7 +168,7 @@ public class FeatureConverter {
 		case "C40":
 			String featureValue = DataParser.decodeC40(derTlv.getValue());
 			String featureName = getFeatureName(sealDto, tag);
-			if (featureName.startsWith("MRZ")) {
+            if (featureName.startsWith("MRZ")) {
 				featureValue = featureValue.replace(' ', '<');
 			}
 			return (T) featureValue;

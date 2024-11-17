@@ -3,7 +3,7 @@
 
 	<groupId>de.tsenger</groupId>
 	<artifactId>vdstools</artifactId>
-	<version>0.6.0</version>
+	<version>0.6.1</version>
 	<name>Visible Digital Seal Tools Java library</name>
 	<description>A Java library to encode/sign and decode/verify Visible Digital Seals</description>
 	<packaging>jar</packaging>
@@ -11,7 +11,7 @@
 
 	<organization>
 		<name>tsenger.de</name>
-		<url>https://tsenger.de</url>
+		<url>https://www.tsenger.de</url>
 	</organization>
 
 	<licenses>
@@ -45,6 +45,8 @@
 				<version>3.13.0</version>
 				<configuration>
 					<showDeprecation>true</showDeprecation>
+					<source>11</source>
+					<target>11</target>
 				</configuration>
 			</plugin>
 			<plugin>

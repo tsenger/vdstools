@@ -1,18 +1,13 @@
 package de.tsenger.vdstools.vds;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import org.tinylog.Logger;
-
 import de.tsenger.vdstools.DataEncoder;
 import de.tsenger.vdstools.DataParser;
 import de.tsenger.vdstools.DerTlv;
+import org.tinylog.Logger;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.*;
 
 public class VdsMessage {
 
@@ -75,6 +70,11 @@ public class VdsMessage {
 					break;
 				}
 			}
+		}
+		if (value!=null && (feature.equals("MRZ") || feature.equals("MRZ_MRVA") || feature.equals("MRZ_MRVB"))) {
+			int mrzLength =  DataEncoder.getFeatureEncoder().getFeatureLength(vdsType, tag);
+			String newMrz = String.format("%1$-"+mrzLength+"s", value).replace(' ', '<');
+			value = newMrz.substring(0, mrzLength / 2) + "\n" + newMrz.substring(mrzLength / 2);
 		}
 		return Optional.ofNullable(value != null ? new Feature(value) : null);
 	}

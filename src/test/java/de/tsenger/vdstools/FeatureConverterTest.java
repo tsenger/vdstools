@@ -1,37 +1,35 @@
 package de.tsenger.vdstools;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import org.bouncycastle.util.encoders.Hex;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import org.bouncycastle.util.encoders.Hex;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class FeatureConverterTest {
 
 	@Test
-	public void testFeatureConverter() throws FileNotFoundException {
-		assertNotNull(new FeatureConverter());
+	public void testFeatureConverter() {
+		new FeatureConverter();
 	}
 
 	@Test
 	public void testFeatureConverterString() throws FileNotFoundException {
 		File fe = new File("src/test/resources/SealCodings.json");
 		FileInputStream fis = new FileInputStream(fe);
-		assertNotNull(new FeatureConverter(fis));
+		new FeatureConverter(fis);
 	}
 
 	@Test(expected = FileNotFoundException.class)
 	public void testFeatureConverterString_notFound() throws FileNotFoundException {
 		File fe = new File("src/test/resources/Codings.json");
 		FileInputStream fis = new FileInputStream(fe);
-		assertNull(new FeatureConverter(fis));
+		new FeatureConverter(fis);
 	}
 
 	@Test
@@ -43,7 +41,7 @@ public class FeatureConverterTest {
 	}
 
 	@Test
-	public void testGetTag_String() throws FileNotFoundException {
+	public void testGetTag_String() {
 		FeatureConverter featureConverter = new FeatureConverter();
 		byte tag = featureConverter.getTag("ALIENS_LAW", "AZR");
 		assertEquals(4, tag);
@@ -60,7 +58,7 @@ public class FeatureConverterTest {
 	@Test
 	public void testEncodeFeature_String() throws IOException {
 		FeatureConverter featureConverter = new FeatureConverter();
-		String mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06";
+		String mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06";
 		DerTlv derTlv = featureConverter.encodeFeature("RESIDENCE_PERMIT", "MRZ", mrz);
 		assertEquals(
 				"02305cba135875976ec066d417b59e8c6abc133c133c133c133c3fef3a2938ee43f1593d1ae52dbb26751fe64b7c133c136b",
@@ -68,17 +66,22 @@ public class FeatureConverterTest {
 	}
 
 	@Test
-	public void testGetAvailableVdsTypes() throws FileNotFoundException {
+	public void testGetAvailableVdsTypes() {
 		FeatureConverter featureConverter = new FeatureConverter();
 		System.out.println(featureConverter.getAvailableVdsTypes());
 		assertTrue(featureConverter.getAvailableVdsTypes().contains("ADDRESS_STICKER_ID"));
 	}
 
 	@Test
-	public void testGetAvailableVdsFeatures() throws FileNotFoundException {
+	public void testGetAvailableVdsFeatures() {
 		FeatureConverter featureConverter = new FeatureConverter();
 		System.out.println(featureConverter.getAvailableVdsFeatures());
 		assertTrue(featureConverter.getAvailableVdsFeatures().contains("MRZ"));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testGetDocumentRef_fakeSeal() {
+		DataEncoder.getFeatureEncoder().getDocumentRef("FAKE_SEAL");
 	}
 
 }

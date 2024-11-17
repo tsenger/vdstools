@@ -8,6 +8,7 @@
         "name": "MRZ",
         "tag": 2,
         "coding": "C40",
+        "decodedLength": 72,
         "required": true,
         "minLength": 48,
         "maxLength": 48
@@ -16,6 +17,7 @@
         "name": "AZR",
         "tag": 3,
         "coding": "C40",
+        "decodedLength": 12,
         "required": true,
         "minLength": 8,
         "maxLength": 8
@@ -31,6 +33,7 @@
         "name": "DOCUMENT_NUMBER",
         "tag": 1,
         "coding": "C40",
+        "decodedLength": 9,
         "required": true,
         "minLength": 6,
         "maxLength": 6
@@ -39,6 +42,7 @@
         "name": "AGS",
         "tag": 2,
         "coding": "C40",
+        "decodedLength": 9,
         "required": true,
         "minLength": 6,
         "maxLength": 6
@@ -62,6 +66,7 @@
         "name": "DOCUMENT_NUMBER",
         "tag": 1,
         "coding": "C40",
+        "decodedLength": 9,
         "required": true,
         "minLength": 6,
         "maxLength": 6
@@ -70,6 +75,7 @@
         "name": "AGS",
         "tag": 2,
         "coding": "C40",
+        "decodedLength": 9,
         "required": true,
         "minLength": 6,
         "maxLength": 6
@@ -78,6 +84,7 @@
         "name": "POSTAL_CODE",
         "tag": 3,
         "coding": "C40",
+        "decodedLength": 5,
         "required": true,
         "minLength": 4,
         "maxLength": 4
@@ -101,6 +108,7 @@
         "name": "MRZ",
         "tag": 2,
         "coding": "C40",
+        "decodedLength": 72,
         "required": true,
         "minLength": 48,
         "maxLength": 48
@@ -109,6 +117,7 @@
         "name": "PASSPORT_NUMBER",
         "tag": 3,
         "coding": "C40",
+        "decodedLength": 9,
         "required": true,
         "minLength": 6,
         "maxLength": 6
@@ -117,6 +126,7 @@
         "name": "AZR",
         "tag": 4,
         "coding": "C40",
+        "decodedLength": 12,
         "required": true,
         "minLength": 8,
         "maxLength": 8
@@ -140,6 +150,7 @@
         "name": "MRZ",
         "tag": 2,
         "coding": "C40",
+        "decodedLength": 72,
         "required": true,
         "minLength": 48,
         "maxLength": 48
@@ -148,6 +159,7 @@
         "name": "PASSPORT_NUMBER",
         "tag": 3,
         "coding": "C40",
+        "decodedLength": 9,
         "required": true,
         "minLength": 6,
         "maxLength": 6
@@ -156,6 +168,7 @@
         "name": "AZR",
         "tag": 4,
         "coding": "C40",
+        "decodedLength": 12,
         "required": true,
         "minLength": 8,
         "maxLength": 8
@@ -171,6 +184,7 @@
         "name": "MRZ",
         "tag": 2,
         "coding": "C40",
+        "decodedLength": 72,
         "required": true,
         "minLength": 48,
         "maxLength": 48
@@ -186,6 +200,7 @@
         "name": "MRZ_MRVA",
         "tag": 1,
         "coding": "C40",
+        "decodedLength": 88,
         "required": true,
         "minLength": 48,
         "maxLength": 48
@@ -195,6 +210,7 @@
         "tag": 2,
         "coding": "C40",
         "required": true,
+        "decodedLength": 72,
         "minLength": 44,
         "maxLength": 44
       },
@@ -218,6 +234,7 @@
         "name": "PASSPORT_NUMBER",
         "tag": 5,
         "coding": "C40",
+        "decodedLength": 9,
         "required": true,
         "minLength": 6,
         "maxLength": 6
@@ -249,6 +266,7 @@
         "name": "MRZ",
         "tag": 2,
         "coding": "C40",
+        "decodedLength": 72,
         "required": true,
         "minLength": 48,
         "maxLength": 48
@@ -257,6 +275,7 @@
         "name": "PASSPORT_NUMBER",
         "tag": 3,
         "coding": "C40",
+        "decodedLength": 9,
         "required": true,
         "minLength": 6,
         "maxLength": 6
@@ -272,6 +291,7 @@
         "name": "SOCIAL_INSURANCE_NUMBER",
         "tag": 1,
         "coding": "C40",
+        "decodedLength": 12,
         "required": true,
         "minLength": 8,
         "maxLength": 8
@@ -311,6 +331,7 @@
         "name": "MRZ",
         "tag": 4,
         "coding": "C40",
+        "decodedLength": 72,
         "required": true,
         "minLength": 48,
         "maxLength": 48
@@ -319,6 +340,7 @@
         "name": "SHEET_NUMBER",
         "tag": 5,
         "coding": "C40",
+        "decodedLength": 9,
         "required": true,
         "minLength": 6,
         "maxLength": 6
@@ -342,6 +364,7 @@
         "name": "MRZ",
         "tag": 2,
         "coding": "C40",
+        "decodedLength": 88,
         "required": true,
         "minLength": 60,
         "maxLength": 60
@@ -365,6 +388,7 @@
         "name": "MRZ",
         "tag": 2,
         "coding": "C40",
+        "decodedLength": 72,
         "required": true,
         "minLength": 48,
         "maxLength": 48
