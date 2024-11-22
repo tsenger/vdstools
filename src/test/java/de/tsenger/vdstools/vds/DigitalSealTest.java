@@ -1,10 +1,5 @@
 package de.tsenger.vdstools.vds;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.KeyStore;
@@ -24,6 +19,9 @@ import org.junit.Test;
 
 import de.tsenger.vdstools.DataEncoder;
 import de.tsenger.vdstools.Signer;
+import org.tinylog.Logger;
+
+import static org.junit.Assert.*;
 
 public class DigitalSealTest {
 
@@ -139,13 +137,20 @@ public class DigitalSealTest {
 	}
 	
 	@Test
-	public void testGetFeatureMap() throws IOException {
+	public void testGetFeatureList() throws IOException {
 		DigitalSeal seal = DigitalSeal.fromByteArray(VdsRawBytes.fictionCert);
 		assertEquals("NFD<<MUSTERMANN<<CLEOPATRE<<<<<<<<<<\nL000000007TUR8308126F2701312T2611011",
 				seal.getFeature("MRZ").get().asString());
-		assertEquals(4, seal.getFeatureMap().size());
-		assertTrue(seal.getFeatureMap().containsKey("AZR"));
-		assertFalse(seal.getFeatureMap().containsKey("DURATION_OF_STAY"));
+		assertEquals(4, seal.getFeatureList().size());
+		for (Feature feature: seal.getFeatureList()) {
+			if (feature.getName().equals("AZR")) {
+				assertEquals("160113000085", feature.asString());
+			}
+			if (feature.getName().equals("PASSPORT_NUMBER")) {
+				assertEquals("X98723021", feature.asString());
+			}
+		}
+		assertFalse(seal.getFeature("DURATION_OF_STAY").isPresent());
 	}
 
 	@Test

@@ -2,6 +2,7 @@ package de.tsenger.vdstools;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import de.tsenger.vdstools.vds.Feature;
 import de.tsenger.vdstools.vds.dto.FeaturesDto;
 import de.tsenger.vdstools.vds.dto.SealDto;
 import org.tinylog.Logger;
@@ -65,6 +66,24 @@ public class FeatureConverter {
 		return vdsFeatures;
 	}
 
+	public List<Feature> convertDerTlvToFeatureList(String vdsType, List<DerTlv> derTlvList) {
+		List<Feature> featureList = new ArrayList<>(5);
+		SealDto sealDto = getSealDto(vdsType);
+
+		if (sealDto==null) return featureList;
+
+		sealDto.features
+				.forEach(featureDto -> {
+					derTlvList.stream()
+							.filter(derTlv -> derTlv.getTag() == featureDto.tag)
+							.findFirst() // Nimmt den ersten passenden Eintrag
+							.ifPresent(derTlv -> featureList.add(new Feature(featureDto.name, decodeFeature(sealDto,derTlv), featureDto.coding)));
+				});
+
+
+		return featureList;
+	}
+
 	public String getFeatureName(String vdsType, DerTlv derTlv) {
 		if (!vdsTypes.containsKey(vdsType)) {
 			Logger.warn("No seal type with name '" + vdsType + "' was found.");
@@ -107,6 +126,19 @@ public class FeatureConverter {
 			return 0;
 		}
 		return getTag(sealDto, feature);
+	}
+
+	public String getFeatureCoding(String vdsType, DerTlv derTlv) {
+		if (!vdsTypes.containsKey(vdsType)) {
+			Logger.warn("No seal type with name '" + vdsType + "' was found.");
+			return null;
+		}
+		SealDto sealDto = getSealDto(vdsType);
+		if (sealDto == null) {
+			return null;
+		}
+		byte tag = derTlv.getTag();
+		return getCoding(sealDto, tag);
 	}
 
 	public <T> T decodeFeature(String vdsType, DerTlv derTlv) {

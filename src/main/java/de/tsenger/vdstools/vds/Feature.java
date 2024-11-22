@@ -1,12 +1,26 @@
 package de.tsenger.vdstools.vds;
 
+import org.bouncycastle.util.encoders.Hex;
+
 import java.nio.charset.StandardCharsets;
 
 public class Feature {
 	private final Object value;
+	private final String coding;
+	private final String name;
 
-	public Feature(Object value) {
+	public String getCoding() {
+		return coding;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public Feature(String name, Object value, String coding) {
+		this.name = name;
 		this.value = value;
+		this.coding = coding;
 	}
 
 	public boolean isEmpty() {
@@ -21,6 +35,10 @@ public class Feature {
 			return new String((byte[]) value, StandardCharsets.UTF_8);
 		}
 		return null;
+	}
+
+	public String asHexString() {
+		return Hex.toHexString((byte[]) value);
 	}
 
 	public byte[] asByteArray() {

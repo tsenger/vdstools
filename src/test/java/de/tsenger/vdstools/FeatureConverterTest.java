@@ -1,12 +1,16 @@
 package de.tsenger.vdstools;
 
+import de.tsenger.vdstools.vds.Feature;
+import de.tsenger.vdstools.vds.VdsMessage;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.Test;
+import org.tinylog.Logger;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -84,4 +88,15 @@ public class FeatureConverterTest {
 		DataEncoder.getFeatureEncoder().getDocumentRef("FAKE_SEAL");
 	}
 
+	@Test
+	public void convertDerTlvToFeatureList() {
+		byte[] messageBytes = Hex.decode("02305cba135875976ec066d417b59e8c6abc133c133c133c133c3fef3a2938ee43f1593d1ae52dbb26751fe64b7c133c136b0306d79519a65306");
+		VdsMessage message = VdsMessage.fromByteArray(messageBytes, "RESIDENCE_PERMIT");
+		FeatureConverter featureConverter = new FeatureConverter();
+		List<Feature> featureList = featureConverter.convertDerTlvToFeatureList("RESIDENCE_PERMIT", message.getDerTlvList());
+		for (Feature feature: featureList) {
+			Logger.debug(feature.getName() + ", " + feature.getCoding() + ", " + feature.asString());
+		}
+
+	}
 }

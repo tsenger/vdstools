@@ -11,7 +11,6 @@ import java.security.SignatureException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.bouncycastle.util.Arrays;
@@ -108,8 +107,8 @@ public class DigitalSeal {
 		return DataEncoder.encodeBase256(getEncoded());
 	}
 
-	public Map<String, Feature> getFeatureMap() {
-		return vdsMessage.getFeatureMap();
+	public List<Feature> getFeatureList() {
+		return vdsMessage.getFeatureList();
 	}
 
 	public Optional<Feature> getFeature(String feature) {

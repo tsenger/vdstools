@@ -49,34 +49,40 @@ public class VdsMessage {
 		return this.derTlvList;
 	}
 
-	public Map<String, Feature> getFeatureMap() {
-		Map<String, Feature> featureMap = new HashMap<String, Feature>();
+	/**
+	 * @return  a list of all decoded Features
+	 */
+	public List<Feature> getFeatureList() {
+		List<Feature> featureList = new ArrayList<>();
 		for (DerTlv derTlv : derTlvList) {
 			Object value = DataEncoder.getFeatureEncoder().decodeFeature(vdsType, derTlv);
-			String key = DataEncoder.getFeatureEncoder().getFeatureName(vdsType, derTlv);
+			String name = DataEncoder.getFeatureEncoder().getFeatureName(vdsType, derTlv);
+			String coding = DataEncoder.getFeatureEncoder().getFeatureCoding(vdsType, derTlv);
 			if (value != null)
-				featureMap.put(key, new Feature(value));
+				featureList.add(new Feature(name, value, coding));
 		}
-		return featureMap;
+		return featureList;
 	}
 
-	public Optional<Feature> getFeature(String feature) {
+	public Optional<Feature> getFeature(String featureName) {
 		Object value = null;
-		byte tag = DataEncoder.getFeatureEncoder().getTag(vdsType, feature);
+		String coding = null;
+		byte tag = DataEncoder.getFeatureEncoder().getTag(vdsType, featureName);
 		if (tag != 0) {
 			for (DerTlv derTlv : derTlvList) {
 				if (derTlv.getTag() == tag) {
 					value = DataEncoder.getFeatureEncoder().decodeFeature(vdsType, derTlv);
+					coding = DataEncoder.getFeatureEncoder().getFeatureCoding(vdsType, derTlv);
 					break;
 				}
 			}
 		}
-		if (value!=null && (feature.equals("MRZ") || feature.equals("MRZ_MRVA") || feature.equals("MRZ_MRVB"))) {
+		if (value!=null && (featureName.equals("MRZ") || featureName.equals("MRZ_MRVA") || featureName.equals("MRZ_MRVB"))) {
 			int mrzLength =  DataEncoder.getFeatureEncoder().getFeatureLength(vdsType, tag);
 			String newMrz = String.format("%1$-"+mrzLength+"s", value).replace(' ', '<');
 			value = newMrz.substring(0, mrzLength / 2) + "\n" + newMrz.substring(mrzLength / 2);
 		}
-		return Optional.ofNullable(value != null ? new Feature(value) : null);
+		return Optional.ofNullable(value != null ? new Feature(featureName, value, coding) : null);
 	}
 
 	public static VdsMessage fromByteArray(byte[] rawBytes, String vdsType) {
