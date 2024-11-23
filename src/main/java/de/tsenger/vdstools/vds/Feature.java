@@ -2,18 +2,16 @@ package de.tsenger.vdstools.vds;
 
 import org.bouncycastle.util.encoders.Hex;
 
-import java.nio.charset.StandardCharsets;
-
 public class Feature {
 	private final Object value;
 	private final FeatureCoding coding;
 	private final String name;
 
-	public FeatureCoding getCoding() {
+	public FeatureCoding coding() {
 		return coding;
 	}
 
-	public String getName() {
+	public String name() {
 		return name;
 	}
 
@@ -23,28 +21,24 @@ public class Feature {
 		this.coding = coding;
 	}
 
-	public String asString() {
+	public String valueStr() {
 		switch(coding) {
 			case C40:
 			case UTF8_STRING:
 				return (String) value;
 			case BYTE:
-				return String.valueOf(asInteger());
+				return String.valueOf(valueInt());
 			case BYTES:
 			default:
 				return Hex.toHexString((byte[]) value);
 		}
 	}
 
-	public String asHexString() {
-		return Hex.toHexString((byte[]) value);
-	}
-
-	public byte[] asByteArray() {
+	public byte[] valueBytes() {
 		return (byte[]) value;
 	}
 
-	public int asInteger() {
+	public int valueInt() {
 		return (byte)value;
 	}
 }

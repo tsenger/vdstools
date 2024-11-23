@@ -95,7 +95,7 @@ public class FeatureConverterTest {
 		FeatureConverter featureConverter = new FeatureConverter();
 		List<Feature> featureList = featureConverter.convertDerTlvToFeatureList("RESIDENCE_PERMIT", message.getDerTlvList());
 		for (Feature feature: featureList) {
-			Logger.debug(feature.getName() + ", " + feature.getCoding() + ", " + feature.asString());
+			Logger.debug(feature.name() + ", " + feature.coding() + ", " + feature.valueStr());
 		}
 	}
 

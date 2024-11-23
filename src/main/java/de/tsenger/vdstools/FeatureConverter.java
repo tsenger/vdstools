@@ -181,7 +181,9 @@ public class FeatureConverter {
 				String featureValue = DataParser.decodeC40(derTlv.getValue());
 				String featureName = getFeatureName(sealDto, tag);
 				if (featureName!=null && featureName.startsWith("MRZ")) {
-					featureValue = featureValue.replace(' ', '<');
+					int mrzLength =  getFeatureDto(sealDto, tag).decodedLength;
+					String newMrz = String.format("%1$-"+mrzLength+"s", featureValue).replace(' ', '<');
+					featureValue = newMrz.substring(0, mrzLength / 2) + "\n" + newMrz.substring(mrzLength / 2);
 				}
 				return (T) featureValue;
 			case UTF8_STRING:

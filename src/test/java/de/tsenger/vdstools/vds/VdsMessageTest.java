@@ -1,18 +1,18 @@
 package de.tsenger.vdstools.vds;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class VdsMessageTest {
 
 	//@formatter:off
 	@Test
 	public void testBuildVdsMessage() {
-		String mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<" + "6525845096USA7008038M2201018<<<<<<06";
+		String mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06";
 		String passportNumber = "UFO001979";
 		VdsMessage vdsMessage = new VdsMessage.Builder("RESIDENCE_PERMIT")
 				.addDocumentFeature("MRZ", mrz)

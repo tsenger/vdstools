@@ -20,27 +20,38 @@ When you have the decoded raw string or raw bytes from your favorite datamatrix 
 ```java
 import de.tsenger.vdstools.Verifier;
 import de.tsenger.vdstools.vds.DigitalSeal;
+import de.tsenger.vdstools.vds.Feature;
 
-	...
-	DigitalSeal digitalSeal = DigitalSeal.fromByteArray(rawBytes);
-	String vdsType = digitalSeal.getVdsType()
-	
-	// getFeature() returns an Optional<Feature> which can be used as follows
-	String mrz = digitalSeal.getFeature("MRZ").get().asString(); 
-	String azr = digitalSeal.getFeature("AZR").get().asString();
-	if (seal.getFeature("FACE_IMAGE").isPresent()) {
-		byte[] imgBytes = digitalSeal.getFeature("FACE_IMAGE").get().asByteArray();
-	}
-   
-	// Get the VDS signer certificate reference
-	String signerCertRef = digitalSeal.getSignerCertRef();
-   
-	// Provide for the matching X509 signer certificate
-	// and use this to verify the VDS signature   
-	Verifier verifier = new Verifier(digitalSeal, x509SignerCert);
-	Verifier.Result result = verifier.verify();
-	
-	
+...
+DigitalSeal digitalSeal = DigitalSeal.fromByteArray(rawBytes);
+String vdsType = digitalSeal.getVdsType();
+
+// getFeature() returns an Optional<Feature> which can be used as follows
+String mrz = digitalSeal.getFeature("MRZ").get().valueStr();
+String azr = digitalSeal.getFeature("AZR").get().valueStr();
+if(digitalSeal.
+
+getFeature("FACE_IMAGE").
+
+isPresent() ){
+byte[] imgBytes = digitalSeal.getFeature("FACE_IMAGE").get().valueBytes();
+}
+
+// or get all available Features in one List<Feature>
+List<Feature> featureList = digitalSeal.getFeatureList();
+for (Feature feature: featureList) {
+    System.out.println(feature.name() + ", " + feature.coding() + ", " + feature.valueStr());
+}
+
+// Get the VDS signer certificate reference
+String signerCertRef = digitalSeal.getSignerCertRef();
+
+// Provide for the matching X509 signer certificate
+// and use this to verify the VDS signature   
+Verifier verifier = new Verifier(digitalSeal, x509SignerCert);
+Verifier.Result result = verifier.verify();
+
+
 ```
 
 Also have a look at [DigitalSealTest.java](https://github.com/tsenger/vdstools/blob/main/src/test/java/de/tsenger/vdstools/vds/DigitalSealTest.java) and [VerifierTest.java](https://github.com/tsenger/vdstools/blob/main/src/test/java/de/tsenger/vdstools/VerifierTest.java) for some more examples.

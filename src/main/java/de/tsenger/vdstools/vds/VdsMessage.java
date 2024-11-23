@@ -80,11 +80,6 @@ public class VdsMessage {
 				}
 			}
 		}
-		if (value!=null && (featureName.equals("MRZ") || featureName.equals("MRZ_MRVA") || featureName.equals("MRZ_MRVB"))) {
-			int mrzLength =  DataEncoder.getFeatureEncoder().getFeatureLength(vdsType, tag);
-			String newMrz = String.format("%1$-"+mrzLength+"s", value).replace(' ', '<');
-			value = newMrz.substring(0, mrzLength / 2) + "\n" + newMrz.substring(mrzLength / 2);
-		}
 		return Optional.ofNullable(value != null ? new Feature(featureName, value, coding) : null);
 	}
 
@@ -94,8 +89,8 @@ public class VdsMessage {
 	}
 
 	public static class Builder {
-		private List<DerTlv> derTlvList = new ArrayList<>(5);
-		private String vdsType = null;
+		private final List<DerTlv> derTlvList = new ArrayList<>(5);
+		private final String vdsType;
 
 		public Builder(String vdsType) {
 			this.vdsType = vdsType;
