@@ -6,10 +6,10 @@ import java.nio.charset.StandardCharsets;
 
 public class Feature {
 	private final Object value;
-	private final String coding;
+	private final FeatureCoding coding;
 	private final String name;
 
-	public String getCoding() {
+	public FeatureCoding getCoding() {
 		return coding;
 	}
 
@@ -17,24 +17,23 @@ public class Feature {
 		return name;
 	}
 
-	public Feature(String name, Object value, String coding) {
+	public Feature(String name, Object value, FeatureCoding coding) {
 		this.name = name;
 		this.value = value;
 		this.coding = coding;
 	}
 
-	public boolean isEmpty() {
-		return value == null;
-	}
-
 	public String asString() {
-		if (value instanceof String) {
-			return (String) value;
-		} else if (value instanceof byte[]) {
-			// Konvertiere byte[] in UTF-8-String
-			return new String((byte[]) value, StandardCharsets.UTF_8);
+		switch(coding) {
+			case C40:
+			case UTF8_STRING:
+				return (String) value;
+			case BYTE:
+				return String.valueOf(asInteger());
+			case BYTES:
+			default:
+				return Hex.toHexString((byte[]) value);
 		}
-		return null;
 	}
 
 	public String asHexString() {
@@ -46,6 +45,6 @@ public class Feature {
 	}
 
 	public int asInteger() {
-		return ((byte[]) value)[0];
+		return (byte)value;
 	}
 }

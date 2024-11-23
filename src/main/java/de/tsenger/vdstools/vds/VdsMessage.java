@@ -57,7 +57,7 @@ public class VdsMessage {
 		for (DerTlv derTlv : derTlvList) {
 			Object value = DataEncoder.getFeatureEncoder().decodeFeature(vdsType, derTlv);
 			String name = DataEncoder.getFeatureEncoder().getFeatureName(vdsType, derTlv);
-			String coding = DataEncoder.getFeatureEncoder().getFeatureCoding(vdsType, derTlv);
+			FeatureCoding coding = DataEncoder.getFeatureEncoder().getFeatureCoding(vdsType, derTlv);
 			if (value != null)
 				featureList.add(new Feature(name, value, coding));
 		}
@@ -66,8 +66,11 @@ public class VdsMessage {
 
 	public Optional<Feature> getFeature(String featureName) {
 		Object value = null;
-		String coding = null;
-		byte tag = DataEncoder.getFeatureEncoder().getTag(vdsType, featureName);
+		FeatureCoding coding = null;
+		byte tag = 0;
+		try {
+			tag = DataEncoder.getFeatureEncoder().getTag(vdsType, featureName);
+		} catch (IllegalArgumentException ignored){}
 		if (tag != 0) {
 			for (DerTlv derTlv : derTlvList) {
 				if (derTlv.getTag() == tag) {

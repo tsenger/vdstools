@@ -97,6 +97,6 @@ public class FeatureConverterTest {
 		for (Feature feature: featureList) {
 			Logger.debug(feature.getName() + ", " + feature.getCoding() + ", " + feature.asString());
 		}
-
 	}
+
 }

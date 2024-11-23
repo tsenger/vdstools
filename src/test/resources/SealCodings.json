@@ -99,7 +99,7 @@
       {
         "name": "FACE_IMAGE",
         "tag": 1,
-        "coding": "ByteArray",
+        "coding": "BYTES",
         "required": true,
         "minLength": 1,
         "maxLength": 1000
@@ -141,7 +141,7 @@
       {
         "name": "FACE_IMAGE",
         "tag": 1,
-        "coding": "ByteArray",
+        "coding": "BYTES",
         "required": true,
         "minLength": 1,
         "maxLength": 1000
@@ -217,7 +217,7 @@
       {
         "name": "NUMBER_OF_ENTRIES",
         "tag": 3,
-        "coding": "Byte",
+        "coding": "BYTE",
         "required": true,
         "minLength": 1,
         "maxLength": 1
@@ -225,7 +225,7 @@
       {
         "name": "DURATION_OF_STAY",
         "tag": 4,
-        "coding": "ByteArray",
+        "coding": "BYTES",
         "required": true,
         "minLength": 3,
         "maxLength": 3
@@ -242,7 +242,7 @@
       {
         "name": "VISA_TYPE",
         "tag": 6,
-        "coding": "ByteArray",
+        "coding": "BYTES",
         "required": false,
         "minLength": 1,
         "maxLength": 4
@@ -250,7 +250,7 @@
       {
         "name": "ADDITIONAL_FEATURES",
         "tag": 7,
-        "coding": "ByteArray",
+        "coding": "BYTES",
         "required": false,
         "minLength": 0,
         "maxLength": 254
@@ -299,7 +299,7 @@
       {
         "name": "SURNAME",
         "tag": 2,
-        "coding": "Utf8String",
+        "coding": "UTF8_STRING",
         "required": true,
         "minLength": 1,
         "maxLength": 90
@@ -307,7 +307,7 @@
       {
         "name": "FIRST_NAME",
         "tag": 3,
-        "coding": "Utf8String",
+        "coding": "UTF8_STRING",
         "required": true,
         "minLength": 1,
         "maxLength": 90
@@ -315,7 +315,7 @@
       {
         "name": "BIRTH_NAME",
         "tag": 4,
-        "coding": "Utf8String",
+        "coding": "UTF8_STRING",
         "required": false,
         "minLength": 1,
         "maxLength": 90
@@ -355,7 +355,7 @@
       {
         "name": "FACE_IMAGE",
         "tag": 1,
-        "coding": "ByteArray",
+        "coding": "BYTES",
         "required": true,
         "minLength": 1,
         "maxLength": 1000
@@ -379,7 +379,7 @@
       {
         "name": "FACE_IMAGE",
         "tag": 1,
-        "coding": "ByteArray",
+        "coding": "BYTES",
         "required": true,
         "minLength": 1,
         "maxLength": 1000
