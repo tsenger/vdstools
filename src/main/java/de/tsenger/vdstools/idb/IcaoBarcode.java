@@ -1,13 +1,12 @@
 package de.tsenger.vdstools.idb;
 
+import de.tsenger.vdstools.DataEncoder;
+import de.tsenger.vdstools.DataParser;
+import org.bouncycastle.util.encoders.Base32Encoder;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.cert.CertificateException;
-
-import org.bouncycastle.util.encoders.Base32Encoder;
-
-import de.tsenger.vdstools.DataEncoder;
-import de.tsenger.vdstools.DataParser;
 
 public class IcaoBarcode {
 	public static final String BARCODE_IDENTIFIER = "NDB1";
@@ -41,7 +40,7 @@ public class IcaoBarcode {
 	}
 
 	public String getEncoded() throws IOException {
-		StringBuffer strBuffer = new StringBuffer(BARCODE_IDENTIFIER);
+		StringBuilder strBuffer = new StringBuilder(BARCODE_IDENTIFIER);
 		strBuffer.append(barcodeFlag);
 
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -62,14 +61,14 @@ public class IcaoBarcode {
 	}
 
 	public static IcaoBarcode fromString(String barcodeString) throws IOException, CertificateException {
-		StringBuffer strBuffer = new StringBuffer(barcodeString);
+		StringBuilder strBuffer = new StringBuilder(barcodeString);
 		if (!strBuffer.substring(0, 4).matches(BARCODE_IDENTIFIER))
 			throw new IllegalArgumentException("Didn't found an ICAO Barcode in the given String: " + barcodeString);
 		char barcodeFlag = strBuffer.charAt(4);
 		boolean isSigned = ((byte) (((byte) barcodeFlag) - 0x41) & 0x01) == 0x01;
 		boolean isZipped = ((byte) (((byte) barcodeFlag) - 0x41) & 0x02) == 0x02;
 
-		StringBuffer base32EncodedPayload = new StringBuffer(strBuffer.substring(5));
+		StringBuilder base32EncodedPayload = new StringBuilder(strBuffer.substring(5));
 		while (base32EncodedPayload.length() % 8 != 0) {
 			base32EncodedPayload.append("=");
 		}

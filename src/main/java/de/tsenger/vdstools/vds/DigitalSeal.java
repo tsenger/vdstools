@@ -1,33 +1,27 @@
 package de.tsenger.vdstools.vds;
 
+import de.tsenger.vdstools.DataEncoder;
+import de.tsenger.vdstools.DataParser;
+import de.tsenger.vdstools.DerTlv;
+import de.tsenger.vdstools.Signer;
+import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.encoders.Hex;
+import org.tinylog.Logger;
+
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.SignatureException;
+import java.security.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.bouncycastle.util.Arrays;
-import org.bouncycastle.util.encoders.Hex;
-import org.tinylog.Logger;
-
-import de.tsenger.vdstools.DataEncoder;
-import de.tsenger.vdstools.DataParser;
-import de.tsenger.vdstools.DerTlv;
-import de.tsenger.vdstools.Signer;
-
 public class DigitalSeal {
 
-	private String vdsType;
-	private VdsHeader vdsHeader;
-	private VdsMessage vdsMessage;
-	private VdsSignature vdsSignature;
+	private final String vdsType;
+	private final VdsHeader vdsHeader;
+	private final VdsMessage vdsMessage;
+	private final VdsSignature vdsSignature;
 
 	private DigitalSeal(VdsHeader vdsHeader, VdsMessage vdsMessage, VdsSignature vdsSignature) {
 		this.vdsHeader = vdsHeader;
@@ -51,20 +45,8 @@ public class DigitalSeal {
 		return vdsHeader.getIssuingCountry();
 	}
 
-	/**
-	 * Returns a string that identifies the signer certificate. The SignerCertRef
-	 * string is build from Signer Identifier (country code || signer id) and
-	 * Certificate Reference. The Signer Identifier maps to the signer certificates
-	 * subject (C || CN) The Certificate Reference will be interpreted as an hex
-	 * string integer that represents the serial number of the signer certificate.
-	 * Leading zeros in Certificate Reference the will be cut off. e.g. Signer
-	 * Identifier 'DETS' and CertificateReference '00027' will result in 'DETS27'
-	 * 
-	 * @return Formated SignerCertRef all UPPERCASE
-	 */
 	public String getSignerCertRef() {
-		BigInteger certRefInteger = new BigInteger(vdsHeader.getCertificateReference(), 16);
-		return String.format("%s%x", vdsHeader.getSignerIdentifier(), certRefInteger).toUpperCase();
+		return vdsHeader.getSignerCertRef();
 	}
 
 	public String getSignerIdentifier() {

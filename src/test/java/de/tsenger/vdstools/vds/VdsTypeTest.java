@@ -11,17 +11,17 @@ public class VdsTypeTest {
 
 	@Test
 	public void testGetValue() {
-		assertEquals(0xf908, DataEncoder.getFeatureEncoder().getDocumentRef("ADDRESS_STICKER_ID"));
+		assertEquals(0xf908, DataEncoder.getDocumentRef("ADDRESS_STICKER_ID"));
 	}
 
 	@Test
 	public void testValueOf() {
-		assertEquals("ADDRESS_STICKER_ID", DataEncoder.getFeatureEncoder().getVdsType(0xf908));
+		assertEquals("ADDRESS_STICKER_ID", DataEncoder.getVdsType(0xf908));
 	}
 
 	@Test
 	public void testValueOf_unknown() {
-		assertNull(DataEncoder.getFeatureEncoder().getVdsType(0x6666));
+		assertNull(DataEncoder.getVdsType(0x6666));
 	}
 
 }

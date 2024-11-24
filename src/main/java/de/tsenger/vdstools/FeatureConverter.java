@@ -2,7 +2,6 @@ package de.tsenger.vdstools;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
-import de.tsenger.vdstools.vds.Feature;
 import de.tsenger.vdstools.vds.FeatureCoding;
 import de.tsenger.vdstools.vds.dto.FeaturesDto;
 import de.tsenger.vdstools.vds.dto.SealDto;
@@ -69,18 +68,6 @@ public class FeatureConverter {
 		return vdsFeatures;
 	}
 
-	public List<Feature> convertDerTlvToFeatureList(String vdsType, List<DerTlv> derTlvList) {
-		List<Feature> featureList = new ArrayList<>(5);
-		SealDto sealDto = getSealDto(vdsType);
-
-        sealDto.features
-				.forEach(featureDto -> derTlvList.stream()
-                        .filter(derTlv -> derTlv.getTag() == featureDto.tag)
-                        .findFirst() // Nimmt den ersten passenden Eintrag
-                        .ifPresent(derTlv -> featureList.add(new Feature(featureDto.name, decodeFeature(sealDto,derTlv), featureDto.coding))));
-		return featureList;
-	}
-
 	public String getFeatureName(String vdsType, DerTlv derTlv) throws IllegalArgumentException{
 		if (!vdsTypes.containsKey(vdsType)) {
 			Logger.warn("No seal type with name '" + vdsType + "' was found.");
@@ -88,29 +75,6 @@ public class FeatureConverter {
 		}
 		SealDto sealDto = getSealDto(vdsType);
         return getFeatureName(sealDto, derTlv.getTag());
-	}
-
-	public int getFeatureLength(String vdsType, byte tag) throws IllegalArgumentException{
-		if (!vdsTypes.containsKey(vdsType)) {
-			Logger.warn("No seal type with name '" + vdsType + "' was found.");
-			throw new IllegalArgumentException("No seal type with name '" + vdsType + "' was found.");
-		}
-		SealDto sealDto = getSealDto(vdsType);
-        FeaturesDto featureDto = getFeatureDto(sealDto, tag);
-        return featureDto.decodedLength;
-	}
-
-	public byte getTag(String vdsType, String feature) throws IllegalArgumentException {
-		if (!vdsTypes.containsKey(vdsType)) {
-			Logger.warn("No VdsSeal type with name '" + vdsType + "' was found.");
-			throw new IllegalArgumentException("No seal type with name '" + vdsType + "' was found.");
-		}
-		if (!vdsFeatures.contains(feature)) {
-			Logger.warn("No VdsSeal feature with name '" + feature + "' was found.");
-			throw new IllegalArgumentException("No VdsSeal feature with name '" + feature + "' was found.");
-		}
-		SealDto sealDto = getSealDto(vdsType);
-        return getTag(sealDto, feature);
 	}
 
 	public FeatureCoding getFeatureCoding(String vdsType, DerTlv derTlv) throws IllegalArgumentException{
@@ -131,6 +95,7 @@ public class FeatureConverter {
 		SealDto sealDto = getSealDto(vdsType);
         return decodeFeature(sealDto, derTlv);
 	}
+
 
 	public <T> DerTlv encodeFeature(String vdsType, String feature, T inputValue) throws IllegalArgumentException {
 		if (!vdsTypes.containsKey(vdsType)) {

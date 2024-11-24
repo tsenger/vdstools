@@ -89,6 +89,7 @@ public class DataParserTest {
 		assertEquals("UTO", vdsHeader.getIssuingCountry());
 		assertEquals("UTTS", vdsHeader.getSignerIdentifier());
 		assertEquals("5B", vdsHeader.getCertificateReference());
+		assertEquals("UTTS5B", vdsHeader.getSignerCertRef());
 		assertEquals(LocalDate.parse("2020-01-01"), vdsHeader.getIssuingDate());
 		assertEquals(LocalDate.parse("2023-07-26"), vdsHeader.getSigDate());
 		assertEquals(0xfb, vdsHeader.getDocFeatureRef() & 0xff);

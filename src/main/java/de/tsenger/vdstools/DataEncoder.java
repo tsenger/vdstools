@@ -1,5 +1,13 @@
 package de.tsenger.vdstools;
 
+import de.tsenger.vdstools.vds.Feature;
+import de.tsenger.vdstools.vds.FeatureCoding;
+import org.bouncycastle.util.Arrays;
+import org.tinylog.Logger;
+
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -8,28 +16,25 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
-import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 
-import javax.naming.InvalidNameException;
-import javax.naming.ldap.LdapName;
-import javax.naming.ldap.Rdn;
-
-import org.bouncycastle.util.Arrays;
-import org.tinylog.Logger;
-
 public class DataEncoder {
 
-	private static FeatureConverter featureEncoder = null;
+	private static FeatureConverter featureEncoder;
+
+	static  {
+		featureEncoder = new FeatureConverter();
+	}
+
 
 	/**
-	 * Return the Signer Identifier and the Certificate Reference based on the the
+	 * Return the Signer Identifier and the Certificate Reference based on the
 	 * given X.509. Signer Identifier is C + CN Certificate Reference is the serial
-	 * number of the X509Certificate. It will be encoded as hexstring
+	 * number of the X509Certificate. It will be encoded as hex string
 	 * 
 	 * @param cert X509 certificate to get the signer information from
 	 * @return String array that contains the signerIdentifier at index 0 and
@@ -37,7 +42,7 @@ public class DataEncoder {
 	 * @throws InvalidNameException if a syntax violation is detected.
 	 */
 	public static String[] getSignerCertRef(X509Certificate cert) throws InvalidNameException {
-		String signerCertRef[] = new String[2];
+		String[] signerCertRef = new String[2];
 		LdapName ln = new LdapName(cert.getSubjectX500Principal().getName());
 
 		String c = "";
@@ -61,9 +66,8 @@ public class DataEncoder {
 	/**
 	 * @param dateString Date as String formated as yyyy-MM-dd
 	 * @return date encoded in 3 bytes
-	 * @throws ParseException if dateString is not in format yyyy-MM-dd
 	 */
-	public static byte[] encodeDate(String dateString) throws ParseException {
+	public static byte[] encodeDate(String dateString) {
 		LocalDate dt = LocalDate.parse(dateString);
 		return encodeDate(dt);
 	}
@@ -119,8 +123,7 @@ public class DataEncoder {
 				mask = (byte) (mask | (0x80 >> i));
 			}
 		}
-		byte[] encodedDateString = new byte[] { mask, (byte) (dateInt >>> 16), (byte) (dateInt >>> 8), (byte) dateInt };
-		return encodedDateString;
+        return new byte[] { mask, (byte) (dateInt >>> 16), (byte) (dateInt >>> 8), (byte) dateInt };
 	}
 
 	public static byte[] encodeC40(String dataString) {
@@ -185,9 +188,9 @@ public class DataEncoder {
 	}
 
 	public static byte[] zip(byte[] bytesToCompress) throws IOException {
-		Deflater compresser = new Deflater(Deflater.BEST_COMPRESSION);
+		Deflater compressor = new Deflater(Deflater.BEST_COMPRESSION);
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DeflaterOutputStream defos = new DeflaterOutputStream(bos, compresser);
+		DeflaterOutputStream defos = new DeflaterOutputStream(bos, compressor);
 		defos.write(bytesToCompress);
 		defos.finish();
 		byte[] compressedBytes = bos.toByteArray();
@@ -196,13 +199,6 @@ public class DataEncoder {
 		Logger.debug("Zip ratio " + ((float) bytesToCompress.length / (float) compressedBytes.length) + ", input size "
 				+ bytesToCompress.length + ", compressed size " + compressedBytes.length);
 		return compressedBytes;
-	}
-
-	public static FeatureConverter getFeatureEncoder() {
-		if (DataEncoder.featureEncoder == null) {
-			DataEncoder.featureEncoder = new FeatureConverter();
-		}
-		return featureEncoder;
 	}
 
 	public static void setFeatureEncoder(FeatureConverter featureEncoder) {
@@ -222,4 +218,22 @@ public class DataEncoder {
 
 	}
 
+	public static Feature encodeDerTlv(String vdsType, DerTlv derTlv) {
+		Object value = featureEncoder.decodeFeature(vdsType, derTlv);
+		String name = featureEncoder.getFeatureName(vdsType, derTlv);
+		FeatureCoding coding = featureEncoder.getFeatureCoding(vdsType, derTlv);
+		return new Feature(name,value, coding);
+	}
+
+	public static String getVdsType(int documentRef) {
+		return featureEncoder.getVdsType(documentRef);
+	}
+
+	public static int getDocumentRef(String vdsType) {
+		return featureEncoder.getDocumentRef(vdsType);
+	}
+
+	public static <T> DerTlv encodeFeature(String vdsType, String feature, T value) {
+		return featureEncoder.encodeFeature(vdsType, feature, value);
+	}
 }

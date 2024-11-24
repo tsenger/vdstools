@@ -45,42 +45,22 @@ public class VdsMessage {
 		return baos.toByteArray();
 	}
 
-	public List<DerTlv> getDerTlvList() {
-		return this.derTlvList;
-	}
-
 	/**
 	 * @return  a list of all decoded Features
 	 */
 	public List<Feature> getFeatureList() {
 		List<Feature> featureList = new ArrayList<>();
 		for (DerTlv derTlv : derTlvList) {
-			Object value = DataEncoder.getFeatureEncoder().decodeFeature(vdsType, derTlv);
-			String name = DataEncoder.getFeatureEncoder().getFeatureName(vdsType, derTlv);
-			FeatureCoding coding = DataEncoder.getFeatureEncoder().getFeatureCoding(vdsType, derTlv);
-			if (value != null)
-				featureList.add(new Feature(name, value, coding));
+			featureList.add(DataEncoder.encodeDerTlv(vdsType, derTlv));
 		}
 		return featureList;
 	}
 
 	public Optional<Feature> getFeature(String featureName) {
-		Object value = null;
-		FeatureCoding coding = null;
-		byte tag = 0;
-		try {
-			tag = DataEncoder.getFeatureEncoder().getTag(vdsType, featureName);
-		} catch (IllegalArgumentException ignored){}
-		if (tag != 0) {
-			for (DerTlv derTlv : derTlvList) {
-				if (derTlv.getTag() == tag) {
-					value = DataEncoder.getFeatureEncoder().decodeFeature(vdsType, derTlv);
-					coding = DataEncoder.getFeatureEncoder().getFeatureCoding(vdsType, derTlv);
-					break;
-				}
-			}
-		}
-		return Optional.ofNullable(value != null ? new Feature(featureName, value, coding) : null);
+		return getFeatureList()
+				.stream()
+				.filter(feature -> feature.name().equals(featureName))
+				.findFirst();
 	}
 
 	public static VdsMessage fromByteArray(byte[] rawBytes, String vdsType) {
@@ -97,7 +77,7 @@ public class VdsMessage {
 		}
 
 		public <T> Builder addDocumentFeature(String feature, T value) throws IllegalArgumentException {
-			DerTlv derTlv = DataEncoder.getFeatureEncoder().encodeFeature(this.vdsType, feature, value);
+			DerTlv derTlv = DataEncoder.encodeFeature(this.vdsType, feature, value);
 			this.derTlvList.add(derTlv);
 			return this;
 		}

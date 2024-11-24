@@ -1,17 +1,17 @@
 package de.tsenger.vdstools.idb;
 
+import de.tsenger.vdstools.DataParser;
+import de.tsenger.vdstools.DerTlv;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.tsenger.vdstools.DataParser;
-import de.tsenger.vdstools.DerTlv;
-
 public class IdbMessageGroup {
 	public final static byte TAG = 0x61;
 
-	private List<IdbMessage> messagesList = new ArrayList<IdbMessage>();
+	private final List<IdbMessage> messagesList = new ArrayList<>();
 
 	public IdbMessageGroup() {
 	}

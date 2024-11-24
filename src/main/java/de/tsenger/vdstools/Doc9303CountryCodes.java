@@ -1,11 +1,11 @@
 package de.tsenger.vdstools;
 
+import org.tinylog.Logger;
+
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
-
-import org.tinylog.Logger;
 
 public class Doc9303CountryCodes {
 
@@ -25,7 +25,6 @@ public class Doc9303CountryCodes {
 		doc9303Codes.put("IA", "IAO"); // ICAO
 		doc9303Codes.put("NT", "NTZ"); // Neutral Zone
 		doc9303Codes.put("AN", "ANT"); // Netherlands Antilles
-		doc9303Codes.put("AN", "ANT"); //
 	}
 
 	// Methode zur Umwandlung von ISO-3166-Alpha-2 nach ICAO DOC 9303 Code oder

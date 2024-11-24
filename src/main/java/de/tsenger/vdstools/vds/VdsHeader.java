@@ -1,18 +1,17 @@
 package de.tsenger.vdstools.vds;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.security.cert.X509Certificate;
-import java.time.LocalDate;
-
-import javax.naming.InvalidNameException;
-
-import org.tinylog.Logger;
-
 import de.tsenger.vdstools.DataEncoder;
 import de.tsenger.vdstools.DataParser;
 import de.tsenger.vdstools.Doc9303CountryCodes;
+import org.tinylog.Logger;
+
+import javax.naming.InvalidNameException;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.security.cert.X509Certificate;
+import java.time.LocalDate;
 
 public class VdsHeader {
 
@@ -53,6 +52,22 @@ public class VdsHeader {
 		return certificateReference;
 	}
 
+	/**
+	 * Returns a string that identifies the signer certificate. The SignerCertRef
+	 * string is build from Signer Identifier (country code || signer id) and
+	 * Certificate Reference. The Signer Identifier maps to the signer certificates
+	 * subject (C || CN) The Certificate Reference will be interpreted as a hex
+	 * string integer that represents the serial number of the signer certificate.
+	 * Leading zeros in Certificate Reference will be cut off. e.g. Signer
+	 * Identifier 'DETS' and CertificateReference '00027' will result in 'DETS27'
+	 *
+	 * @return Formated SignerCertRef all UPPERCASE
+	 */
+	public String getSignerCertRef() {
+		BigInteger certRefInteger = new BigInteger(certificateReference, 16);
+		return String.format("%s%x", signerIdentifier, certRefInteger).toUpperCase();
+	}
+
 	public LocalDate getIssuingDate() {
 		return issuingDate;
 	}
@@ -78,7 +93,7 @@ public class VdsHeader {
 	}
 
 	public String getVdsType() {
-		String vdsType = DataEncoder.getFeatureEncoder().getVdsType(getDocumentRef());
+		String vdsType = DataEncoder.getVdsType(getDocumentRef());
 		if (vdsType == null)
 			return "UNKNOWN";
 		else
@@ -136,10 +151,9 @@ public class VdsHeader {
 			Logger.error(String.format("Unsupported rawVersion: 0x%02X", vdsHeader.rawVersion));
 			throw new IllegalArgumentException(String.format("Unsupported rawVersion: 0x%02X", vdsHeader.rawVersion));
 		}
-		vdsHeader.issuingCountry = DataParser.decodeC40(DataParser.getFromByteBuffer(rawdata, 2)); // 2 bytes stores the
-																									// three letter
-																									// country
-		// code
+		// 2 bytes stores the three-letter country
+		vdsHeader.issuingCountry = DataParser.decodeC40(DataParser.getFromByteBuffer(rawdata, 2));
+
 		rawdata.mark();
 
 		// 4 bytes stores first 6 characters of Signer & Certificate Reference
@@ -155,7 +169,7 @@ public class VdsHeader {
 			/*
 			 * GAAD HACK: If signer is DEME and rawVersion is 0x03 (which is version 4
 			 * according to ICAO spec) then anyhow use fixed size certification reference
-			 * length and the length characters also used as certificate reference. eg.
+			 * length and the length characters also used as certificate reference. e.g.
 			 * DEME03123 signerIdenfifier = DEME length of certificate reference: 03 certRef
 			 * = 03123 <-see: here the length is part of the certificate reference which is
 			 * not the case in all other seals except the German
@@ -244,13 +258,13 @@ public class VdsHeader {
 		 *                                      signerIdentifier and the
 		 *                                      certificateReference from
 		 * @param setIssuingCountryFromX509Cert If true also build the issuing country
-		 *                                      code base an the X509Certificate. It
+		 *                                      code base on the X509Certificate. It
 		 *                                      will take the Country code 'C' and
 		 *                                      convert it to a 3-letter country code.
 		 * @return updated Builder instance
 		 */
 		public Builder setSignerCertRef(X509Certificate x509Cert, boolean setIssuingCountryFromX509Cert) {
-			String signerCertRef[] = null;
+			String[] signerCertRef = null;
 			try {
 				signerCertRef = DataEncoder.getSignerCertRef(x509Cert);
 			} catch (InvalidNameException e) {
@@ -265,7 +279,7 @@ public class VdsHeader {
 		}
 
 		private void setDocumentType(String vdsType) {
-			int docRef = DataEncoder.getFeatureEncoder().getDocumentRef(vdsType);
+			int docRef = DataEncoder.getDocumentRef(vdsType);
 			this.docFeatureRef = (byte) ((docRef >> 8) & 0xFF);
 			this.docTypeCat = (byte) (docRef & 0xFF);
 		}

@@ -52,6 +52,7 @@ public class DigitalSealTest {
 		DigitalSeal seal = DigitalSeal.fromByteArray(VdsRawBytes.arrivalAttestationV02);
 		assertEquals("MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
 				seal.getFeature("MRZ").get().valueStr());
+		assertEquals("0004F", seal.getCertificateReference());
 		assertEquals("ABC123456DEF", seal.getFeature("AZR").get().valueStr());
 		assertFalse(seal.getFeature("FIRST_NAME").isPresent());
 	}

@@ -1,5 +1,7 @@
 package de.tsenger.vdstools.idb;
 
+import de.tsenger.vdstools.DerTlv;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
@@ -7,13 +9,11 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
-import de.tsenger.vdstools.DerTlv;
-
 public class IdbSignerCertificate {
 
 	public final static byte TAG = 0x7E;
 
-	private X509Certificate cert;
+	private final X509Certificate cert;
 
 	public IdbSignerCertificate(X509Certificate cert) {
 		if (cert == null)

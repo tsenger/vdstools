@@ -1,19 +1,18 @@
 package de.tsenger.vdstools.vds;
 
-import java.io.IOException;
-import java.math.BigInteger;
-
+import de.tsenger.vdstools.DerTlv;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.util.encoders.Hex;
 import org.tinylog.Logger;
 
-import de.tsenger.vdstools.DerTlv;
+import java.io.IOException;
+import java.math.BigInteger;
 
 public class VdsSignature {
 	public static final byte TAG = (byte) 0xff;
-	private byte[] plainSignatureBytes;
+	private final byte[] plainSignatureBytes;
 
 	/**
 	 * @param plainSignatureBytes signature bytes in plain format: r||s

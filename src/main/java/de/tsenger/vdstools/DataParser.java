@@ -1,5 +1,7 @@
 package de.tsenger.vdstools;
 
+import org.tinylog.Logger;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
@@ -10,8 +12,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.InflaterOutputStream;
-
-import org.tinylog.Logger;
 
 /**
  * Created by Tobias Senger on 18.01.2017.
@@ -41,7 +41,7 @@ public class DataParser {
 	 * for Barcode". Returns a date string in format yyyy-MM-dd where unknown parts
 	 * of the date are marked with an 'x'. e.g. 19xx-10-xx
 	 * 
-	 * @param maskedDateBytes byte array that contains a encoded masked date
+	 * @param maskedDateBytes byte array that contains an encoded masked date
 	 * @return date string where unknown parts of the date are marked with an 'x'
 	 */
 	public static String decodeMaskedDate(byte[] maskedDateBytes) throws IllegalArgumentException {
@@ -64,8 +64,7 @@ public class DataParser {
 			}
 		}
 		String dateString = String.valueOf(dateCharArray);
-		String formattedDateString = dateString.replaceAll("(.{2})(.{2})(.{4})", "$3-$1-$2").toLowerCase();
-		return formattedDateString;
+        return dateString.replaceAll("(.{2})(.{2})(.{4})", "$3-$1-$2").toLowerCase();
 	}
 
 	public static LocalDate decodeDate(byte[] dateBytes) {
@@ -95,13 +94,12 @@ public class DataParser {
 		}
 		BigInteger dateBigInt = new BigInteger(dateTimeBytes);
 		DateTimeFormatter pattern = DateTimeFormatter.ofPattern("MMddyyyyHHmmss");
-		LocalDateTime localDateTime = LocalDateTime.parse(String.format("%014d", dateBigInt), pattern);
-		return localDateTime;
+        return LocalDateTime.parse(String.format("%014d", dateBigInt), pattern);
 	}
 
 	public static List<DerTlv> parseDerTLvs(byte[] rawBytes) {
 		ByteBuffer rawData = ByteBuffer.wrap(rawBytes);
-		List<DerTlv> derTlvList = new ArrayList<DerTlv>();
+		List<DerTlv> derTlvList = new ArrayList<>();
 		while (rawData.hasRemaining()) {
 			byte tag = rawData.get();
 

@@ -1,13 +1,13 @@
 package de.tsenger.vdstools.idb;
 
-import java.io.IOException;
-
 import de.tsenger.vdstools.DerTlv;
+
+import java.io.IOException;
 
 public class IdbMessage {
 
-	private byte messageType;
-	private byte[] messageContent;
+	private final byte messageType;
+	private final byte[] messageContent;
 
 	public IdbMessage(IdbMessageType messageType, byte[] messageContent) {
 		this.messageType = messageType.getValue();

@@ -1,14 +1,14 @@
 package de.tsenger.vdstools;
 
-import java.io.IOException;
-
 import org.bouncycastle.asn1.BERTags;
 import org.bouncycastle.asn1.DEROctetString;
 
+import java.io.IOException;
+
 public class DerTlv {
 
-	private byte tag;
-	private byte[] value;
+	private final byte tag;
+	private final byte[] value;
 
 	public DerTlv(byte tag, byte[] value) {
 		this.tag = tag;

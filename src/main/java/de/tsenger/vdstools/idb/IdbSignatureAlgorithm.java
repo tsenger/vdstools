@@ -10,7 +10,7 @@ public enum IdbSignatureAlgorithm {
     ;
 
     private final byte reference;
-    private static HashMap<Byte, IdbSignatureAlgorithm> map = new HashMap<>();
+    private static final HashMap<Byte, IdbSignatureAlgorithm> map = new HashMap<>();
 
     IdbSignatureAlgorithm(byte reference) {
         this.reference = reference;

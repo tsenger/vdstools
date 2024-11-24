@@ -1,19 +1,13 @@
 package de.tsenger.vdstools;
 
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.Security;
-import java.security.Signature;
-import java.security.SignatureException;
-import java.security.cert.X509Certificate;
-import java.security.interfaces.ECPublicKey;
-
+import de.tsenger.vdstools.vds.DigitalSeal;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Hex;
 import org.tinylog.Logger;
 
-import de.tsenger.vdstools.vds.DigitalSeal;
+import java.security.*;
+import java.security.cert.X509Certificate;
+import java.security.interfaces.ECPublicKey;
 
 public class Verifier {
 
@@ -21,10 +15,10 @@ public class Verifier {
 		SignatureValid, SignatureInvalid, VerifyError,
 	}
 
-	private ECPublicKey ecPubKey;
-	private int fieldBitLength = 256;
-	private byte[] messageBytes;
-	private byte[] signatureBytes;
+	private final ECPublicKey ecPubKey;
+	private final int fieldBitLength;
+	private final byte[] messageBytes;
+	private final byte[] signatureBytes;
 
 	String signatureAlgorithmName = "SHA256WITHECDSA";
 

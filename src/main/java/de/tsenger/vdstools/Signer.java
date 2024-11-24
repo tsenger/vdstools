@@ -17,27 +17,18 @@
  */
 package de.tsenger.vdstools;
 
-import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.Signature;
-import java.security.SignatureException;
-import java.security.UnrecoverableKeyException;
-import java.security.interfaces.ECPrivateKey;
-import java.security.spec.InvalidKeySpecException;
-
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
 import org.tinylog.Logger;
+
+import java.io.IOException;
+import java.security.*;
+import java.security.interfaces.ECPrivateKey;
 
 public class Signer {
 
 	private BCECPrivateKey ecPrivKey;
 
-	public Signer(ECPrivateKey privKey) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException {
+	public Signer(ECPrivateKey privKey) {
 		this.ecPrivKey = (BCECPrivateKey) privKey;
 	}
 
@@ -60,7 +51,7 @@ public class Signer {
 		}
 
 		// Changed 02.12.2021:
-		// Signature depends now on curves bit length according to BSI TR-03116-2
+		// Signature depends now on the curves bit length according to BSI TR-03116-2
 		// 2024-10-20: even more precise Doc9309-13 chapter 2.4
 		int fieldBitLength = getFieldSize();
 		Signature ecdsaSign;
@@ -73,9 +64,9 @@ public class Signer {
 		} else if (fieldBitLength <= 512) {
 			ecdsaSign = Signature.getInstance("SHA512withPLAIN-ECDSA", "BC");
 		} else {
-			Logger.error("Bit length of Field is out of definied value: " + fieldBitLength);
+			Logger.error("Bit length of Field is out of defined value: " + fieldBitLength);
 			throw new InvalidAlgorithmParameterException(
-					"Bit length of Field is out of definied value (224 to 512 bits): " + fieldBitLength);
+					"Bit length of Field is out of defined value (224 to 512 bits): " + fieldBitLength);
 		}
 
 		Logger.info("ECDSA algorithm: " + ecdsaSign.getAlgorithm());

@@ -16,7 +16,7 @@ public enum IdbMessageType {
 	EF_CARDACCESS((byte)0x0A);
 
     private final byte reference;
-    private static HashMap<Byte, IdbMessageType> map = new HashMap<>();
+    private static final HashMap<Byte, IdbMessageType> map = new HashMap<>();
 
     IdbMessageType(byte reference) {
         this.reference = reference;

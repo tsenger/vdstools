@@ -1,22 +1,21 @@
 package de.tsenger.vdstools.idb;
 
+import de.tsenger.vdstools.DataParser;
+import de.tsenger.vdstools.DerTlv;
+import org.tinylog.Logger;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.cert.CertificateException;
 import java.util.Arrays;
 import java.util.List;
 
-import org.tinylog.Logger;
-
-import de.tsenger.vdstools.DataParser;
-import de.tsenger.vdstools.DerTlv;
-
 public class IdbPayload {
 
-	private IdbHeader idbHeader;
-	private IdbMessageGroup idbMessageGroup;
-	private IdbSignerCertificate idbSignerCertificate;
-	private IdbSignature idbSignature;
+	private final IdbHeader idbHeader;
+	private final IdbMessageGroup idbMessageGroup;
+	private final IdbSignerCertificate idbSignerCertificate;
+	private final IdbSignature idbSignature;
 
 	public IdbPayload(IdbHeader idbHeader, IdbMessageGroup idbMessageGroup, IdbSignerCertificate idbSignerCertificate,
 			IdbSignature idbSignature) {
@@ -59,7 +58,7 @@ public class IdbPayload {
 	}
 
 	public static IdbPayload fromByteArray(byte[] rawBytes, boolean isSigned) throws CertificateException, IOException {
-		IdbHeader idbHeader = null;
+		IdbHeader idbHeader;
 		IdbMessageGroup idbMessageGroup = null;
 		IdbSignerCertificate idbSignerCertificate = null;
 		IdbSignature idbSignature = null;

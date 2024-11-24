@@ -1,23 +1,22 @@
 package de.tsenger.vdstools.idb;
 
-import java.io.IOException;
-import java.math.BigInteger;
-
+import de.tsenger.vdstools.DerTlv;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.util.encoders.Hex;
 import org.tinylog.Logger;
 
-import de.tsenger.vdstools.DerTlv;
+import java.io.IOException;
+import java.math.BigInteger;
 
 public class IdbSignature {
 
 	public final static byte TAG = 0x7F;
 
-	private byte[] plainSignatureBytes;
+	private final byte[] plainSignatureBytes;
 
-	public IdbSignature(byte[] plainSignatureBytes) throws IOException {
+	public IdbSignature(byte[] plainSignatureBytes) {
 		this.plainSignatureBytes = plainSignatureBytes;
 	}
 

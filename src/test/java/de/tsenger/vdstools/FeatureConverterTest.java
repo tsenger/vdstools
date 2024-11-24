@@ -45,13 +45,6 @@ public class FeatureConverterTest {
 	}
 
 	@Test
-	public void testGetTag_String() {
-		FeatureConverter featureConverter = new FeatureConverter();
-		byte tag = featureConverter.getTag("ALIENS_LAW", "AZR");
-		assertEquals(4, tag);
-	}
-
-	@Test
 	public void testDecodeFeature_String() throws IOException {
 		FeatureConverter featureConverter = new FeatureConverter();
 		String value = featureConverter.decodeFeature("FICTION_CERT",
@@ -85,18 +78,7 @@ public class FeatureConverterTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testGetDocumentRef_fakeSeal() {
-		DataEncoder.getFeatureEncoder().getDocumentRef("FAKE_SEAL");
-	}
-
-	@Test
-	public void convertDerTlvToFeatureList() {
-		byte[] messageBytes = Hex.decode("02305cba135875976ec066d417b59e8c6abc133c133c133c133c3fef3a2938ee43f1593d1ae52dbb26751fe64b7c133c136b0306d79519a65306");
-		VdsMessage message = VdsMessage.fromByteArray(messageBytes, "RESIDENCE_PERMIT");
-		FeatureConverter featureConverter = new FeatureConverter();
-		List<Feature> featureList = featureConverter.convertDerTlvToFeatureList("RESIDENCE_PERMIT", message.getDerTlvList());
-		for (Feature feature: featureList) {
-			Logger.debug(feature.name() + ", " + feature.coding() + ", " + feature.valueStr());
-		}
+		DataEncoder.getDocumentRef("FAKE_SEAL");
 	}
 
 }
