@@ -3,7 +3,7 @@
 
 	<groupId>de.tsenger</groupId>
 	<artifactId>vdstools</artifactId>
-	<version>0.6.2</version>
+	<version>0.7.0</version>
 	<name>Visible Digital Seal Tools Java library</name>
 	<description>A Java library to encode/sign and decode/verify Visible Digital Seals</description>
 	<packaging>jar</packaging>
@@ -155,7 +155,7 @@
 		<dependency>
 			<groupId>org.jetbrains</groupId>
 			<artifactId>annotations</artifactId>
-			<version>RELEASE</version>
+			<version>26.0.1</version>
 			<scope>compile</scope>
 		</dependency>
 	</dependencies>

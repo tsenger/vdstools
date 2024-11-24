@@ -29,12 +29,8 @@ String vdsType = digitalSeal.getVdsType();
 // getFeature() returns an Optional<Feature> which can be used as follows
 String mrz = digitalSeal.getFeature("MRZ").get().valueStr();
 String azr = digitalSeal.getFeature("AZR").get().valueStr();
-if(digitalSeal.
-
-getFeature("FACE_IMAGE").
-
-isPresent() ){
-byte[] imgBytes = digitalSeal.getFeature("FACE_IMAGE").get().valueBytes();
+if(digitalSeal.getFeature("FACE_IMAGE").isPresent() ){
+    byte[] imgBytes = digitalSeal.getFeature("FACE_IMAGE").get().valueBytes();
 }
 
 // or get all available Features in one List<Feature>
@@ -81,7 +77,7 @@ VdsHeader header = new VdsHeader.Builder("ARRIVAL_ATTESTATION")
 		.build();
 
 // 2. Build a VdsMessage
-String mrz = "MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06";
+String mrz = "MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06";
 String azr = "ABC123456DEF";
 VdsMessage vdsMessage = new VdsMessage.Builder(header.getVdsType())
 		.addDocumentFeature("MRZ", mrz)
@@ -118,7 +114,7 @@ To include this library to your Gradle build add this dependency:
 
 ```groovy
 dependencies {
-    implementation 'de.tsenger:vdstools:0.5.1'
+    implementation 'de.tsenger:vdstools:0.7.0'
 }
 ```
 
@@ -129,6 +125,6 @@ To include this library to your Maven build add this dependency:
 <dependency>
     <groupId>de.tsenger</groupId>
     <artifactId>vdstools</artifactId>
-    <version>0.5.1</version>
+    <version>0.7.0</version>
 </dependency>
 ```
