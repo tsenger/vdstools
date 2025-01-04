@@ -39,6 +39,6 @@ public class Feature {
 	}
 
 	public int valueInt() {
-		return (byte)value;
+		return ((byte)value)&0xFF;
 	}
 }

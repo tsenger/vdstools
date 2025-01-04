@@ -1,90 +1,81 @@
-package de.tsenger.vdstools.vds;
+package de.tsenger.vdstools.vds
 
-import de.tsenger.vdstools.DataEncoder;
-import de.tsenger.vdstools.DataParser;
-import de.tsenger.vdstools.DerTlv;
-import org.tinylog.Logger;
+import co.touchlab.kermit.Logger
+import de.tsenger.vdstools.DataEncoder
+import de.tsenger.vdstools.DataParser
+import de.tsenger.vdstools.DerTlv
+import java.io.ByteArrayOutputStream
+import java.io.IOException
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.*;
 
-public class VdsMessage {
+class VdsMessage {
+    private var derTlvList: List<DerTlv>? = null
+    var vdsType: String? = null
+        private set
 
-	private List<DerTlv> derTlvList;
-	private String vdsType = null;
+    private constructor()
 
-	private VdsMessage() {
-	}
+    constructor(vdsType: String?, derTlvList: List<DerTlv>?) : this() {
+        this.vdsType = vdsType
+        this.derTlvList = derTlvList
+    }
 
-	public VdsMessage(String vdsType, List<DerTlv> derTlvList) {
-		this();
-		this.vdsType = vdsType;
-		this.derTlvList = derTlvList;
-	}
+    private constructor(builder: Builder) {
+        this.derTlvList = builder.derTlvList
+        this.vdsType = builder.vdsType
+    }
 
-	private VdsMessage(Builder builder) {
-		this.derTlvList = builder.derTlvList;
-		this.vdsType = builder.vdsType;
-	}
+    val encoded: ByteArray
+        get() {
+            val baos = ByteArrayOutputStream()
+            try {
+                for (feature in derTlvList!!) {
+                    baos.write(feature.encoded)
+                }
+            } catch (e: IOException) {
+                Logger.e("Can't build raw bytes: " + e.message)
+                return ByteArray(0)
+            }
+            return baos.toByteArray()
+        }
 
-	public String getVdsType() {
-		return vdsType;
-	}
+    val featureList: List<Feature>
+        /**
+         * @return  a list of all decoded Features
+         */
+        get() {
+            val featureList: MutableList<Feature> =
+                ArrayList()
+            for (derTlv in derTlvList!!) {
+                featureList.add(DataEncoder.encodeDerTlv(vdsType, derTlv))
+            }
+            return featureList
+        }
 
-	public byte[] getEncoded() {
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		try {
-			for (DerTlv feature : this.derTlvList) {
-				baos.write(feature.getEncoded());
-			}
-		} catch (IOException e) {
-			Logger.error("Can't build raw bytes: " + e.getMessage());
-			return new byte[0];
-		}
-		return baos.toByteArray();
-	}
+    fun getFeature(featureName: String): Feature? {
+        return featureList.firstOrNull() { feature: Feature -> feature.name() == featureName }
+    }
 
-	/**
-	 * @return  a list of all decoded Features
-	 */
-	public List<Feature> getFeatureList() {
-		List<Feature> featureList = new ArrayList<>();
-		for (DerTlv derTlv : derTlvList) {
-			featureList.add(DataEncoder.encodeDerTlv(vdsType, derTlv));
-		}
-		return featureList;
-	}
+    class Builder(val vdsType: String) {
+        val derTlvList: MutableList<DerTlv> = ArrayList(5)
 
-	public Optional<Feature> getFeature(String featureName) {
-		return getFeatureList()
-				.stream()
-				.filter(feature -> feature.name().equals(featureName))
-				.findFirst();
-	}
+        @Throws(IllegalArgumentException::class)
+        fun <T> addDocumentFeature(feature: String?, value: T): Builder {
+            val derTlv = DataEncoder.encodeFeature(this.vdsType, feature, value)
+            derTlvList.add(derTlv)
+            return this
+        }
 
-	public static VdsMessage fromByteArray(byte[] rawBytes, String vdsType) {
-		List<DerTlv> derTlvList = DataParser.parseDerTLvs(rawBytes);
-		return new VdsMessage(vdsType, derTlvList);
-	}
+        fun build(): VdsMessage {
+            return VdsMessage(this)
+        }
+    }
 
-	public static class Builder {
-		private final List<DerTlv> derTlvList = new ArrayList<>(5);
-		private final String vdsType;
-
-		public Builder(String vdsType) {
-			this.vdsType = vdsType;
-		}
-
-		public <T> Builder addDocumentFeature(String feature, T value) throws IllegalArgumentException {
-			DerTlv derTlv = DataEncoder.encodeFeature(this.vdsType, feature, value);
-			this.derTlvList.add(derTlv);
-			return this;
-		}
-
-		public VdsMessage build() {
-			return new VdsMessage(this);
-		}
-	}
-
+    companion object {
+        @JvmStatic
+		fun fromByteArray(rawBytes: ByteArray?, vdsType: String?): VdsMessage {
+            val derTlvList = DataParser.parseDerTLvs(rawBytes)
+            return VdsMessage(vdsType, derTlvList)
+        }
+    }
 }

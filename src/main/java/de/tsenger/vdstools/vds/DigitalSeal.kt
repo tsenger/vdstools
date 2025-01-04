@@ -1,158 +1,163 @@
-package de.tsenger.vdstools.vds;
+package de.tsenger.vdstools.vds
 
-import de.tsenger.vdstools.DataEncoder;
-import de.tsenger.vdstools.DataParser;
-import de.tsenger.vdstools.DerTlv;
-import de.tsenger.vdstools.Signer;
-import org.bouncycastle.util.Arrays;
-import org.bouncycastle.util.encoders.Hex;
-import org.tinylog.Logger;
+import co.touchlab.kermit.Logger
+import de.tsenger.vdstools.DataEncoder
+import de.tsenger.vdstools.DataParser
+import de.tsenger.vdstools.DerTlv
+import de.tsenger.vdstools.Signer
+import org.bouncycastle.util.Arrays
+import org.bouncycastle.util.encoders.Hex
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.security.*;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.io.IOException
+import java.nio.ByteBuffer
+import java.security.*
+import java.time.LocalDate
 
-public class DigitalSeal {
 
-	private final String vdsType;
-	private final VdsHeader vdsHeader;
-	private final VdsMessage vdsMessage;
-	private final VdsSignature vdsSignature;
+class DigitalSeal {
+    val vdsType: String
+    private val vdsHeader: VdsHeader
+    private val vdsMessage: VdsMessage
+    private val vdsSignature: VdsSignature?
 
-	private DigitalSeal(VdsHeader vdsHeader, VdsMessage vdsMessage, VdsSignature vdsSignature) {
-		this.vdsHeader = vdsHeader;
-		this.vdsMessage = vdsMessage;
-		this.vdsSignature = vdsSignature;
-		this.vdsType = vdsHeader.getVdsType();
-	}
+    private constructor(vdsHeader: VdsHeader, vdsMessage: VdsMessage, vdsSignature: VdsSignature?) {
+        this.vdsHeader = vdsHeader
+        this.vdsMessage = vdsMessage
+        this.vdsSignature = vdsSignature
+        this.vdsType = vdsHeader.vdsType
+    }
 
-	public DigitalSeal(VdsHeader vdsHeader, VdsMessage vdsMessage, Signer signer) {
-		this.vdsHeader = vdsHeader;
-		this.vdsMessage = vdsMessage;
-		this.vdsSignature = createVdsSignature(vdsHeader, vdsMessage, signer);
-		this.vdsType = vdsHeader.getVdsType();
-	}
+    constructor(vdsHeader: VdsHeader, vdsMessage: VdsMessage, signer: Signer) {
+        this.vdsHeader = vdsHeader
+        this.vdsMessage = vdsMessage
+        this.vdsSignature = createVdsSignature(vdsHeader, vdsMessage, signer)
+        this.vdsType = vdsHeader.vdsType
+    }
 
-	public String getVdsType() {
-		return vdsType;
-	}
+    val issuingCountry: String
+        get() = vdsHeader.issuingCountry
 
-	public String getIssuingCountry() {
-		return vdsHeader.getIssuingCountry();
-	}
+    val signerCertRef: String
+        get() = vdsHeader.signerCertRef
 
-	public String getSignerCertRef() {
-		return vdsHeader.getSignerCertRef();
-	}
+    val signerIdentifier: String
+        get() = vdsHeader.signerIdentifier
 
-	public String getSignerIdentifier() {
-		return vdsHeader.getSignerIdentifier();
-	}
+    val certificateReference: String
+        get() = vdsHeader.certificateReference
 
-	public String getCertificateReference() {
-		return vdsHeader.getCertificateReference();
-	}
+    val issuingDate: LocalDate
+        get() = vdsHeader.issuingDate
 
-	public LocalDate getIssuingDate() {
-		return vdsHeader.getIssuingDate();
-	}
+    val sigDate: LocalDate
+        get() = vdsHeader.sigDate
 
-	public LocalDate getSigDate() {
-		return vdsHeader.getSigDate();
-	}
+    val docFeatureRef: Byte
+        get() = vdsHeader.docFeatureRef
 
-	public byte getDocFeatureRef() {
-		return vdsHeader.getDocFeatureRef();
-	}
+    val docTypeCat: Byte
+        get() = vdsHeader.docTypeCat
 
-	public byte getDocTypeCat() {
-		return vdsHeader.getDocTypeCat();
-	}
+    val headerAndMessageBytes: ByteArray
+        get() = Arrays.concatenate(vdsHeader.encoded, vdsMessage.encoded)
 
-	public byte[] getHeaderAndMessageBytes() {
-		return Arrays.concatenate(vdsHeader.getEncoded(), vdsMessage.getEncoded());
-	}
+    @get:Throws(IOException::class)
+    val encoded: ByteArray
+        get() = Arrays.concatenate(
+            vdsHeader.encoded,
+            vdsMessage.encoded,
+            vdsSignature!!.encoded
+        )
 
-	public byte[] getEncoded() throws IOException {
-		return Arrays.concatenate(vdsHeader.getEncoded(), vdsMessage.getEncoded(), vdsSignature.getEncoded());
-	}
+    val signatureBytes: ByteArray
+        get() = vdsSignature!!.plainSignatureBytes
 
-	public byte[] getSignatureBytes() {
-		return vdsSignature.getPlainSignatureBytes();
-	}
+    @get:Throws(IOException::class)
+    val rawString: String
+        get() = DataEncoder.encodeBase256(encoded)
 
-	public String getRawString() throws IOException {
-		return DataEncoder.encodeBase256(getEncoded());
-	}
+    val featureList: List<Feature>
+        get() = vdsMessage.featureList
 
-	public List<Feature> getFeatureList() {
-		return vdsMessage.getFeatureList();
-	}
+    fun getFeature(feature: String): Feature? {
+        return vdsMessage.getFeature(feature)
+    }
 
-	public Optional<Feature> getFeature(String feature) {
-		return vdsMessage.getFeature(feature);
-	}
+    private fun createVdsSignature(vdsHeader: VdsHeader, vdsMessage: VdsMessage, signer: Signer): VdsSignature? {
+        val headerMessage = Arrays.concatenate(vdsHeader.encoded, vdsMessage.encoded)
+        try {
+            val signatureBytes = signer.sign(headerMessage)
+            return VdsSignature(signatureBytes)
+        } catch (e: InvalidKeyException) {
+            Logger.e("Signature creation failed: " + e.localizedMessage)
+            return null
+        } catch (e: NoSuchAlgorithmException) {
+            Logger.e("Signature creation failed: " + e.localizedMessage)
+            return null
+        } catch (e: SignatureException) {
+            Logger.e("Signature creation failed: " + e.localizedMessage)
+            return null
+        } catch (e: InvalidAlgorithmParameterException) {
+            Logger.e("Signature creation failed: " + e.localizedMessage)
+            return null
+        } catch (e: NoSuchProviderException) {
+            Logger.e("Signature creation failed: " + e.localizedMessage)
+            return null
+        } catch (e: IOException) {
+            Logger.e("Signature creation failed: " + e.localizedMessage)
+            return null
+        }
+    }
 
-	public static DigitalSeal fromRawString(String rawString) {
-		DigitalSeal seal = null;
-		try {
-			seal = parseVdsSeal(DataParser.decodeBase256(rawString));
-		} catch (IOException e) {
-			Logger.error(e.getMessage());
-		}
-		return seal;
-	}
 
-	public static DigitalSeal fromByteArray(byte[] rawBytes) {
-		DigitalSeal seal = null;
-		try {
-			seal = parseVdsSeal(rawBytes);
-		} catch (IOException e) {
-			Logger.error(e.getMessage());
-		}
-		return seal;
-	}
+    companion object {
 
-	private static DigitalSeal parseVdsSeal(byte[] rawBytes) throws IOException {
+        @JvmStatic
+        fun fromRawString(rawString: String): DigitalSeal? {
+            var seal: DigitalSeal? = null
+            try {
+                seal = parseVdsSeal(DataParser.decodeBase256(rawString))
+            } catch (e: IOException) {
+                Logger.e(e.localizedMessage)
+            }
+            return seal
+        }
 
-		ByteBuffer rawData = ByteBuffer.wrap(rawBytes);
-		Logger.trace("rawData: {}", () -> Hex.toHexString(rawBytes));
+        @JvmStatic
+        fun fromByteArray(rawBytes: ByteArray): DigitalSeal? {
+            var seal: DigitalSeal? = null
+            try {
+                seal = parseVdsSeal(rawBytes)
+            } catch (e: IOException) {
+                Logger.e(e.localizedMessage)
+            }
+            return seal
+        }
 
-		VdsHeader vdsHeader = VdsHeader.fromByteBuffer(rawData);
-		VdsSignature vdsSignature = null;
+        @Throws(IOException::class)
+        private fun parseVdsSeal(rawBytes: ByteArray): DigitalSeal {
+            val rawData = ByteBuffer.wrap(rawBytes)
+            Logger.v("rawData: ${Hex.toHexString(rawBytes)}" )
 
-		int messageStartPosition = rawData.position();
+            val vdsHeader = VdsHeader.fromByteBuffer(rawData)
+            var vdsSignature: VdsSignature? = null
 
-		List<DerTlv> derTlvList = DataParser
-				.parseDerTLvs(Arrays.copyOfRange(rawBytes, messageStartPosition, rawBytes.length));
+            val messageStartPosition = rawData.position()
 
-		List<DerTlv> featureList = new ArrayList<DerTlv>(derTlvList.size() - 1);
+            val derTlvList = DataParser
+                .parseDerTLvs(Arrays.copyOfRange(rawBytes, messageStartPosition, rawBytes.size))
 
-		for (DerTlv derTlv : derTlvList) {
-			if (derTlv.getTag() == (byte) 0xff) {
-				vdsSignature = VdsSignature.fromByteArray(derTlv.getEncoded());
-			} else {
-				featureList.add(derTlv);
-			}
-		}
-		VdsMessage vdsMessage = new VdsMessage(vdsHeader.getVdsType(), featureList);
-		return new DigitalSeal(vdsHeader, vdsMessage, vdsSignature);
+            val featureList: MutableList<DerTlv> = ArrayList(derTlvList.size - 1)
 
-	}
-
-	private VdsSignature createVdsSignature(VdsHeader vdsHeader, VdsMessage vdsMessage, Signer signer) {
-		byte[] headerMessage = Arrays.concatenate(vdsHeader.getEncoded(), vdsMessage.getEncoded());
-		try {
-			byte[] signatureBytes = signer.sign(headerMessage);
-			return new VdsSignature(signatureBytes);
-		} catch (InvalidKeyException | NoSuchAlgorithmException | SignatureException
-				| InvalidAlgorithmParameterException | NoSuchProviderException | IOException e) {
-			Logger.error("Signature creation failed: " + e.getMessage());
-			return null;
-		}
-	}
+            for (derTlv in derTlvList) {
+                if (derTlv.tag == 0xff.toByte()) {
+                    vdsSignature = VdsSignature.fromByteArray(derTlv.encoded)
+                } else {
+                    featureList.add(derTlv)
+                }
+            }
+            val vdsMessage = VdsMessage(vdsHeader.vdsType, featureList)
+            return DigitalSeal(vdsHeader, vdsMessage, vdsSignature)
+        }
+    }
 }
