@@ -1,239 +1,265 @@
-package de.tsenger.vdstools;
+package de.tsenger.vdstools
 
-import de.tsenger.vdstools.vds.Feature;
-import de.tsenger.vdstools.vds.FeatureCoding;
-import org.bouncycastle.util.Arrays;
-import org.tinylog.Logger;
+import at.asitplus.signum.indispensable.pki.X509Certificate
+import co.touchlab.kermit.Logger
+import de.tsenger.vdstools.vds.Feature
+import kotlinx.datetime.LocalDate
+import org.bouncycastle.util.Arrays
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.math.BigInteger
+import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
+import java.security.NoSuchProviderException
+import java.security.cert.CertificateEncodingException
 
-import javax.naming.InvalidNameException;
-import javax.naming.ldap.LdapName;
-import javax.naming.ldap.Rdn;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.X509Certificate;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.zip.Deflater;
-import java.util.zip.DeflaterOutputStream;
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.*
+import java.util.zip.Deflater
+import java.util.zip.DeflaterOutputStream
+import javax.naming.InvalidNameException
+import javax.naming.ldap.LdapName
 
-public class DataEncoder {
+object DataEncoder {
+    private var featureEncoder: FeatureConverter
 
-	private static FeatureConverter featureEncoder;
-
-	static  {
-		featureEncoder = new FeatureConverter();
-	}
+    init {
+        featureEncoder = FeatureConverter()
+    }
 
 
-	/**
-	 * Return the Signer Identifier and the Certificate Reference based on the
-	 * given X.509. Signer Identifier is C + CN Certificate Reference is the serial
-	 * number of the X509Certificate. It will be encoded as hex string
-	 * 
-	 * @param cert X509 certificate to get the signer information from
-	 * @return String array that contains the signerIdentifier at index 0 and
-	 *         CertRef at index 1
-	 * @throws InvalidNameException if a syntax violation is detected.
-	 */
-	public static String[] getSignerCertRef(X509Certificate cert) throws InvalidNameException {
-		String[] signerCertRef = new String[2];
-		LdapName ln = new LdapName(cert.getSubjectX500Principal().getName());
+    /**
+     * Return the Signer Identifier and the Certificate Reference based on the
+     * given X.509. Signer Identifier is C + CN Certificate Reference is the serial
+     * number of the X509Certificate. It will be encoded as hex string
+     *
+     * @param cert X509 certificate to get the signer information from
+     * @return String array that contains the signerIdentifier at index 0 and
+     * CertRef at index 1
+     * @throws InvalidNameException if a syntax violation is detected.
+     */
+    @JvmStatic
+    @Throws(InvalidNameException::class)
+    fun getSignerCertRef(cert: X509Certificate): Pair<String, String> {
+//TODO use new X509-Lib correct
+        val ln = LdapName(cert.tbsCertificate.subjectName[0].attrsAndValues[0]. .subjectX500Principal.name)
 
-		String c = "";
-		String cn = "";
-		for (Rdn rdn : ln.getRdns()) {
-			if (rdn.getType().equalsIgnoreCase("CN")) {
-				cn = (String) rdn.getValue();
-				Logger.debug("CN is: " + cn);
-			} else if (rdn.getType().equalsIgnoreCase("C")) {
-				c = (String) rdn.getValue();
-				Logger.debug("C is: " + c);
-			}
-		}
-		signerCertRef[0] = String.format("%s%s", c, cn).toUpperCase();
-		signerCertRef[1] = cert.getSerialNumber().toString(16); // Serial Number as Hex
+        var c = ""
+        var cn = ""
+        for (rdn in ln.rdns) {
+            if (rdn.type.equals("CN", ignoreCase = true)) {
+                cn = rdn.value as String
+                Logger.d("CN is: $cn")
+            } else if (rdn.type.equals("C", ignoreCase = true)) {
+                c = rdn.value as String
+                Logger.d("C is: $c")
+            }
+        }
 
-		Logger.info("generated signerCertRef: " + signerCertRef[0] + signerCertRef[1]);
-		return signerCertRef;
-	}
+        val ccn = String.format("%s%s", c, cn).uppercase()
+        val serial = cert.serialNumber.toString(16) // Serial Number as Hex
+        val signerCertRef = Pair(ccn, serial)
 
-	/**
-	 * @param dateString Date as String formated as yyyy-MM-dd
-	 * @return date encoded in 3 bytes
-	 */
-	public static byte[] encodeDate(String dateString) {
-		LocalDate dt = LocalDate.parse(dateString);
-		return encodeDate(dt);
-	}
+        Logger.i("generated signerCertRef: " + signerCertRef.first + signerCertRef.second)
+        return signerCertRef
+    }
 
-	/**
-	 * Encode a LocalDate as described in ICAO Doc9303 Part 13 in three bytes
-	 * 
-	 * @param localDate Date
-	 * @return date encoded in 3 bytes
-	 */
-	public static byte[] encodeDate(LocalDate localDate) {
-		DateTimeFormatter pattern = DateTimeFormatter.ofPattern("MMddyyyy");
-		String formattedDate = localDate.format(pattern);
-		int dateInt = Integer.parseInt(formattedDate);
-		return new byte[] { (byte) (dateInt >>> 16), (byte) (dateInt >>> 8), (byte) dateInt };
-	}
+    /**
+     * @param dateString Date as String formated as yyyy-MM-dd
+     * @return date encoded in 3 bytes
+     */
+    @JvmStatic
+    fun encodeDate(dateString: String): ByteArray {
+        val dt: LocalDate = LocalDate.parse(dateString)
+        return encodeDate(dt)
+    }
 
-	/**
-	 * Encode a LocalDate as described in as described in ICAO TR "Datastructure for
-	 * Barcode" in six bytes.
-	 * 
-	 * @param localDatetime LocalDateTime to encode
-	 * @return local date time encoded in 6 bytes
-	 */
-	public static byte[] encodeDateTime(LocalDateTime localDatetime) {
-		DateTimeFormatter pattern = DateTimeFormatter.ofPattern("MMddyyyyHHmmss");
-		String formattedDate = localDatetime.format(pattern);
-		BigInteger dateInt = new BigInteger(formattedDate);
-		return dateInt.toByteArray();
-	}
+    /**
+     * Encode a LocalDate as described in ICAO Doc9303 Part 13 in three bytes
+     *
+     * @param localDate Date
+     * @return date encoded in 3 bytes
+     */
+    fun encodeDate(localDate: LocalDate?): ByteArray {
+        if (localDate == null) return ByteArray(0)
 
-	/**
-	 * Encodes a date string with unknown date parts as described in ICAO TR
-	 * "Datastructure for Barcode". Unknown parts of the date string shall be filled
-	 * with an 'x', e.g. 19xx-10-xx
-	 * 
-	 * @param dateString date as String formated as yyyy-MM-dd where unknown parts
-	 *                   could be replaced by an x
-	 * @return masked date encoded in 4 bytes
-	 */
-	public static byte[] encodeMaskedDate(String dateString) {
-		if (!dateString.matches("(.{4})-(.{2})-(.{2})")) {
-			throw new IllegalArgumentException("Date string must be formated as yyyy-MM-dd.");
-		}
+        val formattedDate: String =
+            localDate.monthNumber.toString() + localDate.dayOfMonth.toString() + localDate.year.toString()
+        val dateInt = formattedDate.toInt()
+        return byteArrayOf((dateInt ushr 16).toByte(), (dateInt ushr 8).toByte(), dateInt.toByte())
 
-		String formattedDate = dateString.replaceAll("(.{4})-(.{2})-(.{2})", "$2$3$1").toLowerCase();
-		int dateInt = Integer.parseInt(formattedDate.replaceAll("x", "0"));
-		char[] dateCharArray = formattedDate.toCharArray();
+    }
 
-		byte mask = 0;
-		for (int i = 0; i < 8; i++) {
-			if (dateCharArray[i] == 'x') {
-				mask = (byte) (mask | (0x80 >> i));
-			}
-		}
-        return new byte[] { mask, (byte) (dateInt >>> 16), (byte) (dateInt >>> 8), (byte) dateInt };
-	}
+    /**
+     * Encode a LocalDate as described in as described in ICAO TR "Datastructure for
+     * Barcode" in six bytes.
+     *
+     * @param localDatetime LocalDateTime to encode
+     * @return local date time encoded in 6 bytes
+     */
+    @JvmStatic
+    fun encodeDateTime(localDatetime: LocalDateTime): ByteArray {
+        val pattern = DateTimeFormatter.ofPattern("MMddyyyyHHmmss")
+        val formattedDate = localDatetime.format(pattern)
+        val dateInt = BigInteger(formattedDate)
+        return dateInt.toByteArray()
+    }
 
-	public static byte[] encodeC40(String dataString) {
-		int c1, c2, c3, sum;
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
+    /**
+     * Encodes a date string with unknown date parts as described in ICAO TR
+     * "Datastructure for Barcode". Unknown parts of the date string shall be filled
+     * with an 'x', e.g. 19xx-10-xx
+     *
+     * @param dateString date as String formated as yyyy-MM-dd where unknown parts
+     * could be replaced by an x
+     * @return masked date encoded in 4 bytes
+     */
+    @JvmStatic
+    fun encodeMaskedDate(dateString: String): ByteArray {
+        require(dateString.matches("(.{4})-(.{2})-(.{2})".toRegex())) { "Date string must be formated as yyyy-MM-dd." }
 
-		dataString = dataString.toUpperCase().replaceAll("<", " ");
+        val formattedDate =
+            dateString.replace("(.{4})-(.{2})-(.{2})".toRegex(), "$2$3$1").lowercase()
+        val dateInt = formattedDate.replace("x".toRegex(), "0").toInt()
+        val dateCharArray = formattedDate.toCharArray()
 
-		int len = dataString.length();
+        var mask: Byte = 0
+        for (i in 0..7) {
+            if (dateCharArray[i] == 'x') {
+                mask = (mask.toInt() or (0x80 shr i)).toByte()
+            }
+        }
+        return byteArrayOf(mask, (dateInt ushr 16).toByte(), (dateInt ushr 8).toByte(), dateInt.toByte())
+    }
 
-		for (int i = 0; i < len; i++) {
-			if (i % 3 == 0) {
-				if (i + 2 < len) {
-					// encode standard way
-					c1 = getC40Value(dataString.charAt(i));
-					c2 = getC40Value(dataString.charAt(i + 1));
-					c3 = getC40Value(dataString.charAt(i + 2));
-					sum = (1600 * c1) + (40 * c2) + c3 + 1;
-					out.write(sum / 256);
-					out.write(sum % 256);
-				} else if (i + 1 < len) {
-					// use zero (Shift1) als filler symbol for c3
-					c1 = getC40Value(dataString.charAt(i));
-					c2 = getC40Value(dataString.charAt(i + 1));
-					sum = (1600 * c1) + (40 * c2) + 1;
-					out.write(sum / 256);
-					out.write(sum % 256);
-				} else {
-					// two missing chars: add 0xFE (254 = unlatch) and encode as ASCII
-					// (in datamatrix standard, actual encoded value is ASCII value + 1)
-					out.write(254);
-					out.write(toUnsignedInt((byte) dataString.charAt(i)) + 1);
-				}
-			}
-		}
-		return out.toByteArray();
-	}
+    @JvmStatic
+    fun encodeC40(dataString: String): ByteArray {
+        var dataString = dataString
+        var c1: Int
+        var c2: Int
+        var c3: Int
+        var sum: Int
+        val out = ByteArrayOutputStream()
 
-	private static int getC40Value(char c) {
-		int value = toUnsignedInt((byte) c);
-		if (value == 32) {
-			return 3;
-		} else if (value >= 48 && value <= 57) {
-			return value - 44;
-		} else if (value >= 65 && value <= 90) {
-			return value - 51;
-		} else {
-			throw new IllegalArgumentException("Not a C40 encodable char: " + c + "value: " + value);
-		}
-	}
+        dataString = dataString.uppercase().replace("<".toRegex(), " ")
 
-	public static int toUnsignedInt(byte value) {
-		return (value & 0x7F) + (value < 0 ? 128 : 0);
-	}
+        val len = dataString.length
 
-	public static String encodeBase256(byte[] ba) {
-		char[] ca = new char[ba.length];
-		for (int i = 0; i < ba.length; i++) {
-			ca[i] = (char) (ba[i] & 0xFF);
-		}
-		return new String(ca);
-	}
+        for (i in 0..<len) {
+            if (i % 3 == 0) {
+                if (i + 2 < len) {
+                    // encode standard way
+                    c1 = getC40Value(dataString[i])
+                    c2 = getC40Value(dataString[i + 1])
+                    c3 = getC40Value(dataString[i + 2])
+                    sum = (1600 * c1) + (40 * c2) + c3 + 1
+                    out.write(sum / 256)
+                    out.write(sum % 256)
+                } else if (i + 1 < len) {
+                    // use zero (Shift1) als filler symbol for c3
+                    c1 = getC40Value(dataString[i])
+                    c2 = getC40Value(dataString[i + 1])
+                    sum = (1600 * c1) + (40 * c2) + 1
+                    out.write(sum / 256)
+                    out.write(sum % 256)
+                } else {
+                    // two missing chars: add 0xFE (254 = unlatch) and encode as ASCII
+                    // (in datamatrix standard, actual encoded value is ASCII value + 1)
+                    out.write(254)
+                    out.write(toUnsignedInt(dataString[i].code.toByte()) + 1)
+                }
+            }
+        }
+        return out.toByteArray()
+    }
 
-	public static byte[] zip(byte[] bytesToCompress) throws IOException {
-		Deflater compressor = new Deflater(Deflater.BEST_COMPRESSION);
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		DeflaterOutputStream defos = new DeflaterOutputStream(bos, compressor);
-		defos.write(bytesToCompress);
-		defos.finish();
-		byte[] compressedBytes = bos.toByteArray();
-		bos.close();
-		defos.close();
-		Logger.debug("Zip ratio " + ((float) bytesToCompress.length / (float) compressedBytes.length) + ", input size "
-				+ bytesToCompress.length + ", compressed size " + compressedBytes.length);
-		return compressedBytes;
-	}
+    private fun getC40Value(c: Char): Int {
+        val value = toUnsignedInt(c.code.toByte())
+        return if (value == 32) {
+            3
+        } else if (value >= 48 && value <= 57) {
+            value - 44
+        } else if (value >= 65 && value <= 90) {
+            value - 51
+        } else {
+            throw IllegalArgumentException("Not a C40 encodable char: " + c + "value: " + value)
+        }
+    }
 
-	public static void setFeatureEncoder(FeatureConverter featureEncoder) {
-		DataEncoder.featureEncoder = featureEncoder;
-	}
+    fun toUnsignedInt(value: Byte): Int {
+        return (value.toInt() and 0x7F) + (if (value < 0) 128 else 0)
+    }
 
-	public static byte[] buildCertificateReference(X509Certificate cert) {
-		MessageDigest messageDigest;
-		try {
-			messageDigest = MessageDigest.getInstance("SHA1", "BC");
-			byte[] certSha1 = messageDigest.digest(cert.getEncoded());
-			return Arrays.copyOfRange(certSha1, 15, 20);
-		} catch (NoSuchAlgorithmException | NoSuchProviderException | CertificateEncodingException e) {
-			Logger.error("Failed building Certificate Reference: " + e.getMessage());
-			return null;
-		}
+    @JvmStatic
+    fun encodeBase256(ba: ByteArray): String {
+        val ca = CharArray(ba.size)
+        for (i in ba.indices) {
+            ca[i] = (ba[i].toInt() and 0xFF).toChar()
+        }
+        return String(ca)
+    }
 
-	}
+    @JvmStatic
+    @Throws(IOException::class)
+    fun zip(bytesToCompress: ByteArray): ByteArray {
+        val compressor = Deflater(Deflater.BEST_COMPRESSION)
+        val bos = ByteArrayOutputStream()
+        val defos = DeflaterOutputStream(bos, compressor)
+        defos.write(bytesToCompress)
+        defos.finish()
+        val compressedBytes = bos.toByteArray()
+        bos.close()
+        defos.close()
+        Logger.d(
+            ("Zip ratio " + (bytesToCompress.size.toFloat() / compressedBytes.size.toFloat()) + ", input size "
+                    + bytesToCompress.size + ", compressed size " + compressedBytes.size)
+        )
+        return compressedBytes
+    }
 
-	public static Feature encodeDerTlv(String vdsType, DerTlv derTlv) {
-		Object value = featureEncoder.decodeFeature(vdsType, derTlv);
-		String name = featureEncoder.getFeatureName(vdsType, derTlv);
-		FeatureCoding coding = featureEncoder.getFeatureCoding(vdsType, derTlv);
-		return new Feature(name,value, coding);
-	}
+    @JvmStatic
+    fun setFeatureEncoder(featureEncoder: FeatureConverter) {
+        DataEncoder.featureEncoder = featureEncoder
+    }
 
-	public static String getVdsType(int documentRef) {
-		return featureEncoder.getVdsType(documentRef);
-	}
+    @JvmStatic
+    fun buildCertificateReference(cert: X509Certificate): ByteArray? {
+        val messageDigest: MessageDigest
+        try {
+            messageDigest = MessageDigest.getInstance("SHA1", "BC")
+            val certSha1 = messageDigest.digest(cert.encoded)
+            return Arrays.copyOfRange(certSha1, 15, 20)
+        } catch (e: NoSuchAlgorithmException) {
+            Logger.e("Failed building Certificate Reference: " + e.message)
+            return null
+        } catch (e: NoSuchProviderException) {
+            Logger.e("Failed building Certificate Reference: " + e.message)
+            return null
+        } catch (e: CertificateEncodingException) {
+            Logger.e("Failed building Certificate Reference: " + e.message)
+            return null
+        }
+    }
 
-	public static int getDocumentRef(String vdsType) {
-		return featureEncoder.getDocumentRef(vdsType);
-	}
+    fun encodeDerTlv(vdsType: String?, derTlv: DerTlv?): Feature {
+        val value = featureEncoder.decodeFeature<Any>(vdsType, derTlv)
+        val name = featureEncoder.getFeatureName(vdsType, derTlv)
+        val coding = featureEncoder.getFeatureCoding(vdsType, derTlv)
+        return Feature(name, value, coding)
+    }
 
-	public static <T> DerTlv encodeFeature(String vdsType, String feature, T value) {
-		return featureEncoder.encodeFeature(vdsType, feature, value);
-	}
+    @JvmStatic
+    fun getVdsType(documentRef: Int): String {
+        return featureEncoder.getVdsType(documentRef)
+    }
+
+    @JvmStatic
+    fun getDocumentRef(vdsType: String?): Int {
+        return featureEncoder.getDocumentRef(vdsType)
+    }
+
+    fun <T> encodeFeature(vdsType: String?, feature: String?, value: T): DerTlv {
+        return featureEncoder.encodeFeature(vdsType, feature, value)
+    }
 }

@@ -5,13 +5,12 @@ import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.DataParser
 import de.tsenger.vdstools.DerTlv
 import de.tsenger.vdstools.Signer
+import kotlinx.datetime.LocalDate
+import okio.Buffer
 import org.bouncycastle.util.Arrays
 import org.bouncycastle.util.encoders.Hex
 
 import java.io.IOException
-import java.nio.ByteBuffer
-import java.security.*
-import java.time.LocalDate
 
 
 class DigitalSeal {
@@ -34,22 +33,22 @@ class DigitalSeal {
         this.vdsType = vdsHeader.vdsType
     }
 
-    val issuingCountry: String
+    val issuingCountry: String?
         get() = vdsHeader.issuingCountry
 
     val signerCertRef: String
         get() = vdsHeader.signerCertRef
 
-    val signerIdentifier: String
+    val signerIdentifier: String?
         get() = vdsHeader.signerIdentifier
 
-    val certificateReference: String
+    val certificateReference: String?
         get() = vdsHeader.certificateReference
 
-    val issuingDate: LocalDate
+    val issuingDate: LocalDate?
         get() = vdsHeader.issuingDate
 
-    val sigDate: LocalDate
+    val sigDate: LocalDate?
         get() = vdsHeader.sigDate
 
     val docFeatureRef: Byte
@@ -88,22 +87,7 @@ class DigitalSeal {
         try {
             val signatureBytes = signer.sign(headerMessage)
             return VdsSignature(signatureBytes)
-        } catch (e: InvalidKeyException) {
-            Logger.e("Signature creation failed: " + e.localizedMessage)
-            return null
-        } catch (e: NoSuchAlgorithmException) {
-            Logger.e("Signature creation failed: " + e.localizedMessage)
-            return null
-        } catch (e: SignatureException) {
-            Logger.e("Signature creation failed: " + e.localizedMessage)
-            return null
-        } catch (e: InvalidAlgorithmParameterException) {
-            Logger.e("Signature creation failed: " + e.localizedMessage)
-            return null
-        } catch (e: NoSuchProviderException) {
-            Logger.e("Signature creation failed: " + e.localizedMessage)
-            return null
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             Logger.e("Signature creation failed: " + e.localizedMessage)
             return null
         }
@@ -117,7 +101,7 @@ class DigitalSeal {
             var seal: DigitalSeal? = null
             try {
                 seal = parseVdsSeal(DataParser.decodeBase256(rawString))
-            } catch (e: IOException) {
+            } catch (e: Exception) {
                 Logger.e(e.localizedMessage)
             }
             return seal
@@ -128,7 +112,7 @@ class DigitalSeal {
             var seal: DigitalSeal? = null
             try {
                 seal = parseVdsSeal(rawBytes)
-            } catch (e: IOException) {
+            } catch (e: Exception) {
                 Logger.e(e.localizedMessage)
             }
             return seal
@@ -136,16 +120,14 @@ class DigitalSeal {
 
         @Throws(IOException::class)
         private fun parseVdsSeal(rawBytes: ByteArray): DigitalSeal {
-            val rawData = ByteBuffer.wrap(rawBytes)
-            Logger.v("rawData: ${Hex.toHexString(rawBytes)}" )
+            val rawDataBuffer = Buffer().write(rawBytes)
+            Logger.v("rawData: ${Hex.toHexString(rawBytes)}")
 
-            val vdsHeader = VdsHeader.fromByteBuffer(rawData)
+            val vdsHeader = VdsHeader.fromBuffer(rawDataBuffer)
             var vdsSignature: VdsSignature? = null
 
-            val messageStartPosition = rawData.position()
-
             val derTlvList = DataParser
-                .parseDerTLvs(Arrays.copyOfRange(rawBytes, messageStartPosition, rawBytes.size))
+                .parseDerTLvs(rawDataBuffer.readByteArray())
 
             val featureList: MutableList<DerTlv> = ArrayList(derTlvList.size - 1)
 

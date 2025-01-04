@@ -29,7 +29,10 @@ dependencies {
     implementation("com.google.code.gson:gson:2.11.0")
     implementation("org.jetbrains:annotations:26.0.1")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
+    implementation("com.squareup.okio:okio:3.9.1")
     implementation("co.touchlab:kermit:2.0.4")
+    implementation("at.asitplus.signum:indispensable:3.12.0")
     testImplementation("org.jetbrains.kotlin:kotlin-test:2.1.0")
 
 }

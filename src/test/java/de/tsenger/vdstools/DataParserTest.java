@@ -9,6 +9,7 @@ import java.nio.ByteBuffer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import okio.Buffer;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.Test;
 
@@ -83,8 +84,8 @@ public class DataParserTest {
 
 	@Test
 	public void testDecodeHeader() {
-		ByteBuffer bb = ByteBuffer.wrap(VdsRawBytes.residentPermit);
-		VdsHeader vdsHeader = VdsHeader.fromByteBuffer(bb);
+		Buffer bb = new Buffer().write(VdsRawBytes.residentPermit);
+		VdsHeader vdsHeader = VdsHeader.fromBuffer(bb);
 		assertEquals(0x03, vdsHeader.getRawVersion());
 		assertEquals("UTO", vdsHeader.getIssuingCountry());
 		assertEquals("UTTS", vdsHeader.getSignerIdentifier());

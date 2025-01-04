@@ -1,288 +1,277 @@
-package de.tsenger.vdstools.vds;
+package de.tsenger.vdstools.vds
 
-import de.tsenger.vdstools.DataEncoder;
-import de.tsenger.vdstools.DataParser;
-import de.tsenger.vdstools.Doc9303CountryCodes;
-import org.tinylog.Logger;
+import co.touchlab.kermit.Logger
+import de.tsenger.vdstools.DataEncoder
+import de.tsenger.vdstools.DataParser
+import de.tsenger.vdstools.Doc9303CountryCodes
+import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
+import okio.Buffer
+import java.security.cert.X509Certificate
 
-import javax.naming.InvalidNameException;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.security.cert.X509Certificate;
-import java.time.LocalDate;
 
-public class VdsHeader {
+class VdsHeader {
+    var issuingCountry: String? = null
+        private set
+    var signerIdentifier: String? = null
+        private set
+    var certificateReference: String? = null
+        private set
+    var issuingDate: LocalDate? = null
+        private set
+    var sigDate: LocalDate? = null
+        private set
+    var docFeatureRef: Byte = 0
+        private set
+    var docTypeCat: Byte = 0
+        private set
+    var rawVersion: Byte = 0
+        private set
 
-	public static final byte DC = (byte) 0xDC;
+    private constructor()
 
-	private String issuingCountry;
-	private String signerIdentifier;
-	private String certificateReference;
-	private LocalDate issuingDate;
-	private LocalDate sigDate;
-	private byte docFeatureRef;
-	private byte docTypeCat;
-	private byte rawVersion;
+    private constructor(builder: Builder) {
+        this.issuingCountry = builder.issuingCountry
+        this.signerIdentifier = builder.signerIdentifier
+        this.certificateReference = builder.certificateReference
+        this.issuingDate = builder.issuingDate
+        this.sigDate = builder.sigDate
+        this.docFeatureRef = builder.docFeatureRef
+        this.docTypeCat = builder.docTypeCat
+        this.rawVersion = builder.rawVersion
+    }
 
-	private VdsHeader() {
-	}
+    val signerCertRef: String
+        /**
+         * Returns a string that identifies the signer certificate. The SignerCertRef
+         * string is build from Signer Identifier (country code || signer id) and
+         * Certificate Reference. The Signer Identifier maps to the signer certificates
+         * subject (C || CN) The Certificate Reference will be interpreted as a hex
+         * string integer that represents the serial number of the signer certificate.
+         * Leading zeros in Certificate Reference will be cut off. e.g. Signer
+         * Identifier 'DETS' and CertificateReference '00027' will result in 'DETS27'
+         *
+         * @return Formated SignerCertRef all UPPERCASE
+         */
+        get() {
+            val certRefInteger = certificateReference?.trimStart('0')?.ifEmpty { "0" }
+            return String.format("%s%x", signerIdentifier, certRefInteger).uppercase()
+        }
 
-	private VdsHeader(Builder builder) {
-		this.issuingCountry = builder.issuingCountry;
-		this.signerIdentifier = builder.signerIdentifier;
-		this.certificateReference = builder.certificateReference;
-		this.issuingDate = builder.issuingDate;
-		this.sigDate = builder.sigDate;
-		this.docFeatureRef = builder.docFeatureRef;
-		this.docTypeCat = builder.docTypeCat;
-		this.rawVersion = builder.rawVersion;
-	}
+    val documentRef: Int
+        get() = ((docFeatureRef.toInt() and 0xFF) shl 8) + (docTypeCat.toInt() and 0xFF)
 
-	public String getIssuingCountry() {
-		return issuingCountry;
-	}
+    val vdsType: String
+        get() {
+            val vdsType = DataEncoder.getVdsType(documentRef)
+            return vdsType ?: "UNKNOWN"
+        }
 
-	public String getSignerIdentifier() {
-		return signerIdentifier;
-	}
+    val encoded: ByteArray
+        get() {
+            val buffer = Buffer()
+            try {
+                buffer.writeByte(DC.toInt())
+                buffer.writeByte(rawVersion.toInt())
+                buffer.write(DataEncoder.encodeC40(issuingCountry.orEmpty()))
+                buffer.write(DataEncoder.encodeC40(encodedSignerIdentifierandCertificateReference))
+                buffer.write(DataEncoder.encodeDate(issuingDate))
+                buffer.write(DataEncoder.encodeDate(sigDate))
+                buffer.writeByte(docFeatureRef.toInt())
+                buffer.writeByte(docTypeCat.toInt())
+            } catch (e: Exception) {
+                Logger.e("Error while encoding header data: " + e.message)
+            }
+            return buffer.readByteArray()
+        }
 
-	public String getCertificateReference() {
-		return certificateReference;
-	}
+    private val encodedSignerIdentifierandCertificateReference: String
+        get() {
+            return if (rawVersion.toInt() == 2) {
+                String.format("%s%5s", signerIdentifier, certificateReference)
+                    .uppercase().replace(' ', '0')
+            } else if (rawVersion.toInt() == 3) {
+                String.format(
+                    "%s%02x%s",
+                    signerIdentifier,
+                    certificateReference!!.length,
+                    certificateReference
+                ).uppercase()
+            } else {
+                ""
+            }
+        }
 
-	/**
-	 * Returns a string that identifies the signer certificate. The SignerCertRef
-	 * string is build from Signer Identifier (country code || signer id) and
-	 * Certificate Reference. The Signer Identifier maps to the signer certificates
-	 * subject (C || CN) The Certificate Reference will be interpreted as a hex
-	 * string integer that represents the serial number of the signer certificate.
-	 * Leading zeros in Certificate Reference will be cut off. e.g. Signer
-	 * Identifier 'DETS' and CertificateReference '00027' will result in 'DETS27'
-	 *
-	 * @return Formated SignerCertRef all UPPERCASE
-	 */
-	public String getSignerCertRef() {
-		BigInteger certRefInteger = new BigInteger(certificateReference, 16);
-		return String.format("%s%x", signerIdentifier, certRefInteger).toUpperCase();
-	}
+    class Builder(vdsType: String) {
+        var issuingCountry: String? = null
+            private set
+        var signerIdentifier: String? = null
+            private set
+        var certificateReference: String? = null
+            private set
+        var issuingDate: LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault())
+            private set
+        var sigDate: LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault())
+            private set
+        var docFeatureRef: Byte = 0
+            private set
+        var docTypeCat: Byte = 0
+            private set
+        var rawVersion: Byte = 3
+            private set
 
-	public LocalDate getIssuingDate() {
-		return issuingDate;
-	}
+        init {
+            setDocumentType(vdsType)
+        }
 
-	public LocalDate getSigDate() {
-		return sigDate;
-	}
+        fun setIssuingCountry(issuingCountry: String?): Builder {
+            this.issuingCountry = issuingCountry
+            return this
+        }
 
-	public byte getDocFeatureRef() {
-		return docFeatureRef;
-	}
+        fun setSignerIdentifier(signerIdentifier: String?): Builder {
+            this.signerIdentifier = signerIdentifier
+            return this
+        }
 
-	public byte getDocTypeCat() {
-		return docTypeCat;
-	}
+        fun setCertificateReference(certificateReference: String?): Builder {
+            this.certificateReference = certificateReference
+            return this
+        }
 
-	public byte getRawVersion() {
-		return rawVersion;
-	}
+        fun setIssuingDate(issuingDate: LocalDate): Builder {
+            this.issuingDate = issuingDate
+            return this
+        }
 
-	public int getDocumentRef() {
-		return ((docFeatureRef & 0xFF) << 8) + (docTypeCat & 0xFF);
-	}
+        fun setSigDate(sigDate: LocalDate): Builder {
+            this.sigDate = sigDate
+            return this
+        }
 
-	public String getVdsType() {
-		String vdsType = DataEncoder.getVdsType(getDocumentRef());
-		if (vdsType == null)
-			return "UNKNOWN";
-		else
-			return vdsType;
-	}
+        fun setRawVersion(rawVersion: Int): Builder {
+            this.rawVersion = rawVersion.toByte()
+            return this
+        }
 
-	public byte[] getEncoded() {
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		try {
-			baos.write(DC);
-			baos.write(rawVersion);
-			baos.write(DataEncoder.encodeC40(issuingCountry));
-			baos.write(DataEncoder.encodeC40(getEncodedSignerIdentifierandCertificateReference()));
-			baos.write(DataEncoder.encodeDate(issuingDate));
-			baos.write(DataEncoder.encodeDate(sigDate));
-			baos.write(docFeatureRef);
-			baos.write(docTypeCat);
-		} catch (IOException e) {
-			Logger.error("Error while encoding header data: " + e.getMessage());
-		}
-		return baos.toByteArray();
-	}
+        fun build(): VdsHeader {
+            return VdsHeader(this)
+        }
 
-	private String getEncodedSignerIdentifierandCertificateReference() {
-		if (rawVersion == 2) {
-			return String.format("%s%5s", signerIdentifier, certificateReference).toUpperCase().replace(' ', '0');
-		} else if (rawVersion == 3) {
-			return String.format("%s%02x%s", signerIdentifier, certificateReference.length(), certificateReference)
-					.toUpperCase();
-		} else {
-			return "";
-		}
-	}
+        /**
+         * Get signerIdentifier and certificateReference from given X509Certificate.
+         *
+         * @param x509Cert                      X509Certificate to get the
+         * signerIdentifier and the
+         * certificateReference from
+         * @param setIssuingCountryFromX509Cert If true also build the issuing country
+         * code base on the X509Certificate. It
+         * will take the Country code 'C' and
+         * convert it to a 3-letter country code.
+         * @return updated Builder instance
+         */
+        fun setSignerCertRef(x509Cert: X509Certificate, setIssuingCountryFromX509Cert: Boolean): Builder {
+            var signerCertRef: Pair<String, String>? = null
+            try {
+                signerCertRef = DataEncoder.getSignerCertRef(x509Cert)
+            } catch (e: Exception) {
+                Logger.e("Couldn't build header, because getSignerCertRef throws error: " + e.message)
+            }
+            this.signerIdentifier = signerCertRef?.first
+            this.certificateReference = signerCertRef?.second
+            if (setIssuingCountryFromX509Cert) {
+                this.issuingCountry = Doc9303CountryCodes.convertToIcaoOrIso3(signerCertRef?.first?.substring(0, 2))
+            }
+            return this
+        }
 
-	public static VdsHeader fromByteBuffer(ByteBuffer rawdata) {
-		// Magic Byte
-		int magicByte = rawdata.get();
-		if (magicByte != DC) {
-			Logger.error(String.format("Magic Constant mismatch: 0x%02X instead of 0xdc", magicByte));
-			throw new IllegalArgumentException(
-					String.format("Magic Constant mismatch: 0x%02X instead of 0xdc", magicByte));
-		}
+        private fun setDocumentType(vdsType: String) {
+            val docRef = DataEncoder.getDocumentRef(vdsType)
+            this.docFeatureRef = ((docRef shr 8) and 0xFF).toByte()
+            this.docTypeCat = (docRef and 0xFF).toByte()
+        }
+    }
 
-		VdsHeader vdsHeader = new VdsHeader();
+    companion object {
+        const val DC: Byte = 0xDC.toByte()
 
-		vdsHeader.rawVersion = rawdata.get();
-		/*
+        @JvmStatic
+        fun fromBuffer(rawdataBuffer: Buffer): VdsHeader {
+            // Magic Byte
+            val magicByte = rawdataBuffer.readByte()
+            if (magicByte != DC) {
+                Logger.e(String.format("Magic Constant mismatch: 0x%02X instead of 0xdc", magicByte))
+                throw IllegalArgumentException(
+                    String.format("Magic Constant mismatch: 0x%02X instead of 0xdc", magicByte)
+                )
+            }
+
+            val vdsHeader = VdsHeader()
+
+            vdsHeader.rawVersion = rawdataBuffer.readByte()
+            /*
 		 * In ICAO spec for "Visual Digital Seals for Non-Electronic Documents" value
 		 * 0x02 stands for version 3 (uses fix length of Document Signer Reference: 5
 		 * characters) value 0x03 stands for version 4 (uses variable length of Document
 		 * Signer Reference) Problem: German "Arrival Attestation Document" uses value
 		 * 0x03 for rawVersion 3 and static length of Document Signer Reference.
 		 */
-		if (!(vdsHeader.rawVersion == 0x02 || vdsHeader.rawVersion == 0x03)) {
-			Logger.error(String.format("Unsupported rawVersion: 0x%02X", vdsHeader.rawVersion));
-			throw new IllegalArgumentException(String.format("Unsupported rawVersion: 0x%02X", vdsHeader.rawVersion));
-		}
-		// 2 bytes stores the three-letter country
-		vdsHeader.issuingCountry = DataParser.decodeC40(DataParser.getFromByteBuffer(rawdata, 2));
+            if (!(vdsHeader.rawVersion.toInt() == 0x02 || vdsHeader.rawVersion.toInt() == 0x03)) {
+                Logger.e(String.format("Unsupported rawVersion: 0x%02X", vdsHeader.rawVersion))
+                throw IllegalArgumentException(String.format("Unsupported rawVersion: 0x%02X", vdsHeader.rawVersion))
+            }
+            // 2 bytes stores the three-letter country
+            vdsHeader.issuingCountry = DataParser.decodeC40(rawdataBuffer.readByteArray(2))
 
-		rawdata.mark();
+            if (vdsHeader.rawVersion.toInt() == 0x03) { // ICAO version 4
 
-		// 4 bytes stores first 6 characters of Signer & Certificate Reference
-		String signerIdentifierAndCertRefLength = DataParser.decodeC40(DataParser.getFromByteBuffer(rawdata, 4));
-		vdsHeader.signerIdentifier = signerIdentifierAndCertRefLength.substring(0, 4);
+                // 4 bytes stores first 6 characters of Signer & Certificate Reference
+                val signerIdentifierAndCertRefLength = DataParser.decodeC40(rawdataBuffer.readByteArray(4))
+                vdsHeader.signerIdentifier = signerIdentifierAndCertRefLength.substring(0, 4)
+                // the last two characters store the length of the following Certificate
+                // Reference
+                var certRefLength = signerIdentifierAndCertRefLength.substring(4).toInt(16)
+                Logger.d("version 4: certRefLength: $certRefLength")
 
-		if (vdsHeader.rawVersion == 0x03) { // ICAO version 4
-			// the last two characters store the length of the following Certificate
-			// Reference
-			int certRefLength = Integer.parseInt(signerIdentifierAndCertRefLength.substring(4), 16);
-			Logger.debug("version 4: certRefLength: {}", certRefLength);
+                /*
+                 * GAAD HACK: If signer is DEME and rawVersion is 0x03 (which is version 4
+                 * according to ICAO spec) then anyhow use fixed size certification reference
+                 * length and the length characters also used as certificate reference. e.g.
+                 * DEME03123 signerIdenfifier = DEME length of certificate reference: 03 certRef
+                 * = 03123 <-see: here the length is part of the certificate reference which is
+                 * not the case in all other seals except the German
+                 * "Arrival Attestation Document"
+                 */
 
-			/*
-			 * GAAD HACK: If signer is DEME and rawVersion is 0x03 (which is version 4
-			 * according to ICAO spec) then anyhow use fixed size certification reference
-			 * length and the length characters also used as certificate reference. e.g.
-			 * DEME03123 signerIdenfifier = DEME length of certificate reference: 03 certRef
-			 * = 03123 <-see: here the length is part of the certificate reference which is
-			 * not the case in all other seals except the German
-			 * "Arrival Attestation Document"
-			 */
-			boolean gaadHack = (vdsHeader.signerIdentifier.equals("DEME") || vdsHeader.signerIdentifier.equals("DES1"));
-			if (gaadHack) {
-				Logger.debug("Maybe we found a German Arrival Attestation. GAAD Hack will be applied!");
-				certRefLength = 3;
-			}
-			// get number of bytes we have to decode to get the given certification
-			// reference length
-			int bytesToDecode = ((certRefLength - 1) / 3 * 2) + 2;
-			Logger.debug("version 4: bytesToDecode: {}", bytesToDecode);
-			vdsHeader.certificateReference = DataParser.decodeC40(DataParser.getFromByteBuffer(rawdata, bytesToDecode));
-			if (gaadHack) {
-				vdsHeader.certificateReference = signerIdentifierAndCertRefLength.substring(4)
-						+ vdsHeader.certificateReference;
-			}
-		} else { // rawVersion=0x02 -> ICAO version 3
-			rawdata.reset();
-			String signerCertRef = DataParser.decodeC40(DataParser.getFromByteBuffer(rawdata, 6));
-			vdsHeader.certificateReference = signerCertRef.substring(4);
-		}
+                val gaadHack = (vdsHeader.signerIdentifier == "DEME" || vdsHeader.signerIdentifier == "DES1")
+                if (gaadHack) {
+                    Logger.d("Maybe we found a German Arrival Attestation. GAAD Hack will be applied!")
+                    certRefLength = 3
+                }
+                // get number of bytes we have to decode to get the given certification
+                // reference length
+                val bytesToDecode = ((certRefLength - 1) / 3 * 2) + 2
+                Logger.d("version 4: bytesToDecode: $bytesToDecode")
+                vdsHeader.certificateReference =
+                    DataParser.decodeC40(rawdataBuffer.readByteArray(bytesToDecode.toLong()))
+                if (gaadHack) {
+                    vdsHeader.certificateReference = (signerIdentifierAndCertRefLength.substring(4)
+                            + vdsHeader.certificateReference)
+                }
+            } else { // rawVersion=0x02 -> ICAO version 3
+                val signerCertRef = DataParser.decodeC40(rawdataBuffer.readByteArray(6))
+                vdsHeader.signerIdentifier = signerCertRef.substring(0, 4)
+                vdsHeader.certificateReference = signerCertRef.substring(4)
+            }
 
-		vdsHeader.issuingDate = DataParser.decodeDate(DataParser.getFromByteBuffer(rawdata, 3));
-		vdsHeader.sigDate = DataParser.decodeDate(DataParser.getFromByteBuffer(rawdata, 3));
-		vdsHeader.docFeatureRef = rawdata.get();
-		vdsHeader.docTypeCat = rawdata.get();
-		Logger.debug("VdsHeader: {}", vdsHeader);
-		return vdsHeader;
-	}
-
-	public static class Builder {
-		private String issuingCountry;
-		private String signerIdentifier;
-		private String certificateReference;
-		private LocalDate issuingDate = LocalDate.now();
-		private LocalDate sigDate = LocalDate.now();
-		private byte docFeatureRef;
-		private byte docTypeCat;
-		private byte rawVersion = 3;
-
-		public Builder(String vdsType) {
-			setDocumentType(vdsType);
-		}
-
-		public Builder setIssuingCountry(String issuingCountry) {
-			this.issuingCountry = issuingCountry;
-			return this;
-		}
-
-		public Builder setSignerIdentifier(String signerIdentifier) {
-			this.signerIdentifier = signerIdentifier;
-			return this;
-		}
-
-		public Builder setCertificateReference(String certificateReference) {
-			this.certificateReference = certificateReference;
-			return this;
-		}
-
-		public Builder setIssuingDate(LocalDate issuingDate) {
-			this.issuingDate = issuingDate;
-			return this;
-		}
-
-		public Builder setSigDate(LocalDate sigDate) {
-			this.sigDate = sigDate;
-			return this;
-		}
-
-		public Builder setRawVersion(int rawVersion) {
-			this.rawVersion = (byte) rawVersion;
-			return this;
-		}
-
-		public VdsHeader build() {
-			return new VdsHeader(this);
-		}
-
-		/**
-		 * Get signerIdentifier and certificateReference from given X509Certificate.
-		 * 
-		 * @param x509Cert                      X509Certificate to get the
-		 *                                      signerIdentifier and the
-		 *                                      certificateReference from
-		 * @param setIssuingCountryFromX509Cert If true also build the issuing country
-		 *                                      code base on the X509Certificate. It
-		 *                                      will take the Country code 'C' and
-		 *                                      convert it to a 3-letter country code.
-		 * @return updated Builder instance
-		 */
-		public Builder setSignerCertRef(X509Certificate x509Cert, boolean setIssuingCountryFromX509Cert) {
-			String[] signerCertRef = null;
-			try {
-				signerCertRef = DataEncoder.getSignerCertRef(x509Cert);
-			} catch (InvalidNameException e) {
-				Logger.error("Couldn't build header, because getSignerCertRef throws error: " + e.getMessage());
-			}
-			this.signerIdentifier = signerCertRef[0];
-			this.certificateReference = signerCertRef[1];
-			if (setIssuingCountryFromX509Cert) {
-				this.issuingCountry = Doc9303CountryCodes.convertToIcaoOrIso3(signerCertRef[0].substring(0, 2));
-			}
-			return this;
-		}
-
-		private void setDocumentType(String vdsType) {
-			int docRef = DataEncoder.getDocumentRef(vdsType);
-			this.docFeatureRef = (byte) ((docRef >> 8) & 0xFF);
-			this.docTypeCat = (byte) (docRef & 0xFF);
-		}
-	}
-
+            vdsHeader.issuingDate = DataParser.decodeDate(rawdataBuffer.readByteArray(3))
+            vdsHeader.sigDate = DataParser.decodeDate(rawdataBuffer.readByteArray(3))
+            vdsHeader.docFeatureRef = rawdataBuffer.readByte()
+            vdsHeader.docTypeCat = rawdataBuffer.readByte()
+            Logger.d("VdsHeader: $vdsHeader")
+            return vdsHeader
+        }
+    }
 }
