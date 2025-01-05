@@ -1,193 +1,196 @@
-package de.tsenger.vdstools;
+package de.tsenger.vdstools
 
-import org.tinylog.Logger;
+import co.touchlab.kermit.Logger
+import kotlinx.datetime.LocalDate
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.math.BigInteger
+import java.nio.ByteBuffer
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.math.BigInteger;
-import java.nio.ByteBuffer;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.zip.InflaterOutputStream;
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.*
+import java.util.zip.InflaterOutputStream
 
 /**
  * Created by Tobias Senger on 18.01.2017.
  */
+object DataParser {
+    /**
+     * Returns a byte array of the requested size which contains the number of bytes
+     * from the given ByteBuffer beginning at the current pointer of the ByteBuffer.
+     *
+     * @param buffer The ByteBuffer to get the number of bytes from.
+     * @param size   Number of bytes to get from ByteBuffer. Starting from the
+     * internal ByteBuffers pointer
+     * @return byte array of length 'size' with bytes from ByteBuffer
+     */
+    @JvmStatic
+    fun getFromByteBuffer(buffer: ByteBuffer, size: Int): ByteArray {
+        val tmpByteArray = ByteArray(size)
+        if (buffer.position() + size <= buffer.capacity()) {
+            buffer[tmpByteArray]
+        }
+        return tmpByteArray
+    }
 
-public class DataParser {
+    /**
+     * Decodes a byte[] encoded masked date as described in ICAO TR "Datastructure
+     * for Barcode". Returns a date string in format yyyy-MM-dd where unknown parts
+     * of the date are marked with an 'x'. e.g. 19xx-10-xx
+     *
+     * @param maskedDateBytes byte array that contains an encoded masked date
+     * @return date string where unknown parts of the date are marked with an 'x'
+     */
+    @JvmStatic
+    @Throws(IllegalArgumentException::class)
+    fun decodeMaskedDate(maskedDateBytes: ByteArray): String {
+        require(maskedDateBytes.size == 4) { "expected four bytes for masked date decoding" }
+        val mask = maskedDateBytes[0]
+        val intval = (toUnsignedInt(maskedDateBytes[1]).toLong() * 256 * 256 + toUnsignedInt(
+            maskedDateBytes[2]
+        ) * 256L + toUnsignedInt(maskedDateBytes[3]))
+        val day = ((intval % 1000000) / 10000).toInt()
+        val month = (intval / 1000000).toInt()
+        val year = (intval % 10000).toInt()
+        // MMddyyyy
+        val dateCharArray = String.format("%02d%02d%04d", month, day, year).toCharArray()
 
-	/**
-	 * Returns a byte array of the requested size which contains the number of bytes
-	 * from the given ByteBuffer beginning at the current pointer of the ByteBuffer.
-	 * 
-	 * @param buffer The ByteBuffer to get the number of bytes from.
-	 * @param size   Number of bytes to get from ByteBuffer. Starting from the
-	 *               internal ByteBuffers pointer
-	 * @return byte array of length 'size' with bytes from ByteBuffer
-	 */
-	public static byte[] getFromByteBuffer(ByteBuffer buffer, int size) {
-		byte[] tmpByteArray = new byte[size];
-		if (buffer.position() + size <= buffer.capacity()) {
-			buffer.get(tmpByteArray);
-		}
-		return tmpByteArray;
-	}
+        for (i in 0..7) {
+            val unknownBit = ((mask.toInt() shr (7 - i)) and 1).toByte()
+            if (unknownBit.toInt() == 1) {
+                dateCharArray[i] = 'x'
+            }
+        }
+        val dateString = String(dateCharArray)
+        return dateString.replace("(.{2})(.{2})(.{4})".toRegex(), "$3-$1-$2").lowercase(Locale.getDefault())
+    }
 
-	/**
-	 * Decodes a byte[] encoded masked date as described in ICAO TR "Datastructure
-	 * for Barcode". Returns a date string in format yyyy-MM-dd where unknown parts
-	 * of the date are marked with an 'x'. e.g. 19xx-10-xx
-	 * 
-	 * @param maskedDateBytes byte array that contains an encoded masked date
-	 * @return date string where unknown parts of the date are marked with an 'x'
-	 */
-	public static String decodeMaskedDate(byte[] maskedDateBytes) throws IllegalArgumentException {
-		if (maskedDateBytes.length != 4) {
-			throw new IllegalArgumentException("expected four bytes for masked date decoding");
-		}
-		byte mask = maskedDateBytes[0];
-		long intval = (long) toUnsignedInt(maskedDateBytes[1]) * 256 * 256 + toUnsignedInt(maskedDateBytes[2]) * 256L
-				+ toUnsignedInt(maskedDateBytes[3]);
-		int day = (int) ((intval % 1000000) / 10000);
-		int month = (int) (intval / 1000000);
-		int year = (int) (intval % 10000);
-		// MMddyyyy
-		char[] dateCharArray = String.format("%02d%02d%04d", month, day, year).toCharArray();
+    fun decodeDate(dateBytes: ByteArray): LocalDate {
+        require(dateBytes.size == 3) { "expected three bytes for date decoding" }
 
-		for (int i = 0; i < 8; i++) {
-			byte unknownBit = (byte) ((mask >> (7 - i)) & 1);
-			if (unknownBit == 1) {
-				dateCharArray[i] = 'x';
-			}
-		}
-		String dateString = String.valueOf(dateCharArray);
-        return dateString.replaceAll("(.{2})(.{2})(.{4})", "$3-$1-$2").toLowerCase();
-	}
+        val intval =
+            (toUnsignedInt(dateBytes[0]).toLong() * 256 * 256 + toUnsignedInt(dateBytes[1]) * 256L + toUnsignedInt(
+                dateBytes[2]
+            ))
+        val day = ((intval % 1000000) / 10000).toInt()
+        val month = (intval / 1000000).toInt()
+        val year = (intval % 10000).toInt()
 
-	public static LocalDate decodeDate(byte[] dateBytes) {
-		if (dateBytes.length != 3) {
-			throw new IllegalArgumentException("expected three bytes for date decoding");
-		}
+        return LocalDate(year, month, day)
+    }
 
-		long intval = (long) toUnsignedInt(dateBytes[0]) * 256 * 256 + toUnsignedInt(dateBytes[1]) * 256L
-				+ toUnsignedInt(dateBytes[2]);
-		int day = (int) ((intval % 1000000) / 10000);
-		int month = (int) (intval / 1000000);
-		int year = (int) (intval % 10000);
+    /**
+     * Decodes a byte[] encoded datetime as described in ICAO TR "Datastructure for
+     * Barcode". Returns a LocalDateTime object
+     *
+     * @param dateTimeBytes byte array with length 6 which contains encoded datetime
+     * @return LocalDateTime object
+     */
+    @JvmStatic
+    fun decodeDateTime(dateTimeBytes: ByteArray): LocalDateTime {
+        require(dateTimeBytes.size == 6) { "expected three bytes for date decoding" }
+        val dateBigInt = BigInteger(dateTimeBytes)
+        val pattern = DateTimeFormatter.ofPattern("MMddyyyyHHmmss")
+        return LocalDateTime.parse(String.format("%014d", dateBigInt), pattern)
+    }
 
-		return LocalDate.of(year, month, day);
-	}
+    @JvmStatic
+    fun parseDerTLvs(rawBytes: ByteArray): List<DerTlv> {
+        val rawData = ByteBuffer.wrap(rawBytes)
+        val derTlvList: MutableList<DerTlv> = ArrayList()
+        while (rawData.hasRemaining()) {
+            val tag = rawData.get()
 
-	/**
-	 * Decodes a byte[] encoded datetime as described in ICAO TR "Datastructure for
-	 * Barcode". Returns a LocalDateTime object
-	 * 
-	 * @param dateTimeBytes byte array with length 6 which contains encoded datetime
-	 * @return LocalDateTime object
-	 */
-	public static LocalDateTime decodeDateTime(byte[] dateTimeBytes) {
-		if (dateTimeBytes.length != 6) {
-			throw new IllegalArgumentException("expected three bytes for date decoding");
-		}
-		BigInteger dateBigInt = new BigInteger(dateTimeBytes);
-		DateTimeFormatter pattern = DateTimeFormatter.ofPattern("MMddyyyyHHmmss");
-        return LocalDateTime.parse(String.format("%014d", dateBigInt), pattern);
-	}
+            var le = rawData.get().toInt() and 0xff
+            if (le == 0x81) {
+                le = rawData.get().toInt() and 0xff
+            } else if (le == 0x82) {
+                le = ((rawData.get().toInt() and 0xff) * 0x100) + (rawData.get().toInt() and 0xff)
+            } else if (le == 0x83) {
+                le = ((rawData.get().toInt() and 0xff) * 0x1000) + ((rawData.get()
+                    .toInt() and 0xff) * 0x100) + (rawData.get().toInt() and 0xff)
+            } else if (le > 0x7F) {
+                Logger.e(String.format("can't decode length: 0x%02X", le))
+                throw IllegalArgumentException(String.format("can't decode length: 0x%02X", le))
+            }
+            val `val` = getFromByteBuffer(rawData, le)
+            derTlvList.add(DerTlv(tag, `val`))
+        }
+        return derTlvList
+    }
 
-	public static List<DerTlv> parseDerTLvs(byte[] rawBytes) {
-		ByteBuffer rawData = ByteBuffer.wrap(rawBytes);
-		List<DerTlv> derTlvList = new ArrayList<>();
-		while (rawData.hasRemaining()) {
-			byte tag = rawData.get();
+    private fun toUnsignedInt(value: Byte): Int {
+        return (value.toInt() and 0x7F) + (if (value < 0) 128 else 0)
+    }
 
-			int le = rawData.get() & 0xff;
-			if (le == 0x81) {
-				le = rawData.get() & 0xff;
-			} else if (le == 0x82) {
-				le = ((rawData.get() & 0xff) * 0x100) + (rawData.get() & 0xff);
-			} else if (le == 0x83) {
-				le = ((rawData.get() & 0xff) * 0x1000) + ((rawData.get() & 0xff) * 0x100) + (rawData.get() & 0xff);
-			} else if (le > 0x7F) {
-				Logger.error(String.format("can't decode length: 0x%02X", le));
-				throw new IllegalArgumentException(String.format("can't decode length: 0x%02X", le));
-			}
-			byte[] val = DataParser.getFromByteBuffer(rawData, le);
-			derTlvList.add(new DerTlv(tag, val));
-		}
-		return derTlvList;
-	}
+    @JvmStatic
+    fun decodeC40(bytes: ByteArray): String {
+        val sb = StringBuilder()
 
-	private static int toUnsignedInt(byte value) {
-		return (value & 0x7F) + (value < 0 ? 128 : 0);
-	}
+        for (idx in bytes.indices) {
+            if (idx % 2 == 0) {
+                val i1 = bytes[idx]
+                val i2 = bytes[idx + 1]
 
-	public static String decodeC40(byte[] bytes) {
-		StringBuilder sb = new StringBuilder();
+                if (i1 == 0xFE.toByte()) {
+                    sb.append((i2 - 1).toChar())
+                } else {
+                    var v16 = (toUnsignedInt(i1) shl 8) + toUnsignedInt(i2) - 1
+                    var temp = v16 / 1600
+                    val u1 = temp
+                    v16 -= temp * 1600
+                    temp = v16 / 40
+                    val u2 = temp
+                    val u3 = v16 - temp * 40
 
-		for (int idx = 0; idx < bytes.length; idx++) {
-			if (idx % 2 == 0) {
-				byte i1 = bytes[idx];
-				byte i2 = bytes[idx + 1];
+                    if (u1 != 0) {
+                        sb.append(toChar(u1))
+                    }
+                    if (u2 != 0) {
+                        sb.append(toChar(u2))
+                    }
+                    if (u3 != 0) {
+                        sb.append(toChar(u3))
+                    }
+                }
+            }
+        }
+        return sb.toString()
+    }
 
-				if (i1 == (byte) 0xFE) {
-					sb.append((char) (i2 - 1));
-				} else {
-					int v16 = (toUnsignedInt(i1) << 8) + toUnsignedInt(i2) - 1;
-					int temp = v16 / 1600;
-					int u1 = temp;
-					v16 -= temp * 1600;
-					temp = v16 / 40;
-					int u2 = temp;
-					int u3 = v16 - temp * 40;
+    private fun toChar(intValue: Int): Char {
+        if (intValue == 3) {
+            return 32.toChar()
+        } else if (intValue >= 4 && intValue <= 13) {
+            return (intValue + 44).toChar()
+        } else if (intValue >= 14 && intValue <= 39) {
+            return (intValue + 51).toChar()
+        }
 
-					if (u1 != 0) {
-						sb.append(toChar(u1));
-					}
-					if (u2 != 0) {
-						sb.append(toChar(u2));
-					}
-					if (u3 != 0) {
-						sb.append(toChar(u3));
-					}
-				}
-			}
-		}
-		return sb.toString();
-	}
+        // if character is unknown return "?"
+        return 63.toChar()
+    }
 
-	private static char toChar(int intValue) {
-		if (intValue == 3) {
-			return (char) 32;
-		} else if (intValue >= 4 && intValue <= 13) {
-			return (char) (intValue + 44);
-		} else if (intValue >= 14 && intValue <= 39) {
-			return (char) (intValue + 51);
-		}
+    fun decodeBase256(s: String): ByteArray {
+        val ca = s.toCharArray()
+        val ba = ByteArray(ca.size)
+        for (i in ba.indices) {
+            ba[i] = ca[i].code.toByte()
+        }
+        return ba
+    }
 
-		// if character is unknown return "?"
-		return (char) 63;
-	}
-
-	public static byte[] decodeBase256(String s) {
-		char[] ca = s.toCharArray();
-		byte[] ba = new byte[ca.length];
-		for (int i = 0; i < ba.length; i++) {
-			ba[i] = (byte) ca[i];
-		}
-		return ba;
-	}
-
-	public static byte[] unzip(byte[] bytesToDecompress) throws IOException {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		InflaterOutputStream infos = new InflaterOutputStream(bos);
-		infos.write(bytesToDecompress);
-		infos.finish();
-		byte[] decompressedBytes = bos.toByteArray();
-		bos.close();
-		infos.close();
-		return decompressedBytes;
-	}
+    @JvmStatic
+    @Throws(IOException::class)
+    fun unzip(bytesToDecompress: ByteArray): ByteArray {
+        val bos = ByteArrayOutputStream()
+        val infos = InflaterOutputStream(bos)
+        infos.write(bytesToDecompress)
+        infos.finish()
+        val decompressedBytes = bos.toByteArray()
+        bos.close()
+        infos.close()
+        return decompressedBytes
+    }
 }

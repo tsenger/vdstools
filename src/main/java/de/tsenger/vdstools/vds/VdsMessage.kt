@@ -73,7 +73,7 @@ class VdsMessage {
 
     companion object {
         @JvmStatic
-		fun fromByteArray(rawBytes: ByteArray?, vdsType: String?): VdsMessage {
+        fun fromByteArray(rawBytes: ByteArray, vdsType: String): VdsMessage {
             val derTlvList = DataParser.parseDerTLvs(rawBytes)
             return VdsMessage(vdsType, derTlvList)
         }

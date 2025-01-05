@@ -1,6 +1,6 @@
 package de.tsenger.vdstools
 
-import at.asitplus.signum.indispensable.pki.X509Certificate
+
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.vds.Feature
 import kotlinx.datetime.LocalDate
@@ -11,15 +11,11 @@ import java.math.BigInteger
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.security.NoSuchProviderException
-import java.security.cert.CertificateEncodingException
-
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.zip.Deflater
 import java.util.zip.DeflaterOutputStream
-import javax.naming.InvalidNameException
-import javax.naming.ldap.LdapName
 
 object DataEncoder {
     private var featureEncoder: FeatureConverter
@@ -29,41 +25,42 @@ object DataEncoder {
     }
 
 
-    /**
-     * Return the Signer Identifier and the Certificate Reference based on the
-     * given X.509. Signer Identifier is C + CN Certificate Reference is the serial
-     * number of the X509Certificate. It will be encoded as hex string
-     *
-     * @param cert X509 certificate to get the signer information from
-     * @return String array that contains the signerIdentifier at index 0 and
-     * CertRef at index 1
-     * @throws InvalidNameException if a syntax violation is detected.
-     */
-    @JvmStatic
-    @Throws(InvalidNameException::class)
-    fun getSignerCertRef(cert: X509Certificate): Pair<String, String> {
-//TODO use new X509-Lib correct
-        val ln = LdapName(cert.tbsCertificate.subjectName[0].attrsAndValues[0]. .subjectX500Principal.name)
-
-        var c = ""
-        var cn = ""
-        for (rdn in ln.rdns) {
-            if (rdn.type.equals("CN", ignoreCase = true)) {
-                cn = rdn.value as String
-                Logger.d("CN is: $cn")
-            } else if (rdn.type.equals("C", ignoreCase = true)) {
-                c = rdn.value as String
-                Logger.d("C is: $c")
-            }
-        }
-
-        val ccn = String.format("%s%s", c, cn).uppercase()
-        val serial = cert.serialNumber.toString(16) // Serial Number as Hex
-        val signerCertRef = Pair(ccn, serial)
-
-        Logger.i("generated signerCertRef: " + signerCertRef.first + signerCertRef.second)
-        return signerCertRef
-    }
+//    /**
+//     * Return the Signer Identifier and the Certificate Reference based on the
+//     * given X.509. Signer Identifier is C + CN Certificate Reference is the serial
+//     * number of the X509Certificate. It will be encoded as hex string
+//     *
+//     * @param cert X509 certificate to get the signer information from
+//     * @return String array that contains the signerIdentifier at index 0 and
+//     * CertRef at index 1
+//     * @throws InvalidNameException if a syntax violation is detected.
+//     */
+//    @JvmStatic
+//    @Throws(InvalidNameException::class)
+//    fun getSignerCertRef(cert: X509Certificate): Pair<String, String> {
+//    //TODO use new X509-Lib correct
+//        val ln = LdapName(cert.subjectX500Principal.name)
+//
+//        var c = ""
+//        var cn = ""
+//        for (rdn in ln.rdns) {
+//            if (rdn.type.equals("CN", ignoreCase = true)) {
+//                cn = rdn.value as String
+//                Logger.d("CN is: $cn")
+//            } else if (rdn.type.equals("C", ignoreCase = true)) {
+//                c = rdn.value as String
+//                Logger.d("C is: $c")
+//            }
+//        }
+//
+//        val ccn = String.format("%s%s", c, cn).uppercase()
+//        val serial = cert.serialNumber.toString(16) // Serial Number as Hex
+//        val signerCertRef = Pair(ccn, serial)
+//
+//        Logger.i("generated signerCertRef: " + signerCertRef.first + signerCertRef.second)
+//        return signerCertRef
+//
+//    }
 
     /**
      * @param dateString Date as String formated as yyyy-MM-dd
@@ -84,8 +81,10 @@ object DataEncoder {
     fun encodeDate(localDate: LocalDate?): ByteArray {
         if (localDate == null) return ByteArray(0)
 
-        val formattedDate: String =
-            localDate.monthNumber.toString() + localDate.dayOfMonth.toString() + localDate.year.toString()
+        val formattedDate: String = String.format(
+            "%02d%02d%d", localDate.monthNumber, localDate.dayOfMonth, localDate.year
+        )
+
         val dateInt = formattedDate.toInt()
         return byteArrayOf((dateInt ushr 16).toByte(), (dateInt ushr 8).toByte(), dateInt.toByte())
 
@@ -224,19 +223,16 @@ object DataEncoder {
     }
 
     @JvmStatic
-    fun buildCertificateReference(cert: X509Certificate): ByteArray? {
+    fun buildCertificateReference(certificateBytes: ByteArray): ByteArray? {
         val messageDigest: MessageDigest
         try {
             messageDigest = MessageDigest.getInstance("SHA1", "BC")
-            val certSha1 = messageDigest.digest(cert.encoded)
+            val certSha1 = messageDigest.digest(certificateBytes)
             return Arrays.copyOfRange(certSha1, 15, 20)
         } catch (e: NoSuchAlgorithmException) {
             Logger.e("Failed building Certificate Reference: " + e.message)
             return null
         } catch (e: NoSuchProviderException) {
-            Logger.e("Failed building Certificate Reference: " + e.message)
-            return null
-        } catch (e: CertificateEncodingException) {
             Logger.e("Failed building Certificate Reference: " + e.message)
             return null
         }
@@ -250,7 +246,7 @@ object DataEncoder {
     }
 
     @JvmStatic
-    fun getVdsType(documentRef: Int): String {
+    fun getVdsType(documentRef: Int): String? {
         return featureEncoder.getVdsType(documentRef)
     }
 

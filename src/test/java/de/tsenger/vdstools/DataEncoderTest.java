@@ -1,30 +1,22 @@
 package de.tsenger.vdstools;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.Security;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
-import javax.naming.InvalidNameException;
-
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.security.*;
+import java.security.cert.CertificateException;
+import java.text.ParseException;
+import java.time.LocalDateTime;
+
+import static org.junit.Assert.assertEquals;
+
 public class DataEncoderTest {
 
-	//@formatter:off
+    //@formatter:off
 
 	static String keyStorePassword = "vdstools";
 	static String keyStoreFile = "src/test/resources/vdstools_testcerts.bks";
@@ -40,14 +32,14 @@ public class DataEncoderTest {
 		fis.close();
 	}
 
-	@Test
-	public void testEncodeDate_Now() {
-		LocalDate ldNow = LocalDate.now();
-		System.out.println("LocalDate.now(): " + ldNow);
-		byte[] encodedDate = DataEncoder.encodeDate(ldNow);
-		System.out.println("encodedDate: " + Hex.toHexString(encodedDate));
-		assertEquals(ldNow, DataParser.decodeDate(encodedDate));
-	}
+//	@Test
+//	public void testEncodeDate_Now() {
+//		LocalDate ldNow = LocalDate.now();
+//		System.out.println("LocalDate.now(): " + ldNow);
+//		byte[] encodedDate = DataEncoder.encodeDate(ldNow);
+//		System.out.println("encodedDate: " + Hex.toHexString(encodedDate));
+//		assertEquals(ldNow, DataParser.decodeDate(encodedDate));
+//	}
 
 	@Test
 	public void testEncodeDateString() throws ParseException {
@@ -135,14 +127,14 @@ public class DataEncoderTest {
 		assertEquals("8d7ad8", Hex.toHexString(encodedDate));
 	}
 
-	@Test
-	public void testGetSignerCertRef() throws InvalidNameException, KeyStoreException {
-		X509Certificate cert = (X509Certificate) keystore.getCertificate("dets32");
-		String signerCertRef[] = DataEncoder.getSignerCertRef(cert);
-
-		assertEquals("DETS", signerCertRef[0]);
-		assertEquals("32", signerCertRef[1]);
-	}
+//	@Test
+//	public void testGetSignerCertRef() throws InvalidNameException, KeyStoreException {
+//		X509Certificate cert = (X509Certificate) keystore.getCertificate("dets32");
+//		String signerCertRef[] = DataEncoder.getSignerCertRef(cert);
+//
+//		assertEquals("DETS", signerCertRef[0]);
+//		assertEquals("32", signerCertRef[1]);
+//	}
 
 	@Test
 	public void testZip() throws IOException {
@@ -155,11 +147,11 @@ public class DataEncoderTest {
 				Hex.toHexString(compressedBytes));
 	}
 	
-	@Test
-	public void testGetCertificateReference() throws KeyStoreException {
-		X509Certificate cert = (X509Certificate) keystore.getCertificate("dets32");
-		byte[] certRef = DataEncoder.buildCertificateReference(cert);
-		System.out.println(Hex.toHexString(certRef));
-		assertEquals("998b56e575", Hex.toHexString(certRef));
-	}
+//	@Test
+//	public void testGetCertificateReference() throws KeyStoreException {
+//		X509Certificate cert = (X509Certificate) keystore.getCertificate("dets32");
+//		byte[] certRef = DataEncoder.buildCertificateReference(cert);
+//		System.out.println(Hex.toHexString(certRef));
+//		assertEquals("998b56e575", Hex.toHexString(certRef));
+//	}
 }

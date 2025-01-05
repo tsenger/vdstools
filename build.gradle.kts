@@ -32,7 +32,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
     implementation("com.squareup.okio:okio:3.9.1")
     implementation("co.touchlab:kermit:2.0.4")
-    implementation("at.asitplus.signum:indispensable:3.12.0")
     testImplementation("org.jetbrains.kotlin:kotlin-test:2.1.0")
 
 }

@@ -3,13 +3,11 @@ package de.tsenger.vdstools.vds
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.DataParser
-import de.tsenger.vdstools.Doc9303CountryCodes
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
 import okio.Buffer
-import java.security.cert.X509Certificate
 
 
 class VdsHeader {
@@ -57,7 +55,7 @@ class VdsHeader {
          */
         get() {
             val certRefInteger = certificateReference?.trimStart('0')?.ifEmpty { "0" }
-            return String.format("%s%x", signerIdentifier, certRefInteger).uppercase()
+            return String.format("%s%s", signerIdentifier, certRefInteger).uppercase()
         }
 
     val documentRef: Int
@@ -160,32 +158,32 @@ class VdsHeader {
             return VdsHeader(this)
         }
 
-        /**
-         * Get signerIdentifier and certificateReference from given X509Certificate.
-         *
-         * @param x509Cert                      X509Certificate to get the
-         * signerIdentifier and the
-         * certificateReference from
-         * @param setIssuingCountryFromX509Cert If true also build the issuing country
-         * code base on the X509Certificate. It
-         * will take the Country code 'C' and
-         * convert it to a 3-letter country code.
-         * @return updated Builder instance
-         */
-        fun setSignerCertRef(x509Cert: X509Certificate, setIssuingCountryFromX509Cert: Boolean): Builder {
-            var signerCertRef: Pair<String, String>? = null
-            try {
-                signerCertRef = DataEncoder.getSignerCertRef(x509Cert)
-            } catch (e: Exception) {
-                Logger.e("Couldn't build header, because getSignerCertRef throws error: " + e.message)
-            }
-            this.signerIdentifier = signerCertRef?.first
-            this.certificateReference = signerCertRef?.second
-            if (setIssuingCountryFromX509Cert) {
-                this.issuingCountry = Doc9303CountryCodes.convertToIcaoOrIso3(signerCertRef?.first?.substring(0, 2))
-            }
-            return this
-        }
+//        /**
+//         * Get signerIdentifier and certificateReference from given X509Certificate.
+//         *
+//         * @param x509Cert                      X509Certificate to get the
+//         * signerIdentifier and the
+//         * certificateReference from
+//         * @param setIssuingCountryFromX509Cert If true also build the issuing country
+//         * code base on the X509Certificate. It
+//         * will take the Country code 'C' and
+//         * convert it to a 3-letter country code.
+//         * @return updated Builder instance
+//         */
+//        fun setSignerCertRef(x509Cert: X509Certificate, setIssuingCountryFromX509Cert: Boolean): Builder {
+//            var signerCertRef: Pair<String, String>? = null
+//            try {
+//                signerCertRef = DataEncoder.getSignerCertRef(x509Cert)
+//            } catch (e: Exception) {
+//                Logger.e("Couldn't build header, because getSignerCertRef throws error: " + e.message)
+//            }
+//            this.signerIdentifier = signerCertRef?.first
+//            this.certificateReference = signerCertRef?.second
+//            if (setIssuingCountryFromX509Cert) {
+//                this.issuingCountry = Doc9303CountryCodes.convertToIcaoOrIso3(signerCertRef?.first?.substring(0, 2))
+//            }
+//            return this
+//        }
 
         private fun setDocumentType(vdsType: String) {
             val docRef = DataEncoder.getDocumentRef(vdsType)
@@ -266,6 +264,7 @@ class VdsHeader {
                 vdsHeader.certificateReference = signerCertRef.substring(4)
             }
 
+            //TODO
             vdsHeader.issuingDate = DataParser.decodeDate(rawdataBuffer.readByteArray(3))
             vdsHeader.sigDate = DataParser.decodeDate(rawdataBuffer.readByteArray(3))
             vdsHeader.docFeatureRef = rawdataBuffer.readByte()
