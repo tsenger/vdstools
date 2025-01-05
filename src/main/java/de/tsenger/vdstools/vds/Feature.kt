@@ -1,44 +1,29 @@
-package de.tsenger.vdstools.vds;
+package de.tsenger.vdstools.vds
 
-import org.bouncycastle.util.encoders.Hex;
 
-public class Feature {
-	private final Object value;
-	private final FeatureCoding coding;
-	private final String name;
+class Feature(private val name: String, private val value: Any, private val coding: FeatureCoding) {
+    fun coding(): FeatureCoding {
+        return coding
+    }
 
-	public FeatureCoding coding() {
-		return coding;
-	}
+    fun name(): String {
+        return name
+    }
 
-	public String name() {
-		return name;
-	}
+    @OptIn(ExperimentalStdlibApi::class)
+    fun valueStr(): String {
+        return when (coding) {
+            FeatureCoding.C40, FeatureCoding.UTF8_STRING -> value as String
+            FeatureCoding.BYTE -> valueInt().toString()
+            FeatureCoding.BYTES -> (value as ByteArray).toHexString()
+        }
+    }
 
-	public Feature(String name, Object value, FeatureCoding coding) {
-		this.name = name;
-		this.value = value;
-		this.coding = coding;
-	}
+    fun valueBytes(): ByteArray {
+        return value as ByteArray
+    }
 
-	public String valueStr() {
-		switch(coding) {
-			case C40:
-			case UTF8_STRING:
-				return (String) value;
-			case BYTE:
-				return String.valueOf(valueInt());
-			case BYTES:
-			default:
-				return Hex.toHexString((byte[]) value);
-		}
-	}
-
-	public byte[] valueBytes() {
-		return (byte[]) value;
-	}
-
-	public int valueInt() {
-		return ((byte)value)&0xFF;
-	}
+    fun valueInt(): Int {
+        return (value as Byte).toInt() and 0xFF
+    }
 }

@@ -1,75 +1,77 @@
-package de.tsenger.vdstools.vds;
+package de.tsenger.vdstools.vds
 
-import de.tsenger.vdstools.DerTlv;
-import org.bouncycastle.asn1.ASN1EncodableVector;
-import org.bouncycastle.asn1.ASN1Integer;
-import org.bouncycastle.asn1.DERSequence;
-import org.bouncycastle.util.encoders.Hex;
-import org.tinylog.Logger;
+import co.touchlab.kermit.Logger
+import de.tsenger.vdstools.DerTlv
+import org.bouncycastle.asn1.ASN1EncodableVector
+import org.bouncycastle.asn1.ASN1Integer
+import org.bouncycastle.asn1.DERSequence
+import org.bouncycastle.util.encoders.Hex
 
-import java.io.IOException;
-import java.math.BigInteger;
+import java.math.BigInteger
 
-public class VdsSignature {
-	public static final byte TAG = (byte) 0xff;
-	private final byte[] plainSignatureBytes;
+class VdsSignature
+/**
+ * @param plainSignatureBytes signature bytes in plain format: r||s
+ */(
+    /**
+     * Returns signature bytes in plain format: r||s
+     *
+     * @return r||s signature byte array
+     */
+    @JvmField val plainSignatureBytes: ByteArray
+) {
+    val derSignatureBytes: ByteArray?
+        /**
+         * Returns signature in format ECDSASignature ::= SEQUENCE { r INTEGER, s
+         * INTEGER }
+         *
+         * @return ASN1 DER encoded signature as byte array
+         */
+        get() {
+            val r = ByteArray((plainSignatureBytes.size / 2))
+            val s = ByteArray((plainSignatureBytes.size / 2))
 
-	/**
-	 * @param plainSignatureBytes signature bytes in plain format: r||s
-	 */
-	public VdsSignature(byte[] plainSignatureBytes) {
-		this.plainSignatureBytes = plainSignatureBytes;
-	}
+            System.arraycopy(plainSignatureBytes, 0, r, 0, r.size)
+            System.arraycopy(plainSignatureBytes, r.size, s, 0, s.size)
 
-	/**
-	 * Returns signature in format ECDSASignature ::= SEQUENCE { r INTEGER, s
-	 * INTEGER }
-	 *
-	 * @return ASN1 DER encoded signature as byte array
-	 */
-	public byte[] getDerSignatureBytes() {
-		byte[] r = new byte[(plainSignatureBytes.length / 2)];
-		byte[] s = new byte[(plainSignatureBytes.length / 2)];
+            val v = ASN1EncodableVector()
+            v.add(ASN1Integer(BigInteger(1, r)))
+            v.add(ASN1Integer(BigInteger(1, s)))
+            val derSeq = DERSequence(v)
 
-		System.arraycopy(plainSignatureBytes, 0, r, 0, r.length);
-		System.arraycopy(plainSignatureBytes, r.length, s, 0, s.length);
+            var derSignatureBytes: ByteArray? = null
+            try {
+                derSignatureBytes = derSeq.encoded
+                Logger.d(
+                    "Signature sequence bytes: 0x" + Hex.toHexString(
+                        derSignatureBytes
+                    )
+                )
+            } catch (e: Exception) {
+                Logger.e("Couldn't parse r and s to DER Sequence Signature Bytes.")
+            }
+            return derSignatureBytes
+        }
 
-		ASN1EncodableVector v = new ASN1EncodableVector();
-		v.add(new ASN1Integer(new BigInteger(1, r)));
-		v.add(new ASN1Integer(new BigInteger(1, s)));
-		DERSequence derSeq = new DERSequence(v);
+    val encoded: ByteArray
+        get() {
+            val derSignature = DerTlv(TAG, plainSignatureBytes)
+            return derSignature.encoded
+        }
 
-		byte[] derSignatureBytes = null;
-		try {
-			derSignatureBytes = derSeq.getEncoded();
-			Logger.debug("Signature sequence bytes: 0x" + Hex.toHexString(derSignatureBytes));
-		} catch (IOException e) {
-			Logger.error("Couldn't parse r and s to DER Sequence Signature Bytes.");
-		}
-		return derSignatureBytes;
-	}
+    companion object {
+        const val TAG: Byte = 0xff.toByte()
 
-	/**
-	 * Returns signature bytes in plain format: r||s
-	 *
-	 * @return r||s signature byte array
-	 */
-	public byte[] getPlainSignatureBytes() {
-		return plainSignatureBytes;
-	}
-
-	public byte[] getEncoded() throws IOException {
-		DerTlv derSignature = new DerTlv(TAG, plainSignatureBytes);
-		return derSignature.getEncoded();
-	}
-
-	public static VdsSignature fromByteArray(byte[] rawBytes) throws IOException {
-		if (rawBytes[0] != TAG) {
-			throw new IllegalArgumentException(
-					String.format("VdsSignature shall have tag %2X, but tag %2X was found instead.", TAG, rawBytes[0]));
-		}
-		DerTlv derTlv = DerTlv.fromByteArray(rawBytes);
-		return new VdsSignature(derTlv.getValue());
-	}
-
+        @JvmStatic
+        fun fromByteArray(rawBytes: ByteArray): VdsSignature {
+            require(rawBytes[0] == TAG) {
+                String.format(
+                    "VdsSignature shall have tag %2X, but tag %2X was found instead.", TAG,
+                    rawBytes[0]
+                )
+            }
+            val derTlv = DerTlv.fromByteArray(rawBytes)
+            return VdsSignature(derTlv.value)
+        }
+    }
 }

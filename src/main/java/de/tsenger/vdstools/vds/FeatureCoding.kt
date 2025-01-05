@@ -1,6 +1,6 @@
-package de.tsenger.vdstools.vds;
+package de.tsenger.vdstools.vds
 
-public enum FeatureCoding {
+enum class FeatureCoding {
     C40,
     UTF8_STRING,
     BYTES,

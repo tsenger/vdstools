@@ -7,8 +7,7 @@ import de.tsenger.vdstools.DerTlv
 import de.tsenger.vdstools.Signer
 import kotlinx.datetime.LocalDate
 import okio.Buffer
-import org.bouncycastle.util.Arrays
-import org.bouncycastle.util.encoders.Hex
+
 
 import java.io.IOException
 
@@ -58,15 +57,11 @@ class DigitalSeal {
         get() = vdsHeader.docTypeCat
 
     val headerAndMessageBytes: ByteArray
-        get() = Arrays.concatenate(vdsHeader.encoded, vdsMessage.encoded)
+        get() = vdsHeader.encoded + vdsMessage.encoded
 
     @get:Throws(IOException::class)
     val encoded: ByteArray
-        get() = Arrays.concatenate(
-            vdsHeader.encoded,
-            vdsMessage.encoded,
-            vdsSignature!!.encoded
-        )
+        get() = vdsHeader.encoded + vdsMessage.encoded + (vdsSignature?.encoded ?: ByteArray(0))
 
     val signatureBytes: ByteArray
         get() = vdsSignature!!.plainSignatureBytes
@@ -83,7 +78,7 @@ class DigitalSeal {
     }
 
     private fun createVdsSignature(vdsHeader: VdsHeader, vdsMessage: VdsMessage, signer: Signer): VdsSignature? {
-        val headerMessage = Arrays.concatenate(vdsHeader.encoded, vdsMessage.encoded)
+        val headerMessage = vdsHeader.encoded + vdsMessage.encoded
         try {
             val signatureBytes = signer.sign(headerMessage)
             return VdsSignature(signatureBytes)
@@ -118,10 +113,11 @@ class DigitalSeal {
             return seal
         }
 
+        @OptIn(ExperimentalStdlibApi::class)
         @Throws(IOException::class)
         private fun parseVdsSeal(rawBytes: ByteArray): DigitalSeal {
             val rawDataBuffer = Buffer().write(rawBytes)
-            Logger.v("rawData: ${Hex.toHexString(rawBytes)}")
+            Logger.v("rawData: ${rawBytes.toHexString()}")
 
             val vdsHeader = VdsHeader.fromBuffer(rawDataBuffer)
             var vdsSignature: VdsSignature? = null
