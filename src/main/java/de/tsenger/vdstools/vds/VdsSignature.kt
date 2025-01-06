@@ -1,13 +1,9 @@
 package de.tsenger.vdstools.vds
 
-import co.touchlab.kermit.Logger
-import de.tsenger.vdstools.DerTlv
-import org.bouncycastle.asn1.ASN1EncodableVector
-import org.bouncycastle.asn1.ASN1Integer
-import org.bouncycastle.asn1.DERSequence
-import org.bouncycastle.util.encoders.Hex
 
-import java.math.BigInteger
+import co.touchlab.kermit.Logger
+import de.tsenger.vdstools.asn1.ASN1Encoder
+import de.tsenger.vdstools.asn1.DerTlv
 
 class VdsSignature
 /**
@@ -20,7 +16,8 @@ class VdsSignature
      */
     @JvmField val plainSignatureBytes: ByteArray
 ) {
-    val derSignatureBytes: ByteArray?
+    @OptIn(ExperimentalStdlibApi::class)
+    val derSignatureBytes: ByteArray
         /**
          * Returns signature in format ECDSASignature ::= SEQUENCE { r INTEGER, s
          * INTEGER }
@@ -28,28 +25,15 @@ class VdsSignature
          * @return ASN1 DER encoded signature as byte array
          */
         get() {
-            val r = ByteArray((plainSignatureBytes.size / 2))
-            val s = ByteArray((plainSignatureBytes.size / 2))
+            val r = plainSignatureBytes.copyOfRange(0, plainSignatureBytes.size / 2)
+            val s = plainSignatureBytes.copyOfRange(plainSignatureBytes.size / 2, plainSignatureBytes.size)
 
-            System.arraycopy(plainSignatureBytes, 0, r, 0, r.size)
-            System.arraycopy(plainSignatureBytes, r.size, s, 0, s.size)
 
-            val v = ASN1EncodableVector()
-            v.add(ASN1Integer(BigInteger(1, r)))
-            v.add(ASN1Integer(BigInteger(1, s)))
-            val derSeq = DERSequence(v)
+            val rEncoded = ASN1Encoder.getDerInteger(r)
+            val sEncoded = ASN1Encoder.getDerInteger(s)
+            val derSignatureBytes = ASN1Encoder.getDerSequence(rEncoded, sEncoded)
 
-            var derSignatureBytes: ByteArray? = null
-            try {
-                derSignatureBytes = derSeq.encoded
-                Logger.d(
-                    "Signature sequence bytes: 0x" + Hex.toHexString(
-                        derSignatureBytes
-                    )
-                )
-            } catch (e: Exception) {
-                Logger.e("Couldn't parse r and s to DER Sequence Signature Bytes.")
-            }
+            Logger.d("Signature sequence bytes: ${derSignatureBytes.toHexString()}")
             return derSignatureBytes
         }
 
@@ -63,7 +47,7 @@ class VdsSignature
         const val TAG: Byte = 0xff.toByte()
 
         @JvmStatic
-        fun fromByteArray(rawBytes: ByteArray): VdsSignature {
+        fun fromByteArray(rawBytes: ByteArray): VdsSignature? {
             require(rawBytes[0] == TAG) {
                 String.format(
                     "VdsSignature shall have tag %2X, but tag %2X was found instead.", TAG,
@@ -71,7 +55,8 @@ class VdsSignature
                 )
             }
             val derTlv = DerTlv.fromByteArray(rawBytes)
-            return VdsSignature(derTlv.value)
+            return if (derTlv != null) VdsSignature(derTlv.value)
+            else null
         }
     }
 }

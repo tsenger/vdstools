@@ -1,229 +1,234 @@
-package de.tsenger.vdstools;
+package de.tsenger.vdstools
 
-import com.google.gson.*;
-import com.google.gson.reflect.TypeToken;
-import de.tsenger.vdstools.vds.FeatureCoding;
-import de.tsenger.vdstools.vds.dto.FeaturesDto;
-import de.tsenger.vdstools.vds.dto.SealDto;
-import org.tinylog.Logger;
+import co.touchlab.kermit.Logger
+import com.google.gson.*
+import com.google.gson.reflect.TypeToken
+import de.tsenger.vdstools.DataEncoder.encodeC40
+import de.tsenger.vdstools.DataParser.decodeC40
+import de.tsenger.vdstools.asn1.DerTlv
+import de.tsenger.vdstools.vds.FeatureCoding
+import de.tsenger.vdstools.vds.dto.FeaturesDto
+import de.tsenger.vdstools.vds.dto.SealDto
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.io.BufferedReader
+import java.io.InputStream
+import java.io.InputStreamReader
+import java.lang.reflect.Type
+import java.nio.charset.StandardCharsets
+import java.util.*
 
-public class FeatureConverter {
+class FeatureConverter @JvmOverloads constructor(`is`: InputStream? = null) {
+    private val sealDtoList: List<SealDto>
 
-	public static String DEFAULT_SEAL_CODINGS = "/SealCodings.json";
+    init {
+        var `is` = `is`
+        val gson = GsonBuilder()
+            .registerTypeAdapter(FeatureCoding::class.java, FeatureEncodingDeserializer())
+            .create()
+        // Definiere den Typ für die Liste von Document-Objekten
+        val listType = object : TypeToken<List<SealDto?>?>() {
+        }.type
 
-	private final List<SealDto> sealDtoList;
+        if (`is` == null) {
+            `is` = javaClass.getResourceAsStream(DEFAULT_SEAL_CODINGS)
+        }
+        val reader = BufferedReader(InputStreamReader(`is`))
+        this.sealDtoList = gson.fromJson(reader, listType)
 
-	private static final Map<String, Integer> vdsTypes = new HashMap<>();
-	private static final Map<Integer, String> vdsTypesReverse = new HashMap<>();
-	private static final Set<String> vdsFeatures = new TreeSet<>();
+        for ((documentType, documentRef, _, features) in sealDtoList) {
+            vdsTypes[documentType] = documentRef!!.toInt(16)
+            vdsTypesReverse[documentRef.toInt(16)] = documentType
+            for ((name) in features!!) {
+                vdsFeatures.add(name)
+            }
+        }
+    }
 
-	public FeatureConverter() {
-		this(null);
-	}
+    val availableVdsTypes: Set<String?>
+        get() = TreeSet(vdsTypes.keys)
 
-	public FeatureConverter(InputStream is) {
-		Gson gson = new GsonBuilder()
-				.registerTypeAdapter(FeatureCoding.class, new FeatureEncodingDeserializer())
-				.create();
-		// Definiere den Typ für die Liste von Document-Objekten
-		Type listType = new TypeToken<List<SealDto>>() {
-		}.getType();
+    fun getDocumentRef(vdsType: String): Int {
+        requireNotNull(vdsTypes[vdsType]) { "Could find seal type " + vdsType + " in " + DEFAULT_SEAL_CODINGS }
+        return vdsTypes[vdsType]!!
+    }
 
-		if (is == null) {
-			is = getClass().getResourceAsStream(DEFAULT_SEAL_CODINGS);
-		}
-		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-		this.sealDtoList = gson.fromJson(reader, listType);
+    fun getVdsType(docRef: Int): String? {
+        return vdsTypesReverse[docRef]
+    }
 
-		for (SealDto sealDto : sealDtoList) {
-			vdsTypes.put(sealDto.documentType, Integer.parseInt(sealDto.documentRef, 16));
-			vdsTypesReverse.put(Integer.parseInt(sealDto.documentRef, 16), sealDto.documentType);
-			for (FeaturesDto featureDto : sealDto.features) {
-				vdsFeatures.add(featureDto.name);
-			}
-		}
-	}
+    val availableVdsFeatures: Set<String?>
+        get() = vdsFeatures
 
-	public Set<String> getAvailableVdsTypes() {
-		return new TreeSet<>(vdsTypes.keySet());
-	}
+    @Throws(IllegalArgumentException::class)
+    fun getFeatureName(vdsType: String, derTlv: DerTlv): String? {
+        if (!vdsTypes.containsKey(vdsType)) {
+            Logger.w("No seal type with name '$vdsType' was found.")
+            throw IllegalArgumentException("No seal type with name '$vdsType' was found.")
+        }
+        val sealDto = getSealDto(vdsType)
+        return getFeatureName(sealDto, derTlv.tag.toInt())
+    }
 
-	public int getDocumentRef(String vdsType) {
-		if (vdsTypes.get(vdsType) == null) throw new IllegalArgumentException("Could find seal type "+vdsType+" in "+DEFAULT_SEAL_CODINGS);
-		return vdsTypes.get(vdsType);
-	}
+    @Throws(IllegalArgumentException::class)
+    fun getFeatureCoding(vdsType: String, derTlv: DerTlv): FeatureCoding? {
+        if (!vdsTypes.containsKey(vdsType)) {
+            Logger.w("No seal type with name '$vdsType' was found.")
+            throw IllegalArgumentException("No seal type with name '$vdsType' was found.")
+        }
+        val sealDto = getSealDto(vdsType)
+        val tag = derTlv.tag
+        return getCoding(sealDto, tag)
+    }
 
-	public String getVdsType(Integer docRef) {
-		return vdsTypesReverse.get(docRef);
-	}
-
-	public Set<String> getAvailableVdsFeatures() {
-		return vdsFeatures;
-	}
-
-	public String getFeatureName(String vdsType, DerTlv derTlv) throws IllegalArgumentException{
-		if (!vdsTypes.containsKey(vdsType)) {
-			Logger.warn("No seal type with name '" + vdsType + "' was found.");
-			throw new IllegalArgumentException("No seal type with name '" + vdsType + "' was found.");
-		}
-		SealDto sealDto = getSealDto(vdsType);
-        return getFeatureName(sealDto, derTlv.getTag());
-	}
-
-	public FeatureCoding getFeatureCoding(String vdsType, DerTlv derTlv) throws IllegalArgumentException{
-		if (!vdsTypes.containsKey(vdsType)) {
-			Logger.warn("No seal type with name '" + vdsType + "' was found.");
-			throw new IllegalArgumentException("No seal type with name '" + vdsType + "' was found.");
-		}
-		SealDto sealDto = getSealDto(vdsType);
-        byte tag = derTlv.getTag();
-		return getCoding(sealDto, tag);
-	}
-
-	public <T> T decodeFeature(String vdsType, DerTlv derTlv) throws IllegalArgumentException{
-		if (!vdsTypes.containsKey(vdsType)) {
-			Logger.warn("No seal type with name '" + vdsType + "' was found.");
-			throw new IllegalArgumentException("No seal type with name '" + vdsType + "' was found.");
-		}
-		SealDto sealDto = getSealDto(vdsType);
-        return decodeFeature(sealDto, derTlv);
-	}
+    @Throws(IllegalArgumentException::class)
+    fun <T> decodeFeature(vdsType: String, derTlv: DerTlv): T {
+        if (!vdsTypes.containsKey(vdsType)) {
+            Logger.w("No seal type with name '$vdsType' was found.")
+            throw IllegalArgumentException("No seal type with name '$vdsType' was found.")
+        }
+        val sealDto = getSealDto(vdsType)
+        return decodeFeature(sealDto, derTlv)
+    }
 
 
-	public <T> DerTlv encodeFeature(String vdsType, String feature, T inputValue) throws IllegalArgumentException {
-		if (!vdsTypes.containsKey(vdsType)) {
-			Logger.warn("No VdsSeal type with name '" + vdsType + "' was found.");
-			throw new IllegalArgumentException("No seal type with name '" + vdsType + "' was found.");
-		}
-		if (!vdsFeatures.contains(feature)) {
-			Logger.warn("No VdsSeal feature with name '" + feature + "' was found.");
-			throw new IllegalArgumentException("No VdsSeal feature with name '" + feature + "' was found.");
-		}
-		SealDto sealDto = getSealDto(vdsType);
-		return encodeFeature(sealDto, feature, inputValue);
-	}
+    @Throws(IllegalArgumentException::class)
+    fun <T> encodeFeature(vdsType: String, feature: String, inputValue: T): DerTlv {
+        if (!vdsTypes.containsKey(vdsType)) {
+            Logger.w("No VdsSeal type with name '$vdsType' was found.")
+            throw IllegalArgumentException("No seal type with name '$vdsType' was found.")
+        }
+        if (!vdsFeatures.contains(feature)) {
+            Logger.w("No VdsSeal feature with name '$feature' was found.")
+            throw IllegalArgumentException("No VdsSeal feature with name '$feature' was found.")
+        }
+        val sealDto = getSealDto(vdsType)
+        return encodeFeature(sealDto, feature, inputValue)
+    }
 
-	private <T> DerTlv encodeFeature(SealDto sealDto, String feature, T inputValue) throws IllegalArgumentException {
+    @Throws(IllegalArgumentException::class)
+    private fun <T> encodeFeature(sealDto: SealDto, feature: String, inputValue: T): DerTlv {
+        val tag = getTag(sealDto, feature)
+        if (tag.toInt() == 0) {
+            Logger.w("VdsType: " + sealDto.documentType + " has no Feature " + feature)
+            throw IllegalArgumentException("VdsType: " + sealDto.documentType + " has no Feature " + feature)
+        }
+        val coding = getCoding(sealDto, feature)
+        val value: ByteArray
+        when (coding) {
+            FeatureCoding.C40 -> {
+                val valueStr = (inputValue as String).replace("\r".toRegex(), "").replace("\n".toRegex(), "")
+                value = encodeC40(valueStr)
+            }
 
-		byte tag = getTag(sealDto, feature);
-		if (tag == 0) {
-			Logger.warn("VdsType: " + sealDto.documentType + " has no Feature " + feature);
-			throw new IllegalArgumentException("VdsType: " + sealDto.documentType + " has no Feature " + feature);
-		}
-		FeatureCoding coding = getCoding(sealDto, feature);
-		byte[] value;
-		switch (coding) {
-			case C40:
-				String valueStr = ((String) inputValue).replaceAll("\r", "").replaceAll("\n", "");
-				value = DataEncoder.encodeC40(valueStr);
-				break;
-			case UTF8_STRING:
-				value = ((String) inputValue).getBytes(StandardCharsets.UTF_8);
-				break;
-			case BYTE:
-				value = new byte[]{(byte)inputValue};
-				break;
-			case BYTES:
-			default:
-				value = (byte[]) inputValue;
-		}
-		return new DerTlv(tag, value);
-	}
+            FeatureCoding.UTF8_STRING -> value = (inputValue as String).toByteArray(StandardCharsets.UTF_8)
+            FeatureCoding.BYTE -> value = byteArrayOf(inputValue as Byte)
+            FeatureCoding.BYTES -> value = inputValue as ByteArray
+            else -> value = inputValue as ByteArray
+        }
+        return DerTlv(tag, value)
+    }
 
-	@SuppressWarnings("unchecked")
-	private <T> T decodeFeature(SealDto sealDto, DerTlv derTlv) {
-		byte tag = derTlv.getTag();
-		FeatureCoding coding = getCoding(sealDto, tag);
-		switch (coding) {
-			case C40:
-				String featureValue = DataParser.decodeC40(derTlv.getValue());
-				String featureName = getFeatureName(sealDto, tag);
-				if (featureName!=null && featureName.startsWith("MRZ")) {
-					int mrzLength =  getFeatureDto(sealDto, tag).decodedLength;
-					String newMrz = String.format("%1$-"+mrzLength+"s", featureValue).replace(' ', '<');
-					featureValue = newMrz.substring(0, mrzLength / 2) + "\n" + newMrz.substring(mrzLength / 2);
-				}
-				return (T) featureValue;
-			case UTF8_STRING:
-				return (T) new String(derTlv.getValue(), StandardCharsets.UTF_8);
-			case BYTE:
-				return (T) Byte.valueOf(derTlv.getValue()[0]);
-			case BYTES:
-			default:
-				return (T) derTlv.getValue();
-		}
-	}
+    private fun <T> decodeFeature(sealDto: SealDto, derTlv: DerTlv): T {
+        val tag = derTlv.tag
+        val coding = getCoding(sealDto, tag)
+        when (coding) {
+            FeatureCoding.C40 -> {
+                var featureValue = decodeC40(derTlv.value)
+                val featureName = getFeatureName(sealDto, tag.toInt())
+                if (featureName != null && featureName.startsWith("MRZ")) {
+                    val mrzLength = getFeatureDto(sealDto, tag).decodedLength
+                    val newMrz = String.format("%1$-" + mrzLength + "s", featureValue).replace(' ', '<')
+                    featureValue = """
+                        ${newMrz.substring(0, mrzLength / 2)}
+                        ${newMrz.substring(mrzLength / 2)}
+                        """.trimIndent()
+                }
+                return featureValue as T
+            }
 
-	private byte getTag(SealDto sealDto, String feature) throws IllegalArgumentException {
-		for (FeaturesDto featureDto : sealDto.features) {
-			if (featureDto.name.equalsIgnoreCase(feature)) {
-				return (byte) featureDto.tag;
-			}
-		}
-		throw new IllegalArgumentException("Feature '" + feature + "' is unspecified for the given seal '" + sealDto.documentType+ "'");
-	}
+            FeatureCoding.UTF8_STRING -> return String(derTlv.value, StandardCharsets.UTF_8) as T
+            FeatureCoding.BYTE -> return derTlv.value[0] as T
+            FeatureCoding.BYTES -> return derTlv.value as T
+            else -> return derTlv.value as T
+        }
+    }
 
-	private String getFeatureName(SealDto sealDto, int tag) throws IllegalArgumentException {
-		for (FeaturesDto featureDto : sealDto.features) {
-			if (featureDto.tag == tag) {
-				return featureDto.name;
-			}
-		}
-		throw new IllegalArgumentException("No Feature with tag '" + tag + "' is specified for the given seal '" + sealDto.documentType+ "'");
-	}
+    @Throws(IllegalArgumentException::class)
+    private fun getTag(sealDto: SealDto, feature: String): Byte {
+        for ((name, tag) in sealDto.features!!) {
+            if (name.equals(feature, ignoreCase = true)) {
+                return tag.toByte()
+            }
+        }
+        throw IllegalArgumentException("Feature '" + feature + "' is unspecified for the given seal '" + sealDto.documentType + "'")
+    }
 
-	private FeatureCoding getCoding(SealDto sealDto, String feature) throws IllegalArgumentException {
-		for (FeaturesDto featureDto : sealDto.features) {
-			if (featureDto.name.equalsIgnoreCase(feature)) {
-				return featureDto.coding;
-			}
-		}
-		throw new IllegalArgumentException("Feature '" + feature + "' is unspecified for the given seal '" + sealDto.documentType+ "'");
-	}
+    @Throws(IllegalArgumentException::class)
+    private fun getFeatureName(sealDto: SealDto, tag: Int): String? {
+        for ((name, tag1) in sealDto.features!!) {
+            if (tag1 == tag) {
+                return name
+            }
+        }
+        throw IllegalArgumentException("No Feature with tag '" + tag + "' is specified for the given seal '" + sealDto.documentType + "'")
+    }
 
-	private FeatureCoding getCoding(SealDto sealDto, byte tag) throws IllegalArgumentException {
-		for (FeaturesDto featureDto : sealDto.features) {
-			if (featureDto.tag == tag) {
-				return featureDto.coding;
-			}
-		}
-		throw new IllegalArgumentException("No Feature with tag '" + tag + "' is specified for the given seal '" + sealDto.documentType+ "'");
-	}
+    @Throws(IllegalArgumentException::class)
+    private fun getCoding(sealDto: SealDto, feature: String): FeatureCoding? {
+        for ((name, _, coding) in sealDto.features!!) {
+            if (name.equals(feature, ignoreCase = true)) {
+                return coding
+            }
+        }
+        throw IllegalArgumentException("Feature '" + feature + "' is unspecified for the given seal '" + sealDto.documentType + "'")
+    }
 
-	private FeaturesDto getFeatureDto(SealDto sealDto, byte tag) throws IllegalArgumentException {
-		for (FeaturesDto featureDto : sealDto.features) {
-			if (featureDto.tag == tag) {
-				return featureDto;
-			}
-		}
-		throw new IllegalArgumentException("No Feature with tag '" + tag + "' is specified for the given seal '" + sealDto.documentType+ "'");
-	}
+    @Throws(IllegalArgumentException::class)
+    private fun getCoding(sealDto: SealDto, tag: Byte): FeatureCoding? {
+        for ((_, tag1, coding) in sealDto.features!!) {
+            if (tag1 == tag.toInt()) {
+                return coding
+            }
+        }
+        throw IllegalArgumentException("No Feature with tag '" + tag + "' is specified for the given seal '" + sealDto.documentType + "'")
+    }
 
-	private SealDto getSealDto(String vdsType) throws IllegalArgumentException {
-		for (SealDto sealDto : sealDtoList) {
-			if (sealDto.documentType.equals(vdsType)) {
-				return sealDto;
-			}
-		}
-		throw new IllegalArgumentException("VdsType '" + vdsType + "' is unspecified in SealCodings.");
-	}
+    @Throws(IllegalArgumentException::class)
+    private fun getFeatureDto(sealDto: SealDto, tag: Byte): FeaturesDto {
+        for (featureDto in sealDto.features!!) {
+            if (featureDto.tag == tag.toInt()) {
+                return featureDto
+            }
+        }
+        throw IllegalArgumentException("No Feature with tag '" + tag + "' is specified for the given seal '" + sealDto.documentType + "'")
+    }
+
+    @Throws(IllegalArgumentException::class)
+    private fun getSealDto(vdsType: String): SealDto {
+        for (sealDto in sealDtoList) {
+            if (sealDto.documentType == vdsType) {
+                return sealDto
+            }
+        }
+        throw IllegalArgumentException("VdsType '$vdsType' is unspecified in SealCodings.")
+    }
+
+    companion object {
+        private val vdsTypes: MutableMap<String?, Int> = HashMap()
+        private val vdsTypesReverse: MutableMap<Int, String?> = HashMap()
+        private val vdsFeatures: MutableSet<String?> = TreeSet()
+        var DEFAULT_SEAL_CODINGS: String = "/SealCodings.json"
+    }
 }
 
-class FeatureEncodingDeserializer implements JsonDeserializer<FeatureCoding> {
-	@Override
-	public FeatureCoding deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-		String value = json.getAsString();
-		try {
-			return FeatureCoding.valueOf(value.toUpperCase());
-		} catch (IllegalArgumentException e) {
-			throw new JsonParseException("Invalid value for FeatureCoding: " + value);
-		}
-	}
+internal class FeatureEncodingDeserializer : JsonDeserializer<FeatureCoding> {
+    @Throws(JsonParseException::class)
+    override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): FeatureCoding {
+        val value = json.asString
+        try {
+            return FeatureCoding.valueOf(value.uppercase(Locale.getDefault()))
+        } catch (e: IllegalArgumentException) {
+            throw JsonParseException("Invalid value for FeatureCoding: $value")
+        }
+    }
 }

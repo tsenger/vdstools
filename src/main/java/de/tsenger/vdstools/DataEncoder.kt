@@ -2,6 +2,7 @@ package de.tsenger.vdstools
 
 
 import co.touchlab.kermit.Logger
+import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.vds.Feature
 import kotlinx.datetime.LocalDate
 import org.bouncycastle.util.Arrays
@@ -238,10 +239,11 @@ object DataEncoder {
         }
     }
 
-    fun encodeDerTlv(vdsType: String?, derTlv: DerTlv?): Feature {
+    fun encodeDerTlv(vdsType: String, derTlv: DerTlv): Feature? {
         val value = featureEncoder.decodeFeature<Any>(vdsType, derTlv)
         val name = featureEncoder.getFeatureName(vdsType, derTlv)
         val coding = featureEncoder.getFeatureCoding(vdsType, derTlv)
+        if (name == null || coding == null) return null
         return Feature(name, value, coding)
     }
 
@@ -251,11 +253,11 @@ object DataEncoder {
     }
 
     @JvmStatic
-    fun getDocumentRef(vdsType: String?): Int {
+    fun getDocumentRef(vdsType: String): Int {
         return featureEncoder.getDocumentRef(vdsType)
     }
 
-    fun <T> encodeFeature(vdsType: String?, feature: String?, value: T): DerTlv {
+    fun <T> encodeFeature(vdsType: String, feature: String, value: T): DerTlv {
         return featureEncoder.encodeFeature(vdsType, feature, value)
     }
 }

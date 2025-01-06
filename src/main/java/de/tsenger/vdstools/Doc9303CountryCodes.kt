@@ -1,48 +1,36 @@
-package de.tsenger.vdstools;
+package de.tsenger.vdstools
 
-import org.tinylog.Logger;
+import de.tsenger.vdstools.generated.CountryCodeMap
 
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.MissingResourceException;
+object Doc9303CountryCodes {
+    // Mapping für ICAO DOC 9303 Sonderfälle
+    private val doc9303Codes: MutableMap<String, String> = HashMap()
 
-public class Doc9303CountryCodes {
+    init {
+        // Supranationale Organisationen
+        doc9303Codes["EU"] = "EUE" // Europäische Union
+        doc9303Codes["UN"] = "UNO" // Vereinte Nationen
 
-	// Mapping für ICAO DOC 9303 Sonderfälle
-	private static final Map<String, String> doc9303Codes = new HashMap<>();
+        // Sonderfall für Deutschland
+        doc9303Codes["DE"] = "D<<" // Deutschland
 
-	static {
-		// Supranationale Organisationen
-		doc9303Codes.put("EU", "EUE"); // Europäische Union
-		doc9303Codes.put("UN", "UNO"); // Vereinte Nationen
+        // andere Sonderfälle
+        doc9303Codes["UT"] = "UTO" // Utopia
+        doc9303Codes["IA"] = "IAO" // ICAO
+        doc9303Codes["NT"] = "NTZ" // Neutral Zone
+        doc9303Codes["AN"] = "ANT" // Netherlands Antilles
+    }
 
-		// Sonderfall für Deutschland
-		doc9303Codes.put("DE", "D<<"); // Deutschland
+    // Methode zur Umwandlung von ISO-3166-Alpha-2 nach ICAO DOC 9303 Code oder
+    // ISO-3166-Alpha-3
+    @JvmStatic
+    fun convertToIcaoOrIso3(alpha2Code: String): String? {
+        // Sonderfall nach ICAO DOC 9303 prüfen
+        if (doc9303Codes.containsKey(alpha2Code)) {
+            return doc9303Codes[alpha2Code]
+        }
 
-		// andere Sonderfälle
-		doc9303Codes.put("UT", "UTO"); // Utopia
-		doc9303Codes.put("IA", "IAO"); // ICAO
-		doc9303Codes.put("NT", "NTZ"); // Neutral Zone
-		doc9303Codes.put("AN", "ANT"); // Netherlands Antilles
-	}
+        return CountryCodeMap.alpha2ToAlpha3[alpha2Code]
 
-	// Methode zur Umwandlung von ISO-3166-Alpha-2 nach ICAO DOC 9303 Code oder
-	// ISO-3166-Alpha-3
-	public static String convertToIcaoOrIso3(String alpha2Code) {
-		// Sonderfall nach ICAO DOC 9303 prüfen
-		if (doc9303Codes.containsKey(alpha2Code)) {
-			return doc9303Codes.get(alpha2Code);
-		}
-
-		// Standard-Umwandlung von ISO-3166-Alpha-2 nach ISO-3166-Alpha-3
-		Locale locale = new Locale("", alpha2Code);
-		try {
-			return locale.getISO3Country();
-		} catch (MissingResourceException e) {
-			Logger.warn("unbekannter Country Code. " + e.getMessage());
-			return null;
-		}
-	}
-
+    }
 }

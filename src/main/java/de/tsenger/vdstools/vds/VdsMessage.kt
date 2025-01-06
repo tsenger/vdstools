@@ -1,21 +1,19 @@
 package de.tsenger.vdstools.vds
 
-import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.DataParser
-import de.tsenger.vdstools.DerTlv
-import java.io.ByteArrayOutputStream
-import java.io.IOException
+import de.tsenger.vdstools.asn1.DerTlv
+import okio.Buffer
 
 
 class VdsMessage {
-    private var derTlvList: List<DerTlv>? = null
-    var vdsType: String? = null
+    private lateinit var derTlvList: List<DerTlv>
+    lateinit var vdsType: String
         private set
 
     private constructor()
 
-    constructor(vdsType: String?, derTlvList: List<DerTlv>?) : this() {
+    constructor(vdsType: String, derTlvList: List<DerTlv>) : this() {
         this.vdsType = vdsType
         this.derTlvList = derTlvList
     }
@@ -27,16 +25,11 @@ class VdsMessage {
 
     val encoded: ByteArray
         get() {
-            val baos = ByteArrayOutputStream()
-            try {
-                for (feature in derTlvList!!) {
-                    baos.write(feature.encoded)
-                }
-            } catch (e: IOException) {
-                Logger.e("Can't build raw bytes: " + e.message)
-                return ByteArray(0)
+            val baos = Buffer()
+            for (feature in derTlvList!!) {
+                baos.write(feature.encoded)
             }
-            return baos.toByteArray()
+            return baos.readByteArray()
         }
 
     val featureList: List<Feature>
@@ -46,8 +39,9 @@ class VdsMessage {
         get() {
             val featureList: MutableList<Feature> =
                 ArrayList()
-            for (derTlv in derTlvList!!) {
-                featureList.add(DataEncoder.encodeDerTlv(vdsType, derTlv))
+            for (derTlv in derTlvList) {
+                val feature = DataEncoder.encodeDerTlv(vdsType, derTlv)
+                if (feature != null) featureList.add(feature)
             }
             return featureList
         }
@@ -60,7 +54,7 @@ class VdsMessage {
         val derTlvList: MutableList<DerTlv> = ArrayList(5)
 
         @Throws(IllegalArgumentException::class)
-        fun <T> addDocumentFeature(feature: String?, value: T): Builder {
+        fun <T> addDocumentFeature(feature: String, value: T): Builder {
             val derTlv = DataEncoder.encodeFeature(this.vdsType, feature, value)
             derTlvList.add(derTlv)
             return this

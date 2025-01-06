@@ -1,17 +1,18 @@
 package de.tsenger.vdstools;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.io.IOException;
-
+import de.tsenger.vdstools.asn1.DerTlv;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.Test;
 
+import java.io.IOException;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 public class DerTlvTest {
 
-	//@formatter:off
+    //@formatter:off
     
 
     static byte[] der_rawBytes = Hex.decode(
@@ -75,31 +76,31 @@ public class DerTlvTest {
 
   //@formatter:on    
 
-	@Test
-	public void testGetEncoded1() throws IOException {
-		DerTlv derTlv = new DerTlv((byte) 0x01, Hex.decode("aabbccddeeff010203"));
-		assertEquals("0109aabbccddeeff010203", Hex.toHexString(derTlv.getEncoded()));
-	}
+    @Test
+    public void testGetEncoded1() throws IOException {
+        DerTlv derTlv = new DerTlv((byte) 0x01, Hex.decode("aabbccddeeff010203"));
+        assertEquals("0109aabbccddeeff010203", Hex.toHexString(derTlv.getEncoded()));
+    }
 
-	@Test
-	public void testGetEncoded2() throws IOException {
-		byte[] value = Arrays.copyOfRange(der_rawBytes, 4, der_rawBytes.length);
-		DerTlv derTlv = new DerTlv((byte) 0x01, value);
-		assertTrue(Arrays.areEqual(der_rawBytes, derTlv.getEncoded()));
-	}
+    @Test
+    public void testGetEncoded2() throws IOException {
+        byte[] value = Arrays.copyOfRange(der_rawBytes, 4, der_rawBytes.length);
+        DerTlv derTlv = new DerTlv((byte) 0x01, value);
+        assertTrue(Arrays.areEqual(der_rawBytes, derTlv.getEncoded()));
+    }
 
-	@Test
-	public void testfromByteArray1() throws IOException {
-		DerTlv derTlv = DerTlv.fromByteArray(der_rawBytes);
-		assertEquals(0x01, derTlv.getTag());
-		assertEquals(0x037b, derTlv.getValue().length);
-	}
+    @Test
+    public void testfromByteArray1() throws IOException {
+        DerTlv derTlv = DerTlv.fromByteArray(der_rawBytes);
+        assertEquals(0x01, derTlv.tag);
+        assertEquals(0x037b, derTlv.value.length);
+    }
 
-	@Test
-	public void testfromByteArray2() throws IOException {
-		DerTlv derTlv = DerTlv.fromByteArray(Hex.decode("0809aabbccddeeff010203"));
-		assertEquals(0x08, derTlv.getTag());
-		assertEquals(0x09, derTlv.getValue().length);
-	}
+    @Test
+    public void testfromByteArray2() throws IOException {
+        DerTlv derTlv = DerTlv.fromByteArray(Hex.decode("0809aabbccddeeff010203"));
+        assertEquals(0x08, derTlv.tag);
+        assertEquals(0x09, derTlv.value.length);
+    }
 
 }

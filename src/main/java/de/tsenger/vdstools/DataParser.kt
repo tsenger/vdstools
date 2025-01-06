@@ -1,6 +1,7 @@
 package de.tsenger.vdstools
 
 import co.touchlab.kermit.Logger
+import de.tsenger.vdstools.asn1.DerTlv
 import kotlinx.datetime.LocalDate
 import java.io.ByteArrayOutputStream
 import java.io.IOException
