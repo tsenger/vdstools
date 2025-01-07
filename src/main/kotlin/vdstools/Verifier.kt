@@ -1,86 +1,73 @@
-package de.tsenger.vdstools;
+package vdstools
 
-import de.tsenger.vdstools.vds.DigitalSeal;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.util.encoders.Hex;
-import org.tinylog.Logger;
+import co.touchlab.kermit.Logger
+import org.bouncycastle.jce.provider.BouncyCastleProvider
+import vdstools.vds.DigitalSeal
+import java.security.Security
+import java.security.Signature
+import java.security.cert.X509Certificate
+import java.security.interfaces.ECPublicKey
 
-import java.security.*;
-import java.security.cert.X509Certificate;
-import java.security.interfaces.ECPublicKey;
+@OptIn(ExperimentalStdlibApi::class)
+class Verifier(digitalSeal: DigitalSeal, sealSignerCertificate: X509Certificate) {
+    enum class Result {
+        SignatureValid, SignatureInvalid, VerifyError,
+    }
 
-public class Verifier {
+    private val ecPubKey: ECPublicKey
+    private val fieldBitLength: Int
+    private val messageBytes: ByteArray
+    private val signatureBytes: ByteArray
 
-	public enum Result {
-		SignatureValid, SignatureInvalid, VerifyError,
-	}
+    var signatureAlgorithmName: String = "SHA256WITHECDSA"
 
-	private final ECPublicKey ecPubKey;
-	private final int fieldBitLength;
-	private final byte[] messageBytes;
-	private final byte[] signatureBytes;
 
-	String signatureAlgorithmName = "SHA256WITHECDSA";
+    init {
+        Security.addProvider(BouncyCastleProvider())
+        require(sealSignerCertificate.publicKey is ECPublicKey) { "Certificate should contain EC public key!" }
+        ecPubKey = sealSignerCertificate.publicKey as ECPublicKey
+        this.fieldBitLength = ecPubKey.params.curve.field.fieldSize
+        this.messageBytes = digitalSeal.headerAndMessageBytes
+        this.signatureBytes = digitalSeal.signatureBytes
 
-	public Verifier(DigitalSeal digitalSeal, X509Certificate sealSignerCertificate) {
-		Security.addProvider(new BouncyCastleProvider());
-		if (!(sealSignerCertificate.getPublicKey() instanceof ECPublicKey)) {
-			throw new IllegalArgumentException("Certificate should contain EC public key!");
-		}
-		ecPubKey = (ECPublicKey) sealSignerCertificate.getPublicKey();
-		this.fieldBitLength = ecPubKey.getParams().getCurve().getField().getFieldSize();
-		this.messageBytes = digitalSeal.getHeaderAndMessageBytes();
-		this.signatureBytes = digitalSeal.getSignatureBytes();
+        Logger.d("Public Key bytes: 0x${ecPubKey.encoded.toHexString()}")
+        Logger.d("Field bit length: ${this.fieldBitLength}")
+        Logger.d("Message bytes: ${messageBytes.toHexString()}")
+        Logger.d("Signature bytes: ${signatureBytes.toHexString()}")
+    }
 
-		Logger.debug("Public Key bytes: 0x{}", Hex.toHexString(ecPubKey.getEncoded()));
-		Logger.debug("Field bit length: {}", this.fieldBitLength);
-		Logger.debug("Message bytes: {}", Hex.toHexString(messageBytes));
-		Logger.debug("Signature bytes: {}", Hex.toHexString(signatureBytes));
-	}
+    fun verify(): Result {
+        // Changed 2024-10-20
+        // Signature Algorithm is selected based on the field bit length of the curve
+        // as defined in ICAO9303 p13 ch2.4
 
-	public Result verify() {
-		// Changed 2024-10-20
-		// Signature Algorithm is selected based on the field bit length of the curve
-		// as defined in ICAO9303 p13 ch2.4
+        signatureAlgorithmName = if (fieldBitLength <= 224) {
+            "SHA224withPLAIN-ECDSA"
+        } else if (fieldBitLength <= 256) {
+            "SHA256withPLAIN-ECDSA"
+        } else if (fieldBitLength <= 384) {
+            "SHA384withPLAIN-ECDSA"
+        } else if (fieldBitLength <= 512) {
+            "SHA512withPLAIN-ECDSA"
+        } else {
+            Logger.e("Bit length of Field is out of defined value: $fieldBitLength")
+            return Result.VerifyError
+        }
 
-		if (fieldBitLength <= 224) {
-			signatureAlgorithmName = "SHA224withPLAIN-ECDSA";
-		} else if (fieldBitLength <= 256) {
-			signatureAlgorithmName = "SHA256withPLAIN-ECDSA";
-		} else if (fieldBitLength <= 384) {
-			signatureAlgorithmName = "SHA384withPLAIN-ECDSA";
-		} else if (fieldBitLength <= 512) {
-			signatureAlgorithmName = "SHA512withPLAIN-ECDSA";
-		} else {
-			Logger.error("Bit length of Field is out of definied value: " + fieldBitLength);
-			return Result.VerifyError;
-		}
+        try {
+            Logger.d("Verify with signatureAlgorithmName: $signatureAlgorithmName")
+            val ecdsaVerify = Signature.getInstance(signatureAlgorithmName, "BC")
+            ecdsaVerify.initVerify(ecPubKey)
+            ecdsaVerify.update(messageBytes)
 
-		try {
-			Logger.debug("Verify with signatureAlgorithmName: " + signatureAlgorithmName);
-			Signature ecdsaVerify = Signature.getInstance(signatureAlgorithmName, "BC");
-			ecdsaVerify.initVerify(ecPubKey);
-			ecdsaVerify.update(messageBytes);
-
-			if (ecdsaVerify.verify(signatureBytes)) {
-				return Result.SignatureValid;
-			} else {
-				return Result.SignatureInvalid;
-			}
-		} catch (NoSuchAlgorithmException e1) {
-			Logger.error("NoSuchAlgorithmException: {}", e1.getLocalizedMessage());
-			return Result.VerifyError;
-		} catch (InvalidKeyException e2) {
-			Logger.error("InvalidKeyException: {}", e2.getLocalizedMessage());
-			return Result.VerifyError;
-		} catch (SignatureException e3) {
-			Logger.error("SignatureException: {}", e3.getLocalizedMessage());
-			return Result.VerifyError;
-		} catch (NoSuchProviderException e4) {
-			Logger.error("NoSuchProviderException: {}", e4.getLocalizedMessage());
-			return Result.VerifyError;
-		}
-
-	}
-
+            return if (ecdsaVerify.verify(signatureBytes)) {
+                Result.SignatureValid
+            } else {
+                Result.SignatureInvalid
+            }
+        } catch (e1: Exception) {
+            Logger.e("Verify error: ${e1.localizedMessage}")
+            return Result.VerifyError
+        }
+    }
 }

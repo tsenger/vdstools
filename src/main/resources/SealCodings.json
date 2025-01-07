@@ -394,5 +394,28 @@
         "maxLength": 48
       }
     ]
+  },
+  {
+    "documentType": "PERMANENT_RESIDENCE_CERT",
+    "documentRef": "f48f",
+    "version": 4,
+    "features": [
+      {
+        "name": "DOCUMENT_NUMBER",
+        "tag": 1,
+        "coding": "C40",
+        "required": true,
+        "minLength": 1,
+        "maxLength": 8
+      },
+      {
+        "name": "PASSPORT_NUMBER",
+        "tag": 2,
+        "coding": "C40",
+        "required": true,
+        "minLength": 1,
+        "maxLength": 8
+      }
+    ]
   }
 ]

@@ -1,47 +1,56 @@
-package de.tsenger.vdstools.vds;
+package de.tsenger.vdstools.vds
 
-import org.bouncycastle.util.encoders.Hex;
-import org.junit.Test;
+import org.bouncycastle.util.encoders.Hex
+import org.junit.Assert
+import org.junit.Test
+import vdstools.vds.VdsSignature
+import java.io.IOException
+import java.security.KeyStore
 
-import java.io.IOException;
-import java.security.KeyStore;
-
-import static org.junit.Assert.assertEquals;
-
-public class VdsSignatureTest {
-
-    static final byte[] plainSignature = Hex.decode(
-            "3c8b104fd4a8ad11157f87dadd05407f0cefa3ad0155c1179765933089896357e1b6fdbb3b2b003d6ee34875d6db833e05fffe9d99378eb01ae988c638c2eb27");
-    static String keyStorePassword = "vdstools";
-    static String keyStoreFile = "src/test/resources/vdstools_testcerts.bks";
-    static KeyStore keystore;
-
+class VdsSignatureTest {
     @Test
-    public void testGetPlainSignatureBytes() {
-        VdsSignature signature = new VdsSignature(plainSignature);
-        assertEquals(
-                "3c8b104fd4a8ad11157f87dadd05407f0cefa3ad0155c1179765933089896357e1b6fdbb3b2b003d6ee34875d6db833e05fffe9d99378eb01ae988c638c2eb27",
-                Hex.toHexString(signature.plainSignatureBytes));
+    fun testGetPlainSignatureBytes() {
+        val signature = VdsSignature(plainSignature)
+        Assert.assertEquals(
+            "3c8b104fd4a8ad11157f87dadd05407f0cefa3ad0155c1179765933089896357e1b6fdbb3b2b003d6ee34875d6db833e05fffe9d99378eb01ae988c638c2eb27",
+            Hex.toHexString(signature.plainSignatureBytes)
+        )
     }
 
     @Test
-    public void testGetDerSignatureBytes() {
-        VdsSignature signature = new VdsSignature(plainSignature);
-        assertEquals(
-                "304502203c8b104fd4a8ad11157f87dadd05407f0cefa3ad0155c1179765933089896357022100e1b6fdbb3b2b003d6ee34875d6db833e05fffe9d99378eb01ae988c638c2eb27",
-                Hex.toHexString(signature.getDerSignatureBytes()));
+    fun testGetDerSignatureBytes() {
+        val signature = VdsSignature(plainSignature)
+        Assert.assertEquals(
+            "304502203c8b104fd4a8ad11157f87dadd05407f0cefa3ad0155c1179765933089896357022100e1b6fdbb3b2b003d6ee34875d6db833e05fffe9d99378eb01ae988c638c2eb27",
+            Hex.toHexString(signature.derSignatureBytes)
+        )
     }
 
     @Test
-    public void testFromByteArray() throws IOException {
-        byte[] vdsSigBytes = new byte[]{(byte) 0xff, 6, 1, 2, 3, 4, 5, 6};
-        VdsSignature signature = VdsSignature.fromByteArray(vdsSigBytes);
-        assertEquals("010203040506", Hex.toHexString(signature.plainSignatureBytes));
-        assertEquals("300a02030102030203040506", Hex.toHexString(signature.getDerSignatureBytes()));
+    @Throws(IOException::class)
+    fun testFromByteArray() {
+        val vdsSigBytes = byteArrayOf(0xff.toByte(), 6, 1, 2, 3, 4, 5, 6)
+        val signature = VdsSignature.fromByteArray(vdsSigBytes)
+        Assert.assertEquals("010203040506", Hex.toHexString(signature!!.plainSignatureBytes))
+        Assert.assertEquals(
+            "300a02030102030203040506", Hex.toHexString(
+                signature.derSignatureBytes
+            )
+        )
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testFromByteArray_IllegalArgumentException() throws IOException {
-        VdsSignature.fromByteArray(plainSignature);
+    @Test(expected = IllegalArgumentException::class)
+    @Throws(IOException::class)
+    fun testFromByteArray_IllegalArgumentException() {
+        VdsSignature.fromByteArray(plainSignature)
+    }
+
+    companion object {
+        val plainSignature: ByteArray = Hex.decode(
+            "3c8b104fd4a8ad11157f87dadd05407f0cefa3ad0155c1179765933089896357e1b6fdbb3b2b003d6ee34875d6db833e05fffe9d99378eb01ae988c638c2eb27"
+        )
+        var keyStorePassword: String = "vdstools"
+        var keyStoreFile: String = "src/test/resources/vdstools_testcerts.bks"
+        var keystore: KeyStore? = null
     }
 }

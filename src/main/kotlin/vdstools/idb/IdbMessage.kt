@@ -1,45 +1,44 @@
-package de.tsenger.vdstools.idb;
+package vdstools.idb
 
-import de.tsenger.vdstools.asn1.DerTlv;
+import vdstools.asn1.DerTlv
 
-import java.io.IOException;
 
-public class IdbMessage {
+class IdbMessage {
+    private val messageType: Byte
 
-    private final byte messageType;
-    private final byte[] messageContent;
+    @JvmField
+    val messageContent: ByteArray
 
-    public IdbMessage(IdbMessageType messageType, byte[] messageContent) {
-        this.messageType = messageType.getValue();
-        this.messageContent = messageContent;
+    constructor(messageType: IdbMessageType, messageContent: ByteArray) {
+        this.messageType = messageType.value
+        this.messageContent = messageContent
     }
 
-    public IdbMessage(byte messageType, byte[] messageContent) {
-        this.messageType = messageType;
-        this.messageContent = messageContent;
+    constructor(messageType: Byte, messageContent: ByteArray) {
+        this.messageType = messageType
+        this.messageContent = messageContent
     }
 
-    public static IdbMessage fromDerTlv(DerTlv derTlv) {
-        IdbMessageType messageType = IdbMessageType.valueOf(derTlv.tag);
-        byte[] messageContent = derTlv.value;
-        return new IdbMessage(messageType, messageContent);
+    val encoded: ByteArray
+        get() = DerTlv(messageType, messageContent).encoded
+
+    fun getMessageType(): IdbMessageType? {
+        return IdbMessageType.valueOf(messageType)
     }
 
-    public static IdbMessage fromByteArray(byte[] rawMessageBytes) throws IOException {
-        DerTlv tlvMessage = DerTlv.fromByteArray(rawMessageBytes);
-        return IdbMessage.fromDerTlv(tlvMessage);
-    }
+    companion object {
+        @JvmStatic
+        fun fromDerTlv(derTlv: DerTlv): IdbMessage {
+            val messageType = IdbMessageType.valueOf(derTlv.tag)
+            assert(messageType != null)
+            val messageContent = derTlv.value
+            return IdbMessage(messageType!!, messageContent)
+        }
 
-    public byte[] getEncoded() throws IOException {
-        return new DerTlv(messageType, messageContent).getEncoded();
+        @JvmStatic
+        fun fromByteArray(rawMessageBytes: ByteArray): IdbMessage {
+            val tlvMessage = DerTlv.fromByteArray(rawMessageBytes)
+            return fromDerTlv(tlvMessage!!)
+        }
     }
-
-    public IdbMessageType getMessageType() {
-        return IdbMessageType.valueOf(messageType);
-    }
-
-    public byte[] getMessageContent() {
-        return messageContent;
-    }
-
 }

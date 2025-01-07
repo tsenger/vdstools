@@ -1,43 +1,36 @@
-package de.tsenger.vdstools.idb;
+package vdstools.idb
 
-import de.tsenger.vdstools.asn1.DerTlv;
+import vdstools.asn1.DerTlv
+import java.io.ByteArrayInputStream
+import java.io.IOException
+import java.security.cert.CertificateEncodingException
+import java.security.cert.CertificateException
+import java.security.cert.CertificateFactory
+import java.security.cert.X509Certificate
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
+class IdbSignerCertificate(cert: X509Certificate) {
+    val x509Certificate: X509Certificate = cert
 
-public class IdbSignerCertificate {
+    @get:Throws(CertificateEncodingException::class, IOException::class)
+    val encoded: ByteArray
+        get() = DerTlv(TAG, x509Certificate.encoded).encoded
 
-    public final static byte TAG = 0x7E;
+    companion object {
+        const val TAG: Byte = 0x7E
 
-    private final X509Certificate cert;
-
-    public IdbSignerCertificate(X509Certificate cert) {
-        if (cert == null)
-            throw new IllegalArgumentException("Certificate must not be null!");
-        this.cert = cert;
-    }
-
-    public static IdbSignerCertificate fromByteArray(byte[] rawBytes) throws CertificateException, IOException {
-        if (rawBytes[0] != TAG) {
-            throw new IllegalArgumentException(String.format(
-                    "IdbSignerCertificate shall have tag %2X, but tag %2X was found instead.", TAG, rawBytes[0]));
+        @JvmStatic
+        @Throws(CertificateException::class, IOException::class)
+        fun fromByteArray(rawBytes: ByteArray): IdbSignerCertificate {
+            require(rawBytes[0] == TAG) {
+                String.format(
+                    "IdbSignerCertificate shall have tag %2X, but tag %2X was found instead.", TAG,
+                    rawBytes[0]
+                )
+            }
+            val derTlv = DerTlv.fromByteArray(rawBytes)
+            val cert = CertificateFactory.getInstance("X.509")
+                .generateCertificate(ByteArrayInputStream(derTlv!!.value)) as X509Certificate
+            return IdbSignerCertificate(cert)
         }
-        DerTlv derTlv = DerTlv.fromByteArray(rawBytes);
-        X509Certificate cert = (X509Certificate) CertificateFactory.getInstance("X.509")
-                .generateCertificate(new ByteArrayInputStream(derTlv.value));
-        return new IdbSignerCertificate(cert);
     }
-
-    public byte[] getEncoded() throws CertificateEncodingException, IOException {
-        return new DerTlv(TAG, cert.getEncoded()).getEncoded();
-    }
-
-    public X509Certificate getX509Certificate() {
-        return this.cert;
-    }
-
 }

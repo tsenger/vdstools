@@ -1,86 +1,88 @@
-package de.tsenger.vdstools.idb;
+package de.tsenger.vdstools.idb
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 
-import java.io.IOException;
+import org.bouncycastle.util.encoders.Hex
+import org.junit.Assert
+import org.junit.Test
+import vdstools.idb.IdbHeader
+import vdstools.idb.IdbSignatureAlgorithm
+import java.io.IOException
 
-import org.bouncycastle.util.encoders.Hex;
-import org.junit.Test;
+class IdbHeaderTest {
+    @Test
+    @Throws(IOException::class)
+    fun testConstructor_minimal() {
+        val header = IdbHeader("D<<")
+        Assert.assertEquals("6abc", Hex.toHexString(header.encoded))
+    }
 
-public class IdbHeaderTest {
+    @Test
+    @Throws(IOException::class)
+    fun testConstructor_full() {
+        val header = IdbHeader(
+            "D<<", IdbSignatureAlgorithm.SHA256_WITH_ECDSA, byteArrayOf(1, 2, 3, 4, 5),
+            "2014-10-18"
+        )
+        Assert.assertEquals("6abc010102030405009b5d7e", Hex.toHexString(header.encoded))
+    }
 
-	@Test
-	public void testConstructor_minimal() throws IOException {
-		IdbHeader header = new IdbHeader("D<<");
-		assertEquals("6abc", Hex.toHexString(header.getEncoded()));
-	}
+    @Test
+    fun testGetCountryIdentifier() {
+        val header = IdbHeader.fromByteArray(Hex.decode("6abc010102030405009b5d7e"))
+        Assert.assertEquals("D<<", header.getCountryIdentifier())
+    }
 
-	@Test
-	public void testConstructor_full() throws IOException {
-		IdbHeader header = new IdbHeader("D<<", IdbSignatureAlgorithm.SHA256_WITH_ECDSA, new byte[] { 1, 2, 3, 4, 5 },
-				"2014-10-18");
-		assertEquals("6abc010102030405009b5d7e", Hex.toHexString(header.getEncoded()));
-	}
+    @Test
+    fun testGetSignatureAlgorithm() {
+        val header = IdbHeader.fromByteArray(Hex.decode("6abc010102030405009b5d7e"))
+        Assert.assertEquals(IdbSignatureAlgorithm.SHA256_WITH_ECDSA, header.getSignatureAlgorithm())
+    }
 
-	@Test
-	public void testGetCountryIdentifier() {
-		IdbHeader header = IdbHeader.fromByteArray(Hex.decode("6abc010102030405009b5d7e"));
-		assertEquals("D<<", header.getCountryIdentifier());
-	}
+    @Test
+    fun testGetSignatureAlgorithm_null() {
+        val header = IdbHeader.fromByteArray(Hex.decode("6abc"))
+        Assert.assertNull(header.getSignatureAlgorithm())
+    }
 
-	@Test
-	public void testGetSignatureAlgorithm() {
-		IdbHeader header = IdbHeader.fromByteArray(Hex.decode("6abc010102030405009b5d7e"));
-		assertEquals(IdbSignatureAlgorithm.SHA256_WITH_ECDSA, header.getSignatureAlgorithm());
-	}
+    @Test
+    fun testGetCertificateReference() {
+        val header = IdbHeader.fromByteArray(Hex.decode("6abc010102030405009b5d7e"))
+        Assert.assertEquals("0102030405", Hex.toHexString(header.certificateReference))
+    }
 
-	@Test
-	public void testGetSignatureAlgorithm_null() {
-		IdbHeader header = IdbHeader.fromByteArray(Hex.decode("6abc"));
-		assertNull(header.getSignatureAlgorithm());
-	}
+    @Test
+    fun testGetCertificateReference_null() {
+        val header = IdbHeader.fromByteArray(Hex.decode("6abc"))
+        Assert.assertNull(header.certificateReference)
+    }
 
-	@Test
-	public void testGetCertificateReference() {
-		IdbHeader header = IdbHeader.fromByteArray(Hex.decode("6abc010102030405009b5d7e"));
-		assertEquals("0102030405", Hex.toHexString(header.getCertificateReference()));
-	}
+    @Test
+    fun testGetSignatureCreationDate() {
+        val header = IdbHeader.fromByteArray(Hex.decode("6abc010102030405009b5d7e"))
+        Assert.assertEquals("2014-10-18", header.getSignatureCreationDate())
+    }
 
-	@Test
-	public void testGetCertificateReference_null() {
-		IdbHeader header = IdbHeader.fromByteArray(Hex.decode("6abc"));
-		assertNull(header.getCertificateReference());
-	}
+    @Test
+    fun testGetSignatureCreationDate_null() {
+        val header = IdbHeader.fromByteArray(Hex.decode("6abc"))
+        Assert.assertNull(header.getSignatureCreationDate())
+    }
 
-	@Test
-	public void testGetSignatureCreationDate() {
-		IdbHeader header = IdbHeader.fromByteArray(Hex.decode("6abc010102030405009b5d7e"));
-		assertEquals("2014-10-18", header.getSignatureCreationDate());
-	}
+    @Test
+    fun testFromByteArray_minimal() {
+        val header = IdbHeader.fromByteArray(Hex.decode("eb11"))
+        Assert.assertEquals("XKC", header.getCountryIdentifier())
+        Assert.assertNull(header.getSignatureAlgorithm())
+        Assert.assertNull(header.certificateReference)
+        Assert.assertNull(header.getSignatureCreationDate())
+    }
 
-	@Test
-	public void testGetSignatureCreationDate_null() {
-		IdbHeader header = IdbHeader.fromByteArray(Hex.decode("6abc"));
-		assertNull(header.getSignatureCreationDate());
-	}
-
-	@Test
-	public void testFromByteArray_minimal() {
-		IdbHeader header = IdbHeader.fromByteArray(Hex.decode("eb11"));
-		assertEquals("XKC", header.getCountryIdentifier());
-		assertNull(header.getSignatureAlgorithm());
-		assertNull(header.getCertificateReference());
-		assertNull(header.getSignatureCreationDate());
-	}
-
-	@Test
-	public void testFromByteArray_full() {
-		IdbHeader header = IdbHeader.fromByteArray(Hex.decode("eb1101aabbccddee00bbddbf"));
-		assertEquals("XKC", header.getCountryIdentifier());
-		assertEquals(IdbSignatureAlgorithm.SHA256_WITH_ECDSA, header.getSignatureAlgorithm());
-		assertEquals("aabbccddee", Hex.toHexString(header.getCertificateReference()));
-		assertEquals("1999-12-31", header.getSignatureCreationDate());
-	}
-
+    @Test
+    fun testFromByteArray_full() {
+        val header = IdbHeader.fromByteArray(Hex.decode("eb1101aabbccddee00bbddbf"))
+        Assert.assertEquals("XKC", header.getCountryIdentifier())
+        Assert.assertEquals(IdbSignatureAlgorithm.SHA256_WITH_ECDSA, header.getSignatureAlgorithm())
+        Assert.assertEquals("aabbccddee", Hex.toHexString(header.certificateReference))
+        Assert.assertEquals("1999-12-31", header.getSignatureCreationDate())
+    }
 }

@@ -1,32 +1,22 @@
-package de.tsenger.vdstools.idb;
-
-import java.util.HashMap;
+package vdstools.idb
 
 //@formatter:off
-public enum IdbSignatureAlgorithm {
-	SHA256_WITH_ECDSA((byte)0x01), 
-	SHA384_WITH_ECDSA((byte)0x02), 
-	SHA512_WITH_ECDSA((byte)0x03),
+enum class IdbSignatureAlgorithm (val value: Byte) {
+    SHA256_WITH_ECDSA(0x01.toByte()), 
+    SHA384_WITH_ECDSA(0x02.toByte()), 
+    SHA512_WITH_ECDSA(0x03.toByte()), 
     ;
-
-    private final byte reference;
-    private static final HashMap<Byte, IdbSignatureAlgorithm> map = new HashMap<>();
-
-    IdbSignatureAlgorithm(byte reference) {
-        this.reference = reference;
-    }
-
-    static {
-        for (IdbSignatureAlgorithm algorithm : IdbSignatureAlgorithm.values()) {
-            map.put(algorithm.reference, algorithm);
+    
+    companion object {
+        private val map = HashMap<Byte, IdbSignatureAlgorithm>()
+        
+        init {
+            for (algorithm in entries) {
+                map[algorithm.value] = algorithm
+            }
         }
-    }
-
-    public static IdbSignatureAlgorithm valueOf(byte value) {
-        return map.get(value);
-    }
-
-    public byte getValue() {
-        return reference;
-    }
-}
+        
+        fun valueOf(value: Byte): IdbSignatureAlgorithm? {
+            return map[value]
+        }
+ }}

@@ -1,93 +1,69 @@
-package de.tsenger.vdstools.idb;
+package vdstools.idb
 
-import de.tsenger.vdstools.DataParser;
-import de.tsenger.vdstools.asn1.DerTlv;
-import org.tinylog.Logger;
+import co.touchlab.kermit.Logger
+import vdstools.DataParser
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.security.cert.CertificateException;
-import java.util.Arrays;
-import java.util.List;
 
-public class IdbPayload {
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.security.cert.CertificateException
+import java.util.*
 
-    private final IdbHeader idbHeader;
-    private final IdbMessageGroup idbMessageGroup;
-    private final IdbSignerCertificate idbSignerCertificate;
-    private final IdbSignature idbSignature;
-
-    public IdbPayload(IdbHeader idbHeader, IdbMessageGroup idbMessageGroup, IdbSignerCertificate idbSignerCertificate,
-                      IdbSignature idbSignature) {
-        this.idbHeader = idbHeader;
-        this.idbMessageGroup = idbMessageGroup;
-        this.idbSignerCertificate = idbSignerCertificate;
-        this.idbSignature = idbSignature;
-    }
-
-    public static IdbPayload fromByteArray(byte[] rawBytes, boolean isSigned) throws CertificateException, IOException {
-        IdbHeader idbHeader;
-        IdbMessageGroup idbMessageGroup = null;
-        IdbSignerCertificate idbSignerCertificate = null;
-        IdbSignature idbSignature = null;
-        int offset = 0;
-        if (isSigned) {
-            idbHeader = IdbHeader.fromByteArray(Arrays.copyOfRange(rawBytes, offset, offset += 12));
-        } else {
-            idbHeader = IdbHeader.fromByteArray(Arrays.copyOfRange(rawBytes, offset, offset += 2));
-        }
-        List<DerTlv> derTlvList = DataParser.parseDerTLvs(Arrays.copyOfRange(rawBytes, offset, rawBytes.length));
-
-        for (DerTlv derTlv : derTlvList) {
-            switch (derTlv.tag) {
-                case IdbMessageGroup.TAG:
-                    idbMessageGroup = IdbMessageGroup.fromByteArray(derTlv.getEncoded());
-                    break;
-                case IdbSignerCertificate.TAG:
-                    idbSignerCertificate = IdbSignerCertificate.fromByteArray(derTlv.getEncoded());
-                    break;
-                case IdbSignature.TAG:
-                    idbSignature = IdbSignature.fromByteArray(derTlv.getEncoded());
-                    break;
-                default:
-                    throw new IllegalArgumentException(
-                            String.format("Found unknown tag %2X in IdbPayload!", derTlv.tag));
+class IdbPayload(
+    @JvmField val idbHeader: IdbHeader,
+    @JvmField val idbMessageGroup: IdbMessageGroup?,
+    @JvmField val idbSignerCertificate: IdbSignerCertificate?,
+    @JvmField val idbSignature: IdbSignature?
+) {
+    @get:Throws(IOException::class)
+    val encoded: ByteArray
+        get() {
+            val bos = ByteArrayOutputStream()
+            bos.write(idbHeader.encoded)
+            bos.write(idbMessageGroup!!.encoded)
+            if (idbSignerCertificate != null) bos.write(idbMessageGroup.encoded)
+            if (idbSignature != null) {
+                bos.write(idbSignature.encoded)
+            } else if (idbHeader.getSignatureAlgorithm() != null) {
+                Logger.e(
+                    "Missing Signature Field! This field should be present if a signature algorithm has been specified in the header."
+                )
             }
+            return bos.toByteArray()
         }
 
-        return new IdbPayload(idbHeader, idbMessageGroup, idbSignerCertificate, idbSignature);
-    }
+    companion object {
+        @JvmStatic
+        @Throws(CertificateException::class, IOException::class)
+        fun fromByteArray(rawBytes: ByteArray, isSigned: Boolean): IdbPayload {
+            val idbHeader: IdbHeader
+            var idbMessageGroup: IdbMessageGroup? = null
+            var idbSignerCertificate: IdbSignerCertificate? = null
+            var idbSignature: IdbSignature? = null
+            var offset = 0
+            if (isSigned) {
+                idbHeader =
+                    IdbHeader.fromByteArray(Arrays.copyOfRange(rawBytes, offset, 12.let { offset += it; offset }))
+            } else {
+                idbHeader =
+                    IdbHeader.fromByteArray(Arrays.copyOfRange(rawBytes, offset, 2.let { offset += it; offset }))
+            }
+            val derTlvList = DataParser.parseDerTLvs(Arrays.copyOfRange(rawBytes, offset, rawBytes.size))
 
-    public IdbHeader getIdbHeader() {
-        return idbHeader;
-    }
+            for (derTlv in derTlvList) {
+                when (derTlv.tag) {
+                    IdbMessageGroup.TAG -> idbMessageGroup = IdbMessageGroup.fromByteArray(derTlv.encoded)
+                    IdbSignerCertificate.TAG -> idbSignerCertificate =
+                        IdbSignerCertificate.fromByteArray(derTlv.encoded)
 
-    public IdbMessageGroup getIdbMessageGroup() {
-        return idbMessageGroup;
-    }
+                    IdbSignature.TAG -> idbSignature = IdbSignature.fromByteArray(derTlv.encoded)
+                    else -> throw IllegalArgumentException(
+                        String.format("Found unknown tag %2X in IdbPayload!", derTlv.tag)
+                    )
+                }
+            }
 
-    public IdbSignerCertificate getIdbSignerCertificate() {
-        return idbSignerCertificate;
-    }
-
-    public IdbSignature getIdbSignature() {
-        return idbSignature;
-    }
-
-    public byte[] getEncoded() throws IOException {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        bos.write(idbHeader.getEncoded());
-        bos.write(idbMessageGroup.getEncoded());
-        if (idbSignerCertificate != null)
-            bos.write(idbMessageGroup.getEncoded());
-        if (idbSignature != null) {
-            bos.write(idbSignature.getEncoded());
-        } else if (idbHeader.getSignatureAlgorithm() != null) {
-            Logger.error(
-                    "Missing Signature Field! This field should be present if a signature algorithm has been specified in the header.");
-            return null;
+            return IdbPayload(idbHeader, idbMessageGroup, idbSignerCertificate, idbSignature)
         }
-        return bos.toByteArray();
     }
-
 }

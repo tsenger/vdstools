@@ -1,132 +1,121 @@
-package de.tsenger.vdstools;
+package de.tsenger.vdstools
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.SecureRandom;
-import java.security.Security;
-import java.security.SignatureException;
-import java.security.cert.CertificateException;
-import java.security.interfaces.ECPrivateKey;
-import java.security.spec.ECGenParameterSpec;
-import java.security.spec.InvalidKeySpecException;
-import java.util.Random;
+import org.bouncycastle.jce.provider.BouncyCastleProvider
+import org.bouncycastle.util.encoders.Hex
+import org.junit.Assert
+import org.junit.Assert.assertEquals
+import org.junit.BeforeClass
+import org.junit.Test
+import vdstools.Signer
+import java.io.FileInputStream
+import java.security.KeyPairGenerator
+import java.security.KeyStore
+import java.security.SecureRandom
+import java.security.Security
+import java.security.interfaces.ECPrivateKey
+import java.security.spec.ECGenParameterSpec
+import java.util.*
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.util.encoders.Hex;
-import org.junit.BeforeClass;
-import org.junit.Test;
+class SignerTest {
+    @Test
+    fun testKeyStoreConstructor() {
+        val signer = Signer(keystore, keyStorePassword, "dets32")
+        assertEquals(224, signer.fieldSize)
+    }
 
-public class SignerTest {
-	static String keyStorePassword = "vdstools";
-	static String keyStoreFile = "src/test/resources/vdstools_testcerts.bks";
-	static KeyStore keystore;
+    @Test
+    fun testSign_224() {
+        val signer = Signer(keystore, keyStorePassword, "dets32")
+        val dataBytes = ByteArray(32)
+        val rnd = Random()
+        rnd.nextBytes(dataBytes)
+        val signatureBytes: ByteArray = signer.sign(dataBytes)
+        println("Signature: " + Hex.toHexString(signatureBytes))
+        Assert.assertTrue(signatureBytes.size * 4 == signer.fieldSize)
+    }
 
-	@BeforeClass
-	public static void loadKeyStore() throws NoSuchAlgorithmException, CertificateException, IOException,
-			KeyStoreException, NoSuchProviderException {
-		Security.addProvider(new BouncyCastleProvider());
-		keystore = KeyStore.getInstance("BKS", "BC");
-		FileInputStream fis = new FileInputStream(keyStoreFile);
-		keystore.load(fis, keyStorePassword.toCharArray());
-		fis.close();
-	}
+    @Test
+    fun testSign_256() {
+        val keyGen = KeyPairGenerator.getInstance("ECDSA", "BC")
+        val rnd = SecureRandom()
+        keyGen.initialize(256, rnd)
+        val pair = keyGen.generateKeyPair()
 
-	@Test
-	public void testKeyStoreConstructor() {
-		Signer signer = new Signer(keystore, keyStorePassword, "dets32");
-		assertEquals(224, signer.getFieldSize());
-	}
+        val dataBytes = ByteArray(32)
+        rnd.nextBytes(dataBytes)
 
-	@Test
-	public void testSign_224() throws InvalidKeyException, NoSuchAlgorithmException, SignatureException,
-			InvalidAlgorithmParameterException, NoSuchProviderException, IOException {
-		Signer signer = new Signer(keystore, keyStorePassword, "dets32");
-		byte[] dataBytes = new byte[32];
-		Random rnd = new Random();
-		rnd.nextBytes(dataBytes);
-		byte[] signatureBytes = signer.sign(dataBytes);
-		System.out.println("Signature: " + Hex.toHexString(signatureBytes));
-		assertTrue(signatureBytes.length * 4 == signer.getFieldSize());
-	}
+        val signer = Signer(pair.private as ECPrivateKey)
+        val signatureBytes: ByteArray = signer.sign(dataBytes)
+        println("Signature: " + Hex.toHexString(signatureBytes))
+        Assert.assertTrue(signatureBytes.size * 4 == signer.fieldSize)
+    }
 
-	@Test
-	public void testSign_256() throws InvalidKeyException, NoSuchAlgorithmException, SignatureException,
-			InvalidAlgorithmParameterException, NoSuchProviderException, IOException, InvalidKeySpecException {
-		KeyPairGenerator keyGen = KeyPairGenerator.getInstance("ECDSA", "BC");
-		SecureRandom rnd = new SecureRandom();
-		keyGen.initialize(256, rnd);
-		KeyPair pair = keyGen.generateKeyPair();
+    @Test
 
-		byte[] dataBytes = new byte[32];
-		rnd.nextBytes(dataBytes);
+    fun testSign_384() {
+        val keyGen = KeyPairGenerator.getInstance("ECDSA", "BC")
+        val rnd = SecureRandom()
+        keyGen.initialize(384, rnd)
+        val pair = keyGen.generateKeyPair()
 
-		Signer signer = new Signer((ECPrivateKey) pair.getPrivate());
-		byte[] signatureBytes = signer.sign(dataBytes);
-		System.out.println("Signature: " + Hex.toHexString(signatureBytes));
-		assertTrue(signatureBytes.length * 4 == signer.getFieldSize());
-	}
+        val dataBytes = ByteArray(64)
+        rnd.nextBytes(dataBytes)
 
-	@Test
-	public void testSign_384() throws InvalidKeyException, NoSuchAlgorithmException, SignatureException,
-			InvalidAlgorithmParameterException, NoSuchProviderException, IOException, InvalidKeySpecException {
-		KeyPairGenerator keyGen = KeyPairGenerator.getInstance("ECDSA", "BC");
-		SecureRandom rnd = new SecureRandom();
-		keyGen.initialize(384, rnd);
-		KeyPair pair = keyGen.generateKeyPair();
+        val signer = Signer(pair.private as ECPrivateKey)
+        val signatureBytes: ByteArray = signer.sign(dataBytes)
+        println("Signature: " + Hex.toHexString(signatureBytes))
+        Assert.assertTrue(signatureBytes.size * 4 == signer.fieldSize)
+    }
 
-		byte[] dataBytes = new byte[64];
-		rnd.nextBytes(dataBytes);
+    @Test
 
-		Signer signer = new Signer((ECPrivateKey) pair.getPrivate());
-		byte[] signatureBytes = signer.sign(dataBytes);
-		System.out.println("Signature: " + Hex.toHexString(signatureBytes));
-		assertTrue(signatureBytes.length * 4 == signer.getFieldSize());
-	}
+    fun testSign_512() {
+        val kpgparams = ECGenParameterSpec("brainpoolP512r1")
+        val keyGen = KeyPairGenerator.getInstance("ECDSA", "BC")
+        keyGen.initialize(kpgparams)
+        val pair = keyGen.generateKeyPair()
 
-	@Test
-	public void testSign_512() throws InvalidKeyException, NoSuchAlgorithmException, SignatureException,
-			InvalidAlgorithmParameterException, NoSuchProviderException, IOException, InvalidKeySpecException {
-		ECGenParameterSpec kpgparams = new ECGenParameterSpec("brainpoolP512r1");
-		KeyPairGenerator keyGen = KeyPairGenerator.getInstance("ECDSA", "BC");
-		keyGen.initialize(kpgparams);
-		KeyPair pair = keyGen.generateKeyPair();
+        val rnd = Random()
+        val dataBytes = ByteArray(128)
+        rnd.nextBytes(dataBytes)
 
-		Random rnd = new Random();
-		byte[] dataBytes = new byte[128];
-		rnd.nextBytes(dataBytes);
+        val signer = Signer(pair.private as ECPrivateKey)
+        val signatureBytes: ByteArray = signer.sign(dataBytes)
+        println("Signature: " + Hex.toHexString(signatureBytes))
+        Assert.assertTrue(signatureBytes.size * 4 == signer.fieldSize)
+    }
 
-		Signer signer = new Signer((ECPrivateKey) pair.getPrivate());
-		byte[] signatureBytes = signer.sign(dataBytes);
-		System.out.println("Signature: " + Hex.toHexString(signatureBytes));
-		assertTrue(signatureBytes.length * 4 == signer.getFieldSize());
-	}
+    @Test(expected = Exception::class)
+    fun testSign_521() {
+        val keyGen = KeyPairGenerator.getInstance("ECDSA", "BC")
+        val rnd = SecureRandom()
+        keyGen.initialize(521, rnd)
+        val pair = keyGen.generateKeyPair()
 
-	@Test(expected = InvalidAlgorithmParameterException.class)
-	public void testSign_521() throws InvalidKeyException, NoSuchAlgorithmException, SignatureException,
-			InvalidAlgorithmParameterException, NoSuchProviderException, IOException, InvalidKeySpecException {
-		KeyPairGenerator keyGen = KeyPairGenerator.getInstance("ECDSA", "BC");
-		SecureRandom rnd = new SecureRandom();
-		keyGen.initialize(521, rnd);
-		KeyPair pair = keyGen.generateKeyPair();
+        val dataBytes = ByteArray(128)
+        rnd.nextBytes(dataBytes)
 
-		byte[] dataBytes = new byte[128];
-		rnd.nextBytes(dataBytes);
+        val signer = Signer(pair.private as ECPrivateKey)
+        val signatureBytes: ByteArray = signer.sign(dataBytes)
+        println("Signature: " + Hex.toHexString(signatureBytes))
+        Assert.assertTrue(signatureBytes.size * 4 == signer.fieldSize)
+    }
 
-		Signer signer = new Signer((ECPrivateKey) pair.getPrivate());
-		byte[] signatureBytes = signer.sign(dataBytes);
-		System.out.println("Signature: " + Hex.toHexString(signatureBytes));
-		assertTrue(signatureBytes.length * 4 == signer.getFieldSize());
-	}
+    companion object {
+        var keyStorePassword: String = "vdstools"
+        var keyStoreFile: String = "src/test/resources/vdstools_testcerts.bks"
+        lateinit var keystore: KeyStore
 
+        @JvmStatic
+        @BeforeClass
+
+        fun loadKeyStore() {
+            Security.addProvider(BouncyCastleProvider())
+            keystore = KeyStore.getInstance("BKS", "BC")
+            val fis = FileInputStream(keyStoreFile)
+            keystore.load(fis, keyStorePassword.toCharArray())
+            fis.close()
+        }
+    }
 }

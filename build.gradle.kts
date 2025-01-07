@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm") version "2.1.0"
-    id("com.google.devtools.ksp") version "2.1.0-1.0.29" // KSP Plugin
+    kotlin("plugin.serialization") version "2.1.0"
+//    id("com.google.devtools.ksp") version "2.1.0-1.0.29" // KSP Plugin
     java
 }
 
@@ -20,14 +21,7 @@ repositories {
     mavenCentral()
 }
 
-kotlin {
-    sourceSets.main {
-        kotlin.srcDir("build/generated/ksp/main/kotlin")
-    }
-    sourceSets.test {
-        kotlin.srcDir("build/generated/ksp/test/kotlin")
-    }
-}
+
 
 dependencies {
     // Test dependencies
@@ -39,15 +33,15 @@ dependencies {
     // Implementation dependencies
     implementation("org.bouncycastle:bcprov-jdk18on:1.79")
     implementation("org.tinylog:tinylog-impl:2.7.0")
-    implementation("com.google.code.gson:gson:2.11.0")
     implementation("org.jetbrains:annotations:26.0.1")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.0")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("com.squareup.okio:okio:3.9.1")
     implementation("co.touchlab:kermit:2.0.4")
 
-    implementation("com.google.devtools.ksp:symbol-processing-api:2.1.0-1.0.29")
-    implementation("com.squareup:kotlinpoet:2.0.0") // KotlinPoet für die Code-Generierung
+//    implementation("com.google.devtools.ksp:symbol-processing-api:2.1.0-1.0.29")
+//    implementation("com.squareup:kotlinpoet:2.0.0") // KotlinPoet für die Code-Generierung
 
 
 }

@@ -1,54 +1,56 @@
-package de.tsenger.vdstools.idb;
+package vdstools.idb
 
-import de.tsenger.vdstools.DataParser;
-import de.tsenger.vdstools.asn1.DerTlv;
+import vdstools.DataParser
+import vdstools.asn1.DerTlv
+import java.io.ByteArrayOutputStream
+import java.io.IOException
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+class IdbMessageGroup {
+    private val messagesList: MutableList<IdbMessage> = ArrayList()
 
-public class IdbMessageGroup {
-    public final static byte TAG = 0x61;
+    constructor()
 
-    private final List<IdbMessage> messagesList = new ArrayList<>();
-
-    public IdbMessageGroup() {
+    constructor(idbMessage: IdbMessage) {
+        addMessage(idbMessage)
     }
 
-    public IdbMessageGroup(IdbMessage idbMessage) {
-        addMessage(idbMessage);
+    fun addMessage(idbMessage: IdbMessage) {
+        messagesList.add(idbMessage)
     }
 
-    public static IdbMessageGroup fromByteArray(byte[] rawBytes) throws IOException {
-        if (rawBytes[0] != TAG) {
-            throw new IllegalArgumentException(String
-                    .format("IdbMessageGroup shall have tag %2X, but tag %2X was found instead.", TAG, rawBytes[0]));
+    fun getMessagesList(): List<IdbMessage> {
+        return messagesList
+    }
 
+    @get:Throws(IOException::class)
+    val encoded: ByteArray
+        get() {
+            val messages = ByteArrayOutputStream()
+            for (message in messagesList) {
+                messages.write(message.encoded)
+            }
+            return DerTlv(TAG, messages.toByteArray()).encoded
         }
-        rawBytes = DerTlv.fromByteArray(rawBytes).value;
-        IdbMessageGroup messageGroup = new IdbMessageGroup();
-        List<DerTlv> derTlvMessagesList = DataParser.parseDerTLvs(rawBytes);
-        for (DerTlv derTlvMessage : derTlvMessagesList) {
-            messageGroup.addMessage(IdbMessage.fromDerTlv(derTlvMessage));
+
+    companion object {
+        const val TAG: Byte = 0x61
+
+        @JvmStatic
+        @Throws(IOException::class)
+        fun fromByteArray(rawBytes: ByteArray): IdbMessageGroup {
+            require(rawBytes[0] == TAG) {
+                String.format(
+                    "IdbMessageGroup shall have tag %2X, but tag %2X was found instead.", TAG,
+                    rawBytes[0]
+                )
+            }
+            val valueBytes = DerTlv.fromByteArray(rawBytes)?.value ?: ByteArray(0)
+            val messageGroup = IdbMessageGroup()
+            val derTlvMessagesList = DataParser.parseDerTLvs(valueBytes)
+            for (derTlvMessage in derTlvMessagesList) {
+                messageGroup.addMessage(IdbMessage.fromDerTlv(derTlvMessage))
+            }
+            return messageGroup
         }
-        return messageGroup;
     }
-
-    public void addMessage(IdbMessage idbMessage) {
-        messagesList.add(idbMessage);
-    }
-
-    public List<IdbMessage> getMessagesList() {
-        return messagesList;
-    }
-
-    public byte[] getEncoded() throws IOException {
-        ByteArrayOutputStream messages = new ByteArrayOutputStream();
-        for (IdbMessage message : messagesList) {
-            messages.write(message.getEncoded());
-        }
-        return new DerTlv(TAG, messages.toByteArray()).getEncoded();
-    }
-
 }

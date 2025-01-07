@@ -1,27 +1,23 @@
-package de.tsenger.vdstools.vds;
+package de.tsenger.vdstools.vds
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Test
+import vdstools.DataEncoder
 
-import org.junit.Test;
+class VdsTypeTest {
+    @Test
+    fun testGetValue() {
+        assertEquals(0xf908, DataEncoder.getDocumentRef("ADDRESS_STICKER_ID"))
+    }
 
-import de.tsenger.vdstools.DataEncoder;
+    @Test
+    fun testValueOf() {
+        assertEquals("ADDRESS_STICKER_ID", DataEncoder.getVdsType(0xf908))
+    }
 
-public class VdsTypeTest {
-
-	@Test
-	public void testGetValue() {
-		assertEquals(0xf908, DataEncoder.getDocumentRef("ADDRESS_STICKER_ID"));
-	}
-
-	@Test
-	public void testValueOf() {
-		assertEquals("ADDRESS_STICKER_ID", DataEncoder.getVdsType(0xf908));
-	}
-
-	@Test
-	public void testValueOf_unknown() {
-		assertNull(DataEncoder.getVdsType(0x6666));
-	}
-
+    @Test
+    fun testValueOf_unknown() {
+        assertNull(DataEncoder.getVdsType(0x6666))
+    }
 }

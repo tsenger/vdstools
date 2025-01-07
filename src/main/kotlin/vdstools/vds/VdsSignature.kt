@@ -1,15 +1,16 @@
-package vdstools.idb
+package vdstools.vds
+
 
 import co.touchlab.kermit.Logger
 import vdstools.asn1.ASN1Encoder
 import vdstools.asn1.DerTlv
 
-
-import java.io.IOException
-
-class IdbSignature(
+class VdsSignature
+/**
+ * @param plainSignatureBytes signature bytes in plain format: r||s
+ */(
     /**
-     * Returns signature in plain format: r||s
+     * Returns signature bytes in plain format: r||s
      *
      * @return r||s signature byte array
      */
@@ -36,7 +37,6 @@ class IdbSignature(
             return derSignatureBytes
         }
 
-    @get:Throws(IOException::class)
     val encoded: ByteArray
         get() {
             val derSignature = DerTlv(TAG, plainSignatureBytes)
@@ -44,19 +44,18 @@ class IdbSignature(
         }
 
     companion object {
-        const val TAG: Byte = 0x7F
+        const val TAG: Byte = 0xff.toByte()
 
         @JvmStatic
-        @Throws(IOException::class)
-        fun fromByteArray(rawBytes: ByteArray): IdbSignature? {
+        fun fromByteArray(rawBytes: ByteArray): VdsSignature? {
             require(rawBytes[0] == TAG) {
                 String.format(
-                    "IdbSignature shall have tag %2X, but tag %2X was found instead.", TAG,
+                    "VdsSignature shall have tag %2X, but tag %2X was found instead.", TAG,
                     rawBytes[0]
                 )
             }
             val derTlv = DerTlv.fromByteArray(rawBytes)
-            return if (derTlv != null) IdbSignature(derTlv.value)
+            return if (derTlv != null) VdsSignature(derTlv.value)
             else null
         }
     }
