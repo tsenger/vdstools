@@ -6,9 +6,6 @@ import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert
 import org.junit.BeforeClass
 import org.junit.Test
-import vdstools.idb.IcaoBarcode
-import vdstools.idb.IdbHeader
-import vdstools.idb.IdbPayload
 import java.io.FileInputStream
 import java.io.IOException
 import java.security.*

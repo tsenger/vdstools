@@ -1,9 +1,9 @@
 package de.tsenger.vdstools.vds
 
+import de.tsenger.vdstools.DataEncoder
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
-import vdstools.DataEncoder
 
 class VdsTypeTest {
     @Test

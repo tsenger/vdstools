@@ -6,7 +6,6 @@ import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert
 import org.junit.BeforeClass
 import org.junit.Test
-import vdstools.DataEncoder
 import java.io.FileInputStream
 import java.security.KeyStore
 import java.security.Security

@@ -1,15 +1,14 @@
 package de.tsenger.vdstools
 
 
+import de.tsenger.vdstools.DataParser.decodeDateTime
+import de.tsenger.vdstools.DataParser.decodeMaskedDate
+import de.tsenger.vdstools.vds.VdsHeader
 import de.tsenger.vdstools.vds.VdsRawBytes
 import okio.Buffer
 import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert
 import org.junit.Test
-import vdstools.DataParser
-import vdstools.DataParser.decodeDateTime
-import vdstools.DataParser.decodeMaskedDate
-import vdstools.vds.VdsHeader
 import java.io.IOException
 import java.time.LocalDate
 import java.time.LocalDateTime

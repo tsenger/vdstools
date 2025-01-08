@@ -7,7 +7,6 @@ import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.BeforeClass
 import org.junit.Test
-import vdstools.Signer
 import java.io.FileInputStream
 import java.security.KeyPairGenerator
 import java.security.KeyStore

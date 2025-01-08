@@ -3,7 +3,6 @@ package de.tsenger.vdstools.vds
 import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert
 import org.junit.Test
-import vdstools.vds.VdsSignature
 import java.io.IOException
 import java.security.KeyStore
 

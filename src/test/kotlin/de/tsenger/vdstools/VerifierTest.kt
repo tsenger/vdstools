@@ -1,6 +1,7 @@
 package de.tsenger.vdstools
 
 
+import de.tsenger.vdstools.vds.DigitalSeal
 import de.tsenger.vdstools.vds.VdsRawBytes
 import kotlinx.datetime.LocalDate
 import org.bouncycastle.asn1.x500.X500Name
@@ -10,8 +11,6 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.junit.Assert.assertEquals
 import org.junit.BeforeClass
 import org.junit.Test
-import vdstools.Verifier
-import vdstools.vds.DigitalSeal
 import java.io.FileInputStream
 import java.io.IOException
 import java.security.KeyStore

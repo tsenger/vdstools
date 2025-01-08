@@ -1,8 +1,8 @@
 package de.tsenger.vdstools
 
+import de.tsenger.vdstools.vds.VdsMessage
 import org.bouncycastle.util.encoders.Hex
 import org.junit.Test
-import vdstools.vds.VdsMessage
 
 class Example {
     @Test

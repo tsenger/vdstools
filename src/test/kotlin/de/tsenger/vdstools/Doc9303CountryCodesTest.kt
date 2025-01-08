@@ -1,6 +1,6 @@
 package de.tsenger.vdstools
 
-import vdstools.Doc9303CountryCodes.convertToIcaoOrIso3
+import de.tsenger.vdstools.Doc9303CountryCodes.convertToIcaoOrIso3
 import org.junit.Assert
 import org.junit.Test
 

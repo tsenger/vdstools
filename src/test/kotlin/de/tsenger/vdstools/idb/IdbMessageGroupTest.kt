@@ -1,12 +1,9 @@
 package de.tsenger.vdstools.idb
 
+import de.tsenger.vdstools.idb.IdbMessageGroup.Companion.fromByteArray
 import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert
 import org.junit.Test
-import vdstools.idb.IdbMessage
-import vdstools.idb.IdbMessageGroup
-import vdstools.idb.IdbMessageGroup.Companion.fromByteArray
-import vdstools.idb.IdbMessageType
 import java.io.IOException
 
 class IdbMessageGroupTest {

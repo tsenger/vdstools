@@ -1,11 +1,10 @@
 package de.tsenger.vdstools.idb
 
+import de.tsenger.vdstools.idb.IdbSignature.Companion.fromByteArray
 import org.bouncycastle.util.Arrays
 import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert
 import org.junit.Test
-import vdstools.idb.IdbSignature
-import vdstools.idb.IdbSignature.Companion.fromByteArray
 import java.io.IOException
 
 class IdbSignatureTest {

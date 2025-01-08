@@ -6,8 +6,6 @@ import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert
 import org.junit.BeforeClass
 import org.junit.Test
-import vdstools.idb.IdbSignerCertificate
-import vdstools.idb.IdbSignerCertificate.Companion.fromByteArray
 import java.io.FileInputStream
 import java.io.IOException
 import java.security.*
@@ -32,7 +30,8 @@ class IdbSignerCertificateTest {
     @Test
     @Throws(KeyStoreException::class)
     fun testConstructor() {
-        val signCert = IdbSignerCertificate((keystore.getCertificate("dets32") as X509Certificate))
+        val signCert =
+            IdbSignerCertificate((keystore.getCertificate("dets32") as X509Certificate))
         Assert.assertNotNull(signCert)
     }
 
@@ -43,7 +42,7 @@ class IdbSignerCertificateTest {
     @Test
     @Throws(CertificateException::class, IOException::class)
     fun testFromByteArray() {
-        val signCert = fromByteArray(encodedIdbSignerCertificate)
+        val signCert = IdbSignerCertificate.fromByteArray(encodedIdbSignerCertificate)
         Assert.assertNotNull(signCert)
     }
 
@@ -54,7 +53,8 @@ class IdbSignerCertificateTest {
         IOException::class
     )
     fun testGetEncoded() {
-        val signCert = IdbSignerCertificate((keystore.getCertificate("utts5b") as X509Certificate))
+        val signCert =
+            IdbSignerCertificate((keystore.getCertificate("utts5b") as X509Certificate))
         Assert.assertTrue(Arrays.areEqual(encodedIdbSignerCertificate, signCert.encoded))
         //		System.out.println(Hex.toHexString(signCert.getEncoded()));
     }
@@ -62,7 +62,7 @@ class IdbSignerCertificateTest {
     @Test
     @Throws(CertificateException::class, IOException::class)
     fun testGetX509Certificate() {
-        val signCert = fromByteArray(encodedIdbSignerCertificate)
+        val signCert = IdbSignerCertificate.fromByteArray(encodedIdbSignerCertificate)
         Assert.assertNotNull(signCert.x509Certificate)
     }
 

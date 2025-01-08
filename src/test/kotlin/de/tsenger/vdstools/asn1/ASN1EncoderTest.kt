@@ -1,6 +1,5 @@
 package de.tsenger.vdstools.asn1
 
-import vdstools.asn1.ASN1Encoder
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 

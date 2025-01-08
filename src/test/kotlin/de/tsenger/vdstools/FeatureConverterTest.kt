@@ -1,12 +1,10 @@
 package de.tsenger.vdstools
 
 
+import de.tsenger.vdstools.asn1.DerTlv
 import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert
 import org.junit.Test
-import vdstools.DataEncoder
-import vdstools.FeatureConverter
-import vdstools.asn1.DerTlv
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException

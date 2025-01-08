@@ -1,7 +1,6 @@
 package de.tsenger.vdstools
 
 import org.junit.Test
-import vdstools.Base32
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 

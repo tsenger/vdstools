@@ -1,10 +1,10 @@
 package de.tsenger.vdstools.idb
 
+import de.tsenger.vdstools.idb.*
+import de.tsenger.vdstools.idb.IdbPayload.Companion.fromByteArray
 import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert
 import org.junit.Test
-import vdstools.idb.*
-import vdstools.idb.IdbPayload.Companion.fromByteArray
 import java.io.IOException
 import java.security.cert.CertificateException
 

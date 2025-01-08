@@ -4,7 +4,6 @@ import org.bouncycastle.util.Arrays
 import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert
 import org.junit.Test
-import vdstools.vds.VdsMessage
 
 class VdsMessageTest {
 

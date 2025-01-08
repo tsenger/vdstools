@@ -1,5 +1,6 @@
 package de.tsenger.vdstools.vds
 
+import de.tsenger.vdstools.DataEncoder
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -12,8 +13,6 @@ import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert
 import org.junit.BeforeClass
 import org.junit.Test
-import vdstools.DataEncoder
-import vdstools.vds.VdsHeader
 import java.io.FileInputStream
 import java.security.*
 
