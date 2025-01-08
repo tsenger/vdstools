@@ -1,21 +1,12 @@
 plugins {
     kotlin("jvm") version "2.1.0"
     kotlin("plugin.serialization") version "2.1.0"
-//    id("com.google.devtools.ksp") version "2.1.0-1.0.29" // KSP Plugin
-    java
+    //java
 }
 
 group = "de.tsenger"
-version = "0.7.0"
-
-description = "A Java library to encode/sign and decode/verify Visible Digital Seals"
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-}
-
-
+version = "0.8.0"
+description = "A JVM library to encode/sign and decode/verify Visible Digital Seals"
 
 repositories {
     mavenCentral()
@@ -40,10 +31,6 @@ dependencies {
     implementation("com.squareup.okio:okio:3.9.1")
     implementation("co.touchlab:kermit:2.0.4")
 
-//    implementation("com.google.devtools.ksp:symbol-processing-api:2.1.0-1.0.29")
-//    implementation("com.squareup:kotlinpoet:2.0.0") // KotlinPoet für die Code-Generierung
-
-
 }
 
 // Optional: Source and Javadoc tasks
@@ -51,14 +38,6 @@ val sourcesJar by tasks.registering(Jar::class) {
     archiveClassifier.set("sources")
     from(sourceSets.main.get().allSource)
 }
-
-tasks.withType<JavaCompile> {
-    options.encoding = "UTF-8"
-    options.isDeprecation = true
-    options.compilerArgs.add("-Xlint:unchecked")
-}
-
-
 
 tasks.withType<Test> {
     useJUnit()
@@ -109,7 +88,7 @@ fun parseCsvLine(line: String): List<String> {
     // Regex zum Parsen von Feldern mit oder ohne Anführungszeichen
     val regex = """(?<=^|,)(?:"([^"]*)"|([^",]*))""".toRegex()
     return regex.findAll(line)
-        .map { it.groupValues[1].takeIf { it.isNotEmpty() } ?: it.groupValues[2] }
+        .map { it.groupValues[1].takeIf { str -> str.isNotEmpty() } ?: it.groupValues[2] }
         .toList()
 }
 
