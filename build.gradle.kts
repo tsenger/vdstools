@@ -30,6 +30,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("com.squareup.okio:okio:3.9.1")
     implementation("co.touchlab:kermit:2.0.4")
+    implementation("org.kotlincrypto.hash:sha1:0.5.6")
 
 }
 

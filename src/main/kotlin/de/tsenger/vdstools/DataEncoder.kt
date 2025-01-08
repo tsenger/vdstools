@@ -6,17 +6,11 @@ import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.vds.Feature
 import de.tsenger.vdstools.vds.FeatureCoding
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import okio.Buffer
 import okio.Deflater
 import okio.DeflaterSink
-import org.bouncycastle.util.Arrays
-import java.io.ByteArrayOutputStream
-import java.math.BigInteger
-import java.security.MessageDigest
-import java.security.NoSuchAlgorithmException
-import java.security.NoSuchProviderException
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+import org.kotlincrypto.hash.sha1.SHA1
 
 
 object DataEncoder {
@@ -79,13 +73,11 @@ object DataEncoder {
      */
     fun encodeDate(localDate: LocalDate?): ByteArray {
         if (localDate == null) return ByteArray(3)
-
         val formattedDate: String = String.format(
             "%02d%02d%d", localDate.monthNumber, localDate.dayOfMonth, localDate.year
         )
-
         val dateInt = formattedDate.toInt()
-        return byteArrayOf((dateInt ushr 16).toByte(), (dateInt ushr 8).toByte(), dateInt.toByte())
+        return numberToByteArray(dateInt)
 
     }
 
@@ -97,10 +89,42 @@ object DataEncoder {
      * @return local date time encoded in 6 bytes
      */
     fun encodeDateTime(localDatetime: LocalDateTime): ByteArray {
-        val pattern = DateTimeFormatter.ofPattern("MMddyyyyHHmmss")
-        val formattedDate = localDatetime.format(pattern)
-        val dateInt = BigInteger(formattedDate)
-        return dateInt.toByteArray()
+        val formattedDateTime: String = String.format(
+            "%02d%02d%04d%02d%02d%02d",
+            localDatetime.monthNumber,
+            localDatetime.dayOfMonth,
+            localDatetime.year,
+            localDatetime.hour,
+            localDatetime.minute,
+            localDatetime.second
+        )
+        val dateInt = formattedDateTime.toLong()
+        return numberToByteArray(dateInt)
+
+    }
+
+    private fun numberToByteArray(value: Number): ByteArray {
+        return when (value) {
+            is Long -> {
+                // Konvertiere Long zu ByteArray (8 Bytes), beschränke auf 6 und ergänze führende Nullen
+                val byteArray = ByteArray(8) { i ->
+                    (value shr (8 * (7 - i)) and 0xFF).toByte()
+                }.takeLast(6).toByteArray()
+                // Falls kürzer als 6 Bytes, mit führenden Nullen auffüllen
+                ByteArray(6 - byteArray.size) { 0 } + byteArray
+            }
+
+            is Int -> {
+                // Konvertiere Int zu ByteArray (4 Bytes), beschränke auf 3 und ergänze führende Nullen
+                val byteArray = ByteArray(4) { i ->
+                    (value shr (8 * (3 - i)) and 0xFF).toByte()
+                }.takeLast(3).toByteArray()
+                // Falls kürzer als 3 Bytes, mit führenden Nullen auffüllen
+                ByteArray(3 - byteArray.size) { 0 } + byteArray
+            }
+
+            else -> throw IllegalArgumentException("Unsupported type: ${value::class}")
+        }
     }
 
     /**
@@ -136,7 +160,7 @@ object DataEncoder {
         var c2: Int
         var c3: Int
         var sum: Int
-        val out = ByteArrayOutputStream()
+        val out = Buffer()
 
         dataString = dataString.uppercase().replace("<".toRegex(), " ")
 
@@ -150,24 +174,24 @@ object DataEncoder {
                     c2 = getC40Value(dataString[i + 1])
                     c3 = getC40Value(dataString[i + 2])
                     sum = (1600 * c1) + (40 * c2) + c3 + 1
-                    out.write(sum / 256)
-                    out.write(sum % 256)
+                    out.writeByte(sum / 256)
+                    out.writeByte(sum % 256)
                 } else if (i + 1 < len) {
                     // use zero (Shift1) als filler symbol for c3
                     c1 = getC40Value(dataString[i])
                     c2 = getC40Value(dataString[i + 1])
                     sum = (1600 * c1) + (40 * c2) + 1
-                    out.write(sum / 256)
-                    out.write(sum % 256)
+                    out.writeByte(sum / 256)
+                    out.writeByte(sum % 256)
                 } else {
                     // two missing chars: add 0xFE (254 = unlatch) and encode as ASCII
                     // (in datamatrix standard, actual encoded value is ASCII value + 1)
-                    out.write(254)
-                    out.write(toUnsignedInt(dataString[i].code.toByte()) + 1)
+                    out.writeByte(254)
+                    out.writeByte(toUnsignedInt(dataString[i].code.toByte()) + 1)
                 }
             }
         }
-        return out.toByteArray()
+        return out.readByteArray()
     }
 
     private fun getC40Value(c: Char): Int {
@@ -223,19 +247,10 @@ object DataEncoder {
     }
 
 
-    fun buildCertificateReference(certificateBytes: ByteArray): ByteArray? {
-        val messageDigest: MessageDigest
-        try {
-            messageDigest = MessageDigest.getInstance("SHA1", "BC")
-            val certSha1 = messageDigest.digest(certificateBytes)
-            return Arrays.copyOfRange(certSha1, 15, 20)
-        } catch (e: NoSuchAlgorithmException) {
-            Logger.e("Failed building Certificate Reference: " + e.message)
-            return null
-        } catch (e: NoSuchProviderException) {
-            Logger.e("Failed building Certificate Reference: " + e.message)
-            return null
-        }
+    fun buildCertificateReference(certificateBytes: ByteArray): ByteArray {
+        val messageDigest = SHA1()
+        val certSha1 = messageDigest.digest(certificateBytes)
+        return certSha1.sliceArray(15..19)
     }
 
     fun encodeDerTlv(vdsType: String, derTlv: DerTlv): Feature? {

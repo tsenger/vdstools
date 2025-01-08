@@ -1,6 +1,8 @@
 package de.tsenger.vdstools
 
 
+import junit.framework.TestCase.assertEquals
+import kotlinx.datetime.LocalDateTime
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert
@@ -9,7 +11,7 @@ import org.junit.Test
 import java.io.FileInputStream
 import java.security.KeyStore
 import java.security.Security
-import java.time.LocalDateTime
+import kotlin.test.assertContentEquals
 
 class DataEncoderTest {
     //	@Test
@@ -128,13 +130,24 @@ class DataEncoderTest {
             Hex.toHexString(compressedBytes)
         )
     }
-    //	@Test
-    //	public void testGetCertificateReference() throws KeyStoreException {
-    //		X509Certificate cert = (X509Certificate) keystore.getCertificate("dets32");
-    //		byte[] certRef = DataEncoder.buildCertificateReference(cert);
-    //		System.out.println(Hex.toHexString(certRef));
-    //		assertEquals("998b56e575", Hex.toHexString(certRef));
-    //	}
+
+    @Test
+    fun testGetCertificateReference() {
+        val cert = keystore?.getCertificate("dets32");
+        val certRef = DataEncoder.buildCertificateReference(cert!!.encoded);
+        println(Hex.toHexString(certRef));
+        assertEquals("998b56e575", Hex.toHexString(certRef));
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    @Test
+    fun testEncodeC40() {
+        val c40Bytes = DataEncoder.encodeC40("DETS32")
+        assertContentEquals(Hex.decode("6d32c91f"), c40Bytes)
+        val str = DataParser.decodeC40(c40Bytes)
+        println(str)
+        assertEquals("DETS32", str)
+    }
 
     companion object {
         var keyStorePassword: String = "vdstools"
