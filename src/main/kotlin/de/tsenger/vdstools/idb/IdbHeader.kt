@@ -5,7 +5,7 @@ import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.DataParser
 import okio.Buffer
 import java.io.ByteArrayOutputStream
-import java.io.IOException
+
 
 class IdbHeader {
     private var countryIdentifier: ByteArray
@@ -59,7 +59,6 @@ class IdbHeader {
         return DataParser.decodeMaskedDate(signatureCreationDate!!)
     }
 
-    @get:Throws(IOException::class)
     val encoded: ByteArray
         get() {
             val bos = ByteArrayOutputStream()

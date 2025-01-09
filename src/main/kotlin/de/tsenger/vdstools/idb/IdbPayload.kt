@@ -3,29 +3,29 @@ package de.tsenger.vdstools.idb
 
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.DataParser
-import java.io.ByteArrayOutputStream
-import java.util.*
+import okio.Buffer
+
 
 class IdbPayload(
     val idbHeader: IdbHeader,
-    val idbMessageGroup: IdbMessageGroup?,
+    val idbMessageGroup: IdbMessageGroup,
     val idbSignerCertificate: IdbSignerCertificate?,
     val idbSignature: IdbSignature?
 ) {
     val encoded: ByteArray
         get() {
-            val bos = ByteArrayOutputStream()
-            bos.write(idbHeader.encoded)
-            bos.write(idbMessageGroup!!.encoded)
-            if (idbSignerCertificate != null) bos.write(idbMessageGroup.encoded)
+            val buffer = Buffer()
+            buffer.write(idbHeader.encoded)
+            buffer.write(idbMessageGroup.encoded)
+            if (idbSignerCertificate != null) buffer.write(idbMessageGroup.encoded)
             if (idbSignature != null) {
-                bos.write(idbSignature.encoded)
+                buffer.write(idbSignature.encoded)
             } else if (idbHeader.getSignatureAlgorithm() != null) {
                 Logger.e(
                     "Missing Signature Field! This field should be present if a signature algorithm has been specified in the header."
                 )
             }
-            return bos.toByteArray()
+            return buffer.readByteArray()
         }
 
     companion object {
@@ -35,14 +35,9 @@ class IdbPayload(
             var idbSignerCertificate: IdbSignerCertificate? = null
             var idbSignature: IdbSignature? = null
             var offset = 0
-            if (isSigned) {
-                idbHeader =
-                    IdbHeader.fromByteArray(Arrays.copyOfRange(rawBytes, offset, 12.let { offset += it; offset }))
-            } else {
-                idbHeader =
-                    IdbHeader.fromByteArray(Arrays.copyOfRange(rawBytes, offset, 2.let { offset += it; offset }))
-            }
-            val derTlvList = DataParser.parseDerTLvs(Arrays.copyOfRange(rawBytes, offset, rawBytes.size))
+            val headerSize = if (isSigned) 12 else 2
+            idbHeader = IdbHeader.fromByteArray(rawBytes.sliceArray(0 until headerSize).also { offset += headerSize })
+            val derTlvList = DataParser.parseDerTLvs(rawBytes.sliceArray(offset until rawBytes.size))
 
             for (derTlv in derTlvList) {
                 when (derTlv.tag) {
@@ -56,7 +51,8 @@ class IdbPayload(
                     )
                 }
             }
-
+            if (idbMessageGroup == null) throw IllegalArgumentException("Didn't found a Message!")
+            
             return IdbPayload(idbHeader, idbMessageGroup, idbSignerCertificate, idbSignature)
         }
     }

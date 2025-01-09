@@ -15,28 +15,28 @@ import kotlin.test.fail
 class IcaoBarcodeTest {
     @Test
     fun testIsNotSignedIsNotZipped() {
-        val icb = IcaoBarcode('A', IdbPayload(IdbHeader("UTO"), null, null, null))
+        val icb = IcaoBarcode('A', IdbPayload(IdbHeader("UTO"), IdbMessageGroup(), null, null))
         Assert.assertFalse(icb.isSigned)
         Assert.assertFalse(icb.isZipped)
     }
 
     @Test
     fun testIsSignedIsNotZipped() {
-        val icb = IcaoBarcode('B', IdbPayload(IdbHeader("UTO"), null, null, null))
+        val icb = IcaoBarcode('B', IdbPayload(IdbHeader("UTO"), IdbMessageGroup(), null, null))
         Assert.assertTrue(icb.isSigned)
         Assert.assertFalse(icb.isZipped)
     }
 
     @Test
     fun testIsNotSignedIsZipped() {
-        val icb = IcaoBarcode('C', IdbPayload(IdbHeader("UTO"), null, null, null))
+        val icb = IcaoBarcode('C', IdbPayload(IdbHeader("UTO"), IdbMessageGroup(), null, null))
         Assert.assertFalse(icb.isSigned)
         Assert.assertTrue(icb.isZipped)
     }
 
     @Test
     fun testIsSignedIsZipped() {
-        val icb = IcaoBarcode('D', IdbPayload(IdbHeader("UTO"), null, null, null))
+        val icb = IcaoBarcode('D', IdbPayload(IdbHeader("UTO"), IdbMessageGroup(), null, null))
         Assert.assertTrue(icb.isSigned)
         Assert.assertTrue(icb.isZipped)
     }

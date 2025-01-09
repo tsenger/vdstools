@@ -11,7 +11,7 @@ import java.security.cert.CertificateException
 class IdbPayloadTest {
     @Test
     fun testConstructor_null() {
-        val payload = IdbPayload(IdbHeader("UTO"), null, null, null)
+        val payload = IdbPayload(IdbHeader("UTO"), IdbMessageGroup(), null, null)
         Assert.assertNotNull(payload)
     }
 
@@ -66,7 +66,7 @@ class IdbPayloadTest {
         Assert.assertNotNull(messageGroup)
         Assert.assertEquals(
             "61120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf", Hex.toHexString(
-                messageGroup!!.encoded
+                messageGroup.encoded
             )
         )
     }

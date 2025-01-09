@@ -2,7 +2,7 @@ package de.tsenger.vdstools.idb
 
 import de.tsenger.vdstools.DataParser
 import de.tsenger.vdstools.asn1.DerTlv
-import java.io.ByteArrayOutputStream
+import okio.Buffer
 
 class IdbMessageGroup {
     private val messagesList: MutableList<IdbMessage> = ArrayList()
@@ -21,14 +21,13 @@ class IdbMessageGroup {
         return messagesList
     }
 
-
     val encoded: ByteArray
         get() {
-            val messages = ByteArrayOutputStream()
+            val messages = Buffer()
             for (message in messagesList) {
                 messages.write(message.encoded)
             }
-            return DerTlv(TAG, messages.toByteArray()).encoded
+            return DerTlv(TAG, messages.readByteArray()).encoded
         }
 
     companion object {

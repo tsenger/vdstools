@@ -9,8 +9,6 @@ import kotlinx.serialization.json.*
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader
-import java.nio.charset.StandardCharsets
-import java.util.*
 
 
 class FeatureConverter(inputStream: InputStream? = null) {
@@ -34,8 +32,8 @@ class FeatureConverter(inputStream: InputStream? = null) {
         }
     }
 
-    val availableVdsTypes: Set<String>
-        get() = TreeSet(vdsTypes.keys)
+    val availableVdsTypes: List<String>
+        get() = vdsTypes.keys.toList()
 
     fun getDocumentRef(vdsType: String): Int? {
         return vdsTypes[vdsType]
@@ -109,7 +107,7 @@ class FeatureConverter(inputStream: InputStream? = null) {
                 value = DataEncoder.encodeC40(valueStr)
             }
 
-            FeatureCoding.UTF8_STRING -> value = (inputValue as String).toByteArray(StandardCharsets.UTF_8)
+            FeatureCoding.UTF8_STRING -> value = (inputValue as String).toByteArray()
             FeatureCoding.BYTE -> value = byteArrayOf(inputValue as Byte)
             FeatureCoding.BYTES -> value = inputValue as ByteArray
             FeatureCoding.UNKNOWN -> value = inputValue as ByteArray
@@ -122,7 +120,7 @@ class FeatureConverter(inputStream: InputStream? = null) {
         val coding = getCoding(sealDto, tag)
         val result = when (coding) {
             FeatureCoding.C40 -> decodeC40Feature(sealDto, derTlv)
-            FeatureCoding.UTF8_STRING -> String(derTlv.value, StandardCharsets.UTF_8)
+            FeatureCoding.UTF8_STRING -> derTlv.value.decodeToString()
             FeatureCoding.BYTE -> derTlv.value[0]
             FeatureCoding.BYTES -> derTlv.value
             FeatureCoding.UNKNOWN -> derTlv.value
@@ -210,7 +208,7 @@ class FeatureConverter(inputStream: InputStream? = null) {
     companion object {
         private val vdsTypes: MutableMap<String, Int> = HashMap()
         private val vdsTypesReverse: MutableMap<Int, String> = HashMap()
-        private val vdsFeatures: MutableSet<String> = TreeSet()
+        private val vdsFeatures: MutableSet<String> = mutableSetOf()
         var DEFAULT_SEAL_CODINGS: String = "/SealCodings.json"
     }
 }
