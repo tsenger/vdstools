@@ -3,35 +3,13 @@ package de.tsenger.vdstools
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.asn1.DerTlv
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import okio.Buffer
 import okio.Inflater
 import okio.InflaterSource
-import java.math.BigInteger
-import java.nio.ByteBuffer
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.util.*
 
-/**
- * Created by Tobias Senger on 18.01.2017.
- */
 object DataParser {
-    /**
-     * Returns a byte array of the requested size which contains the number of bytes
-     * from the given ByteBuffer beginning at the current pointer of the ByteBuffer.
-     *
-     * @param buffer The ByteBuffer to get the number of bytes from.
-     * @param size   Number of bytes to get from ByteBuffer. Starting from the
-     * internal ByteBuffers pointer
-     * @return byte array of length 'size' with bytes from ByteBuffer
-     */
-    fun getFromByteBuffer(buffer: ByteBuffer, size: Int): ByteArray {
-        val tmpByteArray = ByteArray(size)
-        if (buffer.position() + size <= buffer.capacity()) {
-            buffer[tmpByteArray]
-        }
-        return tmpByteArray
-    }
+
 
     /**
      * Decodes a byte[] encoded masked date as described in ICAO TR "Datastructure
@@ -51,7 +29,7 @@ object DataParser {
         val day = ((intval % 1000000) / 10000).toInt()
         val month = (intval / 1000000).toInt()
         val year = (intval % 10000).toInt()
-        // MMddyyyy
+        // Pattern: MMddyyyy
         val dateCharArray = String.format("%02d%02d%04d", month, day, year).toCharArray()
 
         for (i in 0..7) {
@@ -61,7 +39,7 @@ object DataParser {
             }
         }
         val dateString = String(dateCharArray)
-        return dateString.replace("(.{2})(.{2})(.{4})".toRegex(), "$3-$1-$2").lowercase(Locale.getDefault())
+        return dateString.replace("(.{2})(.{2})(.{4})".toRegex(), "$3-$1-$2").lowercase()
     }
 
     fun decodeDate(dateBytes: ByteArray): LocalDate {
@@ -86,32 +64,45 @@ object DataParser {
      * @return LocalDateTime object
      */
     fun decodeDateTime(dateTimeBytes: ByteArray): LocalDateTime {
-        require(dateTimeBytes.size == 6) { "expected three bytes for date decoding" }
-        val dateBigInt = BigInteger(dateTimeBytes)
-        val pattern = DateTimeFormatter.ofPattern("MMddyyyyHHmmss")
-        return LocalDateTime.parse(String.format("%014d", dateBigInt), pattern)
+        require(dateTimeBytes.size == 6) { "Expected six bytes for date decoding" }
+
+        var dateTimeLong = 0L
+        for (byte in dateTimeBytes) {
+            dateTimeLong = (dateTimeLong shl 8) or (byte.toLong() and 0xFF)
+        }
+
+        val paddedDateString = dateTimeLong.toString().padStart(14, '0')
+
+        val month = paddedDateString.substring(0, 2).toInt()
+        val day = paddedDateString.substring(2, 4).toInt()
+        val year = paddedDateString.substring(4, 8).toInt()
+        val hour = paddedDateString.substring(8, 10).toInt()
+        val minute = paddedDateString.substring(10, 12).toInt()
+        val second = paddedDateString.substring(12, 14).toInt()
+
+        return LocalDateTime(year, month, day, hour, minute, second)
     }
 
     fun parseDerTLvs(rawBytes: ByteArray): List<DerTlv> {
-        val rawData = ByteBuffer.wrap(rawBytes)
+        val dataBuffer = Buffer().write(rawBytes)
         val derTlvList: MutableList<DerTlv> = ArrayList()
-        while (rawData.hasRemaining()) {
-            val tag = rawData.get()
+        while (!dataBuffer.exhausted()) {
+            val tag = dataBuffer.readByte()
 
-            var le = rawData.get().toInt() and 0xff
+            var le = dataBuffer.readByte().toInt() and 0xff
             if (le == 0x81) {
-                le = rawData.get().toInt() and 0xff
+                le = dataBuffer.readByte().toInt() and 0xff
             } else if (le == 0x82) {
-                le = ((rawData.get().toInt() and 0xff) * 0x100) + (rawData.get().toInt() and 0xff)
+                le = ((dataBuffer.readByte().toInt() and 0xff) * 0x100) + (dataBuffer.readByte().toInt() and 0xff)
             } else if (le == 0x83) {
-                le = ((rawData.get().toInt() and 0xff) * 0x1000) + ((rawData.get()
-                    .toInt() and 0xff) * 0x100) + (rawData.get().toInt() and 0xff)
+                le = ((dataBuffer.readByte().toInt() and 0xff) * 0x1000) + ((dataBuffer.readByte()
+                    .toInt() and 0xff) * 0x100) + (dataBuffer.readByte().toInt() and 0xff)
             } else if (le > 0x7F) {
                 Logger.e(String.format("can't decode length: 0x%02X", le))
                 throw IllegalArgumentException(String.format("can't decode length: 0x%02X", le))
             }
-            val `val` = getFromByteBuffer(rawData, le)
-            derTlvList.add(DerTlv(tag, `val`))
+            val value = dataBuffer.readByteArray(le.toLong())
+            derTlvList.add(DerTlv(tag, value))
         }
         return derTlvList
     }

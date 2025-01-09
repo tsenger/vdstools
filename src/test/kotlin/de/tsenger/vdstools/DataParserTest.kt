@@ -5,13 +5,14 @@ import de.tsenger.vdstools.DataParser.decodeDateTime
 import de.tsenger.vdstools.DataParser.decodeMaskedDate
 import de.tsenger.vdstools.vds.VdsHeader
 import de.tsenger.vdstools.vds.VdsRawBytes
+import junit.framework.TestCase.assertEquals
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import okio.Buffer
 import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert
 import org.junit.Test
 import java.io.IOException
-import java.time.LocalDate
-import java.time.LocalDateTime
 
 class DataParserTest {
     @Test
@@ -54,28 +55,28 @@ class DataParserTest {
     fun testDecodeDateTime1() {
         val localDateTime = decodeDateTime(Hex.decode("0aecc4c7fb80"))
         println(localDateTime)
-        Assert.assertTrue(LocalDateTime.parse("2030-12-01T00:00:00").isEqual(localDateTime))
+        assertEquals(LocalDateTime.parse("2030-12-01T00:00:00"), localDateTime)
     }
 
     @Test
     fun testDecodeDateTime2() {
         val localDateTime = decodeDateTime(Hex.decode("02f527bf25b2"))
         println(localDateTime)
-        Assert.assertTrue(LocalDateTime.parse("1957-03-25T08:15:22").isEqual(localDateTime))
+        assertEquals(LocalDateTime.parse("1957-03-25T08:15:22"), localDateTime)
     }
 
     @Test
     fun testDecodeDateTime3() {
         val localDateTime = decodeDateTime(Hex.decode("00eb28c03640"))
         println(localDateTime)
-        Assert.assertTrue(LocalDateTime.parse("0001-01-01T00:00:00").isEqual(localDateTime))
+        assertEquals(LocalDateTime.parse("0001-01-01T00:00:00"), localDateTime)
     }
 
     @Test
     fun testDecodeDateTime4() {
         val localDateTime = decodeDateTime(Hex.decode("0b34792d9777"))
         println(localDateTime)
-        Assert.assertTrue(LocalDateTime.parse("9999-12-31T23:59:59").isEqual(localDateTime))
+        assertEquals(LocalDateTime.parse("9999-12-31T23:59:59"), localDateTime)
     }
 
     @Test
