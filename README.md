@@ -6,7 +6,7 @@ A library to decode/verify and encode/sign Visible Digital Seals (VDS) as specif
 - [ICAO Doc 9303 Part 13: Visible Digital Seals](https://www.icao.int/publications/Documents/9303_p13_cons_en.pdf)
 - [ICAO TR "VDS for Non-Electronic Documents"](https://www.icao.int/Security/FAL/TRIP/Documents/TR%20-%20Visible%20Digital%20Seals%20for%20Non-Electronic%20Documents%20V1.7.pdf)
 
-It also supports encoding and decoding Seals defined in the new draft of [ICAO Datastructure for Barcode](https://www.icao.int/Security/FAL/TRIP/PublishingImages/Pages/Publications/ICAO%20TR%20-%20ICAO%20Datastructure%20for%20Barcode.pdf). The IDB encoder/decoders are at early stadium of and still differs from the VDS parser/encoder but they are already useable. You will find them in the package [de.tsenger.vdstools.idb](https://github.com/tsenger/vdstools/tree/main/src/main/java/de/tsenger/vdstools/idb).
+It also supports encoding and decoding Seals defined in the new draft of [ICAO Datastructure for Barcode](https://www.icao.int/Security/FAL/TRIP/PublishingImages/Pages/Publications/ICAO%20TR%20-%20ICAO%20Datastructure%20for%20Barcode.pdf). The IDB encoder/decoders are at early stadium of and still differs from the VDS parser/encoder but they are already useable. You will find them in the package [de.tsenger.vdstools_mp.idb](https://github.com/tsenger/vdstools/tree/main/src/main/java/de/tsenger/vdstools/idb).
 
 VDS can be created with the help of this library or, if you want to try it out quickly, via the web [Sealgen](https://sealgen.tsenger.de) tool. 
 There is also the [Sealva](https://play.google.com/store/apps/details?id=de.tsenger.sealver) Android app which scans, verifies and displays all VDS profiles defined in the above specifications.
@@ -18,9 +18,9 @@ Here is a quick overview how to use the VDS parser and verifier.
 When you have the decoded raw string or raw bytes from your favorite datamatrix decoder, just put them to the VDS Tools Dataparser like this:
 
 ```java
-import de.tsenger.vdstools.Verifier;
-import de.tsenger.vdstools.vds.DigitalSeal;
-import de.tsenger.vdstools.vds.Feature;
+import de.tsenger.vdstools_mp.Verifier;
+import de.tsenger.vdstools_mp.vds.DigitalSeal;
+import de.tsenger.vdstools_mp.vds.Feature;
 
 ...
 DigitalSeal digitalSeal = DigitalSeal.fromByteArray(rawBytes);
@@ -29,15 +29,26 @@ String vdsType = digitalSeal.getVdsType();
 // getFeature() returns an Optional<Feature> which can be used as follows
 String mrz = digitalSeal.getFeature("MRZ").get().valueStr();
 String azr = digitalSeal.getFeature("AZR").get().valueStr();
-if(digitalSeal.getFeature("FACE_IMAGE").isPresent() ){
-    byte[] imgBytes = digitalSeal.getFeature("FACE_IMAGE").get().valueBytes();
+if(digitalSeal.
+
+getFeature("FACE_IMAGE").
+
+isPresent() ){
+byte[] imgBytes = digitalSeal.getFeature("FACE_IMAGE").get().valueBytes();
 }
 
 // or get all available Features in one List<Feature>
 List<Feature> featureList = digitalSeal.getFeatureList();
-for (Feature feature: featureList) {
-    System.out.println(feature.name() + ", " + feature.coding() + ", " + feature.valueStr());
-}
+for(
+Feature feature:featureList){
+        System.out.
+
+println(feature.name() +", "+feature.
+
+coding() +", "+feature.
+
+valueStr());
+        }
 
 // Get the VDS signer certificate reference
 String signerCertRef = digitalSeal.getSignerCertRef();
