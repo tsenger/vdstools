@@ -3,10 +3,12 @@ package de.tsenger.vdstools_mp.vds
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools_mp.DataEncoder
 import de.tsenger.vdstools_mp.Signer
+import de.tsenger.vdstools_mp.SignerTest
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
+import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.util.Arrays
 import org.bouncycastle.util.encoders.Hex
@@ -15,7 +17,9 @@ import org.junit.BeforeClass
 import org.junit.Test
 import java.io.FileInputStream
 import java.io.IOException
-import java.security.*
+import java.security.KeyStore
+import java.security.KeyStoreException
+import java.security.Security
 
 
 class DigitalSealTest {
@@ -246,7 +250,11 @@ class DigitalSealTest {
             .addDocumentFeature("PASSPORT_NUMBER", passportNumber)
             .build()
 
-        val signer = Signer(keystore!!, keyStorePassword, "dets32")
+        val ecPrivKey = SignerTest.Companion.keystore.getKey(
+            "dets32",
+            SignerTest.Companion.keyStorePassword.toCharArray()
+        ) as BCECPrivateKey
+        val signer = Signer(ecPrivKey.encoded, "brainpoolP224r1")
 
         val ldNow = Clock.System.todayIn(TimeZone.currentSystemDefault())
         val encodedDate: ByteArray = DataEncoder.encodeDate(ldNow)
@@ -272,7 +280,11 @@ class DigitalSealTest {
     @Test
     @Throws(IOException::class)
     fun testBuildDigitalSeal2() {
-        val signer = Signer(keystore!!, keyStorePassword, "dets32")
+        val ecPrivKey = SignerTest.Companion.keystore.getKey(
+            "dets32",
+            SignerTest.Companion.keyStorePassword.toCharArray()
+        ) as BCECPrivateKey
+        val signer = Signer(ecPrivKey.encoded, "brainpoolP224r1")
         val header = VdsHeader.Builder("ARRIVAL_ATTESTATION")
             .setIssuingCountry("D<<")
             .setSignerIdentifier("DETS")
@@ -308,7 +320,7 @@ class DigitalSealTest {
     companion object {
         //@formatter:off
         var keyStorePassword: String = "vdstools"
-        var keyStoreFile: String = "src/jvmTest/resources/vdstools_testcerts.bks"
+        var keyStoreFile: String = "src/commonTest/resources/vdstools_testcerts.bks"
         var keystore: KeyStore? = null
         
         @JvmStatic

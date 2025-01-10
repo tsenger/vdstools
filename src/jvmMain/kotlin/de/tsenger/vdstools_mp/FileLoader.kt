@@ -1,5 +1,6 @@
 package de.tsenger.vdstools_mp
 
+import okio.FileNotFoundException
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
@@ -18,7 +19,7 @@ actual class FileLoader {
      */
     private fun getResourcePath(fileName: String): Path {
         val resourceUrl = object {}.javaClass.classLoader.getResource(fileName)
-            ?: throw IllegalArgumentException("Resource not found: $fileName")
+            ?: throw FileNotFoundException("Resource not found: $fileName")
         return resourceUrl.toURI().path.toPath()
     }
 }

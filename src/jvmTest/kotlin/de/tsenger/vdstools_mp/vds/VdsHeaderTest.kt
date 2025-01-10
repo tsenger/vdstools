@@ -14,7 +14,10 @@ import org.junit.Assert
 import org.junit.BeforeClass
 import org.junit.Test
 import java.io.FileInputStream
-import java.security.*
+import java.security.KeyStore
+import java.security.KeyStoreException
+import java.security.Security
+import kotlin.Throws
 
 
 class VdsHeaderTest {
@@ -131,6 +134,7 @@ class VdsHeaderTest {
         Assert.assertTrue(Arrays.areEqual(expectedHeaderBytes, headerBytes))
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     @Test
     @Throws(KeyStoreException::class)
     fun testBuildHeader_4parameterV2() {
@@ -152,7 +156,10 @@ class VdsHeaderTest {
             Hex.decode("dc02ed586d32c8a51a1f"), issuingDate, signDate,
             Hex.decode("f60d")
         )
-        Assert.assertTrue(Arrays.areEqual(expectedHeaderBytes, headerBytes))
+        println(expectedHeaderBytes.toHexString())
+        println(headerBytes.toHexString())
+        println(vdsHeader.certificateReference)
+        Assert.assertArrayEquals(expectedHeaderBytes, headerBytes)
     }
 
     @Test
@@ -187,7 +194,7 @@ class VdsHeaderTest {
     companion object {
         //@formatter:off
         var keyStorePassword: String = "vdstools"
-        var keyStoreFile: String = "src/jvmTest/resources/vdstools_testcerts.bks"
+        var keyStoreFile: String = "src/commonTest/resources/vdstools_testcerts.bks"
         var keystore: KeyStore? = null
         
         @JvmStatic

@@ -151,7 +151,7 @@ class DataEncoderTest {
 
     companion object {
         var keyStorePassword: String = "vdstools"
-        var keyStoreFile: String = "src/jvmTest/resources/vdstools_testcerts.bks"
+        var keyStoreFile: String = "src/commonTest/resources/vdstools_testcerts.bks"
         var keystore: KeyStore? = null
 
         @JvmStatic

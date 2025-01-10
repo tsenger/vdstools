@@ -31,7 +31,7 @@ class IdbSignerCertificateTest {
     @Throws(KeyStoreException::class)
     fun testConstructor() {
         val signCert =
-            IdbSignerCertificate((keystore.getCertificate("dets32") as X509Certificate))
+            IdbSignerCertificate((keystore.getCertificate("dets32") as X509Certificate).encoded)
         Assert.assertNotNull(signCert)
     }
 
@@ -54,7 +54,7 @@ class IdbSignerCertificateTest {
     )
     fun testGetEncoded() {
         val signCert =
-            IdbSignerCertificate((keystore.getCertificate("utts5b") as X509Certificate))
+            IdbSignerCertificate((keystore.getCertificate("utts5b") as X509Certificate).encoded)
         Assert.assertTrue(Arrays.areEqual(encodedIdbSignerCertificate, signCert.encoded))
         //		System.out.println(Hex.toHexString(signCert.getEncoded()));
     }
@@ -63,12 +63,12 @@ class IdbSignerCertificateTest {
     @Throws(CertificateException::class, IOException::class)
     fun testGetX509Certificate() {
         val signCert = IdbSignerCertificate.fromByteArray(encodedIdbSignerCertificate)
-        Assert.assertNotNull(signCert.x509Certificate)
+        Assert.assertNotNull(signCert.certBytes)
     }
 
     companion object {
         var keyStorePassword: String = "vdstools"
-        var keyStoreFile: String = "src/jvmTest/resources/vdstools_testcerts.bks"
+        var keyStoreFile: String = "src/commonTest/resources/vdstools_testcerts.bks"
         lateinit var keystore: KeyStore
 
         @JvmStatic

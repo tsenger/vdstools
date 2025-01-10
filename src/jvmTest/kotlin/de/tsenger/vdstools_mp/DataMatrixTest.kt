@@ -21,7 +21,7 @@ import java.security.interfaces.ECPrivateKey
 
 class DataMatrixTest {
     var keyStorePassword: String = "vdstools"
-    var keyStoreFile: String = "src/jvmTest/resources/vdstools_testcerts.bks"
+    var keyStoreFile: String = "src/commonTest/resources/vdstools_testcerts.bks"
 
     @Test
     @Throws(
@@ -38,7 +38,7 @@ class DataMatrixTest {
 
         val ks = keystore
         val ecKey = ks!!.getKey("utts5b", keyStorePassword.toCharArray()) as ECPrivateKey
-        val signer = Signer(ecKey)
+        val signer = Signer(ecKey.encoded, "brainpoolP256r1")
         val cert = ks.getCertificate("utts5b") as X509Certificate
 
         val vdsHeader = VdsHeader.Builder(vdsMessage.vdsType)

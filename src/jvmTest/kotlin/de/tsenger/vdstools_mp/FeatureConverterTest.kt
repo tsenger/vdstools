@@ -2,36 +2,33 @@ package de.tsenger.vdstools_mp
 
 
 import de.tsenger.vdstools_mp.asn1.DerTlv
+import okio.FileNotFoundException
 import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert
 import org.junit.Test
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileNotFoundException
 
 class FeatureConverterTest {
-    @Test
-    fun testFeatureConverter() {
-        FeatureConverter()
-    }
+//    @Test
+//    fun testFeatureConverter() {
+//        FeatureConverter()
+//    }
 
     @Test
     fun testFeatureConverterString() {
-        val fe = File("src/jvmTest/resources/SealCodings.json")
-        val fis = FileInputStream(fe)
-        FeatureConverter(fis)
+        val jsonString = FileLoader().loadFileFromResources("SealCodings.json")
+        FeatureConverter(jsonString)
     }
 
     @Test(expected = FileNotFoundException::class)
     fun testFeatureConverterString_notFound() {
-        val fe = File("src/jvmTest/resources/Codings.json")
-        val fis = FileInputStream(fe)
-        FeatureConverter(fis)
+        val jsonString = FileLoader().loadFileFromResources("Codings.json")
+        FeatureConverter(jsonString)
     }
 
     @Test
     fun testGetFeature_String() {
-        val featureConverter = FeatureConverter()
+        val jsonString = FileLoader().loadFileFromResources("SealCodings.json")
+        val featureConverter = FeatureConverter(jsonString)
         val feature = featureConverter.getFeatureName(
             "FICTION_CERT",
             DerTlv.fromByteArray(Hex.decode("0306d79519a65306"))!!
@@ -41,7 +38,8 @@ class FeatureConverterTest {
 
     @Test
     fun testDecodeFeature_String() {
-        val featureConverter = FeatureConverter()
+        val jsonString = FileLoader().loadFileFromResources("SealCodings.json")
+        val featureConverter = FeatureConverter(jsonString)
         val value = featureConverter.decodeFeature<String>(
             "FICTION_CERT",
             DerTlv.fromByteArray(Hex.decode("0306d79519a65306"))!!
@@ -51,7 +49,8 @@ class FeatureConverterTest {
 
     @Test
     fun testEncodeFeature_String() {
-        val featureConverter = FeatureConverter()
+        val jsonString = FileLoader().loadFileFromResources("SealCodings.json")
+        val featureConverter = FeatureConverter(jsonString)
         val mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06"
         val derTlv = featureConverter.encodeFeature("RESIDENCE_PERMIT", "MRZ", mrz)
         Assert.assertEquals(
@@ -62,14 +61,16 @@ class FeatureConverterTest {
 
     @Test
     fun testGetAvailableVdsTypes() {
-        val featureConverter = FeatureConverter()
+        val jsonString = FileLoader().loadFileFromResources("SealCodings.json")
+        val featureConverter = FeatureConverter(jsonString)
         println(featureConverter.availableVdsTypes)
         Assert.assertTrue(featureConverter.availableVdsTypes.contains("ADDRESS_STICKER_ID"))
     }
 
     @Test
     fun testGetAvailableVdsFeatures() {
-        val featureConverter = FeatureConverter()
+        val jsonString = FileLoader().loadFileFromResources("SealCodings.json")
+        val featureConverter = FeatureConverter(jsonString)
         println(featureConverter.availableVdsFeatures)
         Assert.assertTrue(featureConverter.availableVdsFeatures.contains("MRZ"))
     }

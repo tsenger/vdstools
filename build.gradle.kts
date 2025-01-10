@@ -54,7 +54,7 @@ kotlin {
         }
 
         iosMain.dependencies {
-            implementation("dev.whyoleg.cryptography:cryptography-provider-apple:0.4.0")
+            implementation("dev.whyoleg.cryptography:cryptography-provider-openssl3-prebuilt:0.4.0")
         }
 
         iosTest.dependencies {

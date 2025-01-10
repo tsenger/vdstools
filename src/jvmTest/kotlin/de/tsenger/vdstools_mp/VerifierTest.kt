@@ -3,6 +3,9 @@ package de.tsenger.vdstools_mp
 
 import de.tsenger.vdstools_mp.vds.DigitalSeal
 import de.tsenger.vdstools_mp.vds.VdsRawBytes
+import dev.whyoleg.cryptography.algorithms.EC
+import dev.whyoleg.cryptography.algorithms.EC.Curve
+import dev.whyoleg.cryptography.algorithms.ECDSA
 import kotlinx.datetime.LocalDate
 import org.bouncycastle.asn1.x500.X500Name
 import org.bouncycastle.asn1.x500.style.BCStyle
@@ -48,7 +51,12 @@ class VerifierTest {
 //            fail(e.message)
 //        }
 
-        val verifier = Verifier(digitalSeal, cert)
+        val provider = getCryptoProvider()
+        val ecdsa = provider.get(ECDSA)
+        val keyDecoder = ecdsa.publicKeyDecoder(Curve("brainpoolP256r1"))
+        val ecPubKey = keyDecoder.decodeFromByteArrayBlocking(EC.PublicKey.Format.DER, cert.publicKey.encoded)
+
+        val verifier = Verifier(digitalSeal, ecPubKey)
         assertEquals(Verifier.Result.SignatureValid, verifier.verify())
     }
 
@@ -60,7 +68,13 @@ class VerifierTest {
         assertEquals("UTTS5B", signerCertRef)
         val cert = keystore.getCertificate(signerCertRef?.lowercase(Locale.getDefault())) as X509Certificate
 
-        val verifier = Verifier(digitalSeal!!, cert)
+        val provider = getCryptoProvider()
+        val ecdsa = provider.get(ECDSA)
+        val keyDecoder = ecdsa.publicKeyDecoder(Curve("brainpoolP256r1"))
+        println("PUBKEY Format : ${cert.publicKey.format}")
+        val ecPubKey = keyDecoder.decodeFromByteArrayBlocking(EC.PublicKey.Format.DER, cert.publicKey.encoded)
+
+        val verifier = Verifier(digitalSeal!!, ecPubKey)
         assertEquals(Verifier.Result.SignatureValid, verifier.verify())
     }
 
@@ -72,13 +86,19 @@ class VerifierTest {
         assertEquals("DETS32", signerCertRef)
         val cert = keystore.getCertificate(signerCertRef?.lowercase(Locale.getDefault())) as X509Certificate
 
-        val verifier = Verifier(digitalSeal!!, cert)
+        val provider = getCryptoProvider()
+        val ecdsa = provider.get(ECDSA)
+        val keyDecoder = ecdsa.publicKeyDecoder(Curve("brainpoolP224r1"))
+        println("PUBKEY Format : ${cert.publicKey.format}")
+        val ecPubKey = keyDecoder.decodeFromByteArrayBlocking(EC.PublicKey.Format.DER, cert.publicKey.encoded)
+
+        val verifier = Verifier(digitalSeal!!, ecPubKey)
         assertEquals(Verifier.Result.SignatureValid, verifier.verify())
     }
 
     companion object {
         var keyStorePassword: String = "vdstools"
-        var keyStoreFile: String = "src/jvmTest/resources/vdstools_testcerts.bks"
+        var keyStoreFile: String = "src/commonTest/resources/vdstools_testcerts.bks"
         lateinit var keystore: KeyStore
 
         @JvmStatic

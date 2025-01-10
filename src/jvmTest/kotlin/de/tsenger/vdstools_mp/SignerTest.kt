@@ -1,6 +1,7 @@
 package de.tsenger.vdstools_mp
 
 
+import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert
@@ -12,20 +13,22 @@ import java.security.KeyPairGenerator
 import java.security.KeyStore
 import java.security.SecureRandom
 import java.security.Security
-import java.security.interfaces.ECPrivateKey
 import java.security.spec.ECGenParameterSpec
 import java.util.*
 
 class SignerTest {
     @Test
     fun testKeyStoreConstructor() {
-        val signer = Signer(keystore, keyStorePassword, "dets32")
+        val ecPrivKey = keystore.getKey("dets32", keyStorePassword.toCharArray()) as BCECPrivateKey
+        val signer = Signer(ecPrivKey.encoded, "brainpoolP224r1")
         assertEquals(224, signer.fieldSize)
     }
 
+
     @Test
     fun testSign_224() {
-        val signer = Signer(keystore, keyStorePassword, "dets32")
+        val ecPrivKey = keystore.getKey("dets32", keyStorePassword.toCharArray()) as BCECPrivateKey
+        val signer = Signer(ecPrivKey.encoded, "brainpoolP224r1")
         val dataBytes = ByteArray(32)
         val rnd = Random()
         rnd.nextBytes(dataBytes)
@@ -44,7 +47,7 @@ class SignerTest {
         val dataBytes = ByteArray(32)
         rnd.nextBytes(dataBytes)
 
-        val signer = Signer(pair.private as ECPrivateKey)
+        val signer = Signer(pair.private.encoded, "secp256r1")
         val signatureBytes: ByteArray = signer.sign(dataBytes)
         println("Signature: " + Hex.toHexString(signatureBytes))
         Assert.assertTrue(signatureBytes.size * 4 == signer.fieldSize)
@@ -61,7 +64,7 @@ class SignerTest {
         val dataBytes = ByteArray(64)
         rnd.nextBytes(dataBytes)
 
-        val signer = Signer(pair.private as ECPrivateKey)
+        val signer = Signer(pair.private.encoded, "secp384r1")
         val signatureBytes: ByteArray = signer.sign(dataBytes)
         println("Signature: " + Hex.toHexString(signatureBytes))
         Assert.assertTrue(signatureBytes.size * 4 == signer.fieldSize)
@@ -79,7 +82,7 @@ class SignerTest {
         val dataBytes = ByteArray(128)
         rnd.nextBytes(dataBytes)
 
-        val signer = Signer(pair.private as ECPrivateKey)
+        val signer = Signer(pair.private.encoded, "brainpoolP512r1")
         val signatureBytes: ByteArray = signer.sign(dataBytes)
         println("Signature: " + Hex.toHexString(signatureBytes))
         Assert.assertTrue(signatureBytes.size * 4 == signer.fieldSize)
@@ -95,7 +98,7 @@ class SignerTest {
         val dataBytes = ByteArray(128)
         rnd.nextBytes(dataBytes)
 
-        val signer = Signer(pair.private as ECPrivateKey)
+        val signer = Signer(pair.private.encoded, "secp256r1")
         val signatureBytes: ByteArray = signer.sign(dataBytes)
         println("Signature: " + Hex.toHexString(signatureBytes))
         Assert.assertTrue(signatureBytes.size * 4 == signer.fieldSize)
@@ -103,7 +106,7 @@ class SignerTest {
 
     companion object {
         var keyStorePassword: String = "vdstools"
-        var keyStoreFile: String = "src/jvmTest/resources/vdstools_testcerts.bks"
+        var keyStoreFile: String = "src/commonTest/resources/vdstools_testcerts.bks"
         lateinit var keystore: KeyStore
 
         @JvmStatic

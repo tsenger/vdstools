@@ -88,8 +88,8 @@ class VdsHeader {
     private val encodedSignerIdentifierAndCertificateReference: String
         get() {
             return if (rawVersion.toInt() == 2) {
-                "${signerIdentifier.orEmpty().padEnd(5, ' ')}${
-                    certificateReference.orEmpty().padEnd(5, ' ')
+                "${signerIdentifier.orEmpty()}${
+                    certificateReference.orEmpty().padStart(5, ' ')
                 }".uppercase().replace(' ', '0')
 
             } else if (rawVersion.toInt() == 3) {
