@@ -55,7 +55,7 @@ class VdsHeader {
          */
         get() {
             val certRefInteger = certificateReference?.trimStart('0')?.ifEmpty { "0" }
-            return String.format("%s%s", signerIdentifier, certRefInteger).uppercase()
+            return "${signerIdentifier}${certRefInteger}".uppercase()
         }
 
     val documentRef: Int
@@ -88,15 +88,14 @@ class VdsHeader {
     private val encodedSignerIdentifierAndCertificateReference: String
         get() {
             return if (rawVersion.toInt() == 2) {
-                String.format("%s%5s", signerIdentifier.orEmpty(), certificateReference.orEmpty())
-                    .uppercase().replace(' ', '0')
+                "${signerIdentifier.orEmpty().padEnd(5, ' ')}${
+                    certificateReference.orEmpty().padEnd(5, ' ')
+                }".uppercase().replace(' ', '0')
+
             } else if (rawVersion.toInt() == 3) {
-                String.format(
-                    "%s%02x%s",
-                    signerIdentifier.orEmpty(),
-                    certificateReference.orEmpty().length,
-                    certificateReference.orEmpty()
-                ).uppercase()
+                "${signerIdentifier.orEmpty()}${
+                    certificateReference.orEmpty().length.toString(16).padStart(2, '0')
+                }${certificateReference.orEmpty()}".uppercase()
             } else {
                 ""
             }
@@ -197,13 +196,16 @@ class VdsHeader {
     companion object {
         const val DC: Byte = 0xDC.toByte()
 
+        @Throws(IllegalArgumentException::class)
         fun fromBuffer(rawdataBuffer: Buffer): VdsHeader {
             // Magic Byte
             val magicByte = rawdataBuffer.readByte()
             if (magicByte != DC) {
-                Logger.e(String.format("Magic Constant mismatch: 0x%02X instead of 0xdc", magicByte))
+                Logger.e(
+                    "Magic Constant mismatch:  ${magicByte.toString(16).padStart(2, '0').uppercase()}, instead of 0xDC"
+                )
                 throw IllegalArgumentException(
-                    String.format("Magic Constant mismatch: 0x%02X instead of 0xdc", magicByte)
+                    "Magic Constant mismatch:  ${magicByte.toString(16).padStart(2, '0').uppercase()}, instead of 0xDC"
                 )
             }
 
@@ -218,8 +220,14 @@ class VdsHeader {
 		 * 0x03 for rawVersion 3 and static length of Document Signer Reference.
 		 */
             if (!(vdsHeader.rawVersion.toInt() == 0x02 || vdsHeader.rawVersion.toInt() == 0x03)) {
-                Logger.e(String.format("Unsupported rawVersion: 0x%02X", vdsHeader.rawVersion))
-                throw IllegalArgumentException(String.format("Unsupported rawVersion: 0x%02X", vdsHeader.rawVersion))
+                Logger.e(
+                    "Unsupported rawVersion: ${vdsHeader.rawVersion.toString(16).padStart(2, '0').uppercase()}"
+                )
+                throw IllegalArgumentException(
+                    "Unsupported rawVersion: ${
+                        vdsHeader.rawVersion.toString(16).padStart(2, '0').uppercase()
+                    }"
+                )
             }
             // 2 bytes stores the three-letter country
             vdsHeader.issuingCountry = DataParser.decodeC40(rawdataBuffer.readByteArray(2))

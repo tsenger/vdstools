@@ -17,7 +17,8 @@ object DataEncoder {
     private var featureEncoder: FeatureConverter
 
     init {
-        featureEncoder = FeatureConverter()
+        val filerLoader = FileLoader()
+        featureEncoder = FeatureConverter(filerLoader.loadFileFromResources(DEFAULT_SEAL_CODINGS))
     }
 
 
@@ -73,13 +74,14 @@ object DataEncoder {
      */
     fun encodeDate(localDate: LocalDate?): ByteArray {
         if (localDate == null) return ByteArray(3)
-        val formattedDate: String = String.format(
-            "%02d%02d%d", localDate.monthNumber, localDate.dayOfMonth, localDate.year
-        )
+        val formattedDate: String = localDate.monthNumber.toString().padStart(2, '0') +
+                localDate.dayOfMonth.toString().padStart(2, '0') +
+                localDate.year.toString().padStart(4, '0')
         val dateInt = formattedDate.toInt()
         return numberToByteArray(dateInt)
 
     }
+
 
     /**
      * Encode a LocalDate as described in as described in ICAO TR "Datastructure for
@@ -89,15 +91,14 @@ object DataEncoder {
      * @return local date time encoded in 6 bytes
      */
     fun encodeDateTime(localDatetime: LocalDateTime): ByteArray {
-        val formattedDateTime: String = String.format(
-            "%02d%02d%04d%02d%02d%02d",
-            localDatetime.monthNumber,
-            localDatetime.dayOfMonth,
-            localDatetime.year,
-            localDatetime.hour,
-            localDatetime.minute,
-            localDatetime.second
-        )
+        val formattedDateTime: String =
+            localDatetime.monthNumber.toString().padStart(2, '0') +
+                    localDatetime.dayOfMonth.toString().padStart(2, '0') +
+                    localDatetime.year.toString().padStart(4, '0') +
+                    localDatetime.hour.toString().padStart(2, '0') +
+                    localDatetime.minute.toString().padStart(2, '0') +
+                    localDatetime.second.toString().padStart(2, '0')
+
         val dateInt = formattedDateTime.toLong()
         return numberToByteArray(dateInt)
 
@@ -224,13 +225,13 @@ object DataEncoder {
         for (i in ba.indices) {
             ca[i] = (ba[i].toInt() and 0xFF).toChar()
         }
-        return String(ca)
+        return ca.concatToString()
     }
 
     fun zip(bytesToCompress: ByteArray): ByteArray {
         val outputBuffer = Buffer()
         val inputBuffer = Buffer().write(bytesToCompress)
-        val compressor = DeflaterSink(outputBuffer, Deflater(Deflater.BEST_COMPRESSION))
+        val compressor = DeflaterSink(outputBuffer, Deflater(9, false))
         compressor.write(inputBuffer, inputBuffer.size)
         compressor.close()
         val compressedBytes = outputBuffer.readByteArray()

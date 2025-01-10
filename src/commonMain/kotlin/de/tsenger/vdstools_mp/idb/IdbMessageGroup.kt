@@ -32,12 +32,13 @@ class IdbMessageGroup {
 
     companion object {
         const val TAG: Byte = 0x61
+
+        @Throws(IllegalArgumentException::class)
         fun fromByteArray(rawBytes: ByteArray): IdbMessageGroup {
             require(rawBytes[0] == TAG) {
-                String.format(
-                    "IdbMessageGroup shall have tag %2X, but tag %2X was found instead.", TAG,
-                    rawBytes[0]
-                )
+                "IdbMessageGroup shall have tag ${
+                    TAG.toString(16).padStart(2, '0').uppercase()
+                }, but tag ${rawBytes[0].toString(16).padStart(2, '0').uppercase()} was found instead."
             }
             val valueBytes = DerTlv.fromByteArray(rawBytes)?.value ?: ByteArray(0)
             val messageGroup = IdbMessageGroup()

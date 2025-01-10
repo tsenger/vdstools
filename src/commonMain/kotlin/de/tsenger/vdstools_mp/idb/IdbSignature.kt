@@ -4,9 +4,6 @@ import co.touchlab.kermit.Logger
 import de.tsenger.vdstools_mp.asn1.ASN1Encoder
 import de.tsenger.vdstools_mp.asn1.DerTlv
 
-
-import java.io.IOException
-
 class IdbSignature(
     val plainSignatureBytes: ByteArray
 ) {
@@ -31,7 +28,6 @@ class IdbSignature(
             return derSignatureBytes
         }
 
-    @get:Throws(IOException::class)
     val encoded: ByteArray
         get() {
             val derSignature = DerTlv(TAG, plainSignatureBytes)
@@ -41,14 +37,12 @@ class IdbSignature(
     companion object {
         const val TAG: Byte = 0x7F
 
-        @JvmStatic
-        @Throws(IOException::class)
+        @Throws(IllegalArgumentException::class)
         fun fromByteArray(rawBytes: ByteArray): IdbSignature? {
             require(rawBytes[0] == TAG) {
-                String.format(
-                    "IdbSignature shall have tag %2X, but tag %2X was found instead.", TAG,
-                    rawBytes[0]
-                )
+                "IdbSignature shall have tag ${
+                    TAG.toString(16).padStart(2, '0').uppercase()
+                } but tag ${rawBytes[0].toString(16).padStart(2, '0').uppercase()} was found instead."
             }
             val derTlv = DerTlv.fromByteArray(rawBytes)
             return if (derTlv != null) IdbSignature(derTlv.value)

@@ -79,7 +79,7 @@ class DigitalSeal {
             val signatureBytes = signer.sign(headerMessage)
             return VdsSignature(signatureBytes)
         } catch (e: Exception) {
-            Logger.e("Signature creation failed: " + e.localizedMessage)
+            Logger.e("Signature creation failed: " + e.message)
             return null
         }
     }
@@ -91,7 +91,7 @@ class DigitalSeal {
             try {
                 seal = parseVdsSeal(DataParser.decodeBase256(rawString))
             } catch (e: Exception) {
-                Logger.e(e.localizedMessage)
+                Logger.e(e.message.toString())
             }
             return seal
         }
@@ -101,7 +101,7 @@ class DigitalSeal {
             try {
                 seal = parseVdsSeal(rawBytes)
             } catch (e: Exception) {
-                Logger.e(e.localizedMessage)
+                Logger.e(e.message.toString())
             }
             return seal
         }

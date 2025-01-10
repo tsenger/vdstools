@@ -25,11 +25,11 @@ class VdsMessage {
 
     val encoded: ByteArray
         get() {
-            val baos = Buffer()
+            val buffer = Buffer()
             for (feature in derTlvList) {
-                baos.write(feature.encoded)
+                buffer.write(feature.encoded)
             }
-            return baos.readByteArray()
+            return buffer.readByteArray()
         }
 
     val featureList: List<Feature>

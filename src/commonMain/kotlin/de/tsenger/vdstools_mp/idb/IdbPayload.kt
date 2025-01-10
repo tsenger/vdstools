@@ -29,6 +29,7 @@ class IdbPayload(
         }
 
     companion object {
+        @Throws(IllegalArgumentException::class)
         fun fromByteArray(rawBytes: ByteArray, isSigned: Boolean): IdbPayload {
             val idbHeader: IdbHeader
             var idbMessageGroup: IdbMessageGroup? = null
@@ -47,12 +48,12 @@ class IdbPayload(
 
                     IdbSignature.TAG -> idbSignature = IdbSignature.fromByteArray(derTlv.encoded)
                     else -> throw IllegalArgumentException(
-                        String.format("Found unknown tag %2X in IdbPayload!", derTlv.tag)
+                        "Found unknown tag ${derTlv.tag.toString(16).padStart(2, '0').uppercase()} in IdbPayload!"
                     )
                 }
             }
             if (idbMessageGroup == null) throw IllegalArgumentException("Didn't found a Message!")
-            
+
             return IdbPayload(idbHeader, idbMessageGroup, idbSignerCertificate, idbSignature)
         }
     }

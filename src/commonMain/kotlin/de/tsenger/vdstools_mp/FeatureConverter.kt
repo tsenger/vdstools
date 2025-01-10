@@ -5,22 +5,25 @@ import de.tsenger.vdstools_mp.asn1.DerTlv
 import de.tsenger.vdstools_mp.vds.FeatureCoding
 import de.tsenger.vdstools_mp.vds.dto.FeaturesDto
 import de.tsenger.vdstools_mp.vds.dto.SealDto
-import kotlinx.serialization.json.*
-import java.io.BufferedReader
-import java.io.InputStream
-import java.io.InputStreamReader
+import kotlinx.serialization.json.Json
 
 
-class FeatureConverter(inputStream: InputStream? = null) {
-    private val sealDtoList: List<SealDto>
+class FeatureConverter(jsonString: String) {
+    private var sealDtoList: List<SealDto>
+
+    companion object {
+        private val vdsTypes: MutableMap<String, Int> = HashMap()
+        private val vdsTypesReverse: MutableMap<Int, String> = HashMap()
+        private val vdsFeatures: MutableSet<String> = mutableSetOf()
+    }
 
     init {
+
         val json = Json { ignoreUnknownKeys = true }
-        val localInputStream = inputStream ?: javaClass.getResourceAsStream(DEFAULT_SEAL_CODINGS)
-        val reader = BufferedReader(InputStreamReader(localInputStream))
-        this.sealDtoList = json.decodeFromString(reader.readText())
+        this.sealDtoList = json.decodeFromString(jsonString)
         populateMappings()
     }
+
 
     private fun populateMappings() {
         for ((documentType, documentRef, _, features) in sealDtoList) {
@@ -107,7 +110,7 @@ class FeatureConverter(inputStream: InputStream? = null) {
                 value = DataEncoder.encodeC40(valueStr)
             }
 
-            FeatureCoding.UTF8_STRING -> value = (inputValue as String).toByteArray()
+            FeatureCoding.UTF8_STRING -> value = (inputValue as String).encodeToByteArray()
             FeatureCoding.BYTE -> value = byteArrayOf(inputValue as Byte)
             FeatureCoding.BYTES -> value = inputValue as ByteArray
             FeatureCoding.UNKNOWN -> value = inputValue as ByteArray
@@ -205,11 +208,6 @@ class FeatureConverter(inputStream: InputStream? = null) {
         throw IllegalArgumentException("VdsType '$vdsType' is unspecified in SealCodings.")
     }
 
-    companion object {
-        private val vdsTypes: MutableMap<String, Int> = HashMap()
-        private val vdsTypesReverse: MutableMap<Int, String> = HashMap()
-        private val vdsFeatures: MutableSet<String> = mutableSetOf()
-        var DEFAULT_SEAL_CODINGS: String = "/SealCodings.json"
-    }
+
 }
 

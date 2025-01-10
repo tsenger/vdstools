@@ -30,7 +30,10 @@ object DataParser {
         val month = (intval / 1000000).toInt()
         val year = (intval % 10000).toInt()
         // Pattern: MMddyyyy
-        val dateCharArray = String.format("%02d%02d%04d", month, day, year).toCharArray()
+        val dateCharArray = (month.toString().padStart(2, '0') +
+                day.toString().padStart(2, '0') +
+                year.toString().padStart(4, '0'))
+            .toCharArray()
 
         for (i in 0..7) {
             val unknownBit = ((mask.toInt() shr (7 - i)) and 1).toByte()
@@ -38,7 +41,7 @@ object DataParser {
                 dateCharArray[i] = 'x'
             }
         }
-        val dateString = String(dateCharArray)
+        val dateString = dateCharArray.concatToString()
         return dateString.replace("(.{2})(.{2})(.{4})".toRegex(), "$3-$1-$2").lowercase()
     }
 
@@ -83,6 +86,7 @@ object DataParser {
         return LocalDateTime(year, month, day, hour, minute, second)
     }
 
+    @Throws(IllegalArgumentException::class)
     fun parseDerTLvs(rawBytes: ByteArray): List<DerTlv> {
         val dataBuffer = Buffer().write(rawBytes)
         val derTlvList: MutableList<DerTlv> = ArrayList()
@@ -98,8 +102,12 @@ object DataParser {
                 le = ((dataBuffer.readByte().toInt() and 0xff) * 0x1000) + ((dataBuffer.readByte()
                     .toInt() and 0xff) * 0x100) + (dataBuffer.readByte().toInt() and 0xff)
             } else if (le > 0x7F) {
-                Logger.e(String.format("can't decode length: 0x%02X", le))
-                throw IllegalArgumentException(String.format("can't decode length: 0x%02X", le))
+                Logger.e(
+                    "Can't decode length: ${le.toString(16).padStart(2, '0').uppercase()}"
+                )
+                throw IllegalArgumentException(
+                    "Can't decode length: ${le.toString(16).padStart(2, '0').uppercase()}"
+                )
             }
             val value = dataBuffer.readByteArray(le.toLong())
             derTlvList.add(DerTlv(tag, value))

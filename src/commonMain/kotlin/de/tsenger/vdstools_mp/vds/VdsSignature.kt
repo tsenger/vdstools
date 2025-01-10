@@ -48,10 +48,9 @@ class VdsSignature
 
         fun fromByteArray(rawBytes: ByteArray): VdsSignature? {
             require(rawBytes[0] == TAG) {
-                String.format(
-                    "VdsSignature shall have tag %2X, but tag %2X was found instead.", TAG,
-                    rawBytes[0]
-                )
+                "VdsSignature shall have tag ${
+                    TAG.toString(16).padStart(2, '0').uppercase()
+                }, but tag ${rawBytes[0].toString(16).padStart(2, '0').uppercase()} was found instead."
             }
             val derTlv = DerTlv.fromByteArray(rawBytes)
             return if (derTlv != null) VdsSignature(derTlv.value)

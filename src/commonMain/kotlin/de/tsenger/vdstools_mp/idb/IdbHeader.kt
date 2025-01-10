@@ -4,7 +4,6 @@ package de.tsenger.vdstools_mp.idb
 import de.tsenger.vdstools_mp.DataEncoder
 import de.tsenger.vdstools_mp.DataParser
 import okio.Buffer
-import java.io.ByteArrayOutputStream
 
 
 class IdbHeader {
@@ -61,12 +60,12 @@ class IdbHeader {
 
     val encoded: ByteArray
         get() {
-            val bos = ByteArrayOutputStream()
-            bos.write(countryIdentifier)
-            if (signatureAlgorithm.toInt() != 0) bos.write(signatureAlgorithm.toInt())
-            certificateReference?.let { bos.write(it) }
-            signatureCreationDate?.let { bos.write(it) }
-            return bos.toByteArray()
+            val buffer = Buffer()
+            buffer.write(countryIdentifier)
+            if (signatureAlgorithm.toInt() != 0) buffer.writeByte(signatureAlgorithm.toInt())
+            certificateReference?.let { buffer.write(it) }
+            signatureCreationDate?.let { buffer.write(it) }
+            return buffer.readByteArray()
         }
 
     companion object {

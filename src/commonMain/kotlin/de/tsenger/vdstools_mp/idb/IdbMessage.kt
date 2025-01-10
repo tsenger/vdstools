@@ -5,7 +5,7 @@ import de.tsenger.vdstools_mp.asn1.DerTlv
 
 class IdbMessage {
     private val messageType: Byte
-    
+
     val messageContent: ByteArray
 
     constructor(messageType: IdbMessageType, messageContent: ByteArray) {
@@ -26,11 +26,11 @@ class IdbMessage {
     }
 
     companion object {
+        @Throws(IllegalArgumentException::class)
         fun fromDerTlv(derTlv: DerTlv): IdbMessage {
             val messageType = IdbMessageType.valueOf(derTlv.tag)
-            assert(messageType != null)
             val messageContent = derTlv.value
-            return IdbMessage(messageType!!, messageContent)
+            return IdbMessage(messageType, messageContent)
         }
 
         fun fromByteArray(rawMessageBytes: ByteArray): IdbMessage {
