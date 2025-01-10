@@ -5,12 +5,17 @@ import co.touchlab.kermit.Logger
 import de.tsenger.vdstools_mp.asn1.DerTlv
 import de.tsenger.vdstools_mp.vds.Feature
 import de.tsenger.vdstools_mp.vds.FeatureCoding
+import dev.whyoleg.cryptography.CryptographyProvider
+import dev.whyoleg.cryptography.DelicateCryptographyApi
+import dev.whyoleg.cryptography.algorithms.SHA1
+import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import okio.Buffer
 import okio.Deflater
 import okio.DeflaterSink
-import org.kotlincrypto.hash.sha1.SHA1
+
+//import org.kotlincrypto.hash.sha1.SHA1
 
 
 object DataEncoder {
@@ -248,9 +253,15 @@ object DataEncoder {
     }
 
 
+    @OptIn(DelicateCryptographyApi::class)
     fun buildCertificateReference(certificateBytes: ByteArray): ByteArray {
-        val messageDigest = SHA1()
-        val certSha1 = messageDigest.digest(certificateBytes)
+        val hasher = CryptographyProvider.Default
+            .get(SHA1)
+            .hasher()
+
+        var certSha1 = runBlocking {
+            hasher.hash(certificateBytes)
+        }
         return certSha1.sliceArray(15..19)
     }
 

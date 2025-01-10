@@ -22,42 +22,44 @@ kotlin {
 
 
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
-                implementation("org.kotlincrypto.hash:sha1:0.5.6")
-                implementation("com.squareup.okio:okio:3.9.1")
-                implementation("co.touchlab:kermit:2.0.4")
-            }
+        commonMain.dependencies {
+            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+            implementation("org.kotlincrypto.hash:sha1:0.5.6")
+            implementation("com.squareup.okio:okio:3.9.1")
+            implementation("co.touchlab:kermit:2.0.4")
+            implementation("dev.whyoleg.cryptography:cryptography-core:0.4.0")
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
         }
 
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-            }
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+
         }
 
 
-        val jvmMain by getting {
-            dependencies {
-                implementation("org.bouncycastle:bcprov-jdk18on:1.79")
-                implementation("org.jetbrains:annotations:26.0.1")
-                implementation("org.tinylog:tinylog-impl:2.7.0")
-                implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.0")
-            }
+        jvmMain.dependencies {
+            implementation("org.bouncycastle:bcprov-jdk18on:1.79")
+            implementation("org.jetbrains:annotations:26.0.1")
+            implementation("org.tinylog:tinylog-impl:2.7.0")
+            implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.0")
+            implementation("dev.whyoleg.cryptography:cryptography-provider-jdk:0.4.0")
         }
 
-        val jvmTest by getting {
-            dependencies {
-                implementation("junit:junit:4.13.2")
-                implementation("com.google.zxing:core:3.5.3")
-                implementation("com.google.zxing:javase:3.5.3")
-            }
+        jvmTest.dependencies {
+            implementation("junit:junit:4.13.2")
+            implementation("com.google.zxing:core:3.5.3")
+            implementation("com.google.zxing:javase:3.5.3")
+
         }
 
-//        val iosMain by getting
-//        val iosTest by getting
+        iosMain.dependencies {
+            implementation("dev.whyoleg.cryptography:cryptography-provider-apple:0.4.0")
+        }
+
+        iosTest.dependencies {
+
+        }
     }
 }
 
