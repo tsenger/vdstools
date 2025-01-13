@@ -14,16 +14,24 @@ import kotlinx.datetime.LocalDateTime
 import okio.Buffer
 import okio.Deflater
 import okio.DeflaterSink
+import okio.FileNotFoundException
 
 //import org.kotlincrypto.hash.sha1.SHA1
 
 
 object DataEncoder {
-    private var featureEncoder: FeatureConverter
+    private lateinit var featureEncoder: FeatureConverter
 
     init {
         val filerLoader = FileLoader()
-        featureEncoder = FeatureConverter(filerLoader.loadFileFromResources(DEFAULT_SEAL_CODINGS))
+        try {
+            val jsonString = filerLoader.loadFileFromResources(DEFAULT_SEAL_CODINGS)
+            featureEncoder = FeatureConverter(jsonString)
+        }
+        catch (e: FileNotFoundException) {
+            Logger.e("Can't initialize FeatureEncoder: ${e.message}")
+            println("Can't initialize FeatureEncoder: ${e.message}")
+        }
     }
 
 

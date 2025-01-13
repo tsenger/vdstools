@@ -69,7 +69,7 @@ class IcaoBarcodeCommonTest {
             false
         )
         val icb = IcaoBarcode(false, true, payload)
-        println(icb.encoded)
+
         assertEquals("NDB1CPDNACFQA5H7WVPDBCICRBMFRWKZ3JNNWW64LTOV3XS635P4DDIGSO", icb.encoded)
     }
 

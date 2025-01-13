@@ -16,9 +16,20 @@ repositories {
 kotlin {
 
     jvm() // JVM target
-    iosX64() // iOS simulator
-    iosArm64() // iOS device
-    iosSimulatorArm64() // iOS simulator on Apple Silicon
+    //iosX64() // iOS simulator
+    //iosArm64() // iOS device
+    //iosSimulatorArm64() // iOS simulator on Apple Silicon
+
+    listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            baseName = "ComposeApp"
+            isStatic = true
+        }
+    }
 
 
     sourceSets {
@@ -60,10 +71,9 @@ kotlin {
         iosTest.dependencies {
 
         }
+
     }
 }
-
-
 
 
 tasks.withType<Test> {
