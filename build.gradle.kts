@@ -16,20 +16,11 @@ repositories {
 kotlin {
 
     jvm() // JVM target
-    //iosX64() // iOS simulator
-    //iosArm64() // iOS device
-    //iosSimulatorArm64() // iOS simulator on Apple Silicon
+    iosX64() // iOS simulator
+    iosArm64() // iOS device
+    iosSimulatorArm64() // iOS simulator on Apple Silicon
 
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "ComposeApp"
-            isStatic = true
-        }
-    }
+
 
 
     sourceSets {
@@ -52,7 +43,6 @@ kotlin {
         jvmMain.dependencies {
             implementation("org.bouncycastle:bcprov-jdk18on:1.79")
             implementation("org.jetbrains:annotations:26.0.1")
-            implementation("org.tinylog:tinylog-impl:2.7.0")
             implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.0")
             implementation("dev.whyoleg.cryptography:cryptography-provider-jdk:0.4.0")
         }
@@ -75,6 +65,12 @@ kotlin {
     }
 }
 
+tasks.register<Copy>("copyiOSTestResources") {
+    from("src/commonTest/resources")
+    into("build/bin/iosSimulatorArm64/debugTest")
+}
+
+tasks.findByName("iosSimulatorArm64Test")!!.dependsOn("copyiOSTestResources")
 
 tasks.withType<Test> {
     useJUnit()

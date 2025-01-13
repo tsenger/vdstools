@@ -23,7 +23,7 @@ class SignerCommonTest {
 
         val dataBytes = CryptographyRandom.nextBytes(32)
 
-        val signer = Signer(pair.privateKey.encodeToByteArrayBlocking(DER), "secp256r1")
+        val signer = Signer(pair.privateKey.encodeToByteArrayBlocking(DER), "prime256v1") //same as secp256r1
         val signatureBytes: ByteArray = signer.sign(dataBytes)
         println("Signature: " + signatureBytes.toHexString())
         assertTrue(signatureBytes.size * 4 == signer.fieldSize)
