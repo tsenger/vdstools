@@ -250,9 +250,9 @@ class DigitalSealTest {
             .addDocumentFeature("PASSPORT_NUMBER", passportNumber)
             .build()
 
-        val ecPrivKey = SignerTest.Companion.keystore.getKey(
+        val ecPrivKey = SignerTest.keystore.getKey(
             "dets32",
-            SignerTest.Companion.keyStorePassword.toCharArray()
+            SignerTest.keyStorePassword.toCharArray()
         ) as BCECPrivateKey
         val signer = Signer(ecPrivKey.encoded, "brainpoolP224r1")
 
@@ -280,9 +280,9 @@ class DigitalSealTest {
     @Test
     @Throws(IOException::class)
     fun testBuildDigitalSeal2() {
-        val ecPrivKey = SignerTest.Companion.keystore.getKey(
+        val ecPrivKey = SignerTest.keystore.getKey(
             "dets32",
-            SignerTest.Companion.keyStorePassword.toCharArray()
+            SignerTest.keyStorePassword.toCharArray()
         ) as BCECPrivateKey
         val signer = Signer(ecPrivKey.encoded, "brainpoolP224r1")
         val header = VdsHeader.Builder("ARRIVAL_ATTESTATION")

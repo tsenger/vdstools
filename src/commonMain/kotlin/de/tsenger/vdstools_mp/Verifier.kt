@@ -31,19 +31,18 @@ class Verifier(digitalSeal: DigitalSeal, val ecPubKey: ECDSA.PublicKey) {
         // Signature Algorithm is selected based on the field bit length of the curve
         // as defined in ICAO9303 p13 ch2.4
 
-        val fieldBitLength = fieldSize
-        val ecdsaVerify = if (fieldBitLength <= 224) {
-            ecPubKey.signatureVerifier(digest = SHA224, ECDSA.SignatureFormat.RAW)
-        } else if (fieldBitLength <= 256) {
-            ecPubKey.signatureVerifier(digest = SHA256, ECDSA.SignatureFormat.RAW)
-        } else if (fieldBitLength <= 384) {
-            ecPubKey.signatureVerifier(digest = SHA384, ECDSA.SignatureFormat.RAW)
-        } else if (fieldBitLength <= 512) {
-            ecPubKey.signatureVerifier(digest = SHA512, ECDSA.SignatureFormat.RAW)
-        } else {
-            Logger.e("Bit length of Field is out of defined value: $fieldBitLength")
-            return Result.VerifyError
+        val digest = when (fieldSize) {
+            in Int.MIN_VALUE..224 -> SHA224
+            in 225..256 -> SHA256
+            in 257..384 -> SHA384
+            in 385..512 -> SHA512
+            else -> {
+                Logger.e("Bit length of Field is out of defined value: $fieldSize")
+                return Result.VerifyError
+            }
         }
+
+        val ecdsaVerify = ecPubKey.signatureVerifier(digest = digest, ECDSA.SignatureFormat.RAW)
 
         ecdsaVerify.tryVerifySignatureBlocking(messageBytes, signatureBytes)
 

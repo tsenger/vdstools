@@ -20,6 +20,7 @@ object DataParser {
      * @return date string where unknown parts of the date are marked with an 'x'
      */
 
+    @Throws(IllegalArgumentException::class)
     fun decodeMaskedDate(maskedDateBytes: ByteArray): String {
         require(maskedDateBytes.size == 4) { "expected four bytes for masked date decoding" }
         val mask = maskedDateBytes[0]

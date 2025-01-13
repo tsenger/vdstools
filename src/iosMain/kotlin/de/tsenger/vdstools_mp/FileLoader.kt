@@ -1,11 +1,13 @@
 package de.tsenger.vdstools_mp
 
+import okio.FileNotFoundException
 import okio.FileSystem
 import okio.Path
 import okio.Path.Companion.toPath
 import platform.Foundation.NSBundle
 
 actual class FileLoader {
+    @Throws(FileNotFoundException::class)
     actual fun loadFileFromResources(fileName: String): String {
         val fileSystem = FileSystem.SYSTEM
         val path: Path = getResourcePath(fileName)

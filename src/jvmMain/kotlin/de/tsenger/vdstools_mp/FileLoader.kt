@@ -6,6 +6,7 @@ import okio.Path
 import okio.Path.Companion.toPath
 
 actual class FileLoader {
+    @Throws(FileNotFoundException::class)
     actual fun loadFileFromResources(fileName: String): String {
         val fileSystem = FileSystem.SYSTEM
         val path: Path = getResourcePath(fileName)
