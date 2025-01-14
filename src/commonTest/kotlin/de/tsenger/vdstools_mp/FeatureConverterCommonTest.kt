@@ -14,20 +14,20 @@ class FeatureConverterCommonTest {
 
     @Test
     fun testFeatureConverterString() {
-        val jsonString = FileLoader().loadFileFromResources("SealCodings.json")
+        val jsonString = readTextResource("SealCodings.json")
         FeatureConverter(jsonString)
     }
 
     @Test
     fun testFeatureConverterString_notFound() {
-        assertFailsWith<FileNotFoundException> { FileLoader().loadFileFromResources("Codings.json") }
+        assertFailsWith<FileNotFoundException> { readTextResource("Codings.json") }
 
     }
 
 
     @Test
     fun testGetFeature_String() {
-        val jsonString = FileLoader().loadFileFromResources("SealCodings.json")
+        val jsonString = readTextResource("SealCodings.json")
         val featureConverter = FeatureConverter(jsonString)
         val feature = featureConverter.getFeatureName(
             "FICTION_CERT",
@@ -40,7 +40,7 @@ class FeatureConverterCommonTest {
 
     @Test
     fun testDecodeFeature_String() {
-        val jsonString = FileLoader().loadFileFromResources("SealCodings.json")
+        val jsonString = readTextResource("SealCodings.json")
         val featureConverter = FeatureConverter(jsonString)
         val value = featureConverter.decodeFeature<String>(
             "FICTION_CERT",
@@ -51,7 +51,7 @@ class FeatureConverterCommonTest {
 
     @Test
     fun testEncodeFeature_String() {
-        val jsonString = FileLoader().loadFileFromResources("SealCodings.json")
+        val jsonString = readTextResource("SealCodings.json")
         val featureConverter = FeatureConverter(jsonString)
         val mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06"
         val derTlv = featureConverter.encodeFeature("RESIDENCE_PERMIT", "MRZ", mrz)
@@ -63,7 +63,7 @@ class FeatureConverterCommonTest {
 
     @Test
     fun testGetAvailableVdsTypes() {
-        val jsonString = FileLoader().loadFileFromResources("SealCodings.json")
+        val jsonString = readTextResource("SealCodings.json")
         val featureConverter = FeatureConverter(jsonString)
         println(featureConverter.availableVdsTypes)
         assertTrue(featureConverter.availableVdsTypes.contains("ADDRESS_STICKER_ID"))
@@ -71,7 +71,7 @@ class FeatureConverterCommonTest {
 
     @Test
     fun testGetAvailableVdsFeatures() {
-        val jsonString = FileLoader().loadFileFromResources("SealCodings.json")
+        val jsonString = readTextResource("SealCodings.json")
         val featureConverter = FeatureConverter(jsonString)
         println(featureConverter.availableVdsFeatures)
         assertTrue(featureConverter.availableVdsFeatures.contains("MRZ"))

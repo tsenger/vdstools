@@ -23,12 +23,11 @@ object DataEncoder {
     private lateinit var featureEncoder: FeatureConverter
 
     init {
-        val filerLoader = FileLoader()
+
         try {
-            val jsonString = filerLoader.loadFileFromResources(DEFAULT_SEAL_CODINGS)
+            val jsonString = readTextResource(DEFAULT_SEAL_CODINGS)
             featureEncoder = FeatureConverter(jsonString)
-        }
-        catch (e: FileNotFoundException) {
+        } catch (e: FileNotFoundException) {
             Logger.e("Can't initialize FeatureEncoder: ${e.message}")
             println("Can't initialize FeatureEncoder: ${e.message}")
         }
