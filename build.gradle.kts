@@ -1,17 +1,65 @@
+import com.vanniktech.maven.publish.SonatypeHost
+
 plugins {
     kotlin("multiplatform") version "2.1.0"
     kotlin("plugin.serialization") version "2.1.0"
+    id("com.vanniktech.maven.publish") version "0.30.0"
 
 }
 
 group = "de.tsenger"
 version = "0.8.0"
-description = "A JVM library to encode/sign and decode/verify Visible Digital Seals"
+description = "A Kotlin multiplatform library to encode/sign and decode/verify Visible Digital Seals"
 
 repositories {
     mavenCentral()
     google()
 }
+
+mavenPublishing {
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    signAllPublications()
+
+    coordinates(
+        groupId = "de.tsenger",
+        artifactId = "vdstools-kmp",
+        version = "0.8.0"
+    )
+
+    pom {
+        name.set("Visible Digital Seal Tools Kotlin multiplatform library")
+        description.set("A Kotlin multiplatform library to encode/sign and decode/verify Visible Digital Seals")
+        inceptionYear.set("2025")
+        url.set("")
+
+        licenses {
+            license {
+                name.set("Apache License, Version 2.0")
+                url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+            }
+        }
+
+        organization {
+            name.set("tsenger.de")
+            url.set("https://www.tsenger.de")
+        }
+
+        developers {
+            developer {
+                name.set("Tobias Senger")
+                email.set("info@tsenger.de")
+            }
+        }
+
+        scm {
+            url.set("")
+        }
+
+    }
+
+}
+
+
 
 kotlin {
 
@@ -19,8 +67,6 @@ kotlin {
     iosX64() // iOS simulator
     iosArm64() // iOS device
     iosSimulatorArm64() // iOS simulator on Apple Silicon
-
-
 
 
     sourceSets {
