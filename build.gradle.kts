@@ -9,7 +9,7 @@ plugins {
 
 group = "de.tsenger"
 version = "0.8.0"
-description = "A Kotlin multiplatform library to encode/sign and decode/verify Visible Digital Seals"
+description = "Kotlin multiplatform library to encode/sign and decode/verify Visible Digital Seals"
 
 repositories {
     mavenCentral()
@@ -22,14 +22,14 @@ mavenPublishing {
 
     coordinates(
         groupId = "de.tsenger",
-        artifactId = "vdstools-kmp",
+        artifactId = "vdstools",
         version = "0.8.0"
     )
 
     pom {
-        name.set("Visible Digital Seal Tools Kotlin multiplatform library")
-        description.set("A Kotlin multiplatform library to encode/sign and decode/verify Visible Digital Seals")
-        inceptionYear.set("2025")
+        name.set("Visible Digital Seal Tools")
+        description.set("Kotlin multiplatform library to encode/sign and decode/verify Visible Digital Seals")
+        inceptionYear.set("2024")
         url.set("")
 
         licenses {
@@ -52,7 +52,7 @@ mavenPublishing {
         }
 
         scm {
-            url.set("")
+            url.set("https://github.com/tsenger/vdstools")
         }
 
     }
