@@ -1,4 +1,4 @@
-package de.tsenger.vdstools_mp.vds
+package de.tsenger.vdstools.vds
 
 import kotlin.test.Test
 import kotlin.test.assertContentEquals

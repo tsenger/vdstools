@@ -1,4 +1,4 @@
-package de.tsenger.vdstools_mp.idb
+package de.tsenger.vdstools.idb
 
 
 import kotlin.test.*

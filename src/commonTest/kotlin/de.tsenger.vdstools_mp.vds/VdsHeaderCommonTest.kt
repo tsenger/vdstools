@@ -1,6 +1,6 @@
-package de.tsenger.vdstools_mp.vds
+package de.tsenger.vdstools.vds
 
-import de.tsenger.vdstools_mp.DataEncoder
+import de.tsenger.vdstools.DataEncoder
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone

@@ -1,4 +1,4 @@
-package de.tsenger.vdstools_mp.vds
+package de.tsenger.vdstools.vds
 
 import co.touchlab.kermit.Logger
 import kotlin.test.*

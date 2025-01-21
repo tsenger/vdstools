@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "de.tsenger"
-version = "0.8.0"
+version = "0.8.1"
 description = "Kotlin multiplatform library to encode/sign and decode/verify Visible Digital Seals"
 
 repositories {
@@ -23,7 +23,7 @@ mavenPublishing {
     coordinates(
         groupId = "de.tsenger",
         artifactId = "vdstools",
-        version = "0.8.0"
+        version = "0.8.1"
     )
 
     pom {

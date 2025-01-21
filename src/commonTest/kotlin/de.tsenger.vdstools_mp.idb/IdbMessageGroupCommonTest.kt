@@ -1,6 +1,6 @@
-package de.tsenger.vdstools_mp.idb
+package de.tsenger.vdstools.idb
 
-import de.tsenger.vdstools_mp.idb.IdbMessageGroup.Companion.fromByteArray
+import de.tsenger.vdstools.idb.IdbMessageGroup.Companion.fromByteArray
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull

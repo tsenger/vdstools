@@ -1,6 +1,6 @@
-package de.tsenger.vdstools_mp.vds
+package de.tsenger.vdstools.vds
 
-import de.tsenger.vdstools_mp.DataEncoder
+import de.tsenger.vdstools.DataEncoder
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

@@ -1,4 +1,4 @@
-package de.tsenger.vdstools_mp.vds
+package de.tsenger.vdstools.vds
 
 @OptIn(ExperimentalStdlibApi::class)
 object VdsRawBytesCommon {
