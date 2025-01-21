@@ -102,9 +102,11 @@ kotlin {
 
         iosMain.dependencies {
             implementation("dev.whyoleg.cryptography:cryptography-provider-openssl3-prebuilt:0.4.0")
+
         }
 
         iosTest.dependencies {
+            implementation("dev.whyoleg.cryptography:cryptography-provider-openssl3-prebuilt:0.4.0")
 
         }
 

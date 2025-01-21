@@ -1,8 +1,5 @@
 package de.tsenger.vdstools_mp.idb
 
-import de.tsenger.vdstools_mp.idb.IdbMessageType.entries
-
-
 enum class IdbMessageType(val value: Byte) {
     UNKNOWN(0x00.toByte()),
     VISA(0x01.toByte()),
