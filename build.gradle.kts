@@ -7,10 +7,11 @@ plugins {
     kotlin("plugin.serialization") version "2.1.0"
     id("com.vanniktech.maven.publish") version "0.30.0"
 
+
 }
 
 group = "de.tsenger"
-version = "0.8.2-SNAPSHOT"
+version = "0.8.2-BETA"
 description = "Kotlin multiplatform library to encode/sign and decode/verify Visible Digital Seals"
 
 repositories {
@@ -25,7 +26,7 @@ mavenPublishing {
     coordinates(
         groupId = "de.tsenger",
         artifactId = "vdstools",
-        version = "0.8.2-SNAPSHOT"
+        version = "0.8.2-BETA"
     )
 
     pom {
