@@ -1,4 +1,6 @@
 import com.vanniktech.maven.publish.SonatypeHost
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     kotlin("multiplatform") version "2.1.0"
@@ -8,7 +10,7 @@ plugins {
 }
 
 group = "de.tsenger"
-version = "0.8.1"
+version = "0.8.2-SNAPSHOT"
 description = "Kotlin multiplatform library to encode/sign and decode/verify Visible Digital Seals"
 
 repositories {
@@ -23,7 +25,7 @@ mavenPublishing {
     coordinates(
         groupId = "de.tsenger",
         artifactId = "vdstools",
-        version = "0.8.1"
+        version = "0.8.2-SNAPSHOT"
     )
 
     pom {
@@ -63,7 +65,12 @@ mavenPublishing {
 
 kotlin {
 
-    jvm() // JVM target
+    jvm {
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_17)
+        }
+    }
     iosX64() // iOS simulator
     iosArm64() // iOS device
     iosSimulatorArm64() // iOS simulator on Apple Silicon
@@ -112,6 +119,8 @@ kotlin {
 
     }
 }
+
+
 
 tasks.register<Copy>("copyiOSTestResources") {
     from("src/commonTest/resources")

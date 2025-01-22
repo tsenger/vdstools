@@ -242,31 +242,11 @@ class VdsHeader {
                 var certRefLength = signerIdentifierAndCertRefLength.substring(4).toInt(16)
                 Logger.d("version 4: certRefLength: $certRefLength")
 
-                /*
-                 * GAAD HACK: If signer is DEME and rawVersion is 0x03 (which is version 4
-                 * according to ICAO spec) then anyhow use fixed size certification reference
-                 * length and the length characters also used as certificate reference. e.g.
-                 * DEME03123 signerIdenfifier = DEME length of certificate reference: 03 certRef
-                 * = 03123 <-see: here the length is part of the certificate reference which is
-                 * not the case in all other seals except the German
-                 * "Arrival Attestation Document"
-                 */
-
-                val gaadHack = (vdsHeader.signerIdentifier == "DEME" || vdsHeader.signerIdentifier == "DES1")
-                if (gaadHack) {
-                    Logger.d("Maybe we found a German Arrival Attestation. GAAD Hack will be applied!")
-                    certRefLength = 3
-                }
-                // get number of bytes we have to decode to get the given certification
-                // reference length
                 val bytesToDecode = ((certRefLength - 1) / 3 * 2) + 2
                 Logger.d("version 4: bytesToDecode: $bytesToDecode")
                 vdsHeader.certificateReference =
                     DataParser.decodeC40(rawdataBuffer.readByteArray(bytesToDecode.toLong()))
-                if (gaadHack) {
-                    vdsHeader.certificateReference = (signerIdentifierAndCertRefLength.substring(4)
-                            + vdsHeader.certificateReference)
-                }
+
             } else { // rawVersion=0x02 -> ICAO version 3
                 val signerCertRef = DataParser.decodeC40(rawdataBuffer.readByteArray(6))
                 vdsHeader.signerIdentifier = signerCertRef.substring(0, 4)

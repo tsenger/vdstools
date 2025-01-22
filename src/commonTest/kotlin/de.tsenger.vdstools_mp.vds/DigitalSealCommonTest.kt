@@ -1,6 +1,7 @@
 package de.tsenger.vdstools.vds
 
 import co.touchlab.kermit.Logger
+import kotlinx.datetime.LocalDate
 import kotlin.test.*
 
 
@@ -203,6 +204,22 @@ class DigitalSealCommonTest {
         val seal = DigitalSeal.fromByteArray(rawBytes)
         assertNotNull(seal)
         assertNotNull(seal.vdsType)
+    }
+
+    @Test
+    fun testAnkunftsNwPapier() {
+        val seal = DigitalSeal.fromByteArray(VdsRawBytesCommon.ankunftsnwPapier)
+        assertNotNull(seal)
+        println(seal.docTypeCat)
+        assertEquals("ARRIVAL_ATTESTATION", seal.vdsType)
+        assertEquals(LocalDate.parse("2016-05-23"), seal.sigDate)
+        assertEquals(LocalDate.parse("2016-02-01"), seal.issuingDate)
+        val rawstring = seal.rawString
+        val seal2 = DigitalSeal.fromRawString(rawstring)
+        assertNotNull(seal2)
+        assertEquals("ARRIVAL_ATTESTATION", seal2.vdsType)
+        assertEquals(LocalDate.parse("2016-05-23"), seal2.sigDate)
+        assertEquals(LocalDate.parse("2016-02-01"), seal2.issuingDate)
     }
 
 

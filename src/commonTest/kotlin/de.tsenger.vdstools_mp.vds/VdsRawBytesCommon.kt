@@ -322,6 +322,18 @@ object VdsRawBytesCommon {
                 "7216703257cd12c678fd3d55d7118670" +
                 "1e635364").hexToByteArray()
 
+    val ankunftsnwPapier: ByteArray =
+        ("dc03fe456d2b712a19a51ae11eb3704f" +
+                "d590fd020230a5621353d9a275735bd4" +
+                "134bc54957fc133c133c133c133ca306" +
+                "2064339630e7c3591ae626fc20d545de" +
+                "327c133c134503082038337346ae19cf" +
+                "ff4092803028bcbef5d7b9daf00c67a5" +
+                "865b26b38caea2664c722b4b1572424f" +
+                "9e4a3d90d80c4d962bf29eb95e09da6a" +
+                "de68124052479585d9756353012dee6d" +
+                "41b2").hexToByteArray()
+
 
 }
 
