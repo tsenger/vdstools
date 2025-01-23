@@ -12,6 +12,7 @@ class IdbPayload(
     val idbSignerCertificate: IdbSignerCertificate?,
     val idbSignature: IdbSignature?
 ) {
+    private val log = Logger.withTag(this::class.simpleName ?: "")
     val encoded: ByteArray
         get() {
             val buffer = Buffer()
@@ -21,7 +22,7 @@ class IdbPayload(
             if (idbSignature != null) {
                 buffer.write(idbSignature.encoded)
             } else if (idbHeader.getSignatureAlgorithm() != null) {
-                Logger.e(
+                log.e(
                     "Missing Signature Field! This field should be present if a signature algorithm has been specified in the header."
                 )
             }

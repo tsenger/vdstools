@@ -11,6 +11,8 @@ import okio.Buffer
 
 
 class DigitalSeal {
+    private val log = Logger.withTag(this::class.simpleName ?: "")
+
     val vdsType: String
     private val vdsHeader: VdsHeader
     private val vdsMessage: VdsMessage
@@ -79,19 +81,20 @@ class DigitalSeal {
             val signatureBytes = signer.sign(headerMessage)
             return VdsSignature(signatureBytes)
         } catch (e: Exception) {
-            Logger.e("Signature creation failed: " + e.message)
+            log.e("Signature creation failed: " + e.message)
             return null
         }
     }
 
 
     companion object {
+        private val log = Logger.withTag(this::class.simpleName ?: "")
         fun fromRawString(rawString: String): DigitalSeal? {
             var seal: DigitalSeal? = null
             try {
                 seal = parseVdsSeal(DataParser.decodeBase256(rawString))
             } catch (e: Exception) {
-                Logger.e(e.message.toString())
+                log.e(e.message.toString())
             }
             return seal
         }
@@ -101,7 +104,7 @@ class DigitalSeal {
             try {
                 seal = parseVdsSeal(rawBytes)
             } catch (e: Exception) {
-                Logger.e(e.message.toString())
+                log.e(e.message.toString())
             }
             return seal
         }
@@ -109,7 +112,7 @@ class DigitalSeal {
         @OptIn(ExperimentalStdlibApi::class)
         private fun parseVdsSeal(rawBytes: ByteArray): DigitalSeal {
             val rawDataBuffer = Buffer().write(rawBytes)
-            Logger.v("rawData: ${rawBytes.toHexString()}")
+            log.v("rawData: ${rawBytes.toHexString()}")
 
             val vdsHeader = VdsHeader.fromBuffer(rawDataBuffer)
             var vdsSignature: VdsSignature? = null

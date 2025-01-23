@@ -9,6 +9,7 @@ import kotlinx.serialization.json.Json
 
 
 class FeatureConverter(jsonString: String) {
+    private val log = Logger.withTag(this::class.simpleName ?: "")
     private var sealDtoList: List<SealDto>
 
     companion object {
@@ -52,7 +53,7 @@ class FeatureConverter(jsonString: String) {
     @Throws(IllegalArgumentException::class)
     fun getFeatureName(vdsType: String, derTlv: DerTlv): String {
         if (!vdsTypes.containsKey(vdsType)) {
-            Logger.w("No seal type with name '$vdsType' was found.")
+            log.w("No seal type with name '$vdsType' was found.")
             throw IllegalArgumentException("No seal type with name '$vdsType' was found.")
         }
         val sealDto = getSealDto(vdsType)
@@ -62,7 +63,7 @@ class FeatureConverter(jsonString: String) {
     @Throws(IllegalArgumentException::class)
     fun getFeatureCoding(vdsType: String, derTlv: DerTlv): FeatureCoding {
         if (!vdsTypes.containsKey(vdsType)) {
-            Logger.w("No seal type with name '$vdsType' was found.")
+            log.w("No seal type with name '$vdsType' was found.")
             throw IllegalArgumentException("No seal type with name '$vdsType' was found.")
         }
         val sealDto = getSealDto(vdsType)
@@ -73,7 +74,7 @@ class FeatureConverter(jsonString: String) {
     @Throws(IllegalArgumentException::class)
     fun <T> decodeFeature(vdsType: String, derTlv: DerTlv): T {
         if (!vdsTypes.containsKey(vdsType)) {
-            Logger.w("No seal type with name '$vdsType' was found.")
+            log.w("No seal type with name '$vdsType' was found.")
             throw IllegalArgumentException("No seal type with name '$vdsType' was found.")
         }
         val sealDto = getSealDto(vdsType)
@@ -84,11 +85,11 @@ class FeatureConverter(jsonString: String) {
     @Throws(IllegalArgumentException::class)
     fun <T> encodeFeature(vdsType: String, feature: String, inputValue: T): DerTlv {
         if (!vdsTypes.containsKey(vdsType)) {
-            Logger.w("No VdsSeal type with name '$vdsType' was found.")
+            log.w("No VdsSeal type with name '$vdsType' was found.")
             throw IllegalArgumentException("No seal type with name '$vdsType' was found.")
         }
         if (!vdsFeatures.contains(feature)) {
-            Logger.w("No VdsSeal feature with name '$feature' was found.")
+            log.w("No VdsSeal feature with name '$feature' was found.")
             throw IllegalArgumentException("No VdsSeal feature with name '$feature' was found.")
         }
         val sealDto = getSealDto(vdsType)
@@ -99,7 +100,7 @@ class FeatureConverter(jsonString: String) {
     private fun <T> encodeFeature(sealDto: SealDto, feature: String, inputValue: T): DerTlv {
         val tag = getTag(sealDto, feature)
         if (tag.toInt() == 0) {
-            Logger.w("VdsType: " + sealDto.documentType + " has no Feature " + feature)
+            log.w("VdsType: " + sealDto.documentType + " has no Feature " + feature)
             throw IllegalArgumentException("VdsType: " + sealDto.documentType + " has no Feature " + feature)
         }
         val coding = getCoding(sealDto, feature)
@@ -118,6 +119,7 @@ class FeatureConverter(jsonString: String) {
         return DerTlv(tag, value)
     }
 
+    @Suppress("IMPLICIT_CAST_TO_ANY")
     private fun <T> decodeFeature(sealDto: SealDto, derTlv: DerTlv): T {
         val tag = derTlv.tag
         val coding = getCoding(sealDto, tag)
@@ -128,6 +130,7 @@ class FeatureConverter(jsonString: String) {
             FeatureCoding.BYTES -> derTlv.value
             FeatureCoding.UNKNOWN -> derTlv.value
         }
+        @Suppress("UNCHECKED_CAST")
         return result as T
     }
 

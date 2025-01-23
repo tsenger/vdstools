@@ -16,11 +16,10 @@ import okio.Deflater
 import okio.DeflaterSink
 import okio.FileNotFoundException
 
-//import org.kotlincrypto.hash.sha1.SHA1
-
 
 object DataEncoder {
     private lateinit var featureEncoder: FeatureConverter
+    private val log = Logger.withTag(this::class.simpleName ?: "")
 
     init {
 
@@ -28,7 +27,7 @@ object DataEncoder {
             val jsonString = readTextResource(DEFAULT_SEAL_CODINGS)
             featureEncoder = FeatureConverter(jsonString)
         } catch (e: FileNotFoundException) {
-            Logger.e("Can't initialize FeatureEncoder: ${e.message}")
+            log.e("Can't initialize FeatureEncoder: ${e.message}")
             println("Can't initialize FeatureEncoder: ${e.message}")
         }
     }
@@ -53,7 +52,7 @@ object DataEncoder {
 //        for (rdn in ln.rdns) {
 //            if (rdn.type.equals("CN", ignoreCase = true)) {
 //                cn = rdn.value as String
-//                Logger.d("CN is: $cn")
+//                log.d("CN is: $cn")
 //            } else if (rdn.type.equals("C", ignoreCase = true)) {
 //                c = rdn.value as String
 //                Logger.d("C is: $c")
@@ -64,7 +63,7 @@ object DataEncoder {
 //        val serial = cert.serialNumber.toString(16) // Serial Number as Hex
 //        val signerCertRef = Pair(ccn, serial)
 //
-//        Logger.i("generated signerCertRef: " + signerCertRef.first + signerCertRef.second)
+//        log.i("generated signerCertRef: " + signerCertRef.first + signerCertRef.second)
 //        return signerCertRef
 //
 //    }
@@ -248,7 +247,7 @@ object DataEncoder {
         compressor.close()
         val compressedBytes = outputBuffer.readByteArray()
 
-        Logger.d(
+        log.d(
             ("Zip ratio " + (bytesToCompress.size.toFloat() / compressedBytes.size.toFloat()) + ", input size "
                     + bytesToCompress.size + ", compressed size " + compressedBytes.size)
         )
@@ -266,7 +265,7 @@ object DataEncoder {
             .get(SHA1)
             .hasher()
 
-        var certSha1 = runBlocking {
+        val certSha1 = runBlocking {
             hasher.hash(certificateBytes)
         }
         return certSha1.sliceArray(15..19)

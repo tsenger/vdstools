@@ -23,7 +23,7 @@ actual fun readTextResource(fileName: String): String {
  */
 internal fun getResourcePath(fileName: String): Path? {
     val resourcePath = NSBundle.mainBundle.resourcePath
-    Logger.d("Resource Path: $resourcePath")
+    Logger.withTag("getResourcePath").d("Resource Path: $resourcePath")
     val path = NSBundle.mainBundle.pathForResource(fileName, null)
     return path?.toPath()
 }

@@ -7,13 +7,13 @@ import dev.whyoleg.cryptography.algorithms.EC.PrivateKey.Format.DER
 import dev.whyoleg.cryptography.algorithms.EC.PrivateKey.Format.RAW
 
 
-class Signer {
+class Signer(privKeyBytes: ByteArray, curveName: String) {
+    private val log = Logger.withTag(this::class.simpleName ?: "")
     private var ecPrivKey: ECDSA.PrivateKey
     var fieldSize: Int = 0
         private set
 
-    @OptIn(ExperimentalStdlibApi::class)
-    constructor(privKeyBytes: ByteArray, curveName: String) {
+    init {
         // getting platform specific provider
         val provider = getCryptoProvider()
         val ecdsa = provider.get(ECDSA)
@@ -21,7 +21,7 @@ class Signer {
         ecPrivKey = keyDecoder.decodeFromByteArrayBlocking(DER, privKeyBytes)
         fieldSize = ecPrivKey.encodeToByteArrayBlocking(RAW).size * 8
         if (fieldSize !in 224..512) {
-            Logger.e("Bit length of Field is out of defined value: $fieldSize")
+            log.e("Bit length of Field is out of defined value: $fieldSize")
             throw IllegalArgumentException(
                 "Bit length of Field is out of defined value (224 to 512 bits): $fieldSize"
             )
@@ -43,7 +43,7 @@ class Signer {
 
         val ecdsaSign = this.ecPrivKey.signatureGenerator(digest = digest, ECDSA.SignatureFormat.RAW)
 
-        Logger.i("ECDSA algorithm: $ecdsaSign")
+        log.i("ECDSA algorithm: $ecdsaSign")
 
         return ecdsaSign.generateSignatureBlocking(dataToSign)
 

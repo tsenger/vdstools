@@ -11,6 +11,8 @@ import okio.Buffer
 
 
 class VdsHeader {
+    private val log = Logger.withTag(this::class.simpleName ?: "")
+
     var issuingCountry: String = "UTO"
         private set
     var signerIdentifier: String? = null
@@ -80,7 +82,7 @@ class VdsHeader {
                 buffer.writeByte(docFeatureRef.toInt())
                 buffer.writeByte(docTypeCat.toInt())
             } catch (e: Exception) {
-                Logger.e("Error while encoding header data: " + e.message)
+                log.e("Error while encoding header data: " + e.message)
             }
             return buffer.readByteArray()
         }
@@ -174,7 +176,7 @@ class VdsHeader {
 //            try {
 //                signerCertRef = DataEncoder.getSignerCertRef(x509Cert)
 //            } catch (e: Exception) {
-//                Logger.e("Couldn't build header, because getSignerCertRef throws error: " + e.message)
+//                log.e("Couldn't build header, because getSignerCertRef throws error: " + e.message)
 //            }
 //            this.signerIdentifier = signerCertRef?.first
 //            this.certificateReference = signerCertRef?.second
@@ -195,13 +197,14 @@ class VdsHeader {
 
     companion object {
         const val DC: Byte = 0xDC.toByte()
+        private val log = Logger.withTag(this::class.simpleName ?: "")
 
         @Throws(IllegalArgumentException::class)
         fun fromBuffer(rawdataBuffer: Buffer): VdsHeader {
             // Magic Byte
             val magicByte = rawdataBuffer.readByte()
             if (magicByte != DC) {
-                Logger.e(
+                log.e(
                     "Magic Constant mismatch:  ${magicByte.toString(16).padStart(2, '0').uppercase()}, instead of 0xDC"
                 )
                 throw IllegalArgumentException(
@@ -220,7 +223,7 @@ class VdsHeader {
 		 * 0x03 for rawVersion 3 and static length of Document Signer Reference.
 		 */
             if (!(vdsHeader.rawVersion.toInt() == 0x02 || vdsHeader.rawVersion.toInt() == 0x03)) {
-                Logger.e(
+                log.e(
                     "Unsupported rawVersion: ${vdsHeader.rawVersion.toString(16).padStart(2, '0').uppercase()}"
                 )
                 throw IllegalArgumentException(
@@ -239,11 +242,11 @@ class VdsHeader {
                 vdsHeader.signerIdentifier = signerIdentifierAndCertRefLength.substring(0, 4)
                 // the last two characters store the length of the following Certificate
                 // Reference
-                var certRefLength = signerIdentifierAndCertRefLength.substring(4).toInt(16)
-                Logger.d("version 4: certRefLength: $certRefLength")
+                val certRefLength = signerIdentifierAndCertRefLength.substring(4).toInt(16)
+                log.v("version 4: certRefLength: $certRefLength")
 
                 val bytesToDecode = ((certRefLength - 1) / 3 * 2) + 2
-                Logger.d("version 4: bytesToDecode: $bytesToDecode")
+                log.v("version 4: bytesToDecode: $bytesToDecode")
                 vdsHeader.certificateReference =
                     DataParser.decodeC40(rawdataBuffer.readByteArray(bytesToDecode.toLong()))
 
@@ -257,7 +260,6 @@ class VdsHeader {
             vdsHeader.sigDate = DataParser.decodeDate(rawdataBuffer.readByteArray(3))
             vdsHeader.docFeatureRef = rawdataBuffer.readByte()
             vdsHeader.docTypeCat = rawdataBuffer.readByte()
-            Logger.d("VdsHeader: $vdsHeader")
             return vdsHeader
         }
     }

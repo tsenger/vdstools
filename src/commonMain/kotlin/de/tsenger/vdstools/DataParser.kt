@@ -9,7 +9,7 @@ import okio.Inflater
 import okio.InflaterSource
 
 object DataParser {
-
+    private val log = Logger.withTag(this::class.simpleName ?: "")
 
     /**
      * Decodes a byte[] encoded masked date as described in ICAO TR "Datastructure
@@ -103,7 +103,7 @@ object DataParser {
                 le = ((dataBuffer.readByte().toInt() and 0xff) * 0x1000) + ((dataBuffer.readByte()
                     .toInt() and 0xff) * 0x100) + (dataBuffer.readByte().toInt() and 0xff)
             } else if (le > 0x7F) {
-                Logger.e(
+                log.e(
                     "Can't decode length: ${le.toString(16).padStart(2, '0').uppercase()}"
                 )
                 throw IllegalArgumentException(

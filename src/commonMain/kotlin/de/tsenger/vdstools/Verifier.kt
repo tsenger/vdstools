@@ -7,7 +7,9 @@ import dev.whyoleg.cryptography.algorithms.EC.PublicKey.Format.RAW
 
 
 @OptIn(ExperimentalStdlibApi::class)
-class Verifier(digitalSeal: DigitalSeal, val ecPubKey: ECDSA.PublicKey) {
+class Verifier(digitalSeal: DigitalSeal, private val ecPubKey: ECDSA.PublicKey) {
+    private val log = Logger.withTag(this::class.simpleName ?: "")
+
     enum class Result {
         SignatureValid, SignatureInvalid, VerifyError,
     }
@@ -15,15 +17,15 @@ class Verifier(digitalSeal: DigitalSeal, val ecPubKey: ECDSA.PublicKey) {
     private val messageBytes: ByteArray = digitalSeal.headerAndMessageBytes
     private val signatureBytes: ByteArray = digitalSeal.signatureBytes
 
-    val fieldSize: Int
+    private val fieldSize: Int
         get() = (ecPubKey.encodeToByteArrayBlocking(RAW).size - 1) * 4
 
     init {
 
-        Logger.d("Public Key bytes: 0x${ecPubKey.encodeToByteArrayBlocking(RAW)}")
-        Logger.d("Field bit length: $fieldSize")
-        Logger.d("Message bytes: ${messageBytes.toHexString()}")
-        Logger.d("Signature bytes: ${signatureBytes.toHexString()}")
+        log.v("Public Key bytes: 0x${ecPubKey.encodeToByteArrayBlocking(RAW)}")
+        log.v("Field bit length: $fieldSize")
+        log.v("Message bytes: ${messageBytes.toHexString()}")
+        log.v("Signature bytes: ${signatureBytes.toHexString()}")
     }
 
     fun verify(): Result {
@@ -37,7 +39,7 @@ class Verifier(digitalSeal: DigitalSeal, val ecPubKey: ECDSA.PublicKey) {
             in 257..384 -> SHA384
             in 385..512 -> SHA512
             else -> {
-                Logger.e("Bit length of Field is out of defined value: $fieldSize")
+                log.e("Bit length of Field is out of defined value: $fieldSize")
                 return Result.VerifyError
             }
         }

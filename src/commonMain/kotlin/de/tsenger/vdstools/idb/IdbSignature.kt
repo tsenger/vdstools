@@ -7,6 +7,8 @@ import de.tsenger.vdstools.asn1.DerTlv
 class IdbSignature(
     val plainSignatureBytes: ByteArray
 ) {
+    private val log = Logger.withTag(this::class.simpleName ?: "")
+
     @OptIn(ExperimentalStdlibApi::class)
     val derSignatureBytes: ByteArray
         /**
@@ -24,7 +26,7 @@ class IdbSignature(
             val sEncoded = ASN1Encoder.getDerInteger(s)
             val derSignatureBytes = ASN1Encoder.getDerSequence(rEncoded, sEncoded)
 
-            Logger.d("Signature sequence bytes: ${derSignatureBytes.toHexString()}")
+            log.d("Signature sequence bytes: ${derSignatureBytes.toHexString()}")
             return derSignatureBytes
         }
 

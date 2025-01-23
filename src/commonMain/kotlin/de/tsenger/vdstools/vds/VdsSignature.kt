@@ -1,7 +1,6 @@
 package de.tsenger.vdstools.vds
 
 
-import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.asn1.ASN1Encoder
 import de.tsenger.vdstools.asn1.DerTlv
 
@@ -33,7 +32,6 @@ class VdsSignature
             val sEncoded = ASN1Encoder.getDerInteger(s)
             val derSignatureBytes = ASN1Encoder.getDerSequence(rEncoded, sEncoded)
 
-            Logger.d("Signature sequence bytes: ${derSignatureBytes.toHexString()}")
             return derSignatureBytes
         }
 
