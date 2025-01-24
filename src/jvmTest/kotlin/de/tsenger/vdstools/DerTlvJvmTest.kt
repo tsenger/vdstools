@@ -7,7 +7,7 @@ import org.junit.Assert
 import org.junit.Test
 import java.io.IOException
 
-class DerTlvTest {
+class DerTlvJvmTest {
     //@formatter:on    
     @Test
     @Throws(IOException::class)

@@ -2,7 +2,7 @@ package de.tsenger.vdstools.vds
 
 import org.bouncycastle.util.encoders.Hex
 
-object VdsRawBytes {
+object VdsRawBytesJvm {
     //@formatter:off
     @JvmField
     var residentPermit: ByteArray = Hex.decode(

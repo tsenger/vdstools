@@ -8,7 +8,7 @@ import java.io.IOException
 import java.security.cert.CertificateException
 import kotlin.test.fail
 
-class IcaoBarcodeTest {
+class IcaoBarcodeJvmTest {
     @Test
     fun testIsNotSignedIsNotZipped() {
         val icb = IcaoBarcode('A', IdbPayload(IdbHeader("UTO"), IdbMessageGroup(), null, null))

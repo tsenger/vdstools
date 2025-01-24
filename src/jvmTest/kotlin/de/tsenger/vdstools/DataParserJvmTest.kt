@@ -4,7 +4,7 @@ package de.tsenger.vdstools
 import de.tsenger.vdstools.DataParser.decodeDateTime
 import de.tsenger.vdstools.DataParser.decodeMaskedDate
 import de.tsenger.vdstools.vds.VdsHeader
-import de.tsenger.vdstools.vds.VdsRawBytes
+import de.tsenger.vdstools.vds.VdsRawBytesJvm
 import junit.framework.TestCase.assertEquals
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
@@ -14,7 +14,7 @@ import org.junit.Assert
 import org.junit.Test
 import java.io.IOException
 
-class DataParserTest {
+class DataParserJvmTest {
     @Test
     fun testDecodeMaskedDate1() {
         val decodedDate = decodeMaskedDate(Hex.decode("c3002e7c"))
@@ -81,7 +81,7 @@ class DataParserTest {
 
     @Test
     fun testDecodeHeader() {
-        val bb = Buffer().write(VdsRawBytes.residentPermit)
+        val bb = Buffer().write(VdsRawBytesJvm.residentPermit)
         val vdsHeader = VdsHeader.fromBuffer(bb)
         Assert.assertEquals(0x03, vdsHeader.rawVersion.toLong())
         Assert.assertEquals("UTO", vdsHeader.issuingCountry)

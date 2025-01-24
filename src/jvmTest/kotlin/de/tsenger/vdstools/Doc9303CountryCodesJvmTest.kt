@@ -4,7 +4,7 @@ import de.tsenger.vdstools.Doc9303CountryCodes.convertToIcaoOrIso3
 import org.junit.Assert
 import org.junit.Test
 
-class Doc9303CountryCodesTest {
+class Doc9303CountryCodesJvmTest {
     @Test
     fun testConvertToIcaoOrIso3_DE() {
         Assert.assertEquals("D<<", convertToIcaoOrIso3("DE"))

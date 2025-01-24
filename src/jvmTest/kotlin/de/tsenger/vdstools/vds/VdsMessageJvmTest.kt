@@ -5,7 +5,7 @@ import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert
 import org.junit.Test
 
-class VdsMessageTest {
+class VdsMessageJvmTest {
 
     @Test
     fun testBuildVdsMessage() {

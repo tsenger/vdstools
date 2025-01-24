@@ -6,7 +6,7 @@ import org.junit.Assert
 import org.junit.Test
 import java.io.IOException
 
-class IdbMessageTest {
+class IdbMessageJvmTest {
     //@formatter:off
     var visa_content: ByteArray = Hex.decode(
     ("022cdd52134a74da1347c6fed95cb89f"

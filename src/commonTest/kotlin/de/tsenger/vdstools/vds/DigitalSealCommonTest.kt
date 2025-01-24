@@ -107,11 +107,11 @@ class DigitalSealCommonTest {
         val seal = DigitalSeal.fromByteArray(VdsRawBytesCommon.tempPerso)
         assertEquals(
             "ITD<<MUSTERMANN<<ERIKA<<<<<<<<<<<<<<\nD000000001D<<8308126<2701312<<<<<<<0",
-            seal!!.getFeature("MRZ")!!.valueStr
+            seal?.getFeature("MRZ")?.valueStr
         )
-        val imgBytes = seal.getFeature("FACE_IMAGE")!!.valueBytes
+        val imgBytes = seal?.getFeature("FACE_IMAGE")?.valueBytes
 
-        assertEquals(891, imgBytes.size.toLong())
+        assertEquals(891, imgBytes?.size?.toLong())
     }
 
     @Test

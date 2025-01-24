@@ -19,7 +19,7 @@ import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
 import java.security.interfaces.ECPrivateKey
 
-class DataMatrixTest {
+class DataMatrixJvmTest {
     var keyStorePassword: String = "vdstools"
     var keyStoreFile: String = "src/commonTest/resources/vdstools_testcerts.bks"
 

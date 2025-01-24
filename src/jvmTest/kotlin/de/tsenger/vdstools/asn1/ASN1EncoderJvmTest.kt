@@ -4,7 +4,7 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 
 
-class ASN1EncoderTest {
+class ASN1EncoderJvmTest {
 
     @Test
     fun testGetDerLength_5() {

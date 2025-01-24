@@ -13,7 +13,7 @@ import java.security.KeyStore
 import java.security.Security
 import kotlin.test.assertContentEquals
 
-class DataEncoderTest {
+class DataEncoderJvmTest {
     //	@Test
     //	public void testEncodeDate_Now() {
     //		LocalDate ldNow = LocalDate.now();

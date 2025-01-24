@@ -7,7 +7,7 @@ import org.junit.Test
 import java.io.IOException
 import java.security.cert.CertificateException
 
-class IdbPayloadTest {
+class IdbPayloadJvmTest {
     @Test
     fun testConstructor_null() {
         val payload = IdbPayload(IdbHeader("UTO"), IdbMessageGroup(), null, null)

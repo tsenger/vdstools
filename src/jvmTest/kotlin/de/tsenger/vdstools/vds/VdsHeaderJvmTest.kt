@@ -13,7 +13,7 @@ import org.junit.Assert
 import org.junit.Test
 
 
-class VdsHeaderTest {
+class VdsHeaderJvmTest {
     @Test
     fun testGetDocumentRef() {
         val header = VdsHeader.Builder("ALIENS_LAW").build()

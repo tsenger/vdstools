@@ -16,7 +16,7 @@ import java.security.Security
 import java.security.spec.ECGenParameterSpec
 import java.util.*
 
-class SignerTest {
+class SignerJvmTest {
     @Test
     fun testKeyStoreConstructor() {
         val ecPrivKey = keystore.getKey("dets32", keyStorePassword.toCharArray()) as BCECPrivateKey

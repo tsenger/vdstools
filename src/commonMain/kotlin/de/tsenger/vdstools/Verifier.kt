@@ -3,12 +3,16 @@ package de.tsenger.vdstools
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.vds.DigitalSeal
 import dev.whyoleg.cryptography.algorithms.*
+import dev.whyoleg.cryptography.algorithms.EC.Curve
 import dev.whyoleg.cryptography.algorithms.EC.PublicKey.Format.RAW
 
 
 @OptIn(ExperimentalStdlibApi::class)
-class Verifier(digitalSeal: DigitalSeal, private val ecPubKey: ECDSA.PublicKey) {
+class Verifier(digitalSeal: DigitalSeal, publicKeyBytes: ByteArray, curveName: String) {
     private val log = Logger.withTag(this::class.simpleName ?: "")
+
+    private val keyDecoder = getCryptoProvider().get(ECDSA).publicKeyDecoder(Curve(curveName))
+    private val ecPubKey = keyDecoder.decodeFromByteArrayBlocking(EC.PublicKey.Format.DER, publicKeyBytes)
 
     enum class Result {
         SignatureValid, SignatureInvalid, VerifyError,

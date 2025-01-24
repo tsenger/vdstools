@@ -13,7 +13,7 @@ import java.security.cert.CertificateEncodingException
 import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
 
-class IdbSignerCertificateTest {
+class IdbSignerCertificateJvmTest {
     var encodedIdbSignerCertificate: ByteArray = Hex
         .decode(
             ("7e8201bc308201b83082013ea00302010202015b300a06082a8648ce3d040302303e"

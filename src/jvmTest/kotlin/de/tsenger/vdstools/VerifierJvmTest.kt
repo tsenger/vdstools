@@ -2,10 +2,7 @@ package de.tsenger.vdstools
 
 
 import de.tsenger.vdstools.vds.DigitalSeal
-import de.tsenger.vdstools.vds.VdsRawBytes
-import dev.whyoleg.cryptography.algorithms.EC
-import dev.whyoleg.cryptography.algorithms.EC.Curve
-import dev.whyoleg.cryptography.algorithms.ECDSA
+import de.tsenger.vdstools.vds.VdsRawBytesJvm
 import kotlinx.datetime.LocalDate
 import org.bouncycastle.asn1.x500.X500Name
 import org.bouncycastle.asn1.x500.style.BCStyle
@@ -23,11 +20,11 @@ import java.security.cert.X509Certificate
 import java.text.ParseException
 import java.util.*
 
-class VerifierTest {
+class VerifierJvmTest {
     @Test
     @Throws(ParseException::class, KeyStoreException::class, IOException::class)
     fun testVerifyArrivalAttestationDETS00027() {
-        val digitalSeal: DigitalSeal = checkNotNull(DigitalSeal.fromByteArray(VdsRawBytes.arrivalAttestation))
+        val digitalSeal: DigitalSeal = checkNotNull(DigitalSeal.fromByteArray(VdsRawBytesJvm.arrivalAttestation))
         val signerCertRef: String = digitalSeal.signerCertRef
         assertEquals("DETS27", signerCertRef) // input validation
 
@@ -43,56 +40,33 @@ class VerifierTest {
         assertEquals(LocalDate.parse("2020-01-13"), sigLocalDate)
 
 
-//        try {
-//            cert.checkValidity(sigLocalDate)
-//        } catch (e: CertificateExpiredException) {
-//            fail(e.message)
-//        } catch (e: CertificateNotYetValidException) {
-//            fail(e.message)
-//        }
-
-        val provider = getCryptoProvider()
-        val ecdsa = provider.get(ECDSA)
-        val keyDecoder = ecdsa.publicKeyDecoder(Curve("brainpoolP256r1"))
-        val ecPubKey = keyDecoder.decodeFromByteArrayBlocking(EC.PublicKey.Format.DER, cert.publicKey.encoded)
-
-        val verifier = Verifier(digitalSeal, ecPubKey)
+        val verifier = Verifier(digitalSeal, cert.publicKey.encoded, "brainpoolP256r1")
         assertEquals(Verifier.Result.SignatureValid, verifier.verify())
     }
 
     @Test
     @Throws(KeyStoreException::class, IOException::class)
     fun testVerifyResidentPermit256BitSig() {
-        val digitalSeal = DigitalSeal.fromByteArray(VdsRawBytes.residentPermit)
+        val digitalSeal = DigitalSeal.fromByteArray(VdsRawBytesJvm.residentPermit)
         val signerCertRef = digitalSeal?.signerCertRef
         assertEquals("UTTS5B", signerCertRef)
         val cert = keystore.getCertificate(signerCertRef?.lowercase(Locale.getDefault())) as X509Certificate
 
-        val provider = getCryptoProvider()
-        val ecdsa = provider.get(ECDSA)
-        val keyDecoder = ecdsa.publicKeyDecoder(Curve("brainpoolP256r1"))
-        println("PUBKEY Format : ${cert.publicKey.format}")
-        val ecPubKey = keyDecoder.decodeFromByteArrayBlocking(EC.PublicKey.Format.DER, cert.publicKey.encoded)
 
-        val verifier = Verifier(digitalSeal!!, ecPubKey)
+        val verifier = Verifier(digitalSeal!!, cert.publicKey.encoded, "brainpoolP256r1")
         assertEquals(Verifier.Result.SignatureValid, verifier.verify())
     }
 
     @Test
     @Throws(KeyStoreException::class, IOException::class)
     fun testVerifyVisa224BitSig() {
-        val digitalSeal = DigitalSeal.fromByteArray(VdsRawBytes.visa_224bitSig)
+        val digitalSeal = DigitalSeal.fromByteArray(VdsRawBytesJvm.visa_224bitSig)
         val signerCertRef = digitalSeal?.signerCertRef
         assertEquals("DETS32", signerCertRef)
         val cert = keystore.getCertificate(signerCertRef?.lowercase(Locale.getDefault())) as X509Certificate
 
-        val provider = getCryptoProvider()
-        val ecdsa = provider.get(ECDSA)
-        val keyDecoder = ecdsa.publicKeyDecoder(Curve("brainpoolP224r1"))
-        println("PUBKEY Format : ${cert.publicKey.format}")
-        val ecPubKey = keyDecoder.decodeFromByteArrayBlocking(EC.PublicKey.Format.DER, cert.publicKey.encoded)
 
-        val verifier = Verifier(digitalSeal!!, ecPubKey)
+        val verifier = Verifier(digitalSeal!!, cert.publicKey.encoded, "brainpoolP224r1")
         assertEquals(Verifier.Result.SignatureValid, verifier.verify())
     }
 

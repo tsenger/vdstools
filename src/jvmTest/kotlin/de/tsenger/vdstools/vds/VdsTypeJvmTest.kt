@@ -5,7 +5,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
-class VdsTypeTest {
+class VdsTypeJvmTest {
     @Test
     fun testGetValue() {
         assertEquals(0xf908, DataEncoder.getDocumentRef("ADDRESS_STICKER_ID"))

@@ -6,7 +6,7 @@ import org.junit.Assert
 import org.junit.Test
 import java.io.IOException
 
-class IdbMessageGroupTest {
+class IdbMessageGroupJvmTest {
     @Test
     fun testConstructorEmpty() {
         val messageGroup = IdbMessageGroup()

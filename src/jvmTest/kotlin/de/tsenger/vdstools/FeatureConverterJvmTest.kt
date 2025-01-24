@@ -7,7 +7,7 @@ import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert
 import org.junit.Test
 
-class FeatureConverterTest {
+class FeatureConverterJvmTest {
 
     @Test
     fun testFeatureConverterString() {

@@ -6,7 +6,7 @@ import org.junit.Test
 import java.io.IOException
 import java.security.KeyStore
 
-class VdsSignatureTest {
+class VdsSignatureJvmTest {
     @Test
     fun testGetPlainSignatureBytes() {
         val signature = VdsSignature(plainSignature)

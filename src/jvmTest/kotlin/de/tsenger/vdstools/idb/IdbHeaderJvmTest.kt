@@ -6,7 +6,7 @@ import org.junit.Assert
 import org.junit.Test
 import java.io.IOException
 
-class IdbHeaderTest {
+class IdbHeaderJvmTest {
     @Test
     @Throws(IOException::class)
     fun testConstructor_minimal() {

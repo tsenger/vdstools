@@ -4,7 +4,7 @@ import org.junit.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 
-class Base32Test {
+class Base32JvmTest {
 
     @Test
     fun testEncode_foo() {
