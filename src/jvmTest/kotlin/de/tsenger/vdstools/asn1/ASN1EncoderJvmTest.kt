@@ -26,7 +26,6 @@ class ASN1EncoderJvmTest {
         assertContentEquals(byteArrayOf(0x82.toByte(), 0x98.toByte(), 0x12), ASN1Encoder.getDerLength(0x9812))
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun testGetDerInteger_0x0123() {
         assertContentEquals(byteArrayOf(0x02, 0x02, 0x01, 0x23), ASN1Encoder.getDerInteger(0x0123))

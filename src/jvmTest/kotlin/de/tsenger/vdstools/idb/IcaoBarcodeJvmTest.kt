@@ -1,14 +1,42 @@
 package de.tsenger.vdstools.idb
 
 
+import de.tsenger.vdstools.DataEncoder.buildCertificateReference
+import de.tsenger.vdstools.Signer
+import de.tsenger.vdstools.vds.VdsMessage
+import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey
+import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert
+import org.junit.BeforeClass
 import org.junit.Test
+import java.io.FileInputStream
 import java.io.IOException
+import java.security.KeyStore
+import java.security.Security
 import java.security.cert.CertificateException
+import java.security.cert.X509Certificate
+import kotlin.test.assertTrue
 import kotlin.test.fail
 
 class IcaoBarcodeJvmTest {
+
+    companion object {
+        var keyStorePassword: String = "vdstools"
+        var keyStoreFile: String = "src/commonTest/resources/vdstools_testcerts.bks"
+        lateinit var keystore: KeyStore
+
+        @JvmStatic
+        @BeforeClass
+        fun loadKeyStore() {
+            Security.addProvider(BouncyCastleProvider())
+            keystore = KeyStore.getInstance("BKS", "BC")
+            val fis = FileInputStream(keyStoreFile)
+            keystore.load(fis, keyStorePassword.toCharArray())
+            fis.close()
+        }
+    }
+
     @Test
     fun testIsNotSignedIsNotZipped() {
         val icb = IcaoBarcode('A', IdbPayload(IdbHeader("UTO"), IdbMessageGroup(), null, null))
@@ -181,5 +209,44 @@ class IcaoBarcodeJvmTest {
         val result = IcaoBarcode.fromString("ADB1ANK6GCEQFCCYLDMVTWS23NN5YXG5LXPF5X27Q")
         result.onSuccess { fail() }
     }
+
+    @Test
+    fun testBuildIdbSeal() {
+
+        val signerCertRef = "utts5b"
+
+        // Build Header
+        val cert = keystore.getCertificate(signerCertRef) as X509Certificate
+        val certRef = buildCertificateReference(cert.encoded)
+        val header = IdbHeader(
+            "D<<",
+            IdbSignatureAlgorithm.SHA256_WITH_ECDSA,
+            certRef,
+            "2025-01-31"
+        )
+
+        // Build Emergency Travel Document VdsMessage
+        val mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06"
+        val vdsMessage = VdsMessage.Builder("ICAO_EMERGENCY_TRAVEL_DOCUMENT")
+            .addDocumentFeature("MRZ", mrz)
+            .build()
+
+        // Add ETD to an IdbMessageGroup
+        val message = IdbMessage(IdbMessageType.EMERGENCY_TRAVEL_DOCUMENT, vdsMessage.encoded)
+        val messageGroup = IdbMessageGroup(message)
+
+        // Generate Signature
+        val ecPrivKey = keystore.getKey(signerCertRef, keyStorePassword.toCharArray()) as BCECPrivateKey
+        val signer = Signer(ecPrivKey.encoded, "brainpoolP256r1")
+        val signature = IdbSignature(signer.sign(header.encoded + messageGroup.encoded))
+
+        val icb = IcaoBarcode('B', IdbPayload(header, messageGroup, null, signature))
+        assertTrue(
+            icb.encoded.startsWith("NDB1BNK6ADJL2PECXOAAUAUMWCNACGIBDAXF2CNMHLF3OYBTNIF5VT2GGVPATHQJTYEZ4CM6D73Z2FE4O4Q7RLE6RVZJNXMTHKH7G")
+        )
+
+
+    }
+
 
 }

@@ -23,7 +23,6 @@ class DerTlv(val tag: Byte, val value: ByteArray) {
             var lengthByteCount = 1
             var length: Int = derBytes[1].toInt() and 0xff
 
-            // Überprüfen, ob die Länge mehr als ein Byte erfordert (größer als 127)
             if (length > 127) {
                 val lengthOfLength = length - 128
                 lengthByteCount += lengthOfLength
@@ -32,7 +31,6 @@ class DerTlv(val tag: Byte, val value: ByteArray) {
                     length = length shl 8 or (derBytes[i].toInt() and 0xff)
                 }
             }
-            // Die Byte-Daten folgen nach der Tag- und Längenangabe
             val valueBytes = derBytes.copyOfRange(1 + lengthByteCount, 1 + lengthByteCount + length)
 
             return DerTlv(tag, valueBytes)

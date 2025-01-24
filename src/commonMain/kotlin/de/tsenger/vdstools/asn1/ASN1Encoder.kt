@@ -28,7 +28,7 @@ object ASN1Encoder {
     }
 
     /**
-     * Encodes a sequence of ByteArrays which shall contains endoded ASN.1 elements
+     * Encodes a sequence of ByteArrays which shall contains encoded ASN.1 elements
      * into a DER sequence
      */
     fun getDerSequence(vararg elements: ByteArray): ByteArray {
