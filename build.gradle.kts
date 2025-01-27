@@ -1,5 +1,4 @@
 import com.vanniktech.maven.publish.SonatypeHost
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     kotlin("multiplatform") version "2.1.0"
@@ -23,9 +22,9 @@ mavenPublishing {
     signAllPublications()
 
     coordinates(
-        groupId = "de.tsenger",
+        groupId = group.toString(),
         artifactId = "vdstools",
-        version = "0.8.3"
+        version = version.toString()
     )
 
     pom {
@@ -65,11 +64,7 @@ mavenPublishing {
 
 kotlin {
 
-    jvm {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_17)
-        }
-    }
+    jvm()
     iosX64() // iOS simulator
     iosArm64() // iOS device
     iosSimulatorArm64() // iOS simulator on Apple Silicon
