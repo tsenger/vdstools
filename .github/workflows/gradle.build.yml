@@ -40,8 +40,11 @@ jobs:
     - name: Assemble the project
       run: ./gradlew assemble
 
-    - name: Run the tests
-      run: ./gradlew test
+    - if: ${{ matrix.jvmTest }}
+      run: ./gradlew jvmTest
+    - if: ${{ matrix.iosSimulatorArm64Test }}
+      run: ./gradlew copyiOSTestResources      
+           ./gradlew iosSimulatorArm64Test
     
     - name: Run build in a subdirectory
       working-directory: another-build
