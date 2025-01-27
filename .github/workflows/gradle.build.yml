@@ -34,7 +34,15 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-    - name: Build with Gradle
+    - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
-      with:
-        arguments: ${{ matrix.target }}
+
+    - name: Assemble the project
+      run: ./gradlew assemble
+
+    - name: Run the tests
+      run: ./gradlew test
+    
+    - name: Run build in a subdirectory
+      working-directory: another-build
+      run: ./gradlew build
