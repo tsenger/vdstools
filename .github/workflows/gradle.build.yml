@@ -41,7 +41,7 @@ jobs:
       uses: gradle/actions/setup-gradle@v4
 
     - name: Assemble the project
-      run: ./gradlew assemble
+      run: ./gradlew build
 
     - if: matrix.target == 'jvmTest'
       run: ./gradlew jvmTest
