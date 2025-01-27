@@ -15,7 +15,6 @@ class VdsSignature
      */
     val plainSignatureBytes: ByteArray
 ) {
-    @OptIn(ExperimentalStdlibApi::class)
     val derSignatureBytes: ByteArray
         /**
          * Returns signature in format ECDSASignature ::= SEQUENCE { r INTEGER, s

@@ -3,9 +3,6 @@ package de.tsenger.vdstools
 
 import de.tsenger.vdstools.vds.DigitalSeal
 import de.tsenger.vdstools.vds.VdsRawBytesIos
-import dev.whyoleg.cryptography.algorithms.EC
-import dev.whyoleg.cryptography.algorithms.EC.Curve
-import dev.whyoleg.cryptography.algorithms.ECDSA
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.readBytes
@@ -38,14 +35,13 @@ class VerifierIosTest {
         val cert = loadCertificateFromFile(certPath!!)
         println(cert.subjectSummary)
 
-        val provider = getCryptoProvider()
-        val ecdsa = provider.get(ECDSA)
-        val keyDecoder = ecdsa.publicKeyDecoder(Curve("brainpoolP256r1"))
         val pubKeyBytes = getPublicKeyAsByteArray(cert.reference)
-        println("PUBKEY Format : ${pubKeyBytes.toHexString()}")
-        val ecPubKey = keyDecoder.decodeFromByteArrayBlocking(EC.PublicKey.Format.DER, pubKeyBytes)
 
-        val verifier = Verifier(digitalSeal!!, ecPubKey)
+        val verifier = Verifier(
+            digitalSeal!!,
+            pubKeyBytes,
+            curveName = "brainpoolP256r1"
+        )
         assertEquals(Verifier.Result.SignatureValid, verifier.verify())
     }
 
@@ -59,15 +55,8 @@ class VerifierIosTest {
 
         val certPath = NSBundle.mainBundle.pathForResource("sealgen_DETS32", "der")?.toPath()
         val cert = loadCertificateFromFile(certPath!!)
-
-        val provider = getCryptoProvider()
-        val ecdsa = provider.get(ECDSA)
-        val keyDecoder = ecdsa.publicKeyDecoder(Curve("brainpoolP224r1"))
         val pubKeyBytes = getPublicKeyAsByteArray(cert.reference)
-        println("PUBKEY Format : ${pubKeyBytes.toHexString()}")
-        val ecPubKey = keyDecoder.decodeFromByteArrayBlocking(EC.PublicKey.Format.DER, pubKeyBytes)
-
-        val verifier = Verifier(digitalSeal!!, ecPubKey)
+        val verifier = Verifier(digitalSeal!!, pubKeyBytes, "brainpoolP224r1")
         assertEquals(Verifier.Result.SignatureValid, verifier.verify())
     }
 

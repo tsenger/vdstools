@@ -6,7 +6,7 @@ class Feature(val name: String, private val value: Any, val coding: FeatureCodin
     val valueBytes: ByteArray
         get() = value as ByteArray
 
-    val valueInt: Int
+    private val valueInt: Int
         get() = (value as Byte).toInt() and 0xFF
 
     @OptIn(ExperimentalStdlibApi::class)
