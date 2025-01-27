@@ -23,8 +23,8 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v4.2.2
-    - uses: actions/cache@v4.2.0
+    - uses: actions/checkout@v4
+    - uses: actions/cache@v4
       with:
         path: |
           ~/.konan
@@ -35,6 +35,6 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
     - name: Build with Gradle
-      uses: gradle/gradle-build-action@v3.5.0
+      uses: gradle/actions/setup-gradle@v4
       with:
         arguments: ${{ matrix.target }}
