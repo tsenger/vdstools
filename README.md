@@ -124,10 +124,7 @@ Online JavaDoc can be found here:
 
 ## How to include
 
-The vdstools library is available on
-the [Maven Central Repository](https://central.sonatype.com/artifact/de.tsenger/vdstools) and can be easily integrated
-in
-your projects.
+The vdstools library is available on the [Maven Central Repository](https://central.sonatype.com/artifact/de.tsenger/vdstools) and can be easily integrated in your projects.
 
 ### Gradle
 
@@ -135,7 +132,7 @@ To include this library to your Gradle build add this dependency:
 
 ```groovy
 dependencies {
-    implementation 'de.tsenger:vdstools:0.8.4'
+    implementation 'de.tsenger:vdstools:0.8.3'
 }
 ```
 
@@ -148,6 +145,6 @@ To include this library to your Maven build add this dependency:
 <dependency>
     <groupId>de.tsenger</groupId>
     <artifactId>vdstools</artifactId>
-    <version>0.8.4</version>
+    <version>0.8.3</version>
 </dependency>
 ```

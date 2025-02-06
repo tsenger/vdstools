@@ -1,5 +1,4 @@
 import com.vanniktech.maven.publish.SonatypeHost
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -11,8 +10,8 @@ plugins {
 }
 
 group = "de.tsenger"
-version = "0.8.2-BETA"
-description = "Kotlin multiplatform library to encode/sign and decode/verify Visible Digital Seals"
+version = "0.8.3"
+description = "Kotlin multiplatform library to work with digital seals in barcodes (VDS)"
 
 repositories {
     mavenCentral()
@@ -26,14 +25,14 @@ mavenPublishing {
     coordinates(
         groupId = "de.tsenger",
         artifactId = "vdstools",
-        version = "0.8.2-BETA"
+        version = "0.8.3"
     )
 
     pom {
         name.set("Visible Digital Seal Tools")
-        description.set("Kotlin multiplatform library to encode/sign and decode/verify Visible Digital Seals")
+        description.set("Kotlin multiplatform library to work with digital seals in barcodes (VDS)")
         inceptionYear.set("2024")
-        url.set("")
+        url.set("https://github.com/tsenger/vdstools")
 
         licenses {
             license {
@@ -67,7 +66,6 @@ mavenPublishing {
 kotlin {
 
     jvm {
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
         }
@@ -140,11 +138,10 @@ tasks.register("generateMappingsFile") {
         val inputFile = file("src/main/resources/countrycodes.csv")
         val outputFile = file("src/main/java/de/tsenger/vdstools/generated/CountryCodeMap.kt")
 
-        val lines = inputFile.readLines().drop(1) // Überspringe die Kopfzeile
+        val lines = inputFile.readLines().drop(1) // ignore headline
         val mappings = mutableListOf<Pair<String, String>>()
 
         lines.forEach { line ->
-            // CSV-Zeile mit Anführungszeichen und Kommas behandeln
             val fields = parseCsvLine(line)
             if (fields.size >= 3) {
                 val alpha2 = fields[1].trim()

@@ -21,7 +21,7 @@ class IdbMessage {
     val encoded: ByteArray
         get() = DerTlv(messageType, messageContent).encoded
 
-    fun getMessageType(): IdbMessageType? {
+    fun getMessageType(): IdbMessageType {
         return IdbMessageType.valueOf(messageType)
     }
 

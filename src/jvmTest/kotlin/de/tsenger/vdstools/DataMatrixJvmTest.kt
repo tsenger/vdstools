@@ -16,8 +16,8 @@ import java.io.IOException
 import java.nio.file.Path
 import java.security.*
 import java.security.cert.CertificateException
-import java.security.cert.X509Certificate
 import java.security.interfaces.ECPrivateKey
+import kotlin.io.path.createParentDirectories
 
 class DataMatrixJvmTest {
     var keyStorePassword: String = "vdstools"
@@ -39,7 +39,6 @@ class DataMatrixJvmTest {
         val ks = keystore
         val ecKey = ks!!.getKey("utts5b", keyStorePassword.toCharArray()) as ECPrivateKey
         val signer = Signer(ecKey.encoded, "brainpoolP256r1")
-        val cert = ks.getCertificate("utts5b") as X509Certificate
 
         val vdsHeader = VdsHeader.Builder(vdsMessage.vdsType)
             .setIssuingCountry("D  ")
@@ -56,7 +55,7 @@ class DataMatrixJvmTest {
         )
 
         // Define your own export Path and uncomment if needed
-        val path = Path.of("test/test.png")
+        val path = Path.of("generated_barcodes/test.png").createParentDirectories()
         MatrixToImageWriter.writeToPath(bitMatrix, "PNG", path)
     }
 
@@ -70,7 +69,7 @@ class DataMatrixJvmTest {
             rawString, BarcodeFormat.DATA_MATRIX,
             450, 450
         )
-        val path = Path.of("test/test.png")
+        val path = Path.of("generated_barcodes/test.png").createParentDirectories()
         MatrixToImageWriter.writeToPath(bitMatrix, "PNG", path)
     }
 
