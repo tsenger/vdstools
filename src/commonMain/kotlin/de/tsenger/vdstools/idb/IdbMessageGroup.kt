@@ -1,6 +1,6 @@
 package de.tsenger.vdstools.idb
 
-import de.tsenger.vdstools.DataParser
+import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.asn1.DerTlv
 import okio.Buffer
 
@@ -42,7 +42,7 @@ class IdbMessageGroup {
             }
             val valueBytes = DerTlv.fromByteArray(rawBytes)?.value ?: ByteArray(0)
             val messageGroup = IdbMessageGroup()
-            val derTlvMessagesList = DataParser.parseDerTLvs(valueBytes)
+            val derTlvMessagesList = DataEncoder.parseDerTLvs(valueBytes)
             for (derTlvMessage in derTlvMessagesList) {
                 messageGroup.addMessage(IdbMessage.fromDerTlv(derTlvMessage))
             }

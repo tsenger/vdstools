@@ -3,7 +3,6 @@ package de.tsenger.vdstools.vds
 
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.DataEncoder
-import de.tsenger.vdstools.DataParser
 import de.tsenger.vdstools.Signer
 import de.tsenger.vdstools.asn1.DerTlv
 import kotlinx.datetime.LocalDate
@@ -92,7 +91,7 @@ class DigitalSeal {
         fun fromRawString(rawString: String): DigitalSeal? {
             var seal: DigitalSeal? = null
             try {
-                seal = parseVdsSeal(DataParser.decodeBase256(rawString))
+                seal = parseVdsSeal(DataEncoder.decodeBase256(rawString))
             } catch (e: Exception) {
                 log.e(e.message.toString())
             }
@@ -117,7 +116,7 @@ class DigitalSeal {
             val vdsHeader = VdsHeader.fromBuffer(rawDataBuffer)
             var vdsSignature: VdsSignature? = null
 
-            val derTlvList = DataParser
+            val derTlvList = DataEncoder
                 .parseDerTLvs(rawDataBuffer.readByteArray())
 
             val featureList: MutableList<DerTlv> = ArrayList(derTlvList.size - 1)

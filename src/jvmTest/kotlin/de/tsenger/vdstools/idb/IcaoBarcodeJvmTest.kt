@@ -232,7 +232,7 @@ class IcaoBarcodeJvmTest {
             .build()
 
         // Add ETD to an IdbMessageGroup
-        val message = IdbMessage(IdbMessageType.EMERGENCY_TRAVEL_DOCUMENT, vdsMessage.encoded)
+        val message = IdbMessage("EMERGENCY_TRAVEL_DOCUMENT", vdsMessage.encoded)
         val messageGroup = IdbMessageGroup(message)
 
         // Generate Signature

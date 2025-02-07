@@ -1,5 +1,7 @@
 package de.tsenger.vdstools.vds
 
+import de.tsenger.vdstools.DataEncoder
+
 
 class Feature(val name: String, private val value: Any, val coding: FeatureCoding) {
 
@@ -17,6 +19,7 @@ class Feature(val name: String, private val value: Any, val coding: FeatureCodin
                 FeatureCoding.C40, FeatureCoding.UTF8_STRING -> value as String
                 FeatureCoding.BYTE -> valueInt.toString()
                 FeatureCoding.BYTES -> valueBytes.toHexString()
+                FeatureCoding.MASKED_DATE -> DataEncoder.decodeMaskedDate(valueBytes)
                 FeatureCoding.UNKNOWN -> (value as ByteArray).toHexString()
             }
 

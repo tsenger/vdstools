@@ -1,7 +1,6 @@
 package de.tsenger.vdstools.vds
 
 import de.tsenger.vdstools.DataEncoder
-import de.tsenger.vdstools.DataParser
 import de.tsenger.vdstools.asn1.DerTlv
 import okio.Buffer
 
@@ -67,7 +66,7 @@ class VdsMessage {
 
     companion object {
         fun fromByteArray(rawBytes: ByteArray, vdsType: String): VdsMessage {
-            val derTlvList = DataParser.parseDerTLvs(rawBytes)
+            val derTlvList = DataEncoder.parseDerTLvs(rawBytes)
             return VdsMessage(vdsType, derTlvList)
         }
     }

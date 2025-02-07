@@ -2,7 +2,6 @@ package de.tsenger.vdstools.idb
 
 
 import de.tsenger.vdstools.DataEncoder
-import de.tsenger.vdstools.DataParser
 import okio.Buffer
 
 
@@ -45,7 +44,7 @@ class IdbHeader {
     }
 
     fun getCountryIdentifier(): String {
-        return DataParser.decodeC40(countryIdentifier).replace(" ".toRegex(), "<")
+        return DataEncoder.decodeC40(countryIdentifier).replace(" ".toRegex(), "<")
     }
 
     fun getSignatureAlgorithm(): IdbSignatureAlgorithm? {
@@ -55,7 +54,7 @@ class IdbHeader {
 
     fun getSignatureCreationDate(): String? {
         if (signatureCreationDate == null) return null
-        return DataParser.decodeMaskedDate(signatureCreationDate!!)
+        return DataEncoder.decodeMaskedDate(signatureCreationDate!!)
     }
 
     val encoded: ByteArray

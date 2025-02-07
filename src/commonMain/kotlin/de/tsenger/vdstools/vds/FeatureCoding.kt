@@ -9,6 +9,7 @@ enum class FeatureCoding {
     UTF8_STRING,
     BYTES,
     BYTE,
+    MASKED_DATE,
     UNKNOWN;
 
     companion object {

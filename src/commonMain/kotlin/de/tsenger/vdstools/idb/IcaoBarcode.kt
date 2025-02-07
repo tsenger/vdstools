@@ -3,7 +3,6 @@ package de.tsenger.vdstools.idb
 
 import de.tsenger.vdstools.Base32
 import de.tsenger.vdstools.DataEncoder
-import de.tsenger.vdstools.DataParser
 
 class IcaoBarcode {
     private var barcodeFlag: Char = 0x41.toChar()
@@ -65,7 +64,7 @@ class IcaoBarcode {
             var payloadBytes = Base32.decode(base32EncodedPayload.toString())
 
             if (isZipped) {
-                payloadBytes = DataParser.unzip(payloadBytes)
+                payloadBytes = DataEncoder.unzip(payloadBytes)
             }
 
             val payload = IdbPayload.fromByteArray(payloadBytes, isSigned)

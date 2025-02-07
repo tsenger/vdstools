@@ -12,19 +12,16 @@ class FeatureConverter(jsonString: String) {
     private val log = Logger.withTag(this::class.simpleName ?: "")
     private var sealDtoList: List<SealDto>
 
-    companion object {
-        private val vdsTypes: MutableMap<String, Int> = HashMap()
-        private val vdsTypesReverse: MutableMap<Int, String> = HashMap()
-        private val vdsFeatures: MutableSet<String> = mutableSetOf()
-    }
+    private val vdsTypes: MutableMap<String, Int> = HashMap()
+    private val vdsTypesReverse: MutableMap<Int, String> = HashMap()
+    private val vdsFeatures: MutableSet<String> = mutableSetOf()
+
 
     init {
-
         val json = Json { ignoreUnknownKeys = true }
         this.sealDtoList = json.decodeFromString(jsonString)
         populateMappings()
     }
-
 
     private fun populateMappings() {
         for ((documentType, documentRef, _, features) in sealDtoList) {
@@ -114,6 +111,7 @@ class FeatureConverter(jsonString: String) {
             FeatureCoding.UTF8_STRING -> value = (inputValue as String).encodeToByteArray()
             FeatureCoding.BYTE -> value = byteArrayOf(inputValue as Byte)
             FeatureCoding.BYTES -> value = inputValue as ByteArray
+            FeatureCoding.MASKED_DATE -> value = DataEncoder.encodeMaskedDate(inputValue as String)
             FeatureCoding.UNKNOWN -> value = inputValue as ByteArray
         }
         return DerTlv(tag, value)
@@ -128,6 +126,7 @@ class FeatureConverter(jsonString: String) {
             FeatureCoding.UTF8_STRING -> derTlv.value.decodeToString()
             FeatureCoding.BYTE -> derTlv.value[0]
             FeatureCoding.BYTES -> derTlv.value
+            FeatureCoding.MASKED_DATE -> DataEncoder.decodeMaskedDate(derTlv.value)
             FeatureCoding.UNKNOWN -> derTlv.value
         }
         @Suppress("UNCHECKED_CAST")
@@ -136,7 +135,7 @@ class FeatureConverter(jsonString: String) {
 
     private fun decodeC40Feature(sealDto: SealDto, derTlv: DerTlv): String {
         val tag = derTlv.tag
-        val featureValue = DataParser.decodeC40(derTlv.value)
+        val featureValue = DataEncoder.decodeC40(derTlv.value)
         val featureName = getFeatureName(sealDto, tag.toInt())
 
         if (featureName.startsWith("MRZ")) {

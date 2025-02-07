@@ -144,7 +144,7 @@ class DataEncoderJvmTest {
     fun testEncodeC40() {
         val c40Bytes = DataEncoder.encodeC40("DETS32")
         assertContentEquals(Hex.decode("6d32c91f"), c40Bytes)
-        val str = DataParser.decodeC40(c40Bytes)
+        val str = DataEncoder.decodeC40(c40Bytes)
         println(str)
         assertEquals("DETS32", str)
     }

@@ -2,7 +2,6 @@ package de.tsenger.vdstools.vds
 
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.DataEncoder
-import de.tsenger.vdstools.DataParser
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -233,12 +232,12 @@ class VdsHeader {
                 )
             }
             // 2 bytes stores the three-letter country
-            vdsHeader.issuingCountry = DataParser.decodeC40(rawdataBuffer.readByteArray(2))
+            vdsHeader.issuingCountry = DataEncoder.decodeC40(rawdataBuffer.readByteArray(2))
 
             if (vdsHeader.rawVersion.toInt() == 0x03) { // ICAO version 4
 
                 // 4 bytes stores first 6 characters of Signer & Certificate Reference
-                val signerIdentifierAndCertRefLength = DataParser.decodeC40(rawdataBuffer.readByteArray(4))
+                val signerIdentifierAndCertRefLength = DataEncoder.decodeC40(rawdataBuffer.readByteArray(4))
                 vdsHeader.signerIdentifier = signerIdentifierAndCertRefLength.substring(0, 4)
                 // the last two characters store the length of the following Certificate
                 // Reference
@@ -248,16 +247,16 @@ class VdsHeader {
                 val bytesToDecode = ((certRefLength - 1) / 3 * 2) + 2
                 log.v("version 4: bytesToDecode: $bytesToDecode")
                 vdsHeader.certificateReference =
-                    DataParser.decodeC40(rawdataBuffer.readByteArray(bytesToDecode.toLong()))
+                    DataEncoder.decodeC40(rawdataBuffer.readByteArray(bytesToDecode.toLong()))
 
             } else { // rawVersion=0x02 -> ICAO version 3
-                val signerCertRef = DataParser.decodeC40(rawdataBuffer.readByteArray(6))
+                val signerCertRef = DataEncoder.decodeC40(rawdataBuffer.readByteArray(6))
                 vdsHeader.signerIdentifier = signerCertRef.substring(0, 4)
                 vdsHeader.certificateReference = signerCertRef.substring(4)
             }
 
-            vdsHeader.issuingDate = DataParser.decodeDate(rawdataBuffer.readByteArray(3))
-            vdsHeader.sigDate = DataParser.decodeDate(rawdataBuffer.readByteArray(3))
+            vdsHeader.issuingDate = DataEncoder.decodeDate(rawdataBuffer.readByteArray(3))
+            vdsHeader.sigDate = DataEncoder.decodeDate(rawdataBuffer.readByteArray(3))
             vdsHeader.docFeatureRef = rawdataBuffer.readByte()
             vdsHeader.docTypeCat = rawdataBuffer.readByte()
             return vdsHeader

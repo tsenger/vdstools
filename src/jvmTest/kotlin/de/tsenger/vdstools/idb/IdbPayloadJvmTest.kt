@@ -19,7 +19,7 @@ class IdbPayloadJvmTest {
         val header = IdbHeader("D<<")
         val messageGroup = IdbMessageGroup()
         messageGroup.addMessage(
-            IdbMessage(IdbMessageType.PROOF_OF_RECOVERY, Hex.decode("b0b1b2b3b4b5b6b7b8b9babbbcbdbebf"))
+            IdbMessage("PROOF_OF_RECOVERY", Hex.decode("b0b1b2b3b4b5b6b7b8b9babbbcbdbebf"))
         )
         val payload = IdbPayload(header, messageGroup, null, null)
         Assert.assertNotNull(payload)
@@ -30,7 +30,7 @@ class IdbPayloadJvmTest {
     fun testConstructorWithoutCertificate() {
         val header = IdbHeader("D<<", IdbSignatureAlgorithm.SHA256_WITH_ECDSA, byteArrayOf(5, 4, 3, 2, 1))
         val messageGroup = IdbMessageGroup(
-            IdbMessage(IdbMessageType.PROOF_OF_VACCINATION, Hex.decode("b0b1b2b3b4b5b6b7b8b9babbbcbdbebf"))
+            IdbMessage("PROOF_OF_VACCINATION", Hex.decode("b0b1b2b3b4b5b6b7b8b9babbbcbdbebf"))
         )
         val signature = IdbSignature(
             Hex.decode(
@@ -104,7 +104,7 @@ class IdbPayloadJvmTest {
         val header = IdbHeader("D<<")
         val messageGroup = IdbMessageGroup()
         messageGroup.addMessage(
-            IdbMessage(IdbMessageType.PROOF_OF_RECOVERY, Hex.decode("b0b1b2b3b4b5b6b7b8b9babbbcbdbebf"))
+            IdbMessage("PROOF_OF_RECOVERY", Hex.decode("b0b1b2b3b4b5b6b7b8b9babbbcbdbebf"))
         )
         val payload = IdbPayload(header, messageGroup, null, null)
         val encodedBytes = payload.encoded
@@ -119,7 +119,7 @@ class IdbPayloadJvmTest {
             "2024-10-18"
         )
         val messageGroup = IdbMessageGroup(
-            IdbMessage(IdbMessageType.PROOF_OF_VACCINATION, Hex.decode("b0b1b2b3b4b5b6b7b8b9babbbcbdbebf"))
+            IdbMessage("PROOF_OF_VACCINATION", Hex.decode("b0b1b2b3b4b5b6b7b8b9babbbcbdbebf"))
         )
         val signature = IdbSignature(
             Hex.decode(

@@ -30,32 +30,33 @@ mavenPublishing {
     )
 
     pom {
-        name.set("Visible Digital Seal Tools")
-        description.set(description.toString())
-        inceptionYear.set("2024")
-        url.set("")
+        name = "Visible Digital Seal Tools"
+        description = "Kotlin multiplatform library to encode/sign and decode/verify Visible Digital Seals"
+        inceptionYear ="2024"
+        url = "https://github.com/tsenger/vdstools"
 
         licenses {
             license {
-                name.set("Apache License, Version 2.0")
-                url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                name = "Apache License, Version 2.0"
+                url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
             }
         }
 
         organization {
-            name.set("tsenger.de")
-            url.set("https://www.tsenger.de")
+            name = "tsenger.de"
+            url = "https://www.tsenger.de"
         }
 
         developers {
             developer {
-                name.set("Tobias Senger")
-                email.set("info@tsenger.de")
+                name = "Tobias Senger"
+                email = "info@tsenger.de"
             }
         }
 
         scm {
-            url.set("https://github.com/tsenger/vdstools")
+            url = "https://github.com/tsenger/vdstools"
+            connection = "scm:git:git://github.com/tsenger/vdstools.git"
         }
 
     }

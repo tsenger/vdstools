@@ -1,8 +1,8 @@
 package de.tsenger.vdstools
 
 
-import de.tsenger.vdstools.DataParser.decodeDateTime
-import de.tsenger.vdstools.DataParser.decodeMaskedDate
+import de.tsenger.vdstools.DataEncoder.decodeDateTime
+import de.tsenger.vdstools.DataEncoder.decodeMaskedDate
 import de.tsenger.vdstools.vds.VdsHeader
 import de.tsenger.vdstools.vds.VdsRawBytesCommon
 import kotlinx.datetime.LocalDate
@@ -98,7 +98,7 @@ class DataParserCommonTest {
     fun testUnzip() {
         val compressedBytes =
             "78da014e00b1ff61120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c743d4280b".hexToByteArray()
-        val decompressedBytes = DataParser.unzip(compressedBytes)
+        val decompressedBytes = DataEncoder.unzip(compressedBytes)
         println("Decompressed: " + decompressedBytes.toHexString())
         assertEquals(
             "61120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7",

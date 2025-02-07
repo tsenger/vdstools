@@ -1,41 +1,44 @@
 package de.tsenger.vdstools.idb
 
+import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.asn1.DerTlv
 
 
 class IdbMessage {
-    private val messageType: Byte
+    val messageTypeTag: Int
+
+    val messageTypeName: String
 
     val messageContent: ByteArray
 
-    constructor(messageType: IdbMessageType, messageContent: ByteArray) {
-        this.messageType = messageType.value
+    constructor(messageTypeName: String, messageContent: ByteArray) {
+        this.messageTypeName = messageTypeName
+        this.messageTypeTag = DataEncoder.getIdbMessageTypeTag(messageTypeName) ?: 0
         this.messageContent = messageContent
     }
 
-    constructor(messageType: Byte, messageContent: ByteArray) {
-        this.messageType = messageType
+    constructor(messageTypeTag: Int, messageContent: ByteArray) {
+        this.messageTypeName = DataEncoder.getIdbMessageTypeName(messageTypeTag)
+        this.messageTypeTag = messageTypeTag
         this.messageContent = messageContent
     }
 
     val encoded: ByteArray
-        get() = DerTlv(messageType, messageContent).encoded
+        get() = DerTlv(messageTypeTag.toByte(), messageContent).encoded
 
-    fun getMessageType(): IdbMessageType {
-        return IdbMessageType.valueOf(messageType)
-    }
 
     companion object {
-        @Throws(IllegalArgumentException::class)
         fun fromDerTlv(derTlv: DerTlv): IdbMessage {
-            val messageType = IdbMessageType.valueOf(derTlv.tag)
+            val messageTypeTag = derTlv.tag.toInt()
             val messageContent = derTlv.value
-            return IdbMessage(messageType, messageContent)
+            return IdbMessage(messageTypeTag, messageContent)
         }
 
+        @Throws(IllegalArgumentException::class)
         fun fromByteArray(rawMessageBytes: ByteArray): IdbMessage {
             val tlvMessage = DerTlv.fromByteArray(rawMessageBytes)
-            return fromDerTlv(tlvMessage!!)
+            checkNotNull(tlvMessage)
+            return fromDerTlv(tlvMessage)
         }
     }
 }

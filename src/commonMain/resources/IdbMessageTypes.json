@@ -1,128 +1,120 @@
 [
   {
     "name": "VISA",
-    //beinhaltet MRZ_MRVA/B, Number of Entries, usw. verpackt in tag 01
-    "tag": "0x01",
-    "coding": "ByteArray",
-    //enthält VDS_FEATURE: ICAO_VISA
+    "tag": 1,
+    "coding": "BYTES",
     "min_length": 48,
     "max_length": 48
   },
   {
     "name": "EMERGENCY_TRAVEL_DOCUMENT",
-    //letzlich nur MRZ_TD2, zusätzlich "verpackt" in 02
-    "tag": "0x02",
-    "coding": "ByteArray",
-    //enthält VDS_FEATURE: ICAO_EMERGENCY_TRAVEL_DOCUMENT
+    "tag": 2,
+    "coding": "BYTES",
     "min_length": 48,
     "max_length": 48
   },
   {
     "name": "PROOF_OF_TESTING",
-    "tag": "0x03",
-    "coding": "ByteArray",
-    "min_length": TODO,
-    "max_length": TODO
+    "tag": 3,
+    "coding": "BYTES",
+    "min_length": 0,
+    "max_length": 1024
   },
   {
     "name": "PROOF_OF_VACCINATION",
-    "tag": "0x04",
-    "coding": "ByteArray",
-    "min_length": TODO,
-    "max_length": TODO
+    "tag": 4,
+    "coding": "BYTES",
+    "min_length": 0,
+    "max_length": 1024
   },
   {
     "name": "PROOF_OF_RECOVERY",
-    "tag": "0x05",
-    "coding": "ByteArray",
-    "min_length": TODO,
-    "max_length": TODO
+    "tag": 5,
+    "coding": "BYTES",
+    "min_length": 0,
+    "max_length": 1024
   },
   {
     "name": "DIGITAL_TRAVEL_AUTHORIZATION",
-    "tag": "0x06",
-    "coding": "ByteArray",
-    "min_length": TODO,
-    "max_length": TODO
+    "tag": 6,
+    "coding": "BYTES",
+    "min_length": 32,
+    "max_length": 169
   },
   {
     "name": "MRZ_TD1",
-    //3*30
-    "tag": "0x07",
+    "tag": 7,
     "coding": "C40",
     "min_length": 60,
     "max_length": 60
   },
   {
     "name": "MRZ_TD3",
-    //2*44
-    "tag": "0x08",
+    "tag": 8,
     "coding": "C40",
     "min_length": 60,
     "max_length": 60
   },
   {
     "name": "CAN",
-    "tag": "0x09",
+    "tag": 9,
     "coding": "C40",
-    "min_length": TODO,
-    "max_length": TODO
+    "min_length": 4,
+    "max_length": 4
   },
   {
     "name": "EF_CARD_ACCESS",
-    "tag": "0x0A",
-    "coding": "ByteArray",
-    "min_length": TODO,
-    "max_length": TODO
+    "tag": 10,
+    "coding": "BYTES",
+    "min_length": 0,
+    "max_length": 1024
   },
   {
     "name": "FACE_IMAGE",
-    "tag": "0x80",
-    "coding": "ByteArray",
+    "tag": 128,
+    "coding": "BYTES",
     "min_length": 900,
     "max_length": 1000
   },
   {
     "name": "MRZ_TD2",
-    //2*36
-    "tag": "0x81",
+    "tag": 129,
     "coding": "C40",
     "min_length": 48,
     "max_length": 48
   },
   {
     "name": "DOCUMENT_REFERENCE",
-    "tag": "0x82",
+    "tag": 130,
     "coding": "C40",
     "min_length": 6,
     "max_length": 6
   },
   {
     "name": "AZR",
-    "tag": "0x83",
+    "tag": 131,
     "coding": "C40",
     "min_length": 8,
     "max_length": 8
   },
   {
     "name": "DATE",
-    "tag": "0x84",
+    "tag": 132,
     "coding": "MASKED_DATE",
-    //IDB encoding
     "min_length": 4,
     "max_length": 4
   },
   {
     "name": "DOCUMENT_NUMBER",
-    "tag": "0x85",
+    "tag": 133,
     "coding": "C40",
     "min_length": 6,
     "max_length": 6
   },
   {
     "name": "NATIONAL_DOCUMENT_IDENTIFIER",
-    "tag": "0x86",
-    "coding": "Byte",
+    "tag": 134,
+    "coding": "BYTE",
     "min_length": 1,
     "max_length": 1
   }

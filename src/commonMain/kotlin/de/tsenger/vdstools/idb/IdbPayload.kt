@@ -2,7 +2,7 @@ package de.tsenger.vdstools.idb
 
 
 import co.touchlab.kermit.Logger
-import de.tsenger.vdstools.DataParser
+import de.tsenger.vdstools.DataEncoder
 import okio.Buffer
 
 
@@ -39,7 +39,7 @@ class IdbPayload(
             var offset = 0
             val headerSize = if (isSigned) 12 else 2
             idbHeader = IdbHeader.fromByteArray(rawBytes.sliceArray(0 until headerSize).also { offset += headerSize })
-            val derTlvList = DataParser.parseDerTLvs(rawBytes.sliceArray(offset until rawBytes.size))
+            val derTlvList = DataEncoder.parseDerTLvs(rawBytes.sliceArray(offset until rawBytes.size))
 
             for (derTlv in derTlvList) {
                 when (derTlv.tag) {
