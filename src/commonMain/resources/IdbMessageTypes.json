@@ -1,0 +1,129 @@
+[
+  {
+    "name": "VISA",
+    //beinhaltet MRZ_MRVA/B, Number of Entries, usw. verpackt in tag 01
+    "tag": "0x01",
+    "coding": "ByteArray",
+    //enthält VDS_FEATURE: ICAO_VISA
+    "min_length": 48,
+    "max_length": 48
+  },
+  {
+    "name": "EMERGENCY_TRAVEL_DOCUMENT",
+    //letzlich nur MRZ_TD2, zusätzlich "verpackt" in 02
+    "tag": "0x02",
+    "coding": "ByteArray",
+    //enthält VDS_FEATURE: ICAO_EMERGENCY_TRAVEL_DOCUMENT
+    "min_length": 48,
+    "max_length": 48
+  },
+  {
+    "name": "PROOF_OF_TESTING",
+    "tag": "0x03",
+    "coding": "ByteArray",
+    "min_length": TODO,
+    "max_length": TODO
+  },
+  {
+    "name": "PROOF_OF_VACCINATION",
+    "tag": "0x04",
+    "coding": "ByteArray",
+    "min_length": TODO,
+    "max_length": TODO
+  },
+  {
+    "name": "PROOF_OF_RECOVERY",
+    "tag": "0x05",
+    "coding": "ByteArray",
+    "min_length": TODO,
+    "max_length": TODO
+  },
+  {
+    "name": "DIGITAL_TRAVEL_AUTHORIZATION",
+    "tag": "0x06",
+    "coding": "ByteArray",
+    "min_length": TODO,
+    "max_length": TODO
+  },
+  {
+    "name": "MRZ_TD1",
+    //3*30
+    "tag": "0x07",
+    "coding": "C40",
+    "min_length": 60,
+    "max_length": 60
+  },
+  {
+    "name": "MRZ_TD3",
+    //2*44
+    "tag": "0x08",
+    "coding": "C40",
+    "min_length": 60,
+    "max_length": 60
+  },
+  {
+    "name": "CAN",
+    "tag": "0x09",
+    "coding": "C40",
+    "min_length": TODO,
+    "max_length": TODO
+  },
+  {
+    "name": "EF_CARD_ACCESS",
+    "tag": "0x0A",
+    "coding": "ByteArray",
+    "min_length": TODO,
+    "max_length": TODO
+  },
+  {
+    "name": "FACE_IMAGE",
+    "tag": "0x80",
+    "coding": "ByteArray",
+    "min_length": 900,
+    "max_length": 1000
+  },
+  {
+    "name": "MRZ_TD2",
+    //2*36
+    "tag": "0x81",
+    "coding": "C40",
+    "min_length": 48,
+    "max_length": 48
+  },
+  {
+    "name": "DOCUMENT_REFERENCE",
+    "tag": "0x82",
+    "coding": "C40",
+    "min_length": 6,
+    "max_length": 6
+  },
+  {
+    "name": "AZR",
+    "tag": "0x83",
+    "coding": "C40",
+    "min_length": 8,
+    "max_length": 8
+  },
+  {
+    "name": "DATE",
+    "tag": "0x84",
+    "coding": "MASKED_DATE",
+    //IDB encoding
+    "min_length": 4,
+    "max_length": 4
+  },
+  {
+    "name": "DOCUMENT_NUMBER",
+    "tag": "0x85",
+    "coding": "C40",
+    "min_length": 6,
+    "max_length": 6
+  },
+  {
+    "name": "NATIONAL_DOCUMENT_IDENTIFIER",
+    "tag": "0x86",
+    "coding": "Byte",
+    "min_length": 1,
+    "max_length": 1
+  }
+]
