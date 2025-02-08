@@ -294,6 +294,10 @@ object DataEncoder {
         return idbMessageTypeParser.getMessageTypeTag(messageTypeName)
     }
 
+    fun getIdbMessageTypeCoding(messageTypeName: String): FeatureCoding {
+        return idbMessageTypeParser.getMessageTypeCoding(messageTypeName)
+    }
+
     /**
      * Decodes a byte[] encoded masked date as described in ICAO TR "Datastructure
      * for Barcode". Returns a date string in format yyyy-MM-dd where unknown parts

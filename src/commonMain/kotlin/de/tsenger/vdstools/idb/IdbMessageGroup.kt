@@ -21,6 +21,14 @@ class IdbMessageGroup {
         return messagesList
     }
 
+    fun getMessage(messageTag: Int): IdbMessage? {
+        return messagesList.firstOrNull { it.messageTypeTag == messageTag }
+    }
+
+    fun getMessage(messageName: String): IdbMessage? {
+        return messagesList.firstOrNull { it.messageTypeName == messageName }
+    }
+
     val encoded: ByteArray
         get() {
             val messages = Buffer()

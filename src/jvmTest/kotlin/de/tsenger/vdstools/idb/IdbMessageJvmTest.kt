@@ -54,6 +54,6 @@ class IdbMessageJvmTest {
     @Throws(IOException::class)
     fun testGetMessageContent() {
         val message = fromByteArray(idbMessageBytes)
-        Assert.assertArrayEquals(visa_content, message.messageContent)
+        Assert.assertArrayEquals(visa_content, message.valueBytes)
     }
 }

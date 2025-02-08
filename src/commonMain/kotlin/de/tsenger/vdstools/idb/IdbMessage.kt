@@ -2,14 +2,13 @@ package de.tsenger.vdstools.idb
 
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.asn1.DerTlv
+import de.tsenger.vdstools.vds.FeatureCoding
 
 
 class IdbMessage {
     val messageTypeTag: Int
-
     val messageTypeName: String
-
-    val messageContent: ByteArray
+    private val messageContent: ByteArray
 
     constructor(messageTypeName: String, messageContent: ByteArray) {
         this.messageTypeName = messageTypeName
@@ -26,10 +25,27 @@ class IdbMessage {
     val encoded: ByteArray
         get() = DerTlv(messageTypeTag.toByte(), messageContent).encoded
 
+    val valueBytes: ByteArray
+        get() = messageContent
+
+    val valueInt: Int
+        get() = messageContent[0].toInt() and 0xFF
+
+    @OptIn(ExperimentalStdlibApi::class)
+    val valueStr: String
+        get() =
+            when (DataEncoder.getIdbMessageTypeCoding(messageTypeName)) {
+                FeatureCoding.BYTE -> valueInt.toString()
+                FeatureCoding.C40 -> DataEncoder.decodeC40(messageContent)
+                FeatureCoding.UTF8_STRING -> messageContent.toString()
+                FeatureCoding.MASKED_DATE -> DataEncoder.decodeMaskedDate(messageContent)
+                FeatureCoding.BYTES, FeatureCoding.UNKNOWN -> messageContent.toHexString()
+            }
+
 
     companion object {
         fun fromDerTlv(derTlv: DerTlv): IdbMessage {
-            val messageTypeTag = derTlv.tag.toInt()
+            val messageTypeTag = (derTlv.tag).toInt() and 0xFF
             val messageContent = derTlv.value
             return IdbMessage(messageTypeTag, messageContent)
         }

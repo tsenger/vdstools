@@ -8,7 +8,6 @@ class Feature(val name: String, private val value: Any, val coding: FeatureCodin
     val valueBytes: ByteArray
         get() = value as ByteArray
 
-    //let it be public, it's used
     val valueInt: Int
         get() = (value as Byte).toInt() and 0xFF
 

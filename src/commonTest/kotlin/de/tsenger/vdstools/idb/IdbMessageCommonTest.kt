@@ -50,6 +50,6 @@ class IdbMessageCommonTest {
     @Test
     fun testGetMessageContent() {
         val message = IdbMessage.fromByteArray(idbMessageBytes)
-        assertContentEquals(visa_content, message.messageContent)
+        assertContentEquals(visa_content, message.valueBytes)
     }
 }
