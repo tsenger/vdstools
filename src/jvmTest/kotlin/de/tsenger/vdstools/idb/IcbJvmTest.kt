@@ -125,6 +125,71 @@ class IcbJvmTest {
         }
     }
 
+    @Test
+    fun testCertifyingPermanentResidence() {
+        val icbResult = IcaoBarcode.fromString(IcbRawStrings.CertifyingPermanentResidence)
+        assertNotNull(icbResult)
+        icbResult.onSuccess { icb ->
+            val numberOfMessages = icb.payLoad.idbMessageGroup.getMessagesList().size
+            assertEquals(3, numberOfMessages)
+
+            assertEquals("123456789", icb.getMessage(0x82)?.valueStr)
+            assertEquals("ABC123456DEF", icb.getMessage(0x83)?.valueStr)
+            assertEquals(0x10, icb.getMessage(0x86)?.valueInt)
+
+            val cert = keystore.getCertificate("utts5b") as X509Certificate
+            val verifier = Verifier(icb, cert.publicKey.encoded, "brainpoolP256r1")
+            assertEquals(Verifier.Result.SignatureValid, verifier.verify())
+        }
+    }
+
+    @Test
+    fun testFrontierWorkerPermit() {
+        val icbResult = IcaoBarcode.fromString(IcbRawStrings.FrontierWorkerPermit)
+        assertNotNull(icbResult)
+        icbResult.onSuccess { icb ->
+            val numberOfMessages = icb.payLoad.idbMessageGroup.getMessagesList().size
+            assertEquals(4, numberOfMessages)
+
+            assertEquals(996, icb.getMessage(0x80)?.valueBytes?.size)
+            assertEquals(
+                "AGD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018T2506012",
+                icb.getMessage(0x81)?.valueStr
+            )
+            assertEquals("ABCDEFGHI", icb.getMessage(0x82)?.valueStr)
+            assertEquals(0x11, icb.getMessage(0x86)?.valueInt)
+
+            val cert = keystore.getCertificate("utts5b") as X509Certificate
+            val verifier = Verifier(icb, cert.publicKey.encoded, "brainpoolP256r1")
+            assertEquals(Verifier.Result.SignatureValid, verifier.verify())
+        }
+    }
+
+    @Test
+    fun testSupplementarySheetResidencePermit() {
+        val icbResult = IcaoBarcode.fromString(IcbRawStrings.SupplementarySheetResidencePermit)
+        assertNotNull(icbResult)
+        icbResult.onSuccess { icb ->
+            val numberOfMessages = icb.payLoad.idbMessageGroup.getMessagesList().size
+            assertEquals(4, numberOfMessages)
+
+
+            assertEquals(
+                "AZD<<5W1ETCGE25<<<<<<<<<<<<<<<\n" +
+                        "8703123F2908258CHL<<<<<<<<<<<4\n" +
+                        "BORIC<<BRYAN<<<<<<<<<<<<<<<<<<",
+                icb.getMessage(0x07)?.valueStr
+            )
+            assertEquals("5W1ETCGE2", icb.getMessage(0x82)?.valueStr)
+            assertEquals("ABCDEFGHI", icb.getMessage(0x85)?.valueStr)
+            assertEquals(0x12, icb.getMessage(0x86)?.valueInt)
+
+            val cert = keystore.getCertificate("utts5b") as X509Certificate
+            val verifier = Verifier(icb, cert.publicKey.encoded, "brainpoolP256r1")
+            assertEquals(Verifier.Result.SignatureValid, verifier.verify())
+        }
+    }
+
     companion object {
         var keyStorePassword: String = "vdstools"
         var keyStoreFile: String = "src/commonTest/resources/vdstools_testcerts.bks"

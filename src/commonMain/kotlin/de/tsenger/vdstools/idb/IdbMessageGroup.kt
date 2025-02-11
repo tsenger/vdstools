@@ -26,7 +26,7 @@ class IdbMessageGroup {
                 when (coding) {
                     FeatureCoding.C40 -> addMessage(IdbMessage(tag, DataEncoder.encodeC40(value as String)))
                     FeatureCoding.UTF8_STRING -> addMessage(IdbMessage(tag, (value as String).encodeToByteArray()))
-                    FeatureCoding.BYTES, FeatureCoding.UNKNOWN -> addMessage(IdbMessage(tag, value as ByteArray))
+                    FeatureCoding.BYTES -> addMessage(IdbMessage(tag, value as ByteArray))
                     FeatureCoding.BYTE -> addMessage(IdbMessage(tag, byteArrayOf(((value as Int) and 0xFF).toByte())))
                     FeatureCoding.MASKED_DATE -> addMessage(
                         IdbMessage(
@@ -36,6 +36,7 @@ class IdbMessageGroup {
                     )
 
                     FeatureCoding.MRZ -> addMessage(IdbMessage(tag, DataEncoder.encodeC40(value as String)))
+                    FeatureCoding.UNKNOWN -> throw IllegalArgumentException("Unsupported tag: $tag")
                 }
             }
 

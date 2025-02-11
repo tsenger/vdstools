@@ -28,13 +28,7 @@ class IdbBuilder {
         assertNotNull(cert)
 
         //Header
-        val header = IdbHeader(
-            "D<<",
-            IdbSignatureAlgorithm.SHA256_WITH_ECDSA,
-            DataEncoder.buildCertificateReference(cert.encoded),
-            "2025-02-07"
-        )
-        println("Header bytes: ${header.encoded.toHexString()}")
+        val header = getHeader()
 
         //MessageGroup
         val faceImage = IdbMessage(0x80, readBinaryFromResource("face_image_gen.jp2"))
@@ -71,12 +65,7 @@ class IdbBuilder {
         assertNotNull(cert)
 
         //Header
-        val header = IdbHeader(
-            "D<<",
-            IdbSignatureAlgorithm.SHA256_WITH_ECDSA,
-            DataEncoder.buildCertificateReference(cert.encoded),
-            "2025-02-11"
-        )
+        val header = getHeader()
 
         //MessageGroup
         val mrz = "PUD<<KOEPPENIK<<JONATHAN<GERALD<<<<<\n2L1T3QPB04D<<8506210M2604239<<<<<<<8"
@@ -114,12 +103,7 @@ class IdbBuilder {
         assertNotNull(cert)
 
         //Header
-        val header = IdbHeader(
-            "D<<",
-            IdbSignatureAlgorithm.SHA256_WITH_ECDSA,
-            DataEncoder.buildCertificateReference(cert.encoded),
-            "2025-02-11"
-        )
+        val header = getHeader()
 
         //MessageGroup
         val mrzString = "PPD<<FOLKS<<TALLULAH<<<<<<<<<<<<<<<<<<<<<<<<\n3113883489D<<9709155F1601013<<<<<<<<<<<<<<04"
@@ -153,12 +137,7 @@ class IdbBuilder {
         assertNotNull(cert)
 
         //Header
-        val header = IdbHeader(
-            "D<<",
-            IdbSignatureAlgorithm.SHA256_WITH_ECDSA,
-            DataEncoder.buildCertificateReference(cert.encoded),
-            "2025-02-11"
-        )
+        val header = getHeader()
 
         //MessageGroup
         val mrzString = "AUD<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06"
@@ -192,12 +171,7 @@ class IdbBuilder {
         assertNotNull(cert)
 
         //Header
-        val header = IdbHeader(
-            "D<<",
-            IdbSignatureAlgorithm.SHA256_WITH_ECDSA,
-            DataEncoder.buildCertificateReference(cert.encoded),
-            "2025-02-11"
-        )
+        val header = getHeader()
 
         //MessageGroup
         val mrzString = "ABD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018T2506012"
@@ -225,6 +199,83 @@ class IdbBuilder {
         println("Barcode ${icb.encoded}")
     }
 
+    @Test
+    fun build_CertifyingPermanentResidence() {
+        val cert = keystore.getCertificate("utts5b")
+        assertNotNull(cert)
+
+        //Header
+        val header = getHeader()
+
+        //MessageGroup
+        val messageGroup = IdbMessageGroup()
+        messageGroup.addMessage(0x82, "123456789")
+        messageGroup.addMessage(0x83, "ABC123456DEF")
+        messageGroup.addMessage(0x86, 0x10)
+
+        println("MessageGroupBytes: ${messageGroup.encoded.toHexString()}")
+
+        // Signature
+        val signature = buildSignature(header.encoded + messageGroup.encoded)
+
+        val payload = IdbPayload(header, messageGroup, null, signature)
+        val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
+
+        generateDmBarcode(icb.encoded, "CertifyingPermanentResidence.png")
+        println("Barcode ${icb.encoded}")
+    }
+
+    @Test
+    fun build_FrontierWorkerPermit() {
+
+        val header = getHeader()
+        //MessageGroup
+        val messageGroup = IdbMessageGroup()
+        messageGroup.addMessage(0x80, readBinaryFromResource("face_image_gen.jp2"))
+        messageGroup.addMessage(0x81, "AGD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018T2506012")
+        messageGroup.addMessage(0x82, "ABCDEFGHI")
+        messageGroup.addMessage(0x86, 0x11)
+
+        println("MessageGroupBytes: ${messageGroup.encoded.toHexString()}")
+
+        // Signature
+        val signature = buildSignature(header.encoded + messageGroup.encoded)
+
+        val payload = IdbPayload(header, messageGroup, null, signature)
+        val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
+
+        generateDmBarcode(icb.encoded, "FrontierWorkerPermit.png")
+        println("Barcode ${icb.encoded}")
+    }
+
+    @Test
+    fun build_SupplementarySheetResidencePermit() {
+
+        val header = getHeader()
+        //MessageGroup
+        val messageGroup = IdbMessageGroup()
+        messageGroup.addMessage(
+            0x07,
+            "AZD<<5W1ETCGE25<<<<<<<<<<<<<<<\n" +
+                    "8703123F2908258CHL<<<<<<<<<<<4\n" +
+                    "BORIC<<BRYAN<<<<<<<<<<<<<<<<<<"
+        )
+        messageGroup.addMessage(0x82, "5W1ETCGE2")
+        messageGroup.addMessage(0x85, "ABCDEFGHI")
+        messageGroup.addMessage(0x86, 0x12)
+
+        println("MessageGroupBytes: ${messageGroup.encoded.toHexString()}")
+
+        // Signature
+        val signature = buildSignature(header.encoded + messageGroup.encoded)
+
+        val payload = IdbPayload(header, messageGroup, null, signature)
+        val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
+
+        generateDmBarcode(icb.encoded, "SupplementarySheetResidencePermit.png")
+        println("Barcode ${icb.encoded}")
+    }
+
     fun buildSignature(bytesToSign: ByteArray): IdbSignature {
         val ecPrivKey = keystore.getKey("utts5b", keyStorePassword.toCharArray()) as BCECPrivateKey
         val signer = Signer(ecPrivKey.encoded, "brainpoolP256r1")
@@ -247,10 +298,21 @@ class IdbBuilder {
         return inputStream.use { it.readBytes() }
     }
 
+    fun getHeader(): IdbHeader {
+        val cert = keystore.getCertificate("utts5b")
+        return IdbHeader(
+            "D<<",
+            IdbSignatureAlgorithm.SHA256_WITH_ECDSA,
+            DataEncoder.buildCertificateReference(cert.encoded),
+            "2025-02-11"
+        )
+    }
+
     companion object {
         var keyStorePassword: String = "vdstools"
         var keyStoreFile: String = "src/commonTest/resources/vdstools_testcerts.bks"
         lateinit var keystore: KeyStore
+
 
         @JvmStatic
         @BeforeClass
