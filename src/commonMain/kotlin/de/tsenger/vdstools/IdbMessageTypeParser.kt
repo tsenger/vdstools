@@ -39,4 +39,8 @@ class IdbMessageTypeParser(jsonString: String) {
         return messageTypesInverse[messageTypeName]?.coding ?: FeatureCoding.UNKNOWN
     }
 
+    fun getMessageTypeCoding(messageTypeTag: Int): FeatureCoding {
+        return messageTypes[messageTypeTag]?.coding ?: FeatureCoding.UNKNOWN
+    }
+
 }

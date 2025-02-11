@@ -2,6 +2,7 @@ package de.tsenger.vdstools.idb
 
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.asn1.DerTlv
+import de.tsenger.vdstools.vds.FeatureCoding
 import okio.Buffer
 
 class IdbMessageGroup {
@@ -15,6 +16,31 @@ class IdbMessageGroup {
 
     fun addMessage(idbMessage: IdbMessage) {
         messagesList.add(idbMessage)
+    }
+
+    @Throws(IllegalArgumentException::class)
+    inline fun <reified T> addMessage(tag: Int, value: T) {
+        val coding = DataEncoder.getIdbMessageTypeCoding(tag)
+        when (value) {
+            is String, is ByteArray, is Int -> {
+                when (coding) {
+                    FeatureCoding.C40 -> addMessage(IdbMessage(tag, DataEncoder.encodeC40(value as String)))
+                    FeatureCoding.UTF8_STRING -> addMessage(IdbMessage(tag, (value as String).encodeToByteArray()))
+                    FeatureCoding.BYTES, FeatureCoding.UNKNOWN -> addMessage(IdbMessage(tag, value as ByteArray))
+                    FeatureCoding.BYTE -> addMessage(IdbMessage(tag, byteArrayOf(((value as Int) and 0xFF).toByte())))
+                    FeatureCoding.MASKED_DATE -> addMessage(
+                        IdbMessage(
+                            tag,
+                            DataEncoder.encodeMaskedDate(value as String)
+                        )
+                    )
+
+                    FeatureCoding.MRZ -> addMessage(IdbMessage(tag, DataEncoder.encodeC40(value as String)))
+                }
+            }
+
+            else -> throw IllegalArgumentException("Unsupported type: ${T::class.simpleName}")
+        }
     }
 
     fun getMessagesList(): List<IdbMessage> {
