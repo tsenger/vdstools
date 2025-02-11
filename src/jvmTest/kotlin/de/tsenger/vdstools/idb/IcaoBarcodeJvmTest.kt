@@ -39,28 +39,28 @@ class IcaoBarcodeJvmTest {
 
     @Test
     fun testIsNotSignedIsNotZipped() {
-        val icb = IcaoBarcode('A', IdbPayload(IdbHeader("UTO"), IdbMessageGroup(), null, null))
+        val icb = IcaoBarcode('A', IdbPayload(IdbHeader("UTO"), IdbMessageGroup(emptyList()), null, null))
         Assert.assertFalse(icb.isSigned)
         Assert.assertFalse(icb.isZipped)
     }
 
     @Test
     fun testIsSignedIsNotZipped() {
-        val icb = IcaoBarcode('B', IdbPayload(IdbHeader("UTO"), IdbMessageGroup(), null, null))
+        val icb = IcaoBarcode('B', IdbPayload(IdbHeader("UTO"), IdbMessageGroup(emptyList()), null, null))
         Assert.assertTrue(icb.isSigned)
         Assert.assertFalse(icb.isZipped)
     }
 
     @Test
     fun testIsNotSignedIsZipped() {
-        val icb = IcaoBarcode('C', IdbPayload(IdbHeader("UTO"), IdbMessageGroup(), null, null))
+        val icb = IcaoBarcode('C', IdbPayload(IdbHeader("UTO"), IdbMessageGroup(emptyList()), null, null))
         Assert.assertFalse(icb.isSigned)
         Assert.assertTrue(icb.isZipped)
     }
 
     @Test
     fun testIsSignedIsZipped() {
-        val icb = IcaoBarcode('D', IdbPayload(IdbHeader("UTO"), IdbMessageGroup(), null, null))
+        val icb = IcaoBarcode('D', IdbPayload(IdbHeader("UTO"), IdbMessageGroup(emptyList()), null, null))
         Assert.assertTrue(icb.isSigned)
         Assert.assertTrue(icb.isZipped)
     }
@@ -232,8 +232,7 @@ class IcaoBarcodeJvmTest {
             .build()
 
         // Add ETD to an IdbMessageGroup
-        val message = IdbMessage("EMERGENCY_TRAVEL_DOCUMENT", vdsMessage.encoded)
-        val messageGroup = IdbMessageGroup(message)
+        val messageGroup = IdbMessageGroup.Builder().addMessage("EMERGENCY_TRAVEL_DOCUMENT", vdsMessage.encoded).build()
 
         // Generate Signature
         val ecPrivKey = keystore.getKey(signerCertRef, keyStorePassword.toCharArray()) as BCECPrivateKey

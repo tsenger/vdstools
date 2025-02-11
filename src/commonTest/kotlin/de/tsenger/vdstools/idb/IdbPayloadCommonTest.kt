@@ -1,5 +1,7 @@
 package de.tsenger.vdstools.idb
 
+import de.tsenger.vdstools.idb.IdbPayload.Companion.fromByteArray
+import kotlinx.io.IOException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -9,26 +11,28 @@ import kotlin.test.assertNull
 class IdbPayloadCommonTest {
     @Test
     fun testConstructor_null() {
-        val payload = IdbPayload(IdbHeader("UTO"), IdbMessageGroup(), null, null)
+        val payload = IdbPayload(IdbHeader("UTO"), IdbMessageGroup(emptyList()), null, null)
         assertNotNull(payload)
     }
 
     @Test
     fun testConstructorWithoutSignature() {
         val header = IdbHeader("D<<")
-        val messageGroup = IdbMessageGroup()
-        messageGroup.addMessage(
-            IdbMessage("PROOF_OF_RECOVERY", "b0b1b2b3b4b5b6b7b8b9babbbcbdbebf".hexToByteArray())
+        val messageGroup = IdbMessageGroup(
+            listOf(IdbMessage("PROOF_OF_RECOVERY", "b0b1b2b3b4b5b6b7b8b9babbbcbdbebf".hexToByteArray()))
         )
         val payload = IdbPayload(header, messageGroup, null, null)
         assertNotNull(payload)
     }
 
     @Test
+    @Throws(IOException::class)
     fun testConstructorWithoutCertificate() {
         val header = IdbHeader("D<<", IdbSignatureAlgorithm.SHA256_WITH_ECDSA, byteArrayOf(5, 4, 3, 2, 1))
         val messageGroup = IdbMessageGroup(
-            IdbMessage("PROOF_OF_VACCINATION", "b0b1b2b3b4b5b6b7b8b9babbbcbdbebf".hexToByteArray())
+            listOf(
+                IdbMessage("PROOF_OF_VACCINATION", "b0b1b2b3b4b5b6b7b8b9babbbcbdbebf".hexToByteArray())
+            )
         )
         val signature = IdbSignature(
             "24bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7".hexToByteArray()
@@ -40,47 +44,40 @@ class IdbPayloadCommonTest {
     @Test
     fun testGetIdbHeader() {
         val rawBytes =
-            ("6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb33"
-                    + "2f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7").hexToByteArray()
-
-        val payload = IdbPayload.fromByteArray(rawBytes, true)
+            "6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7".hexToByteArray()
+        val payload = fromByteArray(rawBytes, true)
         val header = payload.idbHeader
         assertEquals("6abc010504030201009b5d88", header.encoded.toHexString())
     }
 
     @Test
     fun testGetIdbMessageGroup() {
-        val rawBytes = (
-                "6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb33"
-                        + "2f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7"
-                ).hexToByteArray()
-        val payload = IdbPayload.fromByteArray(rawBytes, true)
+        val rawBytes =
+            "6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7".hexToByteArray()
+        val payload = fromByteArray(rawBytes, true)
         val messageGroup = payload.idbMessageGroup
         assertNotNull(messageGroup)
         assertEquals(
-            "61120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf",
-            messageGroup.encoded.toHexString()
+            "61120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf", messageGroup.encoded.toHexString()
         )
     }
 
     @Test
+    @Throws(IOException::class)
     fun testGetIdbSignerCertificate_null() {
-        val rawBytes = (
-                "6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb33"
-                        + "2f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7"
-                ).hexToByteArray()
-        val payload = IdbPayload.fromByteArray(rawBytes, true)
+        val rawBytes =
+            "6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7".hexToByteArray()
+        val payload = fromByteArray(rawBytes, true)
         val signerCert = payload.idbSignerCertificate
         assertNull(signerCert)
     }
 
     @Test
     fun testGetIdbSignature() {
-        val rawBytes = (
-                "6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb33"
-                        + "2f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7"
-                ).hexToByteArray()
-        val payload = IdbPayload.fromByteArray(rawBytes, true)
+        val rawBytes =
+            "6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7".hexToByteArray()
+
+        val payload = fromByteArray(rawBytes, true)
         val signature = payload.idbSignature
         assertNotNull(signature)
         assertEquals(
@@ -92,9 +89,8 @@ class IdbPayloadCommonTest {
     @Test
     fun testGetEncodedWithoutSignature() {
         val header = IdbHeader("D<<")
-        val messageGroup = IdbMessageGroup()
-        messageGroup.addMessage(
-            IdbMessage("PROOF_OF_RECOVERY", "b0b1b2b3b4b5b6b7b8b9babbbcbdbebf".hexToByteArray())
+        val messageGroup = IdbMessageGroup(
+            listOf(IdbMessage("PROOF_OF_RECOVERY", "b0b1b2b3b4b5b6b7b8b9babbbcbdbebf".hexToByteArray()))
         )
         val payload = IdbPayload(header, messageGroup, null, null)
         val encodedBytes = payload.encoded
@@ -108,11 +104,10 @@ class IdbPayloadCommonTest {
             "2024-10-18"
         )
         val messageGroup = IdbMessageGroup(
-            IdbMessage("PROOF_OF_VACCINATION", "b0b1b2b3b4b5b6b7b8b9babbbcbdbebf".hexToByteArray())
+            listOf(IdbMessage("PROOF_OF_VACCINATION", "b0b1b2b3b4b5b6b7b8b9babbbcbdbebf".hexToByteArray()))
         )
         val signature = IdbSignature(
             "24bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7".hexToByteArray()
-
         )
         val payload = IdbPayload(header, messageGroup, null, signature)
         val encodedBytes = payload.encoded
@@ -125,11 +120,10 @@ class IdbPayloadCommonTest {
 
     @Test
     fun testFromByteArray() {
-        val rawBytes = (
-                "6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb33"
-                        + "2f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7"
-                ).hexToByteArray()
-        val payload = IdbPayload.fromByteArray(rawBytes, true)
+        val rawBytes =
+            "6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7".hexToByteArray()
+
+        val payload = fromByteArray(rawBytes, true)
         assertNotNull(payload)
     }
 }

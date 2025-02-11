@@ -18,7 +18,7 @@ class IcbJvmTest {
         val icbResult = IcaoBarcode.fromString(IcbRawStrings.SubstituteIdentityDocument)
         assertNotNull(icbResult)
         icbResult.onSuccess { icb ->
-            val numberOfMessages = icb.payLoad.idbMessageGroup.getMessagesList().size
+            val numberOfMessages = icb.payLoad.idbMessageGroup.messagesList.size
             assertEquals(4, numberOfMessages)
             assertEquals(
                 "AID<<KOEPPENIK<<JONATHAN<GERALD<<<<<\n2L1T3QPB04D<<8506210M2604239<<<<<<<8",
@@ -39,7 +39,7 @@ class IcbJvmTest {
         val icbResult = IcaoBarcode.fromString(IcbRawStrings.EmergencyTravelDocument)
         assertNotNull(icbResult)
         icbResult.onSuccess { icb ->
-            val numberOfMessages = icb.payLoad.idbMessageGroup.getMessagesList().size
+            val numberOfMessages = icb.payLoad.idbMessageGroup.messagesList.size
             assertEquals(4, numberOfMessages)
 
             val etdBytes = icb.getMessage("EMERGENCY_TRAVEL_DOCUMENT")?.valueBytes
@@ -63,7 +63,7 @@ class IcbJvmTest {
         val icbResult = IcaoBarcode.fromString(IcbRawStrings.TemporaryPassport)
         assertNotNull(icbResult)
         icbResult.onSuccess { icb ->
-            val numberOfMessages = icb.payLoad.idbMessageGroup.getMessagesList().size
+            val numberOfMessages = icb.payLoad.idbMessageGroup.messagesList.size
             assertEquals(4, numberOfMessages)
 
             val mrz = icb.getMessage(8)?.valueStr
@@ -85,7 +85,7 @@ class IcbJvmTest {
         val icbResult = IcaoBarcode.fromString(IcbRawStrings.ArrivalAttestation)
         assertNotNull(icbResult)
         icbResult.onSuccess { icb ->
-            val numberOfMessages = icb.payLoad.idbMessageGroup.getMessagesList().size
+            val numberOfMessages = icb.payLoad.idbMessageGroup.messagesList.size
             assertEquals(4, numberOfMessages)
 
             val mrz = icb.getMessage(0x81)?.valueStr
@@ -107,7 +107,7 @@ class IcbJvmTest {
         val icbResult = IcaoBarcode.fromString(IcbRawStrings.ProvisionalResidenceDocument)
         assertNotNull(icbResult)
         icbResult.onSuccess { icb ->
-            val numberOfMessages = icb.payLoad.idbMessageGroup.getMessagesList().size
+            val numberOfMessages = icb.payLoad.idbMessageGroup.messagesList.size
             assertEquals(4, numberOfMessages)
 
             val mrz = icb.getMessage(0x81)?.valueStr
@@ -130,7 +130,7 @@ class IcbJvmTest {
         val icbResult = IcaoBarcode.fromString(IcbRawStrings.CertifyingPermanentResidence)
         assertNotNull(icbResult)
         icbResult.onSuccess { icb ->
-            val numberOfMessages = icb.payLoad.idbMessageGroup.getMessagesList().size
+            val numberOfMessages = icb.payLoad.idbMessageGroup.messagesList.size
             assertEquals(3, numberOfMessages)
 
             assertEquals("123456789", icb.getMessage(0x82)?.valueStr)
@@ -148,7 +148,7 @@ class IcbJvmTest {
         val icbResult = IcaoBarcode.fromString(IcbRawStrings.FrontierWorkerPermit)
         assertNotNull(icbResult)
         icbResult.onSuccess { icb ->
-            val numberOfMessages = icb.payLoad.idbMessageGroup.getMessagesList().size
+            val numberOfMessages = icb.payLoad.idbMessageGroup.messagesList.size
             assertEquals(4, numberOfMessages)
 
             assertEquals(996, icb.getMessage(0x80)?.valueBytes?.size)
@@ -170,7 +170,7 @@ class IcbJvmTest {
         val icbResult = IcaoBarcode.fromString(IcbRawStrings.SupplementarySheetResidencePermit)
         assertNotNull(icbResult)
         icbResult.onSuccess { icb ->
-            val numberOfMessages = icb.payLoad.idbMessageGroup.getMessagesList().size
+            val numberOfMessages = icb.payLoad.idbMessageGroup.messagesList.size
             assertEquals(4, numberOfMessages)
 
 

@@ -6,13 +6,11 @@ import okio.Buffer
 
 
 class VdsMessage {
-    private lateinit var derTlvList: List<DerTlv>
-    lateinit var vdsType: String
+    private var derTlvList: List<DerTlv>
+    var vdsType: String
         private set
 
-    private constructor()
-
-    constructor(vdsType: String, derTlvList: List<DerTlv>) : this() {
+    constructor(vdsType: String, derTlvList: List<DerTlv>) {
         this.vdsType = vdsType
         this.derTlvList = derTlvList
     }
