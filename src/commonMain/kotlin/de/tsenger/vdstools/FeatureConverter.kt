@@ -104,7 +104,7 @@ class FeatureConverter(jsonString: String) {
         val value: ByteArray
         when (coding) {
             FeatureCoding.C40, FeatureCoding.MRZ -> {
-                val valueStr = (inputValue as String).replace("\r".toRegex(), "").replace("\n".toRegex(), "")
+                val valueStr = inputValue as String
                 value = DataEncoder.encodeC40(valueStr)
             }
 

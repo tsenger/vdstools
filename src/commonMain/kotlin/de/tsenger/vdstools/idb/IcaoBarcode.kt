@@ -42,6 +42,14 @@ class IcaoBarcode {
             return strBuffer.toString()
         }
 
+    fun getMessage(name: String): IdbMessage? {
+        return payLoad.idbMessageGroup.getMessage(name)
+    }
+
+    fun getMessage(tag: Int): IdbMessage? {
+        return payLoad.idbMessageGroup.getMessage(tag)
+    }
+
     companion object {
         const val BARCODE_IDENTIFIER: String = "NDB1"
 

@@ -172,7 +172,11 @@ object DataEncoder {
         var sum: Int
         val out = Buffer()
 
-        dataString = dataString.uppercase().replace("<", " ")
+        dataString = dataString
+            .uppercase()
+            .replace("<", " ")
+            .replace("\r".toRegex(), "")
+            .replace("\n".toRegex(), "")
 
         val len = dataString.length
 

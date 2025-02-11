@@ -3,15 +3,15 @@
     "name": "VISA",
     "tag": 1,
     "coding": "BYTES",
-    "min_length": 48,
-    "max_length": 48
+    "min_length": 61,
+    "max_length": 331
   },
   {
     "name": "EMERGENCY_TRAVEL_DOCUMENT",
     "tag": 2,
     "coding": "BYTES",
-    "min_length": 48,
-    "max_length": 48
+    "min_length": 52,
+    "max_length": 52
   },
   {
     "name": "PROOF_OF_TESTING",
