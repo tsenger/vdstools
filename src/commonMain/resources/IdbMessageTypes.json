@@ -44,14 +44,14 @@
   {
     "name": "MRZ_TD1",
     "tag": 7,
-    "coding": "C40",
+    "coding": "MRZ",
     "min_length": 60,
     "max_length": 60
   },
   {
     "name": "MRZ_TD3",
     "tag": 8,
-    "coding": "C40",
+    "coding": "MRZ",
     "min_length": 60,
     "max_length": 60
   },
@@ -79,7 +79,7 @@
   {
     "name": "MRZ_TD2",
     "tag": 129,
-    "coding": "C40",
+    "coding": "MRZ",
     "min_length": 48,
     "max_length": 48
   },

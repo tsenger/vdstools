@@ -172,7 +172,7 @@ object DataEncoder {
         var sum: Int
         val out = Buffer()
 
-        dataString = dataString.uppercase().replace("<".toRegex(), " ")
+        dataString = dataString.uppercase().replace("<", " ")
 
         val len = dataString.length
 
@@ -202,6 +202,18 @@ object DataEncoder {
             }
         }
         return out.readByteArray()
+    }
+
+    fun formatMRZ(mrzString: String, mrzLength: Int): String {
+        val paddedMrz = mrzString
+            .padEnd(mrzLength, '<')
+            .replace(' ', '<')
+        return if (mrzLength == 90) {
+            paddedMrz.substring(0, 30) + "\n" +
+                    paddedMrz.substring(30, 60) + "\n" +
+                    paddedMrz.substring(60, 90)
+        } else paddedMrz.substring(0, mrzLength / 2) + "\n" +
+                paddedMrz.substring(mrzLength / 2)
     }
 
     private fun getC40Value(c: Char): Int {

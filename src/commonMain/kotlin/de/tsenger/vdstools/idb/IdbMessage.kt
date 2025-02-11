@@ -40,6 +40,10 @@ class IdbMessage {
                 FeatureCoding.UTF8_STRING -> messageContent.toString()
                 FeatureCoding.MASKED_DATE -> DataEncoder.decodeMaskedDate(messageContent)
                 FeatureCoding.BYTES, FeatureCoding.UNKNOWN -> messageContent.toHexString()
+                FeatureCoding.MRZ -> {
+                    val unformattedMrz = DataEncoder.decodeC40(messageContent)
+                    DataEncoder.formatMRZ(unformattedMrz, unformattedMrz.length)
+                }
             }
 
 

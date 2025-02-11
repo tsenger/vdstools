@@ -7,7 +7,7 @@
       {
         "name": "MRZ",
         "tag": 2,
-        "coding": "C40",
+        "coding": "MRZ",
         "decodedLength": 72,
         "required": true,
         "minLength": 48,
@@ -107,7 +107,7 @@
       {
         "name": "MRZ",
         "tag": 2,
-        "coding": "C40",
+        "coding": "MRZ",
         "decodedLength": 72,
         "required": true,
         "minLength": 48,
@@ -149,7 +149,7 @@
       {
         "name": "MRZ",
         "tag": 2,
-        "coding": "C40",
+        "coding": "MRZ",
         "decodedLength": 72,
         "required": true,
         "minLength": 48,
@@ -183,7 +183,7 @@
       {
         "name": "MRZ",
         "tag": 2,
-        "coding": "C40",
+        "coding": "MRZ",
         "decodedLength": 72,
         "required": true,
         "minLength": 48,
@@ -199,7 +199,7 @@
       {
         "name": "MRZ_MRVA",
         "tag": 1,
-        "coding": "C40",
+        "coding": "MRZ",
         "decodedLength": 88,
         "required": true,
         "minLength": 48,
@@ -208,7 +208,7 @@
       {
         "name": "MRZ_MRVB",
         "tag": 2,
-        "coding": "C40",
+        "coding": "MRZ",
         "required": true,
         "decodedLength": 72,
         "minLength": 44,
@@ -265,7 +265,7 @@
       {
         "name": "MRZ",
         "tag": 2,
-        "coding": "C40",
+        "coding": "MRZ",
         "decodedLength": 72,
         "required": true,
         "minLength": 48,
@@ -330,7 +330,7 @@
       {
         "name": "MRZ",
         "tag": 4,
-        "coding": "C40",
+        "coding": "MRZ",
         "decodedLength": 72,
         "required": true,
         "minLength": 48,
@@ -363,7 +363,7 @@
       {
         "name": "MRZ",
         "tag": 2,
-        "coding": "C40",
+        "coding": "MRZ",
         "decodedLength": 88,
         "required": true,
         "minLength": 60,
@@ -387,7 +387,7 @@
       {
         "name": "MRZ",
         "tag": 2,
-        "coding": "C40",
+        "coding": "MRZ",
         "decodedLength": 72,
         "required": true,
         "minLength": 48,

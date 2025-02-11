@@ -15,7 +15,7 @@ class Feature(val name: String, private val value: Any, val coding: FeatureCodin
     val valueStr: String
         get() =
             when (coding) {
-                FeatureCoding.C40, FeatureCoding.UTF8_STRING -> value as String
+                FeatureCoding.C40, FeatureCoding.UTF8_STRING, FeatureCoding.MRZ -> value as String
                 FeatureCoding.BYTE -> valueInt.toString()
                 FeatureCoding.BYTES -> valueBytes.toHexString()
                 FeatureCoding.MASKED_DATE -> DataEncoder.decodeMaskedDate(valueBytes)

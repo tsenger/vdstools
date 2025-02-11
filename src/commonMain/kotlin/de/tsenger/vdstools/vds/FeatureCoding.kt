@@ -10,6 +10,7 @@ enum class FeatureCoding {
     BYTES,
     BYTE,
     MASKED_DATE,
+    MRZ,
     UNKNOWN;
 
     companion object {

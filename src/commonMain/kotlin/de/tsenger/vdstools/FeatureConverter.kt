@@ -103,7 +103,7 @@ class FeatureConverter(jsonString: String) {
         val coding = getCoding(sealDto, feature)
         val value: ByteArray
         when (coding) {
-            FeatureCoding.C40 -> {
+            FeatureCoding.C40, FeatureCoding.MRZ -> {
                 val valueStr = (inputValue as String).replace("\r".toRegex(), "").replace("\n".toRegex(), "")
                 value = DataEncoder.encodeC40(valueStr)
             }
@@ -122,32 +122,20 @@ class FeatureConverter(jsonString: String) {
         val tag = derTlv.tag
         val coding = getCoding(sealDto, tag)
         val result = when (coding) {
-            FeatureCoding.C40 -> decodeC40Feature(sealDto, derTlv)
+            FeatureCoding.C40 -> DataEncoder.decodeC40(derTlv.value)
             FeatureCoding.UTF8_STRING -> derTlv.value.decodeToString()
             FeatureCoding.BYTE -> derTlv.value[0]
             FeatureCoding.BYTES -> derTlv.value
             FeatureCoding.MASKED_DATE -> DataEncoder.decodeMaskedDate(derTlv.value)
             FeatureCoding.UNKNOWN -> derTlv.value
+            FeatureCoding.MRZ -> {
+                val unformattedMrz = DataEncoder.decodeC40(derTlv.value)
+                val mrzLength = getFeatureDto(sealDto, tag).decodedLength
+                DataEncoder.formatMRZ(unformattedMrz, mrzLength)
+            }
         }
         @Suppress("UNCHECKED_CAST")
         return result as T
-    }
-
-    private fun decodeC40Feature(sealDto: SealDto, derTlv: DerTlv): String {
-        val tag = derTlv.tag
-        val featureValue = DataEncoder.decodeC40(derTlv.value)
-        val featureName = getFeatureName(sealDto, tag.toInt())
-
-        if (featureName.startsWith("MRZ")) {
-            val mrzLength = getFeatureDto(sealDto, tag).decodedLength
-            val paddedMrz = featureValue
-                .padEnd(mrzLength, '<')
-                .replace(' ', '<')
-            return paddedMrz.substring(0, mrzLength / 2) + "\n" +
-                    paddedMrz.substring(mrzLength / 2)
-        }
-
-        return featureValue
     }
 
     @Throws(IllegalArgumentException::class)
