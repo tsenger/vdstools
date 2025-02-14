@@ -50,14 +50,35 @@ class IcaoBarcode {
         return payLoad.idbMessageGroup.getMessage(tag)
     }
 
+    val signature: IdbSignature?
+        get() {
+            return payLoad.idbSignature
+        }
+
+    val countryIdentifier: String
+        get() {
+            return payLoad.idbHeader.getCountryIdentifier()
+        }
+
+    val signatureAlgorithmName: String?
+        get() {
+            return payLoad.idbHeader.getSignatureAlgorithm()?.name
+        }
+
+    val signatureCreationDate: String?
+        get() {
+            return payLoad.idbHeader.getSignatureCreationDate()
+        }
+
     companion object {
         const val BARCODE_IDENTIFIER: String = "NDB1"
 
-        fun fromString(barcodeString: String): Result<IcaoBarcode> {
+        @Throws(IllegalArgumentException::class)
+        fun fromString(barcodeString: String): IcaoBarcode? {
             val strBuffer = StringBuilder(barcodeString)
 
             if (!strBuffer.substring(0, 4).matches(BARCODE_IDENTIFIER.toRegex())) {
-                return Result.failure(IllegalArgumentException("Didn't found an ICAO Barcode in the given String: $barcodeString"))
+                throw IllegalArgumentException("Didn't found an ICAO Barcode in the given String: $barcodeString")
             }
 
             val barcodeFlag = strBuffer[4]
@@ -76,7 +97,7 @@ class IcaoBarcode {
             }
 
             val payload = IdbPayload.fromByteArray(payloadBytes, isSigned)
-            return Result.success(IcaoBarcode(barcodeFlag, payload))
+            return IcaoBarcode(barcodeFlag, payload)
         }
     }
 }

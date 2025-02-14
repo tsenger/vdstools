@@ -7,7 +7,7 @@ import de.tsenger.vdstools.vds.VdsMessage
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.util.encoders.Hex
-import org.junit.Assert
+import org.junit.Assert.*
 import org.junit.BeforeClass
 import org.junit.Test
 import java.io.FileInputStream
@@ -16,9 +16,8 @@ import java.security.KeyStore
 import java.security.Security
 import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
-import kotlin.test.assertTrue
-import kotlin.test.fail
 
+@OptIn(ExperimentalStdlibApi::class)
 class IcaoBarcodeJvmTest {
 
     companion object {
@@ -40,29 +39,29 @@ class IcaoBarcodeJvmTest {
     @Test
     fun testIsNotSignedIsNotZipped() {
         val icb = IcaoBarcode('A', IdbPayload(IdbHeader("UTO"), IdbMessageGroup(emptyList()), null, null))
-        Assert.assertFalse(icb.isSigned)
-        Assert.assertFalse(icb.isZipped)
+        assertFalse(icb.isSigned)
+        assertFalse(icb.isZipped)
     }
 
     @Test
     fun testIsSignedIsNotZipped() {
         val icb = IcaoBarcode('B', IdbPayload(IdbHeader("UTO"), IdbMessageGroup(emptyList()), null, null))
-        Assert.assertTrue(icb.isSigned)
-        Assert.assertFalse(icb.isZipped)
+        assertTrue(icb.isSigned)
+        assertFalse(icb.isZipped)
     }
 
     @Test
     fun testIsNotSignedIsZipped() {
         val icb = IcaoBarcode('C', IdbPayload(IdbHeader("UTO"), IdbMessageGroup(emptyList()), null, null))
-        Assert.assertFalse(icb.isSigned)
-        Assert.assertTrue(icb.isZipped)
+        assertFalse(icb.isSigned)
+        assertTrue(icb.isZipped)
     }
 
     @Test
     fun testIsSignedIsZipped() {
         val icb = IcaoBarcode('D', IdbPayload(IdbHeader("UTO"), IdbMessageGroup(emptyList()), null, null))
-        Assert.assertTrue(icb.isSigned)
-        Assert.assertTrue(icb.isZipped)
+        assertTrue(icb.isSigned)
+        assertTrue(icb.isZipped)
     }
 
     @Test
@@ -77,7 +76,7 @@ class IcaoBarcodeJvmTest {
         )
         val icb = IcaoBarcode(true, true, payload)
         println(icb.encoded)
-        Assert.assertEquals(
+        assertEquals(
             "NDB1DPDNACWQAUX7WVPABAUCAGAQBACNV3CDBCICBBMFRWKZ3JNNWW64LTOV3XS635P37HASLXOZTF5LCVFHUQ7NWEO4NWVOEUZNZZ5JSVFMYIOTKGTQRP5LDIOUU2XQYP4UCMKKD3BCXTL2G2REAJT3DFD5FEPDSP7ZKYE",
             icb.encoded
         )
@@ -95,7 +94,7 @@ class IcaoBarcodeJvmTest {
         )
         val icb = IcaoBarcode(true, false, payload)
         println(icb.encoded)
-        Assert.assertEquals(
+        assertEquals(
             "NDB1BNK6ACBIEAMBACAE3LWEGCEQECCYLDMVTWS23NN5YXG5LXPF5X27X6OBEXO5TGL2WFKKPJB63MI5Y3NK4JJS3TT2TFKKZQQ5GUNHBC72WGQ5JJVPBQ7ZIEYUUHWCFPGXUNVCIATHWGKH2KI6H",
             icb.encoded
         )
@@ -110,7 +109,7 @@ class IcaoBarcodeJvmTest {
         )
         val icb = IcaoBarcode(false, true, payload)
         println(icb.encoded)
-        Assert.assertEquals("NDB1CPDNACFQA5H7WVPDBCICRBMFRWKZ3JNNWW64LTOV3XS635P4DDIGSO", icb.encoded)
+        assertEquals("NDB1CPDNACFQA5H7WVPDBCICRBMFRWKZ3JNNWW64LTOV3XS635P4DDIGSO", icb.encoded)
     }
 
     @Test
@@ -122,7 +121,7 @@ class IcaoBarcodeJvmTest {
         )
         val icb = IcaoBarcode(false, false, payload)
         println(icb.encoded)
-        Assert.assertEquals("NDB1ANK6GCEQFCCYLDMVTWS23NN5YXG5LXPF5X27Q", icb.encoded)
+        assertEquals("NDB1ANK6GCEQFCCYLDMVTWS23NN5YXG5LXPF5X27Q", icb.encoded)
     }
 
     @Test
@@ -137,77 +136,65 @@ class IcaoBarcodeJvmTest {
         )
         val icb = IcaoBarcode('D', payload)
         println(icb.encoded)
-        Assert.assertEquals(
+        assertEquals(
             "NDB1DPDNACWQAUX7WVPABAUCAGAQBACNV3CDBCICBBMFRWKZ3JNNWW64LTOV3XS635P37HASLXOZTF5LCVFHUQ7NWEO4NWVOEUZNZZ5JSVFMYIOTKGTQRP5LDIOUU2XQYP4UCMKKD3BCXTL2G2REAJT3DFD5FEPDSP7ZKYE",
             icb.encoded
         )
     }
 
+
     @Test
-    @Throws(CertificateException::class, IOException::class)
     fun testFromString_signed_zipped() {
-        val result = IcaoBarcode.fromString(
+        val icb = IcaoBarcode.fromString(
             "NDB1DPDNACWQAUX7WVPABAUCAGAQBACNV3CDBCICBBMFRWKZ3JNNWW64LTOV3XS635P37HASLXOZTF5LCVFHUQ7NWEO4NWVOEUZNZZ5JSVFMYIOTKGTQRP5LDIOUU2XQYP4UCMKKD3BCXTL2G2REAJT3DFD5FEPDSP7ZKYE"
         )
-        result.onSuccess {
-            Assert.assertEquals(
-                "6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7",
-                Hex.toHexString(it.payLoad.encoded)
-            )
-        }
-        result.onFailure { fail() }
+        assertNotNull(icb)
+        assertEquals(
+            "6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7",
+            icb?.payLoad?.encoded?.toHexString()
+        )
 
-        //		System.out.println(Hex.toHexString(barcode.getPayLoad().getEncoded()));
     }
 
     @Test
-    @Throws(CertificateException::class, IOException::class)
     fun testFromString_signed_notZipped() {
-        val result = IcaoBarcode.fromString(
+        val icb = IcaoBarcode.fromString(
             "NDB1BNK6ACBIEAMBACAE3LWEGCEQECCYLDMVTWS23NN5YXG5LXPF5X27X6OBEXO5TGL2WFKKPJB63MI5Y3NK4JJS3TT2TFKKZQQ5GUNHBC72WGQ5JJVPBQ7ZIEYUUHWCFPGXUNVCIATHWGKH2KI6H"
         )
-        result.onSuccess {
-            Assert.assertEquals(
-                "6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7",
-                Hex.toHexString(it.payLoad.encoded)
-            )
-        }
-        result.onFailure { fail() }
-        //		System.out.println(Hex.toHexString(barcode.getPayLoad().getEncoded()));
+        assertNotNull(icb)
+        assertEquals(
+            "6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7",
+            icb?.payLoad?.encoded?.toHexString()
+        )
     }
 
     @Test
-    @Throws(CertificateException::class, IOException::class)
+
     fun testFromString_notSigned_zipped() {
-        val result = IcaoBarcode.fromString("NDB1CPDNACFQA5H7WVPDBCICRBMFRWKZ3JNNWW64LTOV3XS635P4DDIGSO")
-        result.onSuccess {
-            Assert.assertEquals(
-                "6abc61120510b0b1b2b3b4b5b6b7b8b9babbbcbdbebf",
-                Hex.toHexString(it.payLoad.encoded)
-            )
-        }
-        result.onFailure { fail() }
-        //		System.out.println(Hex.toHexString(barcode.getPayLoad().getEncoded()));
+        val icb = IcaoBarcode.fromString("NDB1CPDNACFQA5H7WVPDBCICRBMFRWKZ3JNNWW64LTOV3XS635P4DDIGSO")
+        assertNotNull(icb)
+        assertEquals(
+            "6abc61120510b0b1b2b3b4b5b6b7b8b9babbbcbdbebf",
+            icb?.payLoad?.encoded?.toHexString()
+        )
+
     }
 
     @Test
-    @Throws(CertificateException::class, IOException::class)
     fun testFromString_notSigned_notZipped() {
-        val result = IcaoBarcode.fromString("NDB1ANK6GCEQFCCYLDMVTWS23NN5YXG5LXPF5X27Q")
-        result.onSuccess {
-            Assert.assertEquals(
-                "6abc61120510b0b1b2b3b4b5b6b7b8b9babbbcbdbebf",
-                Hex.toHexString(it.payLoad.encoded)
-            )
-        }
-        result.onFailure { fail() }
-        //		System.out.println(Hex.toHexString(barcode.getPayLoad().getEncoded()));
+        val icb = IcaoBarcode.fromString("NDB1ANK6GCEQFCCYLDMVTWS23NN5YXG5LXPF5X27Q")
+        assertNotNull(icb)
+        assertEquals(
+            "6abc61120510b0b1b2b3b4b5b6b7b8b9babbbcbdbebf",
+            icb?.payLoad?.encoded?.toHexString()
+        )
     }
 
-    @Test
+    @Test(expected = java.lang.IllegalArgumentException::class)
     fun testFromString_invalid_BarcodeIdentifier() {
-        val result = IcaoBarcode.fromString("ADB1ANK6GCEQFCCYLDMVTWS23NN5YXG5LXPF5X27Q")
-        result.onSuccess { fail() }
+
+        val icb = IcaoBarcode.fromString("ADB1ANK6GCEQFCCYLDMVTWS23NN5YXG5LXPF5X27Q")
+        assertNull(icb)
     }
 
     @Test

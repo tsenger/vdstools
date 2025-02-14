@@ -27,7 +27,7 @@ class IdbHeaderJvmTest {
     @Test
     fun testGetCountryIdentifier() {
         val header = IdbHeader.fromByteArray(Hex.decode("6abc010102030405009b5d7e"))
-        Assert.assertEquals("D<<", header.getCountryIdentifier())
+        Assert.assertEquals("D", header.getCountryIdentifier())
     }
 
     @Test

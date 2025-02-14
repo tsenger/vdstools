@@ -44,7 +44,7 @@ class IdbHeader {
     }
 
     fun getCountryIdentifier(): String {
-        return DataEncoder.decodeC40(countryIdentifier).replace(" ".toRegex(), "<")
+        return DataEncoder.decodeC40(countryIdentifier).trim()
     }
 
     fun getSignatureAlgorithm(): IdbSignatureAlgorithm? {

@@ -138,5 +138,11 @@ class DataEncoderCommonTest {
         assertEquals("DETS32", str)
     }
 
+    @Test
+    fun testBuildCertificateReference() {
+        val certRef = DataEncoder.buildCertificateReference(byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9))
+        assertEquals("7b845cacef", certRef.toHexString())
+    }
+
 
 }

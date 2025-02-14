@@ -1,7 +1,7 @@
 package de.tsenger.vdstools.idb
 
-import kotlin.test.assertEquals
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
@@ -26,7 +26,7 @@ class IdbHeaderIosTest {
     @Test
     fun testGetCountryIdentifier() {
         val header = IdbHeader.fromByteArray("6abc010102030405009b5d7e".hexToByteArray())
-        assertEquals("D<<", header.getCountryIdentifier())
+        assertEquals("D", header.getCountryIdentifier())
     }
 
     @Test

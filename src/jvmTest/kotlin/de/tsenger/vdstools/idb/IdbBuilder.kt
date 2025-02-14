@@ -9,6 +9,7 @@ import de.tsenger.vdstools.vds.VdsMessage
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.junit.BeforeClass
+import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.InputStream
@@ -47,6 +48,7 @@ class IdbBuilder {
         val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
 
         generateDmBarcode(icb.encoded, "SubstituteIdentityDocument.png")
+        writeIcbDataFile(icb, "SubstituteIdentityDocument")
         println("Barcode ${icb.encoded}")
     }
 
@@ -80,6 +82,7 @@ class IdbBuilder {
         val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
 
         generateDmBarcode(icb.encoded, "EmergencyTravelDocument.png")
+        writeIcbDataFile(icb, "EmergencyTravelDocument")
         println("Barcode ${icb.encoded}")
     }
 
@@ -110,6 +113,7 @@ class IdbBuilder {
         val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
 
         generateDmBarcode(icb.encoded, "TemporaryPassport.png")
+        writeIcbDataFile(icb, "TemporaryPassport")
         println("Barcode ${icb.encoded}")
     }
 
@@ -140,6 +144,7 @@ class IdbBuilder {
         val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
 
         generateDmBarcode(icb.encoded, "ArrivalAttestation.png")
+        writeIcbDataFile(icb, "ArrivalAttestation")
         println("Barcode ${icb.encoded}")
     }
 
@@ -170,6 +175,7 @@ class IdbBuilder {
         val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
 
         generateDmBarcode(icb.encoded, "ProvisionalResidenceDocument.png")
+        writeIcbDataFile(icb, "ProvisionalResidenceDocument")
         println("Barcode ${icb.encoded}")
     }
 
@@ -197,6 +203,7 @@ class IdbBuilder {
         val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
 
         generateDmBarcode(icb.encoded, "CertifyingPermanentResidence.png")
+        writeIcbDataFile(icb, "CertifyingPermanentResidence")
         println("Barcode ${icb.encoded}")
     }
 
@@ -222,6 +229,7 @@ class IdbBuilder {
         val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
 
         generateDmBarcode(icb.encoded, "FrontierWorkerPermit.png")
+        writeIcbDataFile(icb, "FrontierWorkerPermit")
         println("Barcode ${icb.encoded}")
     }
 
@@ -251,6 +259,7 @@ class IdbBuilder {
         val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
 
         generateDmBarcode(icb.encoded, "SupplementarySheetResidencePermit.png")
+        writeIcbDataFile(icb, "SupplementarySheetResidencePermit")
         println("Barcode ${icb.encoded}")
     }
 
@@ -268,6 +277,13 @@ class IdbBuilder {
         // Define your own export Path and uncomment if needed
         val path = Path.of("generated_barcodes/$filename").createParentDirectories()
         MatrixToImageWriter.writeToPath(bitMatrix, "PNG", path)
+    }
+
+    fun writeIcbDataFile(icb: IcaoBarcode, filename: String) {
+        val payloadFile = File("generated_barcodes/${filename}_payload.txt")
+        payloadFile.writeText(icb.payLoad.encoded.toHexString())
+        val base32File = File("generated_barcodes/${filename}_base32.txt")
+        base32File.writeText(icb.encoded)
     }
 
     fun readBinaryFromResource(fileName: String): ByteArray {
