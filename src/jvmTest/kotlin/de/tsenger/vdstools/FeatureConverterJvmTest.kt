@@ -32,16 +32,6 @@ class FeatureConverterJvmTest {
         Assert.assertEquals("PASSPORT_NUMBER", feature)
     }
 
-    @Test
-    fun testDecodeFeature_String() {
-        val jsonString = readTextResource("SealCodings.json")
-        val featureConverter = FeatureConverter(jsonString)
-        val value = featureConverter.decodeFeature<String>(
-            "FICTION_CERT",
-            DerTlv.fromByteArray(Hex.decode("0306d79519a65306"))!!
-        )
-        Assert.assertEquals("UFO001979", value)
-    }
 
     @Test
     fun testEncodeFeature_String() {

@@ -72,9 +72,6 @@ class DigitalSeal : Seal {
     val featureList: List<Feature>
         get() = vdsMessage.featureList
 
-    fun getFeature(feature: String): Feature? {
-        return vdsMessage.getFeature(feature)
-    }
 
     private fun createVdsSignature(vdsHeader: VdsHeader, vdsMessage: VdsMessage, signer: Signer): VdsSignature? {
         val headerMessage = vdsHeader.encoded + vdsMessage.encoded
@@ -94,7 +91,10 @@ class DigitalSeal : Seal {
 
     override fun getMessage(tag: Int): Message? {
         val feature = vdsMessage.getFeature(tag)
-        return feature?.let { Message(it.tag, it.name, it.valueBytes, it.coding) }
+        if (feature != null) {
+            return Message(feature.tag, feature.name, feature.valueBytes, feature.coding)
+        }
+        return null
     }
 
     override fun getPlainSignature(): ByteArray? {

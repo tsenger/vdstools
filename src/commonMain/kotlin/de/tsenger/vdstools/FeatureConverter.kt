@@ -68,16 +68,6 @@ class FeatureConverter(jsonString: String) {
         return getCoding(sealDto, tag)
     }
 
-    @Throws(IllegalArgumentException::class)
-    fun <T> decodeFeature(vdsType: String, derTlv: DerTlv): T {
-        if (!vdsTypes.containsKey(vdsType)) {
-            log.w("No seal type with name '$vdsType' was found.")
-            throw IllegalArgumentException("No seal type with name '$vdsType' was found.")
-        }
-        val sealDto = getSealDto(vdsType)
-        return decodeFeature(sealDto, derTlv)
-    }
-
 
     @Throws(IllegalArgumentException::class)
     fun <T> encodeFeature(vdsType: String, feature: String, inputValue: T): DerTlv {
@@ -117,26 +107,6 @@ class FeatureConverter(jsonString: String) {
         return DerTlv(tag, value)
     }
 
-    @Suppress("IMPLICIT_CAST_TO_ANY")
-    private fun <T> decodeFeature(sealDto: SealDto, derTlv: DerTlv): T {
-        val tag = derTlv.tag
-        val coding = getCoding(sealDto, tag)
-        val result = when (coding) {
-            FeatureCoding.C40 -> DataEncoder.decodeC40(derTlv.value)
-            FeatureCoding.UTF8_STRING -> derTlv.value.decodeToString()
-            FeatureCoding.BYTE -> derTlv.value[0]
-            FeatureCoding.BYTES -> derTlv.value
-            FeatureCoding.MASKED_DATE -> DataEncoder.decodeMaskedDate(derTlv.value)
-            FeatureCoding.UNKNOWN -> derTlv.value
-            FeatureCoding.MRZ -> {
-                val unformattedMrz = DataEncoder.decodeC40(derTlv.value)
-                val mrzLength = getFeatureDto(sealDto, tag).decodedLength
-                DataEncoder.formatMRZ(unformattedMrz, mrzLength)
-            }
-        }
-        @Suppress("UNCHECKED_CAST")
-        return result as T
-    }
 
     @Throws(IllegalArgumentException::class)
     private fun getTag(sealDto: SealDto, feature: String): Byte {

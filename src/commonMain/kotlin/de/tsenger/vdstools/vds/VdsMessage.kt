@@ -34,11 +34,9 @@ class VdsMessage {
          * @return  a list of all decoded Features
          */
         get() {
-            val featureList: MutableList<Feature> =
-                ArrayList()
+            val featureList: MutableList<Feature> = ArrayList()
             for (derTlv in derTlvList) {
-                val feature = DataEncoder.encodeDerTlv(vdsType, derTlv)
-                if (feature != null) featureList.add(feature)
+                Feature.fromDerTlv(vdsType, derTlv)?.let { featureList.add(it) }
             }
             return featureList
         }
