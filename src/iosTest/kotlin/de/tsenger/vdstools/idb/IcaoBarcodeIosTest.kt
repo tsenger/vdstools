@@ -102,7 +102,7 @@ class IcaoBarcodeIosTest {
     fun testFromString_signed_zipped() {
         val icb = IcaoBarcode.fromString(
             "NDB1DPDNACWQAUX7WVPABAUCAGAQBACNV3CDBCICBBMFRWKZ3JNNWW64LTOV3XS635P37HASLXOZTF5LCVFHUQ7NWEO4NWVOEUZNZZ5JSVFMYIOTKGTQRP5LDIOUU2XQYP4UCMKKD3BCXTL2G2REAJT3DFD5FEPDSP7ZKYE"
-        )
+        ) as IcaoBarcode
         assertNotNull(icb)
         assertEquals(
             "6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7",
@@ -115,7 +115,7 @@ class IcaoBarcodeIosTest {
     fun testFromString_signed_notZipped() {
         val icb = IcaoBarcode.fromString(
             "NDB1BNK6ACBIEAMBACAE3LWEGCEQECCYLDMVTWS23NN5YXG5LXPF5X27X6OBEXO5TGL2WFKKPJB63MI5Y3NK4JJS3TT2TFKKZQQ5GUNHBC72WGQ5JJVPBQ7ZIEYUUHWCFPGXUNVCIATHWGKH2KI6H"
-        )
+        ) as IcaoBarcode
         assertNotNull(icb)
         assertEquals(
             "6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7",
@@ -126,7 +126,7 @@ class IcaoBarcodeIosTest {
     @Test
 
     fun testFromString_notSigned_zipped() {
-        val icb = IcaoBarcode.fromString("NDB1CPDNACFQA5H7WVPDBCICRBMFRWKZ3JNNWW64LTOV3XS635P4DDIGSO")
+        val icb = IcaoBarcode.fromString("NDB1CPDNACFQA5H7WVPDBCICRBMFRWKZ3JNNWW64LTOV3XS635P4DDIGSO") as IcaoBarcode
         assertNotNull(icb)
         assertEquals(
             "6abc61120510b0b1b2b3b4b5b6b7b8b9babbbcbdbebf",
@@ -137,7 +137,7 @@ class IcaoBarcodeIosTest {
 
     @Test
     fun testFromString_notSigned_notZipped() {
-        val icb = IcaoBarcode.fromString("NDB1ANK6GCEQFCCYLDMVTWS23NN5YXG5LXPF5X27Q")
+        val icb = IcaoBarcode.fromString("NDB1ANK6GCEQFCCYLDMVTWS23NN5YXG5LXPF5X27Q") as IcaoBarcode
         assertNotNull(icb)
         assertEquals(
             "6abc61120510b0b1b2b3b4b5b6b7b8b9babbbcbdbebf",

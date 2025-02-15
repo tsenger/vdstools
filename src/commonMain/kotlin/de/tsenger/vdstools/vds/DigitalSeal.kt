@@ -61,12 +61,12 @@ class DigitalSeal : Seal {
         get() = vdsHeader.encoded + vdsMessage.encoded
 
     val encoded: ByteArray
-        get() = vdsHeader.encoded + vdsMessage.encoded + (vdsSignature?.encoded ?: ByteArray(0))
+        get() = vdsHeader.encoded + vdsMessage.encoded + (vdsSignature?.encoded ?: byteArrayOf())
 
     val signatureBytes: ByteArray
-        get() = vdsSignature!!.plainSignatureBytes
+        get() = vdsSignature?.plainSignatureBytes ?: byteArrayOf()
 
-    val rawString: String
+    override val rawString: String
         get() = DataEncoder.encodeBase256(encoded)
 
     val featureList: List<Feature>
@@ -88,19 +88,17 @@ class DigitalSeal : Seal {
     }
 
     override fun getMessage(name: String): Message? {
-        TODO("Not yet implemented")
+        val feature = vdsMessage.getFeature(name)
+        return feature?.let { Message(it.tag, it.name, it.valueBytes, it.coding) }
     }
 
     override fun getMessage(tag: Int): Message? {
-        TODO("Not yet implemented")
+        val feature = vdsMessage.getFeature(tag)
+        return feature?.let { Message(it.tag, it.name, it.valueBytes, it.coding) }
     }
 
     override fun getPlainSignature(): ByteArray? {
-        TODO("Not yet implemented")
-    }
-
-    override fun getEncoded(): String {
-        TODO("Not yet implemented")
+        return signatureBytes
     }
 
 

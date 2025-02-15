@@ -18,7 +18,7 @@ import kotlin.test.assertNotNull
 class IcbJvmTest {
     @Test
     fun testParseAusweisersatz() {
-        val icb = IcaoBarcode.fromString(IcbRawStrings.SubstituteIdentityDocument)
+        val icb = IcaoBarcode.fromString(IcbRawStrings.SubstituteIdentityDocument) as IcaoBarcode
         assertNotNull(icb)
 
         val numberOfMessages = icb.payLoad.idbMessageGroup.messagesList.size
@@ -44,7 +44,7 @@ class IcbJvmTest {
 
     @Test
     fun testEmergencyTravelDocument() {
-        val icb = IcaoBarcode.fromString(IcbRawStrings.EmergencyTravelDocument)
+        val icb = IcaoBarcode.fromString(IcbRawStrings.EmergencyTravelDocument) as IcaoBarcode
         assertNotNull(icb)
 
         val numberOfMessages = icb.payLoad.idbMessageGroup.messagesList.size
@@ -68,7 +68,7 @@ class IcbJvmTest {
 
     @Test
     fun testTemporaryPassport() {
-        val icb = IcaoBarcode.fromString(IcbRawStrings.TemporaryPassport)
+        val icb = IcaoBarcode.fromString(IcbRawStrings.TemporaryPassport) as IcaoBarcode
         assertNotNull(icb)
 
         val numberOfMessages = icb.payLoad.idbMessageGroup.messagesList.size
@@ -90,7 +90,7 @@ class IcbJvmTest {
 
     @Test
     fun testArrivalAttestation() {
-        val icb = IcaoBarcode.fromString(IcbRawStrings.ArrivalAttestation)
+        val icb = IcaoBarcode.fromString(IcbRawStrings.ArrivalAttestation) as IcaoBarcode
         assertNotNull(icb)
 
         val numberOfMessages = icb.payLoad.idbMessageGroup.messagesList.size
@@ -112,7 +112,7 @@ class IcbJvmTest {
 
     @Test
     fun testProvisionalResidenceDocument() {
-        val icb = IcaoBarcode.fromString(IcbRawStrings.ProvisionalResidenceDocument)
+        val icb = IcaoBarcode.fromString(IcbRawStrings.ProvisionalResidenceDocument) as IcaoBarcode
         assertNotNull(icb)
 
         val numberOfMessages = icb.payLoad.idbMessageGroup.messagesList.size
@@ -135,7 +135,7 @@ class IcbJvmTest {
 
     @Test
     fun testCertifyingPermanentResidence() {
-        val icb = IcaoBarcode.fromString(IcbRawStrings.CertifyingPermanentResidence)
+        val icb = IcaoBarcode.fromString(IcbRawStrings.CertifyingPermanentResidence) as IcaoBarcode
         assertNotNull(icb)
 
         val numberOfMessages = icb.payLoad.idbMessageGroup.messagesList.size
@@ -153,7 +153,7 @@ class IcbJvmTest {
 
     @Test
     fun testFrontierWorkerPermit() {
-        val icb = IcaoBarcode.fromString(IcbRawStrings.FrontierWorkerPermit)
+        val icb = IcaoBarcode.fromString(IcbRawStrings.FrontierWorkerPermit) as IcaoBarcode
         assertNotNull(icb)
 
         val numberOfMessages = icb.payLoad.idbMessageGroup.messagesList.size
@@ -175,7 +175,7 @@ class IcbJvmTest {
 
     @Test
     fun testSupplementarySheetResidencePermit() {
-        val icb = IcaoBarcode.fromString(IcbRawStrings.SupplementarySheetResidencePermit)
+        val icb = IcaoBarcode.fromString(IcbRawStrings.SupplementarySheetResidencePermit) as IcaoBarcode
         assertNotNull(icb)
 
         val numberOfMessages = icb.payLoad.idbMessageGroup.messagesList.size

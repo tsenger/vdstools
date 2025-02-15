@@ -46,11 +46,13 @@ class IcaoBarcode : Seal {
 
 
     override fun getMessage(name: String): Message? {
-        return payLoad.idbMessageGroup.getMessage(name) as Message
+        val idbMessage = payLoad.idbMessageGroup.getMessage(name)
+        return idbMessage?.let { Message(it.messageTypeTag, it.messageTypeName, it.valueBytes, it.coding) }
     }
 
     override fun getMessage(tag: Int): Message? {
-        return payLoad.idbMessageGroup.getMessage(tag) as Message
+        val idbMessage = payLoad.idbMessageGroup.getMessage(tag)
+        return idbMessage?.let { Message(it.messageTypeTag, it.messageTypeName, it.valueBytes, it.coding) }
     }
 
     override fun getPlainSignature(): ByteArray? {

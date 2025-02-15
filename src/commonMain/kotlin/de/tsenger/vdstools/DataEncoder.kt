@@ -284,9 +284,10 @@ object DataEncoder {
     fun encodeDerTlv(vdsType: String, derTlv: DerTlv): Feature? {
         val value = featureEncoder.decodeFeature<Any>(vdsType, derTlv)
         val name = featureEncoder.getFeatureName(vdsType, derTlv)
+        val tag = derTlv.tag.toInt()
         val coding = featureEncoder.getFeatureCoding(vdsType, derTlv)
         if (name == "" || coding == FeatureCoding.UNKNOWN) return null
-        return Feature(name, value, coding)
+        return Feature(tag, name, value, coding)
     }
 
 

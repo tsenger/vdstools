@@ -1,19 +1,33 @@
 package de.tsenger.vdstools.generic
 
-sealed class Message {
-    data class Text(val value: String) : Message()
-    data class Binary(val value: ByteArray) : Message() {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other == null || this::class != other::class) return false
-            other as Binary
-            return value.contentEquals(other.value)
-        }
+import de.tsenger.vdstools.DataEncoder
+import de.tsenger.vdstools.vds.FeatureCoding
 
-        override fun hashCode(): Int {
-            return value.contentHashCode()
-        }
-    }
+@OptIn(ExperimentalStdlibApi::class)
+class Message(typeTag: Int, typeName: String, value: ByteArray, coding: FeatureCoding) {
+    val messageTypeTag = typeTag
+    val messageTypeName = typeName
+    private val messageContent: ByteArray = value
+    private val messageCoding = coding
 
-    data class Numeric(val value: Int) : Message()
+    val valueBytes: ByteArray
+        get() = messageContent
+
+    val valueInt: Int
+        get() = messageContent[0].toInt() and 0xFF
+
+
+    val valueStr: String
+        get() =
+            when (messageCoding) {
+                FeatureCoding.BYTE -> valueInt.toString()
+                FeatureCoding.C40 -> DataEncoder.decodeC40(messageContent)
+                FeatureCoding.UTF8_STRING -> messageContent.toString()
+                FeatureCoding.MASKED_DATE -> DataEncoder.decodeMaskedDate(messageContent)
+                FeatureCoding.BYTES, FeatureCoding.UNKNOWN -> messageContent.toHexString()
+                FeatureCoding.MRZ -> {
+                    val unformattedMrz = DataEncoder.decodeC40(messageContent)
+                    DataEncoder.formatMRZ(unformattedMrz, unformattedMrz.length)
+                }
+            }
 }

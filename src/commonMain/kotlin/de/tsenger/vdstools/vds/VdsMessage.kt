@@ -47,6 +47,10 @@ class VdsMessage {
         return featureList.firstOrNull { feature: Feature -> feature.name == featureName }
     }
 
+    fun getFeature(featureTag: Int): Feature? {
+        return featureList.firstOrNull { feature: Feature -> feature.tag == featureTag }
+    }
+
     class Builder(val vdsType: String) {
         val derTlvList: MutableList<DerTlv> = ArrayList(5)
 
