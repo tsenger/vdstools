@@ -5,11 +5,13 @@ import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.Signer
 import de.tsenger.vdstools.asn1.DerTlv
+import de.tsenger.vdstools.generic.Message
+import de.tsenger.vdstools.generic.Seal
 import kotlinx.datetime.LocalDate
 import okio.Buffer
 
 
-class DigitalSeal {
+class DigitalSeal : Seal {
     private val log = Logger.withTag(this::class.simpleName ?: "")
 
     val vdsType: String
@@ -85,31 +87,47 @@ class DigitalSeal {
         }
     }
 
+    override fun getMessage(name: String): Message? {
+        TODO("Not yet implemented")
+    }
+
+    override fun getMessage(tag: Int): Message? {
+        TODO("Not yet implemented")
+    }
+
+    override fun getPlainSignature(): ByteArray? {
+        TODO("Not yet implemented")
+    }
+
+    override fun getEncoded(): String {
+        TODO("Not yet implemented")
+    }
+
 
     companion object {
         private val log = Logger.withTag(this::class.simpleName ?: "")
-        fun fromRawString(rawString: String): DigitalSeal? {
-            var seal: DigitalSeal? = null
+        fun fromRawString(rawString: String): Seal {
+            var seal: Seal? = null
             try {
                 seal = parseVdsSeal(DataEncoder.decodeBase256(rawString))
             } catch (e: Exception) {
                 log.e(e.message.toString())
             }
-            return seal
+            return seal!!
         }
 
-        fun fromByteArray(rawBytes: ByteArray): DigitalSeal? {
-            var seal: DigitalSeal? = null
+        fun fromByteArray(rawBytes: ByteArray): Seal {
+            var seal: Seal? = null
             try {
                 seal = parseVdsSeal(rawBytes)
             } catch (e: Exception) {
                 log.e(e.message.toString())
             }
-            return seal
+            return seal!!
         }
 
         @OptIn(ExperimentalStdlibApi::class)
-        private fun parseVdsSeal(rawBytes: ByteArray): DigitalSeal {
+        private fun parseVdsSeal(rawBytes: ByteArray): Seal {
             val rawDataBuffer = Buffer().write(rawBytes)
             log.v("rawData: ${rawBytes.toHexString()}")
 

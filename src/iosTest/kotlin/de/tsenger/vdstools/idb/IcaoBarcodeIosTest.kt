@@ -40,10 +40,10 @@ class IcaoBarcodeIosTest {
             true
         )
         val icb = IcaoBarcode(true, true, payload)
-        println(icb.encoded)
+        println(icb.rawString)
         assertEquals(
             "NDB1DPDNACWQAUX7WVPABAUCAGAQBACNV3CDBCICBBMFRWKZ3JNNWW64LTOV3XS635P37HASLXOZTF5LCVFHUQ7NWEO4NWVOEUZNZZ5JSVFMYIOTKGTQRP5LDIOUU2XQYP4UCMKKD3BCXTL2G2REAJT3DFD5FEPDSP7ZKYE",
-            icb.encoded
+            icb.rawString
         )
     }
 
@@ -55,10 +55,10 @@ class IcaoBarcodeIosTest {
             true
         )
         val icb = IcaoBarcode(true, false, payload)
-        println(icb.encoded)
+        println(icb.rawString)
         assertEquals(
             "NDB1BNK6ACBIEAMBACAE3LWEGCEQECCYLDMVTWS23NN5YXG5LXPF5X27X6OBEXO5TGL2WFKKPJB63MI5Y3NK4JJS3TT2TFKKZQQ5GUNHBC72WGQ5JJVPBQ7ZIEYUUHWCFPGXUNVCIATHWGKH2KI6H",
-            icb.encoded
+            icb.rawString
         )
     }
 
@@ -69,8 +69,8 @@ class IcaoBarcodeIosTest {
             false
         )
         val icb = IcaoBarcode(false, true, payload)
-        println(icb.encoded)
-        assertEquals("NDB1CPDNACFQA5H7WVPDBCICRBMFRWKZ3JNNWW64LTOV3XS635P4DDIGSO", icb.encoded)
+        println(icb.rawString)
+        assertEquals("NDB1CPDNACFQA5H7WVPDBCICRBMFRWKZ3JNNWW64LTOV3XS635P4DDIGSO", icb.rawString)
     }
 
     @Test
@@ -80,8 +80,8 @@ class IcaoBarcodeIosTest {
             false
         )
         val icb = IcaoBarcode(false, false, payload)
-        println(icb.encoded)
-        assertEquals("NDB1ANK6GCEQFCCYLDMVTWS23NN5YXG5LXPF5X27Q", icb.encoded)
+        println(icb.rawString)
+        assertEquals("NDB1ANK6GCEQFCCYLDMVTWS23NN5YXG5LXPF5X27Q", icb.rawString)
     }
 
     @Test
@@ -91,10 +91,10 @@ class IcaoBarcodeIosTest {
             true
         )
         val icb = IcaoBarcode('D', payload)
-        println(icb.encoded)
+        println(icb.rawString)
         assertEquals(
             "NDB1DPDNACWQAUX7WVPABAUCAGAQBACNV3CDBCICBBMFRWKZ3JNNWW64LTOV3XS635P37HASLXOZTF5LCVFHUQ7NWEO4NWVOEUZNZZ5JSVFMYIOTKGTQRP5LDIOUU2XQYP4UCMKKD3BCXTL2G2REAJT3DFD5FEPDSP7ZKYE",
-            icb.encoded
+            icb.rawString
         )
     }
 

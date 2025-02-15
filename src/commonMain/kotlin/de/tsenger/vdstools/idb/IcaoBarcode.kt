@@ -3,8 +3,10 @@ package de.tsenger.vdstools.idb
 
 import de.tsenger.vdstools.Base32
 import de.tsenger.vdstools.DataEncoder
+import de.tsenger.vdstools.generic.Message
+import de.tsenger.vdstools.generic.Seal
 
-class IcaoBarcode {
+class IcaoBarcode : Seal {
     private var barcodeFlag: Char = 0x41.toChar()
     var payLoad: IdbPayload
 
@@ -25,7 +27,7 @@ class IcaoBarcode {
     val isZipped: Boolean
         get() = (((barcodeFlag.code.toByte()) - 0x41).toByte().toInt() and 0x02) == 0x02
 
-    val encoded: String
+    override val rawString: String
         get() {
             val strBuffer = StringBuilder(BARCODE_IDENTIFIER)
             strBuffer.append(barcodeFlag)
@@ -42,13 +44,19 @@ class IcaoBarcode {
             return strBuffer.toString()
         }
 
-    fun getMessage(name: String): IdbMessage? {
-        return payLoad.idbMessageGroup.getMessage(name)
+
+    override fun getMessage(name: String): Message? {
+        return payLoad.idbMessageGroup.getMessage(name) as Message
     }
 
-    fun getMessage(tag: Int): IdbMessage? {
-        return payLoad.idbMessageGroup.getMessage(tag)
+    override fun getMessage(tag: Int): Message? {
+        return payLoad.idbMessageGroup.getMessage(tag) as Message
     }
+
+    override fun getPlainSignature(): ByteArray? {
+        return payLoad.idbSignature?.plainSignatureBytes
+    }
+
 
     val signature: IdbSignature?
         get() {
@@ -74,7 +82,7 @@ class IcaoBarcode {
         const val BARCODE_IDENTIFIER: String = "NDB1"
 
         @Throws(IllegalArgumentException::class)
-        fun fromString(barcodeString: String): IcaoBarcode? {
+        fun fromString(barcodeString: String): Seal {
             val strBuffer = StringBuilder(barcodeString)
 
             if (!strBuffer.substring(0, 4).matches(BARCODE_IDENTIFIER.toRegex())) {
