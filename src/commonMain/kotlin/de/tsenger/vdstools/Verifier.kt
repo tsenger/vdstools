@@ -25,7 +25,7 @@ class Verifier(
         digitalSeal: DigitalSeal,
         publicKeyBytes: ByteArray,
         curveName: String
-    ) : this(digitalSeal.headerAndMessageBytes, digitalSeal.signatureBytes, publicKeyBytes, curveName)
+    ) : this(digitalSeal.signedBytes, digitalSeal.signatureBytes, publicKeyBytes, curveName)
 
 
     private val log = Logger.withTag(this::class.simpleName ?: "")

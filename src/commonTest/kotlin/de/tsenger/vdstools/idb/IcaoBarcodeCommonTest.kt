@@ -172,7 +172,7 @@ class IcaoBarcodeCommonTest {
         val icb = IcaoBarcode.fromString(certifyingPermanentResidence) as IcaoBarcode
         assertNotNull(icb)
         assertEquals(
-            "D", icb.countryIdentifier
+            "D", icb.issuingCountry
         )
     }
 

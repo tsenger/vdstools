@@ -7,6 +7,7 @@ import de.tsenger.vdstools.Signer
 import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.Seal
+import de.tsenger.vdstools.generic.SignatureInfo
 import kotlinx.datetime.LocalDate
 import okio.Buffer
 
@@ -33,7 +34,7 @@ class DigitalSeal : Seal {
         this.vdsType = vdsHeader.vdsType
     }
 
-    val issuingCountry: String
+    override val issuingCountry: String
         get() = vdsHeader.issuingCountry
 
     val signerCertRef: String
@@ -57,7 +58,7 @@ class DigitalSeal : Seal {
     val docTypeCat: Byte
         get() = vdsHeader.docTypeCat
 
-    val headerAndMessageBytes: ByteArray
+    override val signedBytes: ByteArray
         get() = vdsHeader.encoded + vdsMessage.encoded
 
     val encoded: ByteArray
@@ -97,10 +98,30 @@ class DigitalSeal : Seal {
         return null
     }
 
-    override fun getPlainSignature(): ByteArray? {
-        return signatureBytes
-    }
+    override val signatureInfo: SignatureInfo?
+        get() {
+            if (signatureBytes.isEmpty()) return null
+            val fieldSize = signatureBytes.size * 4
+            val signatureAlgorithm = when (fieldSize) {
+                in Int.MIN_VALUE..224 -> "SHA224_WITH_ECDSA"
+                in 225..256 -> "SHA256_WITH_ECDSA"
+                in 257..384 -> "SHA384_WITH_ECDSA"
+                in 385..512 -> "SHA512_WITH_ECDSA"
+                else -> ""
+            }
+            return SignatureInfo(
+                plainSignatureBytes = signatureBytes,
+                signerCertificateReference = signerCertRef,
+                signingDate = sigDate ?: LocalDate(1970, 1, 1),
+                signerCertificateBytes = null,
+                signatureAlgorithm = signatureAlgorithm,
+            )
+        }
 
+    override val messageList: List<Message>
+        get() = vdsMessage.featureList.map { feature ->
+            Message(feature.tag, feature.name, feature.valueBytes, feature.coding)
+        }
 
     companion object {
         private val log = Logger.withTag(this::class.simpleName ?: "")

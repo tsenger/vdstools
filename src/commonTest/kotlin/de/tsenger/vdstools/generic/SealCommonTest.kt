@@ -48,14 +48,44 @@ class SealCommonTest {
     @Test
     fun testIdbGetPlainSignature() {
         val seal = Seal.fromString(IcbRawStringsCommon.TemporaryPassport)
-        println(seal.getPlainSignature()?.toHexString())
-        val signature = seal.getPlainSignature()
+        println(seal.signatureInfo?.plainSignatureBytes?.toHexString())
+        val signature = seal.signatureInfo?.plainSignatureBytes
         assertNotNull(signature)
         assertEquals(64, signature.size)
         assertContentEquals(
             "5d31b07d744257e59bc43316cc6420d61464e5a0381897e99299813bfa7c857943edd6393ecd0bb74809f3a280c08156057000e93a1116eb1bf3336bbeb65c29".hexToByteArray(),
             signature
         )
+    }
+
+    @Test
+    fun testIdbMessageList() {
+        val seal = Seal.fromString(IcbRawStringsCommon.TemporaryPassport)
+        assertEquals(4, seal.messageList.size)
+        assertTrue(seal.messageList.any { it.messageTypeName == "MRZ_TD3" })
+    }
+
+    @Test
+    fun testIdbIssuingCountry() {
+        val seal = Seal.fromString(IcbRawStringsCommon.TemporaryPassport)
+        assertEquals("D", seal.issuingCountry)
+    }
+
+    @Test
+    fun testIdbSignerInfo() {
+        val seal = Seal.fromString(IcbRawStringsCommon.TemporaryPassport)
+        val signatureInfo = seal.signatureInfo
+        assertNotNull(signatureInfo)
+        assertEquals("SHA256_WITH_ECDSA", signatureInfo.signatureAlgorithm)
+        assertEquals("a57a790577", signatureInfo.signerCertificateReference)
+        assertEquals(64, signatureInfo.plainSignatureBytes.size)
+        assertNull(signatureInfo.signerCertificateBytes)
+    }
+
+    @Test
+    fun testIdbSignedBytes() {
+        val seal = Seal.fromString(IcbRawStringsCommon.TemporaryPassport)
+        assertEquals(1089, seal.signedBytes?.size)
     }
 
     @Test
@@ -95,13 +125,47 @@ class SealCommonTest {
     fun testVdsGetPlainSignature() {
         val rawString = DataEncoder.encodeBase256(VdsRawBytesCommon.emergenyTravelDoc)
         val seal = Seal.fromString(rawString)
-        val signature = seal.getPlainSignature()
+        val signature = seal.signatureInfo?.plainSignatureBytes
         assertNotNull(signature)
         assertEquals(64, signature.size)
         assertContentEquals(
             "22f8bd19eccba4ef24f204787796dd914fec61f605b153b22a6ef307d3869938a4e7e908f0a63b8379880b395c7fdbac720d7f2836d08e1da62611614a00120b".hexToByteArray(),
             signature
         )
+    }
+
+    @Test
+    fun testVdsMessageList() {
+        val rawString = DataEncoder.encodeBase256(VdsRawBytesCommon.emergenyTravelDoc)
+        val seal = Seal.fromString(rawString)
+        assertEquals(1, seal.messageList.size)
+        assertTrue(seal.messageList.any { it.messageTypeName == "MRZ" })
+    }
+
+    @Test
+    fun testVdsIssuingCountry() {
+        val rawString = DataEncoder.encodeBase256(VdsRawBytesCommon.emergenyTravelDoc)
+        val seal = Seal.fromString(rawString)
+        assertEquals("UTO", seal.issuingCountry)
+    }
+
+    @Test
+    fun testVdsSignerInfo() {
+        val rawString = DataEncoder.encodeBase256(VdsRawBytesCommon.emergenyTravelDoc)
+        val seal = Seal.fromString(rawString)
+        val signatureInfo = seal.signatureInfo
+        assertNotNull(signatureInfo)
+        assertEquals("SHA256_WITH_ECDSA", signatureInfo.signatureAlgorithm)
+        assertEquals("UTTS5B", signatureInfo.signerCertificateReference)
+        assertEquals(64, signatureInfo.plainSignatureBytes.size)
+        assertNull(signatureInfo.signerCertificateBytes)
+    }
+
+    @Test
+    fun testVdsSignedBytes() {
+        val rawString = DataEncoder.encodeBase256(VdsRawBytesCommon.emergenyTravelDoc)
+        val seal = Seal.fromString(rawString)
+        assertEquals(68, seal.signedBytes?.size)
     }
 
 

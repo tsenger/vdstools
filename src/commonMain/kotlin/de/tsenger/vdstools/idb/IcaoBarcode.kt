@@ -5,7 +5,10 @@ import de.tsenger.vdstools.Base32
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.Seal
+import de.tsenger.vdstools.generic.SignatureInfo
+import kotlinx.datetime.LocalDate
 
+@OptIn(ExperimentalStdlibApi::class)
 class IcaoBarcode : Seal {
     private var barcodeFlag: Char = 0x41.toChar()
     var payLoad: IdbPayload
@@ -55,9 +58,31 @@ class IcaoBarcode : Seal {
         return idbMessage?.let { Message(it.messageTypeTag, it.messageTypeName, it.valueBytes, it.coding) }
     }
 
-    override fun getPlainSignature(): ByteArray? {
-        return payLoad.idbSignature?.plainSignatureBytes
-    }
+    override val messageList: List<Message>
+        get() = payLoad.idbMessageGroup.messagesList.map { idbMessage ->
+            Message(idbMessage.messageTypeTag, idbMessage.messageTypeName, idbMessage.valueBytes, idbMessage.coding)
+        }
+
+    override val signatureInfo: SignatureInfo?
+        get() {
+            val idbSignature = payLoad.idbSignature
+            if (!isSigned || idbSignature == null) return null
+            var sigDate = LocalDate(1970, 1, 1)
+            try {
+                sigDate = LocalDate.parse(payLoad.idbHeader.getSignatureCreationDate() ?: "1970-01-01")
+            } catch (_: IllegalArgumentException) {
+            }
+            return SignatureInfo(
+                plainSignatureBytes = idbSignature.plainSignatureBytes,
+                signerCertificateReference = payLoad.idbHeader.certificateReference?.toHexString() ?: "",
+                signingDate = sigDate,
+                signerCertificateBytes = null,
+                signatureAlgorithm = payLoad.idbHeader.getSignatureAlgorithm()?.name
+            )
+        }
+
+    override val signedBytes: ByteArray?
+        get() = payLoad.idbHeader.encoded + payLoad.idbMessageGroup.encoded
 
 
     val signature: IdbSignature?
@@ -65,7 +90,7 @@ class IcaoBarcode : Seal {
             return payLoad.idbSignature
         }
 
-    val countryIdentifier: String
+    override val issuingCountry: String
         get() {
             return payLoad.idbHeader.getCountryIdentifier()
         }
