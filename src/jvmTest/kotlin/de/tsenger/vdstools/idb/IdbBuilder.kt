@@ -47,9 +47,9 @@ class IdbBuilder {
         val payload = IdbPayload(header, messageGroup, null, signature)
         val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
 
-        generateDmBarcode(icb.encoded, "SubstituteIdentityDocument.png")
+        generateDmBarcode(icb.rawString, "SubstituteIdentityDocument.png")
         writeIcbDataFile(icb, "SubstituteIdentityDocument")
-        println("Barcode ${icb.encoded}")
+        println("Barcode ${icb.rawString}")
     }
 
     @Test
@@ -81,9 +81,9 @@ class IdbBuilder {
         val payload = IdbPayload(header, messageGroup, null, signature)
         val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
 
-        generateDmBarcode(icb.encoded, "EmergencyTravelDocument.png")
+        generateDmBarcode(icb.rawString, "EmergencyTravelDocument.png")
         writeIcbDataFile(icb, "EmergencyTravelDocument")
-        println("Barcode ${icb.encoded}")
+        println("Barcode ${icb.rawString}")
     }
 
     @Test
@@ -112,9 +112,9 @@ class IdbBuilder {
         val payload = IdbPayload(header, messageGroup, null, signature)
         val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
 
-        generateDmBarcode(icb.encoded, "TemporaryPassport.png")
+        generateDmBarcode(icb.rawString, "TemporaryPassport.png")
         writeIcbDataFile(icb, "TemporaryPassport")
-        println("Barcode ${icb.encoded}")
+        println("Barcode ${icb.rawString}")
     }
 
     @Test
@@ -143,9 +143,9 @@ class IdbBuilder {
         val payload = IdbPayload(header, messageGroup, null, signature)
         val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
 
-        generateDmBarcode(icb.encoded, "ArrivalAttestation.png")
+        generateDmBarcode(icb.rawString, "ArrivalAttestation.png")
         writeIcbDataFile(icb, "ArrivalAttestation")
-        println("Barcode ${icb.encoded}")
+        println("Barcode ${icb.rawString}")
     }
 
     @Test
@@ -174,9 +174,9 @@ class IdbBuilder {
         val payload = IdbPayload(header, messageGroup, null, signature)
         val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
 
-        generateDmBarcode(icb.encoded, "ProvisionalResidenceDocument.png")
+        generateDmBarcode(icb.rawString, "ProvisionalResidenceDocument.png")
         writeIcbDataFile(icb, "ProvisionalResidenceDocument")
-        println("Barcode ${icb.encoded}")
+        println("Barcode ${icb.rawString}")
     }
 
     @Test
@@ -202,9 +202,9 @@ class IdbBuilder {
         val payload = IdbPayload(header, messageGroup, null, signature)
         val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
 
-        generateDmBarcode(icb.encoded, "CertifyingPermanentResidence.png")
+        generateDmBarcode(icb.rawString, "CertifyingPermanentResidence.png")
         writeIcbDataFile(icb, "CertifyingPermanentResidence")
-        println("Barcode ${icb.encoded}")
+        println("Barcode ${icb.rawString}")
     }
 
     @Test
@@ -228,9 +228,9 @@ class IdbBuilder {
         val payload = IdbPayload(header, messageGroup, null, signature)
         val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
 
-        generateDmBarcode(icb.encoded, "FrontierWorkerPermit.png")
+        generateDmBarcode(icb.rawString, "FrontierWorkerPermit.png")
         writeIcbDataFile(icb, "FrontierWorkerPermit")
-        println("Barcode ${icb.encoded}")
+        println("Barcode ${icb.rawString}")
     }
 
     @Test
@@ -258,9 +258,9 @@ class IdbBuilder {
         val payload = IdbPayload(header, messageGroup, null, signature)
         val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
 
-        generateDmBarcode(icb.encoded, "SupplementarySheetResidencePermit.png")
+        generateDmBarcode(icb.rawString, "SupplementarySheetResidencePermit.png")
         writeIcbDataFile(icb, "SupplementarySheetResidencePermit")
-        println("Barcode ${icb.encoded}")
+        println("Barcode ${icb.rawString}")
     }
 
     fun buildSignature(bytesToSign: ByteArray): IdbSignature {
@@ -283,7 +283,7 @@ class IdbBuilder {
         val payloadFile = File("generated_barcodes/${filename}_payload.txt")
         payloadFile.writeText(icb.payLoad.encoded.toHexString())
         val base32File = File("generated_barcodes/${filename}_base32.txt")
-        base32File.writeText(icb.encoded)
+        base32File.writeText(icb.rawString)
     }
 
     fun readBinaryFromResource(fileName: String): ByteArray {

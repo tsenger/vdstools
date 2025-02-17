@@ -4,7 +4,7 @@ import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.vds.FeatureCoding
 
-
+@OptIn(ExperimentalStdlibApi::class)
 class IdbMessage {
     val messageTypeTag: Int
     val messageTypeName: String
@@ -31,10 +31,12 @@ class IdbMessage {
     val valueInt: Int
         get() = messageContent[0].toInt() and 0xFF
 
-    @OptIn(ExperimentalStdlibApi::class)
+    val coding: FeatureCoding
+        get() = DataEncoder.getIdbMessageTypeCoding(messageTypeName)
+    
     val valueStr: String
         get() =
-            when (DataEncoder.getIdbMessageTypeCoding(messageTypeName)) {
+            when (coding) {
                 FeatureCoding.BYTE -> valueInt.toString()
                 FeatureCoding.C40 -> DataEncoder.decodeC40(messageContent)
                 FeatureCoding.UTF8_STRING -> messageContent.toString()

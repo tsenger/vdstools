@@ -280,15 +280,16 @@ object DataEncoder {
         }
         return certSha1.sliceArray(15..19)
     }
-
+    
     fun encodeDerTlv(vdsType: String, derTlv: DerTlv): Feature? {
-        val value = featureEncoder.decodeFeature<Any>(vdsType, derTlv)
+        //val value = featureEncoder.decodeFeature<Any>(vdsType, derTlv)
+        val value = derTlv.value
         val name = featureEncoder.getFeatureName(vdsType, derTlv)
+        val tag = derTlv.tag.toInt()
         val coding = featureEncoder.getFeatureCoding(vdsType, derTlv)
         if (name == "" || coding == FeatureCoding.UNKNOWN) return null
-        return Feature(name, value, coding)
+        return Feature(tag, name, value, coding)
     }
-
 
     fun getVdsType(documentRef: Int): String? {
         return featureEncoder.getVdsType(documentRef)

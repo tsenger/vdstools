@@ -1,6 +1,8 @@
 package de.tsenger.vdstools
 
 
+import de.tsenger.vdstools.DataEncoder.decodeDateTime
+import de.tsenger.vdstools.DataEncoder.decodeMaskedDate
 import de.tsenger.vdstools.vds.VdsHeader
 import de.tsenger.vdstools.vds.VdsRawBytesIos
 
