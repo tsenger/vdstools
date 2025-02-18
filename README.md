@@ -11,9 +11,8 @@ specified in
 
 It also supports encoding and decoding Seals defined in the new draft
 of [ICAO Datastructure for Barcode](https://www.icao.int/Security/FAL/TRIP/PublishingImages/Pages/Publications/ICAO%20TR%20-%20ICAO%20Datastructure%20for%20Barcode.pdf).
-The IDB encoder/decoders are at early stadium of and still differs from the VDS parser/encoder but they are already
-useable. You will find them in the
-package de.tsenger.vdstools.idb.
+Since release 0.9.0 ICAO IDB barcode encoder/decoders are fully functional.
+VDS and ICD barcodes can be parsed by a generic interface. An example is given in the following chapter
 
 VDS can be created with the help of this library or, if you want to try it out quickly, via the
 web [Sealgen](https://sealgen.tsenger.de) tool.
@@ -22,55 +21,51 @@ verifies and displays all VDS profiles defined in the above specifications.
 
 <a href='https://play.google.com/store/apps/details?id=de.tsenger.sealver&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png' width='155' height='60'/></a>
 
-## Parse and verify a VDS
+## Parse and verify a VDS / IDB
 
-Here is a quick overview how to use the VDS parser and verifier.
-When you have the decoded raw string or raw bytes from your favorite datamatrix decoder, just put them to the VDS Tools
-Dataparser like this:
+Here is a quick overview how to use the generic parser and verifier. In release 0.9.0 a generic interface was introduced
+to handle VDS and IDB barcode via common function calls.
+When you have the decoded raw string from your favorite datamatrix decoder, just put used the VDS Tools like this:
 
 ```kotlin
 import de.tsenger.vdstools.Verifier
 import de.tsenger.vdstools.vds.DigitalSeal
 import de.tsenger.vdstools.vds.Feature
 
-val digitalSeal: DigitalSeal? = DigitalSeal.fromByteArray(VdsRawBytesCommon.fictionCert)
-assertNotNull(digitalSeal)
-val vdsType: String = digitalSeal.vdsType
-
-val mrz: String? = digitalSeal.getFeature("MRZ")?.valueStr
-val azr: String? = digitalSeal.getFeature("AZR")?.valueStr
-val imgBytes: ByteArray? = digitalSeal.getFeature("FACE_IMAGE")?.valueBytes
-val imgBytesHexString: String? = digitalSeal.getFeature("FACE_IMAGE")?.valueStr
+//Example for VDS / IDB barcode type
+val seal: Seal = Seal.fromString(rawString)
+val mrz: String? = seal.getMessage("MRZ")?.valueStr
 
 
-// get all available Features in a List<Feature>
-val featureList: List<Feature> = digitalSeal.featureList
+// get all available Messages / Features in a List
+val messageList: List<Message> = seal.messageList
 
-for (feature in featureList) {
-    println("${feature.name}, ${feature.coding},  ${feature.valueStr}")
+for (message in messageList) {
+    println("${message.name}, ${message.coding},  ${message.valueStr}")
 }
 
-// Get the VDS signer certificate reference
-val signerCertRef: String = digitalSeal.signerCertRef
+// SignatureInfo contains all signature relevant data
+val signatureInfo: SignatureInfo = seal.signatureInfo
 
+// Get the VDS signer certificate reference
+val signerCertRef: String = signatureInfo.signerCertificateReference
 
 // Since X509 certificate handling is strongly platform-dependent, 
-// the Verfifier is given the raw PublicKey in DER format and the curve name.
+// the Verfifier is given the plain publicKey (r|s) and the curve name.
 val publicKeyBytes: ByteArray = byteArrayOf()
-val verifier: Verifier = Verifier(digitalSeal, publicKeyBytes, "brainpoolP224r1")
+val verifier: Verifier =
+    Verifier(seal.signedBytes, signatureInfo.plainSignatureBytes, publicKeyBytes, "brainpoolP224r1")
 val result: Verifier.Result = verifier.verify()
 
 
 ```
 
-## Build a new VDS
+## Build a barcode
 
-Since version 0.3.0 you can also generate VDS with this library. Here is an example on how to use the DateEncoder and
-Signer classes:
+Here is an example on how to use the DateEncoder and Signer classes to build a VDS barcode:
 
 ```kotlin
 val keystore: KeyStore = ...
-
 
 // In this JVM example we use a BouncyCastle keystore to get the certificate (for the header information)
 // and the private key for signing the seals data
@@ -105,14 +100,46 @@ val encodedSealBytes = digitalSeal.encoded
 
 ```
 
-There are many other ways to define the content of the VDS. There are various ways to encode a DigitalSeal by for this
-purpose.
-The VdsHeader and VdsMessage classes offer the option of setting the content in a finely granular manner.
+Here is an example on how to use the DateEncoder and Signer classes to build a IDB barcode:
 
-Alternatively, it is also possible to generate many values automatically with as little input as possible or to use
-default values.
+```kotlin
+val keystore: KeyStore = ...
 
-Also have a look at the DigitalSeal testcases for more usage inspiration.
+// In this JVM example we use a BouncyCastle keystore to get the certificate (for the header information)
+// and the private key for signing the seals data
+val cert: X509Certificate = keystore.getCertificate(keyAlias)
+val ecKey: ECPrivateKey = keystore.getKey(certAlias, keyStorePassword.toCharArray())
+
+// initialize the Signer
+val signer: Signer = Signer(ecKey.encoded, curveName)
+
+// 1. Build a IdbHeader
+val header = IdbHeader(
+    "D<<",
+    IdbSignatureAlgorithm.SHA256_WITH_ECDSA,
+    DataEncoder.buildCertificateReference(cert.encoded),
+    "2025-02-11"
+)
+
+// 2. Build a MessageGroup
+val messageGroup = IdbMessageGroup.Builder()
+    .addMessage(0x02, vdsMessage.encoded)
+    .addMessage(0x80, readBinaryFromResource("face_image_gen.jp2"))
+    .addMessage(0x84, "2026-04-23")
+    .addMessage(0x86, 0x02)
+    .build()
+
+// 3. Build a signed Icao Barcode
+val signature = buildSignature(header.encoded + messageGroup.encoded)
+val payload = IdbPayload(header, messageGroup, null, signature)
+val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
+
+// The encoded raw string can now be used to build a datamatrix (or other) code - which is not part of this library
+val encodedRawString = icb.rawString
+
+```
+
+Also have a look at the testcases for more usage inspiration.
 You will also find an example on how to generate a datamatrix image with the Zxing library in the jvmTests.
 
 ## Documentation
@@ -124,7 +151,10 @@ Online JavaDoc can be found here:
 
 ## How to include
 
-The vdstools library is available on the [Maven Central Repository](https://central.sonatype.com/artifact/de.tsenger/vdstools) and can be easily integrated in your projects.
+The vdstools library is available on
+the [Maven Central Repository](https://central.sonatype.com/artifact/de.tsenger/vdstools)
+and [GitHub Packages](https://github.com/tsenger/vdstools/packages/2279382) to be
+easy to integrate in your projects.
 
 ### Gradle
 
@@ -132,7 +162,7 @@ To include this library to your Gradle build add this dependency:
 
 ```groovy
 dependencies {
-    implementation 'de.tsenger:vdstools:0.8.3'
+    implementation 'de.tsenger:vdstools:0.9.0-SNAPSHOT'
 }
 ```
 
@@ -145,6 +175,6 @@ To include this library to your Maven build add this dependency:
 <dependency>
     <groupId>de.tsenger</groupId>
     <artifactId>vdstools</artifactId>
-    <version>0.8.3</version>
+    <version>0.9.0-SNAPSHOT</version>
 </dependency>
 ```
