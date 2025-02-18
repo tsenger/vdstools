@@ -1,5 +1,4 @@
 import com.vanniktech.maven.publish.SonatypeHost
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -11,12 +10,22 @@ plugins {
 }
 
 group = "de.tsenger"
-version = "0.8.3"
+version = "0.9.0-SNAPSHOT"
 description = "Kotlin multiplatform library to encode/sign and decode/verify Visible Digital Seals"
 
 repositories {
     mavenCentral()
     google()
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "githubPackages"
+            url = uri("https://maven.pkg.github.com/tsenger/vdstools")
+            credentials(PasswordCredentials::class)
+        }
+    }
 }
 
 mavenPublishing {
@@ -32,7 +41,7 @@ mavenPublishing {
     pom {
         name = "Visible Digital Seal Tools"
         description = "Kotlin multiplatform library to encode/sign and decode/verify Visible Digital Seals"
-        inceptionYear ="2024"
+        inceptionYear = "2024"
         url = "https://github.com/tsenger/vdstools"
 
         licenses {
@@ -68,7 +77,6 @@ mavenPublishing {
 kotlin {
 
     jvm {
-        @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
         }
