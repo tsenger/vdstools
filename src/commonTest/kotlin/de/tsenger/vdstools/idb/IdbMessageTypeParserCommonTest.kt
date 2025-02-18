@@ -15,8 +15,8 @@ class IdbMessageTypeParserCommonTest {
         val parser = IdbMessageTypeParser(jsonString)
         assertNotNull(parser)
         println(parser.availableMessageTypes())
-        assertEquals("FACE_IMAGE", parser.getMessageTypeName(128))
-        assertEquals(1, parser.getMessageTypeTag("VISA"))
+        assertEquals("FACE_IMAGE", parser.getMessageType(128))
+        assertEquals(1, parser.getMessageType("VISA"))
         assertEquals(FeatureCoding.BYTES, parser.getMessageTypeCoding("FACE_IMAGE"))
     }
 }

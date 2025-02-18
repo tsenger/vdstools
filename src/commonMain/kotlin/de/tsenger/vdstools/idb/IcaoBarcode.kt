@@ -58,6 +58,19 @@ class IcaoBarcode : Seal {
         return idbMessage?.let { Message(it.messageTypeTag, it.messageTypeName, it.valueBytes, it.coding) }
     }
 
+    /**
+     * If messageGroup contains a message with tag 0x86 ("NATIONAL_DOCUMENT_IDENTIFIER")
+     * the name of the nation document type will be returned. Otherwise, the comma separated name(s) of the
+     * available messages in the message group will be returned.
+     */
+    override val documentType: String
+        get() {
+            val docTypeId = getMessage(0x86)?.valueInt
+            return if (docTypeId != null) {
+                DataEncoder.getIdbDocumentTypeName(docTypeId)
+            } else messageList.joinToString(", ") { it.messageTypeName }
+        }
+
     override val messageList: List<Message>
         get() = payLoad.idbMessageGroup.messagesList.map { idbMessage ->
             Message(idbMessage.messageTypeTag, idbMessage.messageTypeName, idbMessage.valueBytes, idbMessage.coding)

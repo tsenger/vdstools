@@ -18,7 +18,7 @@ class DigitalSeaIoslTest {
     @Test
     fun testParseSocialInsurranceCard() {
         val seal = DigitalSeal.fromByteArray(VdsRawBytesIos.socialInsurance) as DigitalSeal
-        assertEquals("SOCIAL_INSURANCE_CARD", seal.vdsType)
+        assertEquals("SOCIAL_INSURANCE_CARD", seal.documentType)
         assertEquals("65170839J003", seal.getMessage("SOCIAL_INSURANCE_NUMBER")?.valueStr)
         assertEquals("Perschweiß", seal.getMessage("SURNAME")?.valueStr)
         assertEquals("Oscar", seal.getMessage("FIRST_NAME")?.valueStr)
@@ -271,7 +271,7 @@ class DigitalSeaIoslTest {
         rawBytes[16] = 0x99.toByte()
         val seal = DigitalSeal.fromByteArray(rawBytes) as DigitalSeal
         assertNotNull(seal)
-        assertNotNull(seal.vdsType)
+        assertNotNull(seal.documentType)
     }
 
 

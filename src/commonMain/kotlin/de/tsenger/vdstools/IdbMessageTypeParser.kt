@@ -26,12 +26,11 @@ class IdbMessageTypeParser(jsonString: String) {
         return messageTypes.values.map { it.name }.toSet()
     }
 
-
-    fun getMessageTypeName(tag: Int): String {
+    fun getMessageType(tag: Int): String {
         return messageTypes[tag]?.name ?: "UNKNOWN"
     }
 
-    fun getMessageTypeTag(messageTypeName: String): Int? {
+    fun getMessageType(messageTypeName: String): Int? {
         return messageTypesInverse[messageTypeName]?.tag
     }
 

@@ -28,7 +28,7 @@ class DigitalSealJvmTest {
     @Throws(IOException::class)
     fun testParseSocialInsurranceCard() {
         val seal = DigitalSeal.fromByteArray(VdsRawBytesJvm.socialInsurance) as DigitalSeal
-        Assert.assertEquals("SOCIAL_INSURANCE_CARD", seal.vdsType)
+        Assert.assertEquals("SOCIAL_INSURANCE_CARD", seal.documentType)
         Assert.assertEquals("65170839J003", seal.getMessage("SOCIAL_INSURANCE_NUMBER")?.valueStr)
         Assert.assertEquals("Perschweiß", seal.getMessage("SURNAME")?.valueStr)
         Assert.assertEquals("Oscar", seal.getMessage("FIRST_NAME")?.valueStr)
@@ -310,7 +310,7 @@ class DigitalSealJvmTest {
         rawBytes[16] = 0x99.toByte()
         val seal = DigitalSeal.fromByteArray(rawBytes) as DigitalSeal
         Assert.assertNotNull(seal)
-        Assert.assertNotNull(seal.vdsType)
+        Assert.assertNotNull(seal.documentType)
     }
 
     companion object {

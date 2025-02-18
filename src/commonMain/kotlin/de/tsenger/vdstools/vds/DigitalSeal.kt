@@ -15,7 +15,6 @@ import okio.Buffer
 class DigitalSeal : Seal {
     private val log = Logger.withTag(this::class.simpleName ?: "")
 
-    val vdsType: String
     private val vdsHeader: VdsHeader
     private val vdsMessage: VdsMessage
     private val vdsSignature: VdsSignature?
@@ -24,15 +23,17 @@ class DigitalSeal : Seal {
         this.vdsHeader = vdsHeader
         this.vdsMessage = vdsMessage
         this.vdsSignature = vdsSignature
-        this.vdsType = vdsHeader.vdsType
+        this.documentType = vdsHeader.vdsType
     }
 
     constructor(vdsHeader: VdsHeader, vdsMessage: VdsMessage, signer: Signer) {
         this.vdsHeader = vdsHeader
         this.vdsMessage = vdsMessage
         this.vdsSignature = createVdsSignature(vdsHeader, vdsMessage, signer)
-        this.vdsType = vdsHeader.vdsType
+        this.documentType = vdsHeader.vdsType
     }
+
+    override val documentType: String
 
     override val issuingCountry: String
         get() = vdsHeader.issuingCountry

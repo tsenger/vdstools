@@ -89,6 +89,12 @@ class SealCommonTest {
     }
 
     @Test
+    fun testIdbDocumentType() {
+        val seal = Seal.fromString(IcbRawStringsCommon.TemporaryPassport)
+        assertEquals("TEMPORARY_PASSPORT", seal.documentType)
+    }
+
+    @Test
     fun testFromStringVds() {
         val rawString = DataEncoder.encodeBase256(VdsRawBytesCommon.emergenyTravelDoc)
         assertTrue(Seal.fromString(rawString) is DigitalSeal)
@@ -166,6 +172,13 @@ class SealCommonTest {
         val rawString = DataEncoder.encodeBase256(VdsRawBytesCommon.emergenyTravelDoc)
         val seal = Seal.fromString(rawString)
         assertEquals(68, seal.signedBytes?.size)
+    }
+
+    @Test
+    fun testVdsDocumentType() {
+        val rawString = DataEncoder.encodeBase256(VdsRawBytesCommon.emergenyTravelDoc)
+        val seal = Seal.fromString(rawString)
+        assertEquals("ICAO_EMERGENCY_TRAVEL_DOCUMENT", seal.documentType)
     }
 
 

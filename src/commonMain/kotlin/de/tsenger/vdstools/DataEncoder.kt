@@ -17,6 +17,7 @@ import okio.*
 object DataEncoder {
     private lateinit var featureEncoder: FeatureConverter
     private lateinit var idbMessageTypeParser: IdbMessageTypeParser
+    private lateinit var idbDocumentTypeParser: IdbNationalDocumentTypeParser
     private val log = Logger.withTag(this::class.simpleName ?: "")
 
     init {
@@ -24,6 +25,7 @@ object DataEncoder {
         try {
             featureEncoder = FeatureConverter(readTextResource(DEFAULT_SEAL_CODINGS))
             idbMessageTypeParser = IdbMessageTypeParser(readTextResource(DEFAULT_IDB_MESSAGE_TYPES))
+            idbDocumentTypeParser = IdbNationalDocumentTypeParser(readTextResource(DEFAULT_IDB_DOCUMENT_TYPES))
         } catch (e: FileNotFoundException) {
             log.e("JSON file not available: ${e.message}")
             println("JSON file not available: ${e.message}")
@@ -280,7 +282,7 @@ object DataEncoder {
         }
         return certSha1.sliceArray(15..19)
     }
-    
+
     fun encodeDerTlv(vdsType: String, derTlv: DerTlv): Feature? {
         //val value = featureEncoder.decodeFeature<Any>(vdsType, derTlv)
         val value = derTlv.value
@@ -304,11 +306,11 @@ object DataEncoder {
     }
 
     fun getIdbMessageTypeName(tag: Int): String {
-        return idbMessageTypeParser.getMessageTypeName(tag)
+        return idbMessageTypeParser.getMessageType(tag)
     }
 
     fun getIdbMessageTypeTag(messageTypeName: String): Int? {
-        return idbMessageTypeParser.getMessageTypeTag(messageTypeName)
+        return idbMessageTypeParser.getMessageType(messageTypeName)
     }
 
     fun getIdbMessageTypeCoding(messageTypeName: String): FeatureCoding {
@@ -317,6 +319,10 @@ object DataEncoder {
 
     fun getIdbMessageTypeCoding(messageTypeTag: Int): FeatureCoding {
         return idbMessageTypeParser.getMessageTypeCoding(messageTypeTag)
+    }
+
+    fun getIdbDocumentTypeName(tag: Int): String {
+        return idbDocumentTypeParser.getDocumentType(tag)
     }
 
     /**
