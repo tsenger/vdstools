@@ -24,6 +24,7 @@ class Message(typeTag: Int, typeName: String, value: ByteArray, coding: FeatureC
                 FeatureCoding.C40 -> DataEncoder.decodeC40(messageContent)
                 FeatureCoding.UTF8_STRING -> messageContent.decodeToString()
                 FeatureCoding.MASKED_DATE -> DataEncoder.decodeMaskedDate(messageContent)
+                FeatureCoding.DATE -> DataEncoder.decodeDate(messageContent).toString()
                 FeatureCoding.BYTES, FeatureCoding.UNKNOWN -> messageContent.toHexString()
                 FeatureCoding.MRZ -> {
                     val unformattedMrz = DataEncoder.decodeC40(messageContent)

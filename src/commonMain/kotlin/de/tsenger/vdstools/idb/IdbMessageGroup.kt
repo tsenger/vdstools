@@ -68,6 +68,7 @@ class IdbMessageGroup {
                             )
                         )
 
+                        FeatureCoding.DATE -> messageList.add(IdbMessage(tag, DataEncoder.encodeDate(value as String)))
                         FeatureCoding.MRZ -> messageList.add(IdbMessage(tag, DataEncoder.encodeC40(value as String)))
                         FeatureCoding.UNKNOWN -> throw IllegalArgumentException("Unsupported tag: $tag")
                     }

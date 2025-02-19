@@ -33,7 +33,7 @@ class IdbMessage {
 
     val coding: FeatureCoding
         get() = DataEncoder.getIdbMessageTypeCoding(messageTypeName)
-    
+
     val valueStr: String
         get() =
             when (coding) {
@@ -41,6 +41,7 @@ class IdbMessage {
                 FeatureCoding.C40 -> DataEncoder.decodeC40(messageContent)
                 FeatureCoding.UTF8_STRING -> messageContent.toString()
                 FeatureCoding.MASKED_DATE -> DataEncoder.decodeMaskedDate(messageContent)
+                FeatureCoding.DATE -> DataEncoder.decodeDate(messageContent).toString()
                 FeatureCoding.BYTES, FeatureCoding.UNKNOWN -> messageContent.toHexString()
                 FeatureCoding.MRZ -> {
                     val unformattedMrz = DataEncoder.decodeC40(messageContent)

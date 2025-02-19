@@ -102,6 +102,7 @@ class FeatureConverter(jsonString: String) {
             FeatureCoding.BYTE -> value = byteArrayOf(inputValue as Byte)
             FeatureCoding.BYTES -> value = inputValue as ByteArray
             FeatureCoding.MASKED_DATE -> value = DataEncoder.encodeMaskedDate(inputValue as String)
+            FeatureCoding.DATE -> value = DataEncoder.encodeDate(inputValue as String)
             FeatureCoding.UNKNOWN -> value = inputValue as ByteArray
         }
         return DerTlv(tag, value)

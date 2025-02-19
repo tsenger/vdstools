@@ -10,6 +10,7 @@ enum class FeatureCoding {
     BYTES,
     BYTE,
     MASKED_DATE,
+    DATE,
     MRZ,
     UNKNOWN;
 
@@ -17,7 +18,7 @@ enum class FeatureCoding {
         fun fromString(value: String): FeatureCoding {
             return try {
                 valueOf(value.uppercase())
-            } catch (e: IllegalArgumentException) {
+            } catch (_: IllegalArgumentException) {
                 throw SerializationException("Invalid value for FeatureCoding: $value")
             }
         }

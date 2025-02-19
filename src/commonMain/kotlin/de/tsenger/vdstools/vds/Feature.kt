@@ -19,6 +19,7 @@ class Feature(val tag: Int, val name: String, private val value: ByteArray, val 
                 FeatureCoding.C40 -> DataEncoder.decodeC40(value)
                 FeatureCoding.UTF8_STRING -> value.decodeToString()
                 FeatureCoding.MASKED_DATE -> DataEncoder.decodeMaskedDate(value)
+                FeatureCoding.DATE -> DataEncoder.decodeDate(value).toString()
                 FeatureCoding.BYTES, FeatureCoding.UNKNOWN -> value.toHexString()
                 FeatureCoding.MRZ -> {
                     val unformattedMrz = DataEncoder.decodeC40(value)
