@@ -4,6 +4,7 @@ on:
     types: [released, prereleased]
 jobs:
   publish:
+    if: "!contains(github.event.release.tag_name, 'SNAPSHOT')"
     name: Release build and publish
     runs-on: macOS-latest
     steps:
