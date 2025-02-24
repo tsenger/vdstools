@@ -18,6 +18,6 @@ jobs:
       - name: Publish to GitHub Packages
         run: ./gradlew publishAllPublicationsToGithubPackagesRepository --no-configuration-cache
         env:
-          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.GH_USER }}
-          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.GH_TOKEN }}
+          ORG_GRADLE_PROJECT_githubPackagesUsername: ${{ secrets.GITHUB_ACTOR }}
+          ORG_GRADLE_PROJECT_githubPackagesPassword: ${{ secrets.GITHUB_TOKEN }}
     
