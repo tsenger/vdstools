@@ -16,7 +16,7 @@ jobs:
           distribution: 'zulu'
           java-version: 21
       - name: Publish to GitHub Packages
-        run: ./gradlew publishAllPublicationsToGithubPackagesRepository --no-configuration-cache
+        run: ./gradlew publishAllPublicationsToGithubPackagesRepository
         env:
           ORG_GRADLE_PROJECT_githubPackagesUsername: ${{ secrets.GH_USER }}
           ORG_GRADLE_PROJECT_githubPackagesPassword: ${{ secrets.GH_TOKEN }}
