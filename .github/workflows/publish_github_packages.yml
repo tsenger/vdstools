@@ -1,0 +1,23 @@
+name: Publish to GitHub Packages
+on:
+  release:
+    types: [released, prereleased]
+jobs:
+  publish:
+    if: contains(github.event.release.tag_name, 'SNAPSHOT')
+    name: Release build and publish to GitHub Packages
+    runs-on: macOS-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 21
+      - name: Publish to GitHub Packages
+        run: ./gradlew publishAllPublicationsToGithubPackagesRepository --no-configuration-cache
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.GH_USER }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.GH_TOKEN }}
+    
