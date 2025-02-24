@@ -1,11 +1,11 @@
-name: Publish
+name: Publish to MavenCentral
 on:
   release:
     types: [released, prereleased]
 jobs:
   publish:
     if: "!contains(github.event.release.tag_name, 'SNAPSHOT')"
-    name: Release build and publish
+    name: Release build and publish to MavenCentral
     runs-on: macOS-latest
     steps:
       - name: Check out code
@@ -23,3 +23,4 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_KEY_CONTENTS }}
+    
