@@ -98,7 +98,7 @@
     "max_length": 8
   },
   {
-    "name": "DATE",
+    "name": "EXPIRY_DATE",
     "tag": 132,
     "coding": "MASKED_DATE",
     "min_length": 4,

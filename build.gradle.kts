@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "de.tsenger"
-version = "0.9.0-SNAPSHOT"
+version = "0.9.1-SNAPSHOT"
 description = "Kotlin multiplatform library to encode/sign and decode/verify Visible Digital Seals"
 
 repositories {
@@ -136,6 +136,7 @@ tasks.register<Copy>("copyiOSTestResources") {
     from("src/commonTest/resources")
     into("build/bin/iosSimulatorArm64/debugTest")
 }
+
 
 tasks.findByName("iosSimulatorArm64Test")!!.dependsOn("copyiOSTestResources")
 

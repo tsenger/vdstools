@@ -1,0 +1,74 @@
+[
+  {
+    "tag": 1,
+    "name": "SUBSTITUTE_IDENTITY_DOCUMENT"
+  },
+  {
+    "tag": 2,
+    "name": "SUBSTITUTE_PASSPORT_DOCUMENT"
+  },
+  {
+    "tag": 3,
+    "name": "EMERGENCY_TRAVEL_DOCUMENT"
+  },
+  {
+    "tag": 4,
+    "name": "TEMPORARY_IDENTITY_CARD"
+  },
+  {
+    "tag": 5,
+    "name": "TEMPORARY_OFFICIAL_PASSPORT"
+  },
+  {
+    "tag": 6,
+    "name": "TEMPORARY_PASSPORT"
+  },
+  {
+    "tag": 7,
+    "name": "TEMPORARY_DIPLOMATIC_PASSPORT"
+  },
+  {
+    "tag": 8,
+    "name": "TEMPORARY_TRAVEL_DOCUMENT_REFUGEES"
+  },
+  {
+    "tag": 9,
+    "name": "TEMPORARY_TRAVEL_DOCUMENT_STATELESS_PERSONS"
+  },
+  {
+    "tag": 10,
+    "name": "TEMPORARY_TRAVEL_DOCUMENT_FOREIGNERS"
+  },
+  {
+    "tag": 11,
+    "name": "PERMISSION_TO_RETAIN_PENDING_THE_ASYLUM_DECISION"
+  },
+  {
+    "tag": 12,
+    "name": "TEMPORARY_SUSPENSION_OF_DEPORTATION"
+  },
+  {
+    "tag": 13,
+    "name": "ARRIVAL_ATTESTATION"
+  },
+  {
+    "tag": 14,
+    "name": "PROVISIONAL_RESIDENCE_DOCUMENT"
+  },
+  {
+    "tag": 15,
+    "name": "TEMPORARY_IDENTITY_DOCUMENT"
+  },
+  {
+    "tag": 16,
+    "name": "CERTIFYING_PERMANENT_RESIDENCE"
+  },
+  {
+    "tag": 17,
+    "name": "FRONTIER_WORKER_PERMIT"
+  },
+  {
+    "tag": 18,
+    "name": "SUPPLEMENTARY_SHEET_FOR_RESIDENCE_PERMIT_CARD"
+  }
+]
