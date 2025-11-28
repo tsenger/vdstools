@@ -7,11 +7,12 @@ import de.tsenger.vdstools.getCryptoProvider
 import dev.whyoleg.cryptography.algorithms.EC
 import dev.whyoleg.cryptography.algorithms.EC.Curve
 import dev.whyoleg.cryptography.algorithms.ECDSA
-import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
 import kotlin.test.*
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 
 class DigitalSeaIoslTest {
@@ -200,7 +201,7 @@ class DigitalSeaIoslTest {
         )
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
+    @OptIn(ExperimentalStdlibApi::class, ExperimentalTime::class)
     @Test
     fun testBuildDigitalSeal() {
         val mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06"
