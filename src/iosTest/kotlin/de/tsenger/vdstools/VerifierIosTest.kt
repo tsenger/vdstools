@@ -56,7 +56,7 @@ class VerifierIosTest {
         val certPath = NSBundle.mainBundle.pathForResource("sealgen_DETS32", "der")?.toPath()
         val cert = loadCertificateFromFile(certPath!!)
         val pubKeyBytes = getPublicKeyAsByteArray(cert.reference)
-        val verifier = Verifier(digitalSeal!!, pubKeyBytes, "brainpoolP224r1")
+        val verifier = Verifier(digitalSeal, pubKeyBytes, "brainpoolP224r1")
         assertEquals(Verifier.Result.SignatureValid, verifier.verify())
     }
 
