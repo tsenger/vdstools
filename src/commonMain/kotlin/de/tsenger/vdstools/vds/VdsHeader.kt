@@ -2,11 +2,12 @@ package de.tsenger.vdstools.vds
 
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.DataEncoder
-import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
 import okio.Buffer
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 
 class VdsHeader {
@@ -102,6 +103,7 @@ class VdsHeader {
             }
         }
 
+    @OptIn(ExperimentalTime::class)
     class Builder(vdsType: String) {
         var issuingCountry: String = "UTO"
             private set

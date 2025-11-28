@@ -69,7 +69,7 @@ class IdbHeader {
 
     companion object {
         fun fromByteArray(rawBytes: ByteArray): IdbHeader {
-            require(!(rawBytes.size > 12 || rawBytes.size < 2)) { "Header must have a length between 2 and 12 bytes" }
+            require(rawBytes.size in 2..12) { "Header must have a length between 2 and 12 bytes" }
             val rawData = Buffer().write(rawBytes)
 
             val countryIdentifier: ByteArray = rawData.readByteArray(2)

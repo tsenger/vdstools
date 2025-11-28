@@ -1,7 +1,6 @@
 package de.tsenger.vdstools.vds
 
 import de.tsenger.vdstools.DataEncoder
-import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
@@ -11,6 +10,8 @@ import org.bouncycastle.util.Arrays
 import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert
 import org.junit.Test
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 
 class VdsHeaderJvmTest {
@@ -61,6 +62,7 @@ class VdsHeaderJvmTest {
         Assert.assertEquals("dc026abc6d32c8a51a1f8d7ad88d7ad8fb06", Hex.toHexString(headerBytes))
     }
 
+    @OptIn(ExperimentalTime::class)
     @Test
     fun testBuildHeader_2parameter() {
         val ldNow = Clock.System.todayIn(TimeZone.currentSystemDefault())
@@ -79,6 +81,7 @@ class VdsHeaderJvmTest {
         Assert.assertTrue(Arrays.areEqual(expectedHeaderBytes, headerBytes))
     }
 
+    @OptIn(ExperimentalTime::class)
     @Test
     fun testBuildHeader_3parameter() {
         val ldNow = Clock.System.todayIn(TimeZone.currentSystemDefault())
@@ -98,6 +101,7 @@ class VdsHeaderJvmTest {
         Assert.assertTrue(Arrays.areEqual(expectedHeaderBytes, headerBytes))
     }
 
+    @OptIn(ExperimentalTime::class)
     @Test
     fun testBuildHeader_4parameter() {
         val ldate = LocalDate.parse("2016-08-16")
@@ -124,7 +128,7 @@ class VdsHeaderJvmTest {
         Assert.assertTrue(Arrays.areEqual(expectedHeaderBytes, headerBytes))
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
+    @OptIn(ExperimentalStdlibApi::class, ExperimentalTime::class)
     @Test
     fun testBuildHeader_4parameterV2() {
         val ldate = LocalDate.parse("2016-08-16")

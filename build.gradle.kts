@@ -1,16 +1,15 @@
-import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    kotlin("multiplatform") version "2.1.0"
-    kotlin("plugin.serialization") version "2.1.0"
-    id("com.vanniktech.maven.publish") version "0.30.0"
+    kotlin("multiplatform") version "2.2.21"
+    kotlin("plugin.serialization") version "2.2.21"
+    id("com.vanniktech.maven.publish") version "0.35.0"
 
 
 }
 
 group = "de.tsenger"
-version = "0.9.3"
+version = "0.9.4"
 description = "Kotlin multiplatform library to encode/sign and decode/verify Visible Digital Seals"
 
 repositories {
@@ -29,7 +28,7 @@ publishing {
 }
 
 mavenPublishing {
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    publishToMavenCentral()
     signAllPublications()
 
     coordinates(
@@ -88,13 +87,13 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
-            implementation("org.kotlincrypto.hash:sha1:0.5.6")
-            implementation("com.squareup.okio:okio:3.9.1")
-            implementation("co.touchlab:kermit:2.0.4")
-            implementation("dev.whyoleg.cryptography:cryptography-core:0.4.0")
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
+            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.7.1")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+            implementation("org.kotlincrypto.hash:sha1:0.8.0")
+            implementation("com.squareup.okio:okio:3.16.4")
+            implementation("co.touchlab:kermit:2.0.8")
+            implementation("dev.whyoleg.cryptography:cryptography-core:0.5.0")
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
         }
 
         commonTest.dependencies {
@@ -104,10 +103,10 @@ kotlin {
 
 
         jvmMain.dependencies {
-            implementation("org.bouncycastle:bcprov-jdk18on:1.79")
-            implementation("org.jetbrains:annotations:26.0.1")
-            implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.0")
-            implementation("dev.whyoleg.cryptography:cryptography-provider-jdk:0.4.0")
+            implementation("org.bouncycastle:bcprov-jdk18on:1.83")
+            implementation("org.jetbrains:annotations:26.0.2")
+            implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.2.21")
+            implementation("dev.whyoleg.cryptography:cryptography-provider-jdk:0.5.0")
         }
 
         jvmTest.dependencies {
@@ -118,12 +117,12 @@ kotlin {
         }
 
         iosMain.dependencies {
-            implementation("dev.whyoleg.cryptography:cryptography-provider-openssl3-prebuilt:0.4.0")
+            implementation("dev.whyoleg.cryptography:cryptography-provider-openssl3-prebuilt:0.5.0")
 
         }
 
         iosTest.dependencies {
-            implementation("dev.whyoleg.cryptography:cryptography-provider-openssl3-prebuilt:0.4.0")
+            implementation("dev.whyoleg.cryptography:cryptography-provider-openssl3-prebuilt:0.5.0")
 
         }
 

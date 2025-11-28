@@ -19,6 +19,7 @@ abstract class Seal {
         fun fromString(input: String): Seal {
             return when {
                 input.startsWith(IcaoBarcode.BARCODE_IDENTIFIER) -> IcaoBarcode.fromString(input)
+                input.startsWith(IcaoBarcode.BARCODE_IDENTIFIER_OLD) -> IcaoBarcode.fromString(input)
                 input.startsWith("Ü") -> DigitalSeal.fromRawString(input)
                 else -> throw IllegalArgumentException("can't parse given input to a known seal type: $input")
             }

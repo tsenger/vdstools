@@ -11,6 +11,7 @@ import dev.whyoleg.cryptography.algorithms.SHA1
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.number
 import okio.*
 
 
@@ -85,8 +86,8 @@ object DataEncoder {
      */
     fun encodeDate(localDate: LocalDate?): ByteArray {
         if (localDate == null) return ByteArray(3)
-        val formattedDate: String = localDate.monthNumber.toString().padStart(2, '0') +
-                localDate.dayOfMonth.toString().padStart(2, '0') +
+        val formattedDate: String = localDate.month.number.toString().padStart(2, '0') +
+                localDate.day.toString().padStart(2, '0') +
                 localDate.year.toString().padStart(4, '0')
         val dateInt = formattedDate.toInt()
         return numberToByteArray(dateInt)
@@ -103,8 +104,8 @@ object DataEncoder {
      */
     fun encodeDateTime(localDatetime: LocalDateTime): ByteArray {
         val formattedDateTime: String =
-            localDatetime.monthNumber.toString().padStart(2, '0') +
-                    localDatetime.dayOfMonth.toString().padStart(2, '0') +
+            localDatetime.month.number.toString().padStart(2, '0') +
+                    localDatetime.day.toString().padStart(2, '0') +
                     localDatetime.year.toString().padStart(4, '0') +
                     localDatetime.hour.toString().padStart(2, '0') +
                     localDatetime.minute.toString().padStart(2, '0') +

@@ -4,7 +4,6 @@ import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.vds.FeatureCoding
 
-@OptIn(ExperimentalStdlibApi::class)
 class IdbMessage {
     val messageTypeTag: Int
     val messageTypeName: String
@@ -48,7 +47,6 @@ class IdbMessage {
                     DataEncoder.formatMRZ(unformattedMrz, unformattedMrz.length)
                 }
             }
-
 
     companion object {
         fun fromDerTlv(derTlv: DerTlv): IdbMessage {

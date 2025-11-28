@@ -4,7 +4,6 @@ import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.Signer
 import de.tsenger.vdstools.SignerJvmTest
-import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
@@ -21,6 +20,8 @@ import java.security.KeyStore
 import java.security.KeyStoreException
 import java.security.Security
 import kotlin.test.assertEquals
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 
 class DigitalSealJvmTest {
@@ -236,6 +237,7 @@ class DigitalSealJvmTest {
         )
     }
 
+    @OptIn(ExperimentalTime::class)
     @Test
     @Throws(IOException::class, KeyStoreException::class)
     fun testBuildDigitalSeal() {

@@ -1,7 +1,6 @@
 package de.tsenger.vdstools.vds
 
 import de.tsenger.vdstools.DataEncoder
-import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
@@ -11,6 +10,8 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalStdlibApi::class)
 class VdsHeaderCommonTest {
@@ -50,6 +51,7 @@ class VdsHeaderCommonTest {
         assertEquals("dc026abc6d32c8a51a1f8d7ad88d7ad8fb06", headerBytes.toHexString())
     }
 
+    @OptIn(ExperimentalTime::class)
     @Test
     fun testBuildHeader_2parameter() {
         val ldNow = Clock.System.todayIn(TimeZone.currentSystemDefault())
@@ -66,6 +68,7 @@ class VdsHeaderCommonTest {
         assertContentEquals(expectedHeaderBytes, headerBytes)
     }
 
+    @OptIn(ExperimentalTime::class)
     @Test
     fun testBuildHeader_3parameter() {
         val ldNow = Clock.System.todayIn(TimeZone.currentSystemDefault())
@@ -83,6 +86,7 @@ class VdsHeaderCommonTest {
         assertContentEquals(expectedHeaderBytes, headerBytes)
     }
 
+    @OptIn(ExperimentalTime::class)
     @Test
     fun testBuildHeader_4parameter() {
         val ldate = LocalDate.parse("2016-08-16")
@@ -106,6 +110,7 @@ class VdsHeaderCommonTest {
         assertContentEquals(expectedHeaderBytes, headerBytes)
     }
 
+    @OptIn(ExperimentalTime::class)
     @Test
     fun testBuildHeader_4parameterV2() {
         val ldate = LocalDate.parse("2016-08-16")

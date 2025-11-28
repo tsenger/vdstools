@@ -1,6 +1,7 @@
 package de.tsenger.vdstools.idb
 
 
+import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.Base32
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.generic.Message
@@ -8,7 +9,6 @@ import de.tsenger.vdstools.generic.Seal
 import de.tsenger.vdstools.generic.SignatureInfo
 import kotlinx.datetime.LocalDate
 
-@OptIn(ExperimentalStdlibApi::class)
 class IcaoBarcode : Seal {
     private var barcodeFlag: Char = 0x41.toChar()
     var payLoad: IdbPayload
@@ -94,7 +94,7 @@ class IcaoBarcode : Seal {
             )
         }
 
-    override val signedBytes: ByteArray?
+    override val signedBytes: ByteArray
         get() = payLoad.idbHeader.encoded + payLoad.idbMessageGroup.encoded
 
 
@@ -119,14 +119,25 @@ class IcaoBarcode : Seal {
         }
 
     companion object {
-        const val BARCODE_IDENTIFIER: String = "NDB1"
+        const val BARCODE_IDENTIFIER_OLD: String = "NDB1"
+        const val BARCODE_IDENTIFIER: String = "RDB1"
+
+        private val log = Logger.withTag(this::class.simpleName ?: "")
 
         @Throws(IllegalArgumentException::class)
         fun fromString(barcodeString: String): Seal {
             val strBuffer = StringBuilder(barcodeString)
 
-            if (!strBuffer.substring(0, 4).matches(BARCODE_IDENTIFIER.toRegex())) {
+            val barcodeIdentifier = strBuffer.substring(0, 4)
+            val isIcaoBarcode = barcodeIdentifier.matches(BARCODE_IDENTIFIER.toRegex()) || barcodeIdentifier.matches(
+                BARCODE_IDENTIFIER_OLD.toRegex()
+            )
+
+            if (!isIcaoBarcode) {
                 throw IllegalArgumentException("Didn't found an ICAO Barcode in the given String: $barcodeString")
+            }
+            if (barcodeIdentifier == BARCODE_IDENTIFIER_OLD) {
+                log.w { "Using old ICAO barcode identifier NDB instead of new identifier RDB!" }
             }
 
             val barcodeFlag = strBuffer[4]
