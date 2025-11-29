@@ -12,7 +12,7 @@ import platform.Foundation.NSBundle
 actual fun readTextResource(fileName: String): String {
     val fileSystem = FileSystem.SYSTEM
     return getResourcePath(fileName)?.let { path ->
-        return fileSystem.read(path) {
+        fileSystem.read(path) {
             readUtf8()
         }
     } ?: throw FileNotFoundException("File $fileName not found in resources!")

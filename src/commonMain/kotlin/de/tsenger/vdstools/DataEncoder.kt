@@ -216,10 +216,10 @@ object DataEncoder {
             .padEnd(mrzLength, '<')
             .replace(' ', '<')
         return if (mrzLength == 90) {
-            paddedMrz.substring(0, 30) + "\n" +
+            paddedMrz.take(30) + "\n" +
                     paddedMrz.substring(30, 60) + "\n" +
                     paddedMrz.substring(60, 90)
-        } else paddedMrz.substring(0, mrzLength / 2) + "\n" +
+        } else paddedMrz.take(mrzLength / 2) + "\n" +
                 paddedMrz.substring(mrzLength / 2)
     }
 

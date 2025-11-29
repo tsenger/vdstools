@@ -40,7 +40,7 @@ class IcaoBarcodeCommonTest {
             "6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7".hexToByteArray(),
             true
         )
-        val icb = IcaoBarcode(true, true, payload)
+        val icb = IcaoBarcode(isSigned = true, isZipped = true, barcodePayload = payload)
         println(icb.rawString)
         assertEquals(
             "RDB1DPDNACWQAUX7WVPABAUCAGAQBACNV3CDBCICBBMFRWKZ3JNNWW64LTOV3XS635P37HASLXOZTF5LCVFHUQ7NWEO4NWVOEUZNZZ5JSVFMYIOTKGTQRP5LDIOUU2XQYP4UCMKKD3BCXTL2G2REAJT3DFD5FEPDSP7ZKYE",
@@ -54,7 +54,7 @@ class IcaoBarcodeCommonTest {
             "6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7".hexToByteArray(),
             true
         )
-        val icb = IcaoBarcode(true, false, payload)
+        val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
         println(icb.rawString)
         assertEquals(
             "RDB1BNK6ACBIEAMBACAE3LWEGCEQECCYLDMVTWS23NN5YXG5LXPF5X27X6OBEXO5TGL2WFKKPJB63MI5Y3NK4JJS3TT2TFKKZQQ5GUNHBC72WGQ5JJVPBQ7ZIEYUUHWCFPGXUNVCIATHWGKH2KI6H",
@@ -68,7 +68,7 @@ class IcaoBarcodeCommonTest {
             "6abc61120510b0b1b2b3b4b5b6b7b8b9babbbcbdbebf".hexToByteArray(),
             false
         )
-        val icb = IcaoBarcode(false, true, payload)
+        val icb = IcaoBarcode(isSigned = false, isZipped = true, barcodePayload = payload)
 
         assertEquals("RDB1CPDNACFQA5H7WVPDBCICRBMFRWKZ3JNNWW64LTOV3XS635P4DDIGSO", icb.rawString)
     }
@@ -79,7 +79,7 @@ class IcaoBarcodeCommonTest {
             "6abc61120510b0b1b2b3b4b5b6b7b8b9babbbcbdbebf".hexToByteArray(),
             false
         )
-        val icb = IcaoBarcode(false, false, payload)
+        val icb = IcaoBarcode(isSigned = false, isZipped = false, barcodePayload = payload)
         println(icb.rawString)
         assertEquals("RDB1ANK6GCEQFCCYLDMVTWS23NN5YXG5LXPF5X27Q", icb.rawString)
     }

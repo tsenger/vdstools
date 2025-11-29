@@ -5,7 +5,7 @@ import de.tsenger.vdstools.idb.dto.IdbDocumentTypeDto
 import kotlinx.serialization.json.Json
 
 class IdbNationalDocumentTypeParser(jsonString: String) {
-    private val log = Logger.Companion.withTag(this::class.simpleName ?: "")
+    private val log = Logger.withTag(this::class.simpleName ?: "")
     private var documentTypeDtoList: List<IdbDocumentTypeDto> = emptyList()
     private val documentTypes: HashMap<Int, IdbDocumentTypeDto> = HashMap()
     private val documentTypesInverse: HashMap<String, IdbDocumentTypeDto> = HashMap()

@@ -138,7 +138,7 @@ class DigitalSealJvmTest {
             seal.getMessage("MRZ")?.valueStr
         )
         val imgBytes = seal.getMessage("FACE_IMAGE")?.valueBytes
-        Assert.assertEquals(891, imgBytes?.size?.toInt())
+        Assert.assertEquals(891, imgBytes?.size)
     }
 
     @Test

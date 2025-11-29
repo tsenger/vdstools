@@ -133,10 +133,10 @@ class DataEncoderJvmTest {
 
     @Test
     fun testGetCertificateReference() {
-        val cert = keystore?.getCertificate("dets32");
-        val certRef = DataEncoder.buildCertificateReference(cert!!.encoded);
-        println(Hex.toHexString(certRef));
-        assertEquals("998b56e575", Hex.toHexString(certRef));
+        val cert = keystore?.getCertificate("dets32")
+        val certRef = DataEncoder.buildCertificateReference(cert!!.encoded)
+        println(Hex.toHexString(certRef))
+        assertEquals("998b56e575", Hex.toHexString(certRef))
     }
 
     @OptIn(ExperimentalStdlibApi::class)

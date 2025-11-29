@@ -6,7 +6,7 @@ import de.tsenger.vdstools.vds.FeatureCoding
 import kotlinx.serialization.json.Json
 
 class IdbMessageTypeParser(jsonString: String) {
-    private val log = Logger.Companion.withTag(this::class.simpleName ?: "")
+    private val log = Logger.withTag(this::class.simpleName ?: "")
     private var messageTypeDtoList: List<IdbMessageTypeDto> = emptyList()
     private val messageTypes: HashMap<Int, IdbMessageTypeDto> = HashMap()
     private val messageTypesInverse: HashMap<String, IdbMessageTypeDto> = HashMap()

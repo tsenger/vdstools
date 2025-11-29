@@ -17,7 +17,7 @@ class IdbMessageGroupIosTest {
     @Test
     fun testConstructorIdbMessage() {
         val message = IdbMessage("CAN", "a0a1a2a3a4a5a6a7a8a9aa".hexToByteArray())
-        val messageGroup = IdbMessageGroup(listOf<IdbMessage>(message))
+        val messageGroup = IdbMessageGroup(listOf(message))
         assertNotNull(messageGroup)
         assertEquals(1, messageGroup.messagesList.size.toLong())
     }

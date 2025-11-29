@@ -129,9 +129,7 @@ class IcaoBarcode : Seal {
             val strBuffer = StringBuilder(barcodeString)
 
             val barcodeIdentifier = strBuffer.substring(0, 4)
-            val isIcaoBarcode = barcodeIdentifier.matches(BARCODE_IDENTIFIER.toRegex()) || barcodeIdentifier.matches(
-                BARCODE_IDENTIFIER_OLD.toRegex()
-            )
+            val isIcaoBarcode = barcodeIdentifier == BARCODE_IDENTIFIER || barcodeIdentifier == BARCODE_IDENTIFIER_OLD
 
             if (!isIcaoBarcode) {
                 throw IllegalArgumentException("Didn't found an ICAO Barcode in the given String: $barcodeString")

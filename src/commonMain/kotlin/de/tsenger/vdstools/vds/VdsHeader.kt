@@ -240,7 +240,7 @@ class VdsHeader {
 
                 // 4 bytes stores first 6 characters of Signer & Certificate Reference
                 val signerIdentifierAndCertRefLength = DataEncoder.decodeC40(rawdataBuffer.readByteArray(4))
-                vdsHeader.signerIdentifier = signerIdentifierAndCertRefLength.substring(0, 4)
+                vdsHeader.signerIdentifier = signerIdentifierAndCertRefLength.take(4)
                 // the last two characters store the length of the following Certificate
                 // Reference
                 val certRefLength = signerIdentifierAndCertRefLength.substring(4).toInt(16)
@@ -253,7 +253,7 @@ class VdsHeader {
 
             } else { // rawVersion=0x02 -> ICAO version 3
                 val signerCertRef = DataEncoder.decodeC40(rawdataBuffer.readByteArray(6))
-                vdsHeader.signerIdentifier = signerCertRef.substring(0, 4)
+                vdsHeader.signerIdentifier = signerCertRef.take(4)
                 vdsHeader.certificateReference = signerCertRef.substring(4)
             }
 

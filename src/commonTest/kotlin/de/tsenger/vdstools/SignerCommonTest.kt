@@ -7,8 +7,8 @@ import dev.whyoleg.cryptography.algorithms.EC.PrivateKey.Format.DER
 import dev.whyoleg.cryptography.algorithms.ECDSA
 import dev.whyoleg.cryptography.random.CryptographyRandom
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 
 @OptIn(ExperimentalStdlibApi::class)
 class SignerCommonTest {
@@ -26,7 +26,7 @@ class SignerCommonTest {
         val signer = Signer(pair.privateKey.encodeToByteArrayBlocking(DER), "prime256v1") //same as secp256r1
         val signatureBytes: ByteArray = signer.sign(dataBytes)
         println("Signature: " + signatureBytes.toHexString())
-        assertTrue(signatureBytes.size * 4 == signer.fieldSize)
+        assertEquals(signatureBytes.size * 4, signer.fieldSize)
     }
 
     @Test
@@ -41,7 +41,7 @@ class SignerCommonTest {
         val signer = Signer(pair.privateKey.encodeToByteArrayBlocking(DER), "secp384r1")
         val signatureBytes: ByteArray = signer.sign(dataBytes)
         println("Signature: " + signatureBytes.toHexString())
-        assertTrue(signatureBytes.size * 4 == signer.fieldSize)
+        assertEquals(signatureBytes.size * 4, signer.fieldSize)
     }
 
     @Test

@@ -74,7 +74,7 @@ class IcaoBarcodeJvmTest {
             ),
             true
         )
-        val icb = IcaoBarcode(true, true, payload)
+        val icb = IcaoBarcode(isSigned = true, isZipped = true, barcodePayload = payload)
         println(icb.rawString)
         assertEquals(
             "RDB1DPDNACWQAUX7WVPABAUCAGAQBACNV3CDBCICBBMFRWKZ3JNNWW64LTOV3XS635P37HASLXOZTF5LCVFHUQ7NWEO4NWVOEUZNZZ5JSVFMYIOTKGTQRP5LDIOUU2XQYP4UCMKKD3BCXTL2G2REAJT3DFD5FEPDSP7ZKYE",
@@ -92,7 +92,7 @@ class IcaoBarcodeJvmTest {
             ),
             true
         )
-        val icb = IcaoBarcode(true, false, payload)
+        val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
         println(icb.rawString)
         assertEquals(
             "RDB1BNK6ACBIEAMBACAE3LWEGCEQECCYLDMVTWS23NN5YXG5LXPF5X27X6OBEXO5TGL2WFKKPJB63MI5Y3NK4JJS3TT2TFKKZQQ5GUNHBC72WGQ5JJVPBQ7ZIEYUUHWCFPGXUNVCIATHWGKH2KI6H",
@@ -107,7 +107,7 @@ class IcaoBarcodeJvmTest {
             Hex.decode("6abc61120510b0b1b2b3b4b5b6b7b8b9babbbcbdbebf"),
             false
         )
-        val icb = IcaoBarcode(false, true, payload)
+        val icb = IcaoBarcode(isSigned = false, isZipped = true, barcodePayload = payload)
         println(icb.rawString)
         assertEquals("RDB1CPDNACFQA5H7WVPDBCICRBMFRWKZ3JNNWW64LTOV3XS635P4DDIGSO", icb.rawString)
     }
@@ -119,7 +119,7 @@ class IcaoBarcodeJvmTest {
             Hex.decode("6abc61120510b0b1b2b3b4b5b6b7b8b9babbbcbdbebf"),
             false
         )
-        val icb = IcaoBarcode(false, false, payload)
+        val icb = IcaoBarcode(isSigned = false, isZipped = false, barcodePayload = payload)
         println(icb.rawString)
         assertEquals("RDB1ANK6GCEQFCCYLDMVTWS23NN5YXG5LXPF5X27Q", icb.rawString)
     }
