@@ -15,15 +15,16 @@ import platform.CoreFoundation.CFDataGetBytePtr
 import platform.CoreFoundation.CFDataGetLength
 import platform.CoreFoundation.CFRelease
 import platform.Foundation.NSBundle
-import platform.Security.*
-import kotlin.test.Ignore
+import platform.Security.SecCertificateCopyData
+import platform.Security.SecCertificateCopySubjectSummary
+import platform.Security.SecCertificateCreateWithData
+import platform.Security.SecCertificateRef
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 
 class VerifierIosTest {
 
-    @Ignore
     @OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
     @Test
     fun testVerifyResidentPermit256BitSig() {
@@ -45,7 +46,6 @@ class VerifierIosTest {
         assertEquals(Verifier.Result.SignatureValid, verifier.verify())
     }
 
-    @Ignore
     @OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
     @Test
     fun testVerifyVisa224BitSig() {
@@ -53,7 +53,7 @@ class VerifierIosTest {
         val signerCertRef = digitalSeal.signerCertRef
         assertEquals("DETS32", signerCertRef)
 
-        val certPath = NSBundle.mainBundle.pathForResource("sealgen_DETS32", "der")?.toPath()
+        val certPath = NSBundle.mainBundle.pathForResource("sealgen_DETS32", "crt")?.toPath()
         val cert = loadCertificateFromFile(certPath!!)
         val pubKeyBytes = getPublicKeyAsByteArray(cert.reference)
         val verifier = Verifier(digitalSeal, pubKeyBytes, "brainpoolP224r1")
@@ -103,23 +103,119 @@ class VerifierIosTest {
 
     @OptIn(ExperimentalForeignApi::class)
     fun getPublicKeyAsByteArray(certificateRef: SecCertificateRef): ByteArray {
-        // Extrahiere den öffentlichen Schlüssel
-        val publicKey = SecCertificateCopyKey(certificateRef)
-            ?: throw IllegalArgumentException("Failed to extract public key from certificate")
+        // Get the DER-encoded certificate
+        val certDer = getEncodedCertificate(certificateRef)
 
-        // Hole die externe Darstellung des Schlüssels
-        val keyData = SecKeyCopyExternalRepresentation(publicKey, null)
-            ?: throw IllegalArgumentException("Failed to get external representation of public key")
+        // Extract SubjectPublicKeyInfo from the certificate
+        // X.509 Certificate structure: SEQUENCE { tbsCertificate, signatureAlgorithm, signature }
+        // TBSCertificate structure: SEQUENCE { version, serialNumber, signature, issuer, validity, subject, subjectPublicKeyInfo, ... }
+        // We need to manually parse the DER structure to find the SubjectPublicKeyInfo
 
-        // Konvertiere CFDataRef in ByteArray
-        val length = CFDataGetLength(keyData).toInt()
-        val bytes = CFDataGetBytePtr(keyData)?.readBytes(length)
-            ?: throw IllegalArgumentException("Failed to read bytes from public key data")
+        return extractSubjectPublicKeyInfo(certDer)
+    }
 
-        // Gib die Daten frei
-        CFRelease(keyData)
+    /**
+     * Extracts the SubjectPublicKeyInfo (public key in DER format) from an X.509 certificate
+     */
+    private fun extractSubjectPublicKeyInfo(certDer: ByteArray): ByteArray {
+        var offset = 0
 
-        return bytes
+        // Parse outer SEQUENCE (Certificate)
+        if (certDer[offset] != 0x30.toByte()) {
+            throw IllegalArgumentException("Invalid certificate: expected SEQUENCE tag")
+        }
+        offset++
+
+        // Skip length of outer SEQUENCE
+        offset += getLengthByteCount(certDer[offset])
+
+        // Parse inner SEQUENCE (TBSCertificate)
+        if (certDer[offset] != 0x30.toByte()) {
+            throw IllegalArgumentException("Invalid certificate: expected TBSCertificate SEQUENCE")
+        }
+        offset++
+
+        // Skip length of TBSCertificate
+        offset += getLengthByteCount(certDer[offset])
+
+        // Now we need to skip through the TBSCertificate fields to reach SubjectPublicKeyInfo
+        // Fields: version [0], serialNumber, signature, issuer, validity, subject, subjectPublicKeyInfo
+
+        // Skip version (optional, context-specific [0])
+        if (certDer[offset] == 0xA0.toByte()) {
+            offset = skipDerElement(certDer, offset)
+        }
+
+        // Skip serialNumber (INTEGER)
+        offset = skipDerElement(certDer, offset)
+
+        // Skip signature algorithm (SEQUENCE)
+        offset = skipDerElement(certDer, offset)
+
+        // Skip issuer (SEQUENCE)
+        offset = skipDerElement(certDer, offset)
+
+        // Skip validity (SEQUENCE)
+        offset = skipDerElement(certDer, offset)
+
+        // Skip subject (SEQUENCE)
+        offset = skipDerElement(certDer, offset)
+
+        // Now we're at SubjectPublicKeyInfo (SEQUENCE)
+        if (certDer[offset] != 0x30.toByte()) {
+            throw IllegalArgumentException("Invalid certificate: expected SubjectPublicKeyInfo SEQUENCE at offset $offset")
+        }
+
+        val spkiLength = parseDerLength(certDer, offset + 1)
+        val spkiLengthBytes = getLengthByteCount(certDer[offset + 1])
+        val totalSpkiLength = 1 + spkiLengthBytes + spkiLength
+
+        return certDer.copyOfRange(offset, offset + totalSpkiLength)
+    }
+
+    /**
+     * Parses a DER length field
+     */
+    private fun parseDerLength(data: ByteArray, offset: Int): Int {
+        val firstByte = data[offset].toInt() and 0xFF
+
+        if (firstByte <= 127) {
+            // Short form
+            return firstByte
+        } else {
+            // Long form
+            val numLengthBytes = firstByte - 128
+            var length = 0
+            for (i in 1..numLengthBytes) {
+                length = (length shl 8) or (data[offset + i].toInt() and 0xFF)
+            }
+            return length
+        }
+    }
+
+    /**
+     * Returns the number of bytes used to encode the length
+     */
+    private fun getLengthByteCount(lengthByte: Byte): Int {
+        val firstByte = lengthByte.toInt() and 0xFF
+        return if (firstByte <= 127) 1 else 1 + (firstByte - 128)
+    }
+
+    /**
+     * Skips over a DER element and returns the offset after the element
+     */
+    private fun skipDerElement(data: ByteArray, offset: Int): Int {
+        // Skip tag
+        var currentOffset = offset + 1
+
+        // Parse and skip length
+        val length = parseDerLength(data, currentOffset)
+        currentOffset += getLengthByteCount(data[currentOffset])
+
+        // Skip value
+        currentOffset += length
+
+        return currentOffset
     }
 
     data class Certificate @OptIn(ExperimentalForeignApi::class) constructor(
