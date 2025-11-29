@@ -7,7 +7,7 @@ specified in
 
 - [BSI TR-03137 Part 1](https://www.bsi.bund.de/EN/Themen/Unternehmen-und-Organisationen/Standards-und-Zertifizierung/Technische-Richtlinien/TR-nach-Thema-sortiert/tr03137/tr-03137.html)
 - [ICAO Doc 9303 Part 13: Visible Digital Seals](https://www.icao.int/publications/Documents/9303_p13_cons_en.pdf)
-- [ICAO TR "VDS for Non-Electronic Documents"](https://www.icao.int/Security/FAL/TRIP/Documents/TR%20-%20Visible%20Digital%20Seals%20for%20Non-Electronic%20Documents%20V1.7.pdf)
+- [ICAO TR "VDS for Non-Electronic Documents"](https://www2023.icao.int/Security/FAL/TRIP/Documents/TR%20-%20Visible%20Digital%20Seals%20for%20Non-Electronic%20Documents%20V1.7.pdf)
 
 It also supports encoding and decoding Seals defined in the new draft
 of [ICAO Datastructure for Barcode](https://www.icao.int/Security/FAL/TRIP/PublishingImages/Pages/Publications/ICAO%20TR%20-%20ICAO%20Datastructure%20for%20Barcode.pdf).
@@ -162,7 +162,7 @@ To include this library to your Gradle build add this dependency:
 
 ```groovy
 dependencies {
-    implementation 'de.tsenger:vdstools:0.9.0-SNAPSHOT'
+    implementation 'de.tsenger:vdstools:0.10.0'
 }
 ```
 
@@ -175,6 +175,6 @@ To include this library to your Maven build add this dependency:
 <dependency>
     <groupId>de.tsenger</groupId>
     <artifactId>vdstools</artifactId>
-    <version>0.9.0-SNAPSHOT</version>
+    <version>0.10.0</version>
 </dependency>
 ```
