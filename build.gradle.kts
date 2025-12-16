@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "de.tsenger"
-version = "0.10.0"
+version = "0.10.2"
 description = "Kotlin multiplatform library to encode/sign and decode/verify Visible Digital Seals"
 
 repositories {
@@ -84,16 +84,18 @@ kotlin {
     iosArm64() // iOS device
     iosSimulatorArm64() // iOS simulator on Apple Silicon
 
-
     sourceSets {
-        commonMain.dependencies {
-            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.7.1")
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
-            implementation("org.kotlincrypto.hash:sha1:0.8.0")
-            implementation("com.squareup.okio:okio:3.16.4")
-            implementation("co.touchlab:kermit:2.0.8")
-            implementation("dev.whyoleg.cryptography:cryptography-core:0.5.0")
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+        commonMain {
+            kotlin.srcDir("build/generated/kotlin/resourceConstants")
+            dependencies {
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.7.1")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+                implementation("org.kotlincrypto.hash:sha1:0.8.0")
+                implementation("com.squareup.okio:okio:3.16.4")
+                implementation("co.touchlab:kermit:2.0.8")
+                implementation("dev.whyoleg.cryptography:cryptography-core:0.5.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+            }
         }
 
         commonTest.dependencies {
@@ -190,6 +192,62 @@ fun parseCsvLine(line: String): List<String> {
     return regex.findAll(line)
         .map { it.groupValues[1].takeIf { str -> str.isNotEmpty() } ?: it.groupValues[2] }
         .toList()
+}
+
+tasks.register("generateResourceConstants") {
+    description = "Generate Kotlin constants from JSON resources"
+    group = "build"
+
+    val inputDir = file("src/commonMain/resources")
+    val outputDir = file("build/generated/kotlin/resourceConstants")
+
+    inputs.dir(inputDir)
+    outputs.dir(outputDir)
+
+    doLast {
+        outputDir.mkdirs()
+
+        // JSON-Dateien einlesen
+        val sealCodings = file("$inputDir/SealCodings.json").readText()
+        val idbMessageTypes = file("$inputDir/IdbMessageTypes.json").readText()
+        val idbDocumentTypes = file("$inputDir/IdbNationalDocumentTypes.json").readText()
+
+        // Kotlin Code generieren
+        val kotlinCode = """
+package de.tsenger.vdstools.generated
+
+/**
+ * Generated resource constants from JSON files.
+ * Do not edit manually - regenerate with: ./gradlew generateResourceConstants
+ *
+ * Source: src/commonMain/resources/
+ */
+internal object ResourceConstants {
+    const val SEAL_CODINGS_JSON: String = ""${'"'}$sealCodings""${'"'}
+
+    const val IDB_MESSAGE_TYPES_JSON: String = ""${'"'}$idbMessageTypes""${'"'}
+
+    const val IDB_DOCUMENT_TYPES_JSON: String = ""${'"'}$idbDocumentTypes""${'"'}
+}
+""".trimIndent()
+
+        // Ausgabe-Datei schreiben
+        file("$outputDir/de/tsenger/vdstools/generated/ResourceConstants.kt").apply {
+            parentFile.mkdirs()
+            writeText(kotlinCode)
+        }
+
+        println("✅ Generated ResourceConstants.kt with ${sealCodings.length + idbMessageTypes.length + idbDocumentTypes.length} bytes")
+    }
+}
+
+// Task an Kotlin-Compilation und Source-Packaging binden
+tasks.matching { task ->
+    (task.name.startsWith("compile") && task.name.contains("Kotlin")) ||
+            task.name.endsWith("SourcesJar") ||
+            task.name == "sourcesJar"
+}.configureEach {
+    dependsOn("generateResourceConstants")
 }
 
 

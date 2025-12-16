@@ -9,4 +9,3 @@ const val DEFAULT_IDB_DOCUMENT_TYPES: String = "IdbNationalDocumentTypes.json"
 
 @Throws(FileNotFoundException::class)
 expect fun readTextResource(fileName: String): String
-

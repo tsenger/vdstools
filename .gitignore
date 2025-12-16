@@ -45,3 +45,6 @@ buildNumber.properties
 /.kotlin/
 /.idea/
 /generated_barcodes
+
+# Generated Kotlin resources
+build/generated/kotlin/resourceConstants/

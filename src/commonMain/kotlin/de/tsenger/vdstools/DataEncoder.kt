@@ -3,6 +3,7 @@ package de.tsenger.vdstools
 
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.asn1.DerTlv
+import de.tsenger.vdstools.generated.ResourceConstants
 import de.tsenger.vdstools.vds.Feature
 import de.tsenger.vdstools.vds.FeatureCoding
 import dev.whyoleg.cryptography.CryptographyProvider
@@ -22,15 +23,77 @@ object DataEncoder {
     private val log = Logger.withTag(this::class.simpleName ?: "")
 
     init {
-
         try {
-            featureEncoder = FeatureConverter(readTextResource(DEFAULT_SEAL_CODINGS))
-            idbMessageTypeParser = IdbMessageTypeParser(readTextResource(DEFAULT_IDB_MESSAGE_TYPES))
-            idbDocumentTypeParser = IdbNationalDocumentTypeParser(readTextResource(DEFAULT_IDB_DOCUMENT_TYPES))
-        } catch (e: FileNotFoundException) {
-            log.e("JSON file not available: ${e.message}")
-            println("JSON file not available: ${e.message}")
+            // Use generated constants (embedded at compile time)
+            featureEncoder = FeatureConverter(ResourceConstants.SEAL_CODINGS_JSON)
+            idbMessageTypeParser = IdbMessageTypeParser(ResourceConstants.IDB_MESSAGE_TYPES_JSON)
+            idbDocumentTypeParser = IdbNationalDocumentTypeParser(ResourceConstants.IDB_DOCUMENT_TYPES_JSON)
+        } catch (e: Exception) {
+            log.e("Failed to initialize from embedded resources: ${e.message}")
+            println("Failed to initialize from embedded resources: ${e.message}")
         }
+    }
+
+    /**
+     * Allows users to override the default SealCodings with custom JSON.
+     *
+     * @param jsonString Custom SealCodings JSON content
+     * @throws Exception if JSON is invalid
+     */
+    fun loadCustomSealCodings(jsonString: String) {
+        featureEncoder = FeatureConverter(jsonString)
+        log.i("Loaded custom SealCodings")
+    }
+
+    /**
+     * Allows users to override the default IDB Message Types with custom JSON.
+     *
+     * @param jsonString Custom IdbMessageTypes JSON content
+     * @throws Exception if JSON is invalid
+     */
+    fun loadCustomIdbMessageTypes(jsonString: String) {
+        idbMessageTypeParser = IdbMessageTypeParser(jsonString)
+        log.i("Loaded custom IdbMessageTypes")
+    }
+
+    /**
+     * Allows users to override the default IDB Document Types with custom JSON.
+     *
+     * @param jsonString Custom IdbNationalDocumentTypes JSON content
+     * @throws Exception if JSON is invalid
+     */
+    fun loadCustomIdbDocumentTypes(jsonString: String) {
+        idbDocumentTypeParser = IdbNationalDocumentTypeParser(jsonString)
+        log.i("Loaded custom IdbDocumentTypes")
+    }
+
+    /**
+     * Convenience method to load custom JSON from file using readTextResource.
+     *
+     * Example usage:
+     * ```
+     * DataEncoder.loadCustomSealCodingsFromFile("custom_seals.json")
+     * ```
+     */
+    @Throws(FileNotFoundException::class)
+    fun loadCustomSealCodingsFromFile(fileName: String) {
+        loadCustomSealCodings(readTextResource(fileName))
+    }
+
+    /**
+     * Convenience method to load custom IDB Message Types from file.
+     */
+    @Throws(FileNotFoundException::class)
+    fun loadCustomIdbMessageTypesFromFile(fileName: String) {
+        loadCustomIdbMessageTypes(readTextResource(fileName))
+    }
+
+    /**
+     * Convenience method to load custom IDB Document Types from file.
+     */
+    @Throws(FileNotFoundException::class)
+    fun loadCustomIdbDocumentTypesFromFile(fileName: String) {
+        loadCustomIdbDocumentTypes(readTextResource(fileName))
     }
 
 
