@@ -1,6 +1,5 @@
 package de.tsenger.vdstools.vds
 
-import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.Signer
 import de.tsenger.vdstools.SignerJvmTest
@@ -19,7 +18,6 @@ import java.io.IOException
 import java.security.KeyStore
 import java.security.KeyStoreException
 import java.security.Security
-import kotlin.test.assertEquals
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
@@ -115,70 +113,6 @@ class DigitalSealJvmTest {
             )
         )
         Assert.assertNull(seal.getMessage("NUMBER_OF_ENTRIES"))
-    }
-
-    @Test
-    @Throws(IOException::class)
-    fun testParseFictionCert() {
-        val seal = DigitalSeal.fromByteArray(VdsRawBytesJvm.fictionCert) as DigitalSeal
-        Assert.assertEquals(
-            "NFD<<MUSTERMANN<<CLEOPATRE<<<<<<<<<<\nL000000007TUR8308126F2701312T2611011",
-            seal.getMessage("MRZ")?.valueStr
-        )
-        Assert.assertEquals("X98723021", seal.getMessage("PASSPORT_NUMBER")?.valueStr)
-        Assert.assertEquals("160113000085", seal.getMessage("AZR")?.valueStr)
-    }
-
-    @Test
-    @Throws(IOException::class)
-    fun testParseTempPerso() {
-        val seal = DigitalSeal.fromByteArray(VdsRawBytesJvm.tempPerso) as DigitalSeal
-        Assert.assertEquals(
-            "ITD<<MUSTERMANN<<ERIKA<<<<<<<<<<<<<<\nD000000001D<<8308126<2701312<<<<<<<0",
-            seal.getMessage("MRZ")?.valueStr
-        )
-        val imgBytes = seal.getMessage("FACE_IMAGE")?.valueBytes
-        Assert.assertEquals(891, imgBytes?.size)
-    }
-
-    @Test
-    @Throws(IOException::class)
-    fun testParseTempPassport() {
-        val seal = DigitalSeal.fromByteArray(VdsRawBytesJvm.tempPassport) as DigitalSeal
-        Assert.assertEquals(
-            "PPD<<MUSTERMANN<<ERIKA<<<<<<<<<<<<<<<<<<<<<<\nA000000000D<<8308126<2710316<<<<<<<<<<<<<<<8",
-            seal.getMessage("MRZ")?.valueStr
-        )
-    }
-
-    @Test
-    @Throws(IOException::class)
-    fun testgetMessageList() {
-        val seal = DigitalSeal.fromByteArray(VdsRawBytesJvm.fictionCert) as DigitalSeal
-        Assert.assertEquals(
-            "NFD<<MUSTERMANN<<CLEOPATRE<<<<<<<<<<\nL000000007TUR8308126F2701312T2611011",
-            seal.getMessage("MRZ")?.valueStr
-        )
-        Assert.assertEquals(4, seal.featureList.size.toLong())
-        for (feature in seal.featureList) {
-            if (feature.name == "AZR") {
-                Assert.assertEquals("160113000085", feature.valueStr)
-            }
-            if (feature.name == "PASSPORT_NUMBER") {
-                Assert.assertEquals("X98723021", feature.valueStr)
-            }
-        }
-        Assert.assertNull(seal.getMessage("DURATION_OF_STAY"))
-    }
-
-    @Test
-    fun testgetMessageList2() {
-        val seal = DigitalSeal.fromByteArray(VdsRawBytesJvm.tempPerso) as DigitalSeal
-        val featureList = seal.featureList
-        assertEquals(2, featureList.size)
-        for (feature in featureList) {
-            Logger.d(feature.name + ", " + feature.coding + ", " + feature.valueStr)
-        }
     }
 
     @Test

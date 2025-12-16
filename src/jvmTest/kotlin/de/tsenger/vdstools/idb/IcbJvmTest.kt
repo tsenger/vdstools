@@ -27,7 +27,7 @@ class IcbJvmTest {
             "AID<<KOEPPENIK<<JONATHAN<GERALD<<<<<\n2L1T3QPB04D<<8506210M2604239<<<<<<<8",
             icb.getMessage("MRZ_TD2")?.valueStr
         )
-        assertEquals("2026-04-23", icb.getMessage("DATE")?.valueStr)
+        assertEquals("2026-04-23", icb.getMessage("EXPIRY_DATE")?.valueStr)
         assertEquals(1, icb.getMessage("NATIONAL_DOCUMENT_IDENTIFIER")?.valueInt)
         assertEquals(996, icb.getMessage("FACE_IMAGE")?.valueBytes?.size)
 
@@ -56,7 +56,7 @@ class IcbJvmTest {
         assertEquals(
             "PUD<<KOEPPENIK<<JONATHAN<GERALD<<<<<\n2L1T3QPB04D<<8506210M2604239<<<<<<<8", mrz
         )
-        assertEquals("2026-04-23", icb.getMessage("DATE")?.valueStr)
+        assertEquals("2026-04-23", icb.getMessage("EXPIRY_DATE")?.valueStr)
         assertEquals(2, icb.getMessage("NATIONAL_DOCUMENT_IDENTIFIER")?.valueInt)
         assertEquals(996, icb.getMessage("FACE_IMAGE")?.valueBytes?.size)
 
@@ -78,7 +78,7 @@ class IcbJvmTest {
         assertEquals(
             "PPD<<FOLKS<<TALLULAH<<<<<<<<<<<<<<<<<<<<<<<<\n3113883489D<<9709155F1601013<<<<<<<<<<<<<<04", mrz
         )
-        assertEquals("2027-01-31", icb.getMessage("DATE")?.valueStr)
+        assertEquals("2027-01-31", icb.getMessage("EXPIRY_DATE")?.valueStr)
         assertEquals(6, icb.getMessage("NATIONAL_DOCUMENT_IDENTIFIER")?.valueInt)
         assertEquals(998, icb.getMessage("FACE_IMAGE")?.valueBytes?.size)
 

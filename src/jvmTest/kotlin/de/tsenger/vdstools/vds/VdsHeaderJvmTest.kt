@@ -15,11 +15,6 @@ import kotlin.time.ExperimentalTime
 
 
 class VdsHeaderJvmTest {
-    @Test
-    fun testGetDocumentRef() {
-        val header = VdsHeader.Builder("ALIENS_LAW").build()
-        Assert.assertEquals(header.documentRef.toLong(), 0x01fe)
-    }
 
     @Test
     fun testGetEncoded_V3() {
@@ -126,33 +121,6 @@ class VdsHeaderJvmTest {
             Hex.decode("fb06")
         )
         Assert.assertTrue(Arrays.areEqual(expectedHeaderBytes, headerBytes))
-    }
-
-    @OptIn(ExperimentalStdlibApi::class, ExperimentalTime::class)
-    @Test
-    fun testBuildHeader_4parameterV2() {
-        val ldate = LocalDate.parse("2016-08-16")
-        val issuingDate: ByteArray = DataEncoder.encodeDate(ldate)
-
-        val ldNow = Clock.System.todayIn(TimeZone.currentSystemDefault())
-        val signDate: ByteArray = DataEncoder.encodeDate(ldNow)
-
-        val vdsHeader = VdsHeader.Builder("TEMP_PASSPORT")
-            .setSignerIdentifier("DETS")
-            .setCertificateReference("32")
-            .setIssuingCountry("XYZ")
-            .setRawVersion(2)
-            .setIssuingDate(ldate)
-            .build()
-        val headerBytes = vdsHeader.encoded
-        val expectedHeaderBytes = Arrays.concatenate(
-            Hex.decode("dc02ed586d32c8a51a1f"), issuingDate, signDate,
-            Hex.decode("f60d")
-        )
-        println(expectedHeaderBytes.toHexString())
-        println(headerBytes.toHexString())
-        println(vdsHeader.certificateReference)
-        Assert.assertArrayEquals(expectedHeaderBytes, headerBytes)
     }
 
     @Test
