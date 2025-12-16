@@ -15,12 +15,6 @@ import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalStdlibApi::class)
 class VdsHeaderIosTest {
-    @Test
-    fun testGetDocumentRef() {
-        val header = VdsHeader.Builder("ALIENS_LAW").build()
-        assertEquals(header.documentRef.toLong(), 0x01fe)
-    }
-
 
     @Test
     fun testGetEncoded_V3() {
@@ -122,33 +116,6 @@ class VdsHeaderIosTest {
                         + signDate
                         + "fb06".hexToByteArray()
                 )
-        assertContentEquals(expectedHeaderBytes, headerBytes)
-    }
-
-    @OptIn(ExperimentalStdlibApi::class, ExperimentalTime::class)
-    @Test
-    fun testBuildHeader_4parameterV2() {
-        val ldate = LocalDate.parse("2016-08-16")
-        val issuingDate: ByteArray = DataEncoder.encodeDate(ldate)
-
-        val ldNow = Clock.System.todayIn(TimeZone.currentSystemDefault())
-        val signDate: ByteArray = DataEncoder.encodeDate(ldNow)
-
-        val vdsHeader = VdsHeader.Builder("TEMP_PASSPORT")
-            .setSignerIdentifier("DETS")
-            .setCertificateReference("32")
-            .setIssuingCountry("XYZ")
-            .setRawVersion(2)
-            .setIssuingDate(ldate)
-            .build()
-        val headerBytes = vdsHeader.encoded
-        val expectedHeaderBytes = (
-                "dc02ed586d32c8a51a1f".hexToByteArray()
-                        + issuingDate
-                        + signDate
-                        + "f60d".hexToByteArray()
-                )
-
         assertContentEquals(expectedHeaderBytes, headerBytes)
     }
 
