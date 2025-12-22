@@ -241,12 +241,25 @@ class VdsHeader {
                 // 4 bytes stores first 6 characters of Signer & Certificate Reference
                 val signerIdentifierAndCertRefLength = DataEncoder.decodeC40(rawdataBuffer.readByteArray(4))
                 vdsHeader.signerIdentifier = signerIdentifierAndCertRefLength.take(4)
-                // the last two characters store the length of the following Certificate
-                // Reference
-                val certRefLength = signerIdentifierAndCertRefLength.substring(4).toInt(16)
-                log.v("version 4: certRefLength: $certRefLength")
 
-                val bytesToDecode = ((certRefLength - 1) / 3 * 2) + 2
+                // last two characters of signerIdentifierAndCertRefLength store
+                // the length of the following Certificate Reference
+                val bytesToDecode = when (vdsHeader.signerIdentifier) {
+                    "DEZV" -> {
+                        // Verwaltungsdokumente nach TR-03171 mit Signer Identifier "DEZV" kodieren die Länge anders.
+                        val len = signerIdentifierAndCertRefLength.substring(4).toInt(10)
+                        log.v("version 4 'DEZV': certRefLength: $len")
+                        (2 * len + 2) / 3
+                    }
+
+                    else -> {
+                        // Nach TR-03137 bzw ICOA Doc9303 Part 13 wird die Länge so berechnet:
+                        val len = signerIdentifierAndCertRefLength.substring(4).toInt(16)
+                        log.v("version 4: certRefLength: $len")
+                        (2 * len + 4) / 3
+                    }
+                }
+
                 log.v("version 4: bytesToDecode: $bytesToDecode")
                 vdsHeader.certificateReference =
                     DataEncoder.decodeC40(rawdataBuffer.readByteArray(bytesToDecode.toLong()))

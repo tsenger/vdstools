@@ -262,5 +262,21 @@
         "maxLength": 6
       }
     ]
+  },
+  {
+    "documentType": "ADMINISTRATIVE_DOCUMENTS",
+    "documentRef": "01c8",
+    "version": 4,
+    "features": [
+      {
+        "name": "DOC_PROFILE_NUMBER",
+        "tag": 0,
+        "coding": "BYTES",
+        "decodedLength": 16,
+        "required": true,
+        "minLength": 16,
+        "maxLength": 16
+      }
+    ]
   }
 ]
