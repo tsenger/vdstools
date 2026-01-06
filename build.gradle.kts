@@ -75,9 +75,11 @@ mavenPublishing {
 
 kotlin {
 
+    jvmToolchain(21)
+
     jvm {
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_17)
+            jvmTarget.set(JvmTarget.JVM_21)
         }
     }
     iosX64() // iOS simulator
@@ -105,7 +107,7 @@ kotlin {
 
 
         jvmMain.dependencies {
-            implementation("org.bouncycastle:bcprov-jdk18on:1.83")
+            implementation("org.bouncycastle:bcprov-jdk15to18:1.83")
             implementation("org.jetbrains:annotations:26.0.2")
             implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.2.21")
             implementation("dev.whyoleg.cryptography:cryptography-provider-jdk:0.5.0")
