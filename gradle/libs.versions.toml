@@ -9,7 +9,6 @@ kotlinx-coroutines = "1.10.2"
 
 # Cryptography
 cryptography = "0.5.0"
-kotlincrypto-sha1 = "0.8.0"
 bouncycastle = "1.83"
 
 # Utilities
@@ -34,7 +33,6 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 cryptography-core = { module = "dev.whyoleg.cryptography:cryptography-core", version.ref = "cryptography" }
 cryptography-provider-jdk = { module = "dev.whyoleg.cryptography:cryptography-provider-jdk", version.ref = "cryptography" }
 cryptography-provider-openssl3-prebuilt = { module = "dev.whyoleg.cryptography:cryptography-provider-openssl3-prebuilt", version.ref = "cryptography" }
-kotlincrypto-sha1 = { module = "org.kotlincrypto.hash:sha1", version.ref = "kotlincrypto-sha1" }
 
 # Utilities
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
@@ -57,5 +55,5 @@ maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publ
 
 [bundles]
 kotlinx-common = ["kotlinx-datetime", "kotlinx-serialization-json", "kotlinx-coroutines-core"]
-cryptography-common = ["cryptography-core", "kotlincrypto-sha1"]
+cryptography-common = ["cryptography-core"]
 zxing = ["zxing-core", "zxing-javase"]

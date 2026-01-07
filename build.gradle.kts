@@ -90,7 +90,6 @@ kotlin {
             dependencies {
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.kotlinx.serialization.json)
-                implementation(libs.kotlincrypto.sha1)
                 implementation(libs.okio)
                 implementation(libs.kermit)
                 implementation(libs.cryptography.core)
