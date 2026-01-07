@@ -1,15 +1,13 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    kotlin("multiplatform") version "2.2.21"
-    kotlin("plugin.serialization") version "2.2.21"
-    id("com.vanniktech.maven.publish") version "0.35.0"
-
-
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.maven.publish)
 }
 
 group = "de.tsenger"
-version = "0.10.3-SNAPSHOT"
+version = "0.10.3"
 description = "Kotlin multiplatform library to encode/sign and decode/verify Visible Digital Seals"
 
 repositories {
@@ -90,13 +88,13 @@ kotlin {
         commonMain {
             kotlin.srcDir("build/generated/kotlin/resourceConstants")
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.7.1")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
-                implementation("org.kotlincrypto.hash:sha1:0.8.0")
-                implementation("com.squareup.okio:okio:3.16.4")
-                implementation("co.touchlab:kermit:2.0.8")
-                implementation("dev.whyoleg.cryptography:cryptography-core:0.5.0")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+                implementation(libs.kotlinx.datetime)
+                implementation(libs.kotlinx.serialization.json)
+                implementation(libs.kotlincrypto.sha1)
+                implementation(libs.okio)
+                implementation(libs.kermit)
+                implementation(libs.cryptography.core)
+                implementation(libs.kotlinx.coroutines.core)
             }
         }
 
@@ -107,26 +105,26 @@ kotlin {
 
 
         jvmMain.dependencies {
-            implementation("org.bouncycastle:bcprov-jdk15to18:1.83")
-            implementation("org.jetbrains:annotations:26.0.2")
-            implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.2.21")
-            implementation("dev.whyoleg.cryptography:cryptography-provider-jdk:0.5.0")
+            implementation(libs.bouncycastle.bcprov)
+            implementation(libs.jetbrains.annotations)
+            implementation(libs.kotlin.stdlib.jdk8)
+            implementation(libs.cryptography.provider.jdk)
         }
 
         jvmTest.dependencies {
-            implementation("junit:junit:4.13.2")
-            implementation("com.google.zxing:core:3.5.3")
-            implementation("com.google.zxing:javase:3.5.3")
+            implementation(libs.junit)
+            implementation(libs.zxing.core)
+            implementation(libs.zxing.javase)
 
         }
 
         iosMain.dependencies {
-            implementation("dev.whyoleg.cryptography:cryptography-provider-openssl3-prebuilt:0.5.0")
+            implementation(libs.cryptography.provider.openssl3.prebuilt)
 
         }
 
         iosTest.dependencies {
-            implementation("dev.whyoleg.cryptography:cryptography-provider-openssl3-prebuilt:0.5.0")
+            implementation(libs.cryptography.provider.openssl3.prebuilt)
 
         }
 

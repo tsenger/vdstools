@@ -1,0 +1,61 @@
+[versions]
+# Kotlin & Core
+kotlin = "2.2.21"
+
+# Kotlinx Libraries
+kotlinx-datetime = "0.7.1"
+kotlinx-serialization = "1.9.0"
+kotlinx-coroutines = "1.10.2"
+
+# Cryptography
+cryptography = "0.5.0"
+kotlincrypto-sha1 = "0.8.0"
+bouncycastle = "1.83"
+
+# Utilities
+okio = "3.16.4"
+kermit = "2.0.8"
+annotations = "26.0.2"
+
+# Testing
+junit = "4.13.2"
+zxing = "3.5.3"
+
+# Plugins
+maven-publish = "0.35.0"
+
+[libraries]
+# Kotlinx
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+
+# Cryptography
+cryptography-core = { module = "dev.whyoleg.cryptography:cryptography-core", version.ref = "cryptography" }
+cryptography-provider-jdk = { module = "dev.whyoleg.cryptography:cryptography-provider-jdk", version.ref = "cryptography" }
+cryptography-provider-openssl3-prebuilt = { module = "dev.whyoleg.cryptography:cryptography-provider-openssl3-prebuilt", version.ref = "cryptography" }
+kotlincrypto-sha1 = { module = "org.kotlincrypto.hash:sha1", version.ref = "kotlincrypto-sha1" }
+
+# Utilities
+okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
+
+# JVM Specific
+bouncycastle-bcprov = { module = "org.bouncycastle:bcprov-jdk15to18", version.ref = "bouncycastle" }
+jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "annotations" }
+kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
+
+# Testing
+junit = { module = "junit:junit", version.ref = "junit" }
+zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
+zxing-javase = { module = "com.google.zxing:javase", version.ref = "zxing" }
+
+[plugins]
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish" }
+
+[bundles]
+kotlinx-common = ["kotlinx-datetime", "kotlinx-serialization-json", "kotlinx-coroutines-core"]
+cryptography-common = ["cryptography-core", "kotlincrypto-sha1"]
+zxing = ["zxing-core", "zxing-javase"]
