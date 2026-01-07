@@ -137,4 +137,76 @@ class VdsHeaderCommonTest {
         }
     }
 
+    @Test
+    fun testCertRefLengthCalculation() {
+        // Test bytesToDecode calculation for certificate reference lengths 1-32
+        for (length in 1..32) {
+            // Create certificate reference with desired length
+            val certRef = "1".repeat(length)
+
+            // Build header with version 3 (rawVersion 0x03)
+            val header = VdsHeader.Builder("RESIDENCE_PERMIT")
+                .setRawVersion(3)
+                .setIssuingCountry("D<<")
+                .setSignerIdentifier("DETS")
+                .setCertificateReference(certRef)
+                .setIssuingDate(LocalDate.parse("2024-09-27"))
+                .setSigDate(LocalDate.parse("2024-09-27"))
+                .build()
+
+            // Encode header to bytes
+            val encoded = header.encoded
+
+            // Parse header back from bytes
+            val buffer = Buffer().write(encoded)
+            val parsed = VdsHeader.fromBuffer(buffer)
+
+            // Verify that the parsed certificate reference matches the original
+            assertEquals(
+                certRef,
+                parsed.certificateReference,
+                "Certificate reference mismatch for length $length"
+            )
+        }
+    }
+
+    @Test
+    fun testCertRefLengthCalculation_DEZV() {
+        // Test bytesToDecode calculation for DEZV with decimal certRefLength
+        // This verifies the formula works correctly when radix=10
+        // Note: DEZV uses decimal encoding for certRefLength (not hexadecimal)
+        for (length in 1..32) {
+            val certRef = "A".repeat(length) // Use 'A' for better visibility
+            val lengthStr = length.toString(10).padStart(2, '0') // Decimal!
+
+            // Manually build header bytes with DEZV and decimal length
+            val buffer = Buffer()
+            buffer.writeByte(0xDC)
+            buffer.writeByte(0x03) // Version 4
+            buffer.write(DataEncoder.encodeC40("D<<"))
+            buffer.write(DataEncoder.encodeC40("DEZV$lengthStr")) // Signer + decimal length
+            buffer.write(DataEncoder.encodeC40(certRef)) // Certificate reference
+            buffer.write(DataEncoder.encodeDate(LocalDate.parse("2026-01-07")))
+            buffer.write(DataEncoder.encodeDate(LocalDate.parse("2026-01-07")))
+            buffer.writeByte(0x01) // always 1dec as defined in BSI TR-03171
+            buffer.writeByte(0xC8) // always 200dec as defined in BSI TR-03171
+
+            // Parse the manually created header
+            val parseBuffer = Buffer().write(buffer.readByteArray())
+            val parsed = VdsHeader.fromBuffer(parseBuffer)
+
+            // Verify
+            assertEquals(
+                "DEZV",
+                parsed.signerIdentifier,
+                "SignerIdentifier mismatch for length $length"
+            )
+            assertEquals(
+                certRef,
+                parsed.certificateReference,
+                "Certificate reference mismatch for DEZV with length $length (decimal)"
+            )
+        }
+    }
+
 }
