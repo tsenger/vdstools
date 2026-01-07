@@ -6,20 +6,30 @@ This a Kotlin multiplatform (JVM and iOS) library to decode/verify and encode/si
 specified in
 
 - [BSI TR-03137 Part 1](https://www.bsi.bund.de/EN/Themen/Unternehmen-und-Organisationen/Standards-und-Zertifizierung/Technische-Richtlinien/TR-nach-Thema-sortiert/tr03137/tr-03137.html)
-- [ICAO Doc 9303 Part 13: Visible Digital Seals](https://www.icao.int/publications/Documents/9303_p13_cons_en.pdf)
+- [ICAO Doc 9303 Part 13: Visible Digital Seals](https://www2023.icao.int/publications/Documents/9303_p13_cons_en.pdf)
 - [ICAO TR "VDS for Non-Electronic Documents"](https://www2023.icao.int/Security/FAL/TRIP/Documents/TR%20-%20Visible%20Digital%20Seals%20for%20Non-Electronic%20Documents%20V1.7.pdf)
 
-It also supports encoding and decoding Seals defined in the new draft
+It also fully supports encoding and decoding Seals defined in the new draft
 of [ICAO Datastructure for Barcode](https://www.icao.int/Security/FAL/TRIP/PublishingImages/Pages/Publications/ICAO%20TR%20-%20ICAO%20Datastructure%20for%20Barcode.pdf).
-Since release 0.9.0 ICAO IDB barcode encoder/decoders are fully functional.
 VDS and ICD barcodes can be parsed by a generic interface. An example is given in the following chapter
 
 VDS can be created with the help of this library or, if you want to try it out quickly, via the
 web [Sealgen](https://sealgen.tsenger.de) tool.
-There is also the [Sealva](https://play.google.com/store/apps/details?id=de.tsenger.sealver) Android app which scans,
-verifies and displays all VDS profiles defined in the above specifications.
+There is also the Sealva mobile app which scans, verifies and displays all VDS profiles defined in the above specifications.
 
-<a href='https://play.google.com/store/apps/details?id=de.tsenger.sealver&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png' width='155' height='60'/></a>
+
+<table>
+  <tr>
+    <td>
+        <a href='https://play.google.com/store/apps/details?id=de.tsenger.sealver&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png' width='155' height='60'/></a>
+    </td>
+    <td>
+    <a href="https://apps.apple.com/de/app/sealva-vds-validator/id6756822727?itscg=30200&itsct=apps_box_badge&mttnsubad=6756822727" style="display: inline-block;"><img src="https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-app-store/black/en-us?releaseDate=1767571200" alt="Download on the App Store" style="width: 140px; height: 40px; vertical-align: middle; object-fit: contain;" /></a>
+    </td>
+    </tr>
+</table>
+
+    
 
 ## Parse and verify a VDS / IDB
 
