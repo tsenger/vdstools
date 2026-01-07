@@ -52,8 +52,3 @@ zxing-javase = { module = "com.google.zxing:javase", version.ref = "zxing" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish" }
-
-[bundles]
-kotlinx-common = ["kotlinx-datetime", "kotlinx-serialization-json", "kotlinx-coroutines-core"]
-cryptography-common = ["cryptography-core"]
-zxing = ["zxing-core", "zxing-javase"]
