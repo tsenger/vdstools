@@ -30,6 +30,8 @@ class VdsHeader {
     var rawVersion: Byte = 0
         private set
 
+    private var rawBytes: ByteArray? = null
+
     private constructor()
 
     private constructor(builder: Builder) {
@@ -71,6 +73,10 @@ class VdsHeader {
 
     val encoded: ByteArray
         get() {
+            // Return original bytes if parsed from buffer (preserves malformed headers for signature verification)
+            rawBytes?.let { return it }
+
+            // Build encoded bytes for headers created via Builder
             val buffer = Buffer()
             try {
                 buffer.writeByte(DC.toInt())
@@ -202,6 +208,10 @@ class VdsHeader {
 
         @Throws(IllegalArgumentException::class)
         fun fromBuffer(rawdataBuffer: Buffer): VdsHeader {
+            // Store buffer state for capturing raw bytes
+            val sizeBefore = rawdataBuffer.size
+            val bufferCopy = rawdataBuffer.copy()
+
             // Magic Byte
             val magicByte = rawdataBuffer.readByte()
             if (magicByte != DC) {
@@ -264,6 +274,11 @@ class VdsHeader {
             vdsHeader.sigDate = DataEncoder.decodeDate(rawdataBuffer.readByteArray(3))
             vdsHeader.docFeatureRef = rawdataBuffer.readByte()
             vdsHeader.docTypeCat = rawdataBuffer.readByte()
+
+            // Capture the original raw bytes for signature verification
+            val bytesRead = sizeBefore - rawdataBuffer.size
+            vdsHeader.rawBytes = bufferCopy.readByteArray(bytesRead)
+
             return vdsHeader
         }
     }

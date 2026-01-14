@@ -141,6 +141,24 @@ class DigitalSealCommonTest {
         assertEquals("ARRIVAL_ATTESTATION", seal2.documentType)
         assertEquals(LocalDate.parse("2016-05-23"), seal2.sigDate)
         assertEquals(LocalDate.parse("2016-02-01"), seal2.issuingDate)
+        assertContentEquals(VdsRawBytesCommon.ankunftsnwPapier, seal2.encoded)
+    }
+
+    @Test
+    fun testAnkunftsNwPapier2() {
+        val seal = DigitalSeal.fromByteArray(VdsRawBytesCommon.ankunftsnwPapier2) as DigitalSeal
+        assertNotNull(seal)
+        println(seal.docTypeCat)
+        assertEquals("ARRIVAL_ATTESTATION", seal.documentType)
+        assertEquals(LocalDate.parse("2016-05-23"), seal.sigDate)
+        assertEquals(LocalDate.parse("2016-02-01"), seal.issuingDate)
+        val rawString = seal.rawString
+        val seal2 = DigitalSeal.fromRawString(rawString) as DigitalSeal
+        assertNotNull(seal2)
+        assertEquals("ARRIVAL_ATTESTATION", seal2.documentType)
+        assertEquals(LocalDate.parse("2016-05-23"), seal2.sigDate)
+        assertEquals(LocalDate.parse("2016-02-01"), seal2.issuingDate)
+        assertContentEquals(VdsRawBytesCommon.ankunftsnwPapier2, seal2.encoded)
     }
 
 
