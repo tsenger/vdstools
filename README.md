@@ -15,7 +15,8 @@ VDS and ICD barcodes can be parsed by a generic interface. An example is given i
 
 VDS can be created with the help of this library or, if you want to try it out quickly, via the
 web [Sealgen](https://sealgen.tsenger.de) tool.
-There is also the Sealva mobile app which scans, verifies and displays all VDS profiles defined in the above specifications.
+There is also the Sealva mobile app which scans, verifies and displays all VDS profiles defined in the above
+specifications.
 
 
 <table>
@@ -28,8 +29,6 @@ There is also the Sealva mobile app which scans, verifies and displays all VDS p
     </td>
     </tr>
 </table>
-
-    
 
 ## Parse and verify a VDS / IDB
 
@@ -151,6 +150,85 @@ val encodedRawString = icb.rawString
 
 Also have a look at the testcases for more usage inspiration.
 You will also find an example on how to generate a datamatrix image with the Zxing library in the jvmTests.
+
+## Custom seal codings
+
+VdsTools uses a JSON-based configuration to define seal document types and their feature encodings which follows the
+encoding based on BSI TR-03137.
+Profile definitions according to BSI TR-03171 are currently not fully supported, as the profile definitions are not publicly available at this time.
+You can load your own custom codings at runtime to support additional document types beyond the standard ones.
+
+### Loading Custom Codings
+
+```kotlin
+// Option 1: Load from JSON string
+val customJson = """[
+  {
+    "documentType": "MY_CUSTOM_DOCUMENT",
+    "documentRef": "ab01",
+    "version": 1,
+    "features": [
+      {
+        "name": "OWNER_NAME",
+        "tag": 1,
+        "coding": "C40",
+        "decodedLength": 30,
+        "required": true,
+        "minLength": 1,
+        "maxLength": 20
+      },
+      {
+        "name": "ISSUE_DATE",
+        "tag": 2,
+        "coding": "DATE",
+        "required": true,
+        "minLength": 3,
+        "maxLength": 3
+      }
+    ]
+  }
+]"""
+
+DataEncoder.loadCustomSealCodings(customJson)
+
+// Option 2: Load from file (JVM only)
+DataEncoder.loadCustomSealCodingsFromFile("path/to/MyCodings.json")
+```
+
+### Using Custom Document Types
+
+Once loaded, custom document types work seamlessly with the existing API:
+
+```kotlin
+val vdsMessage = VdsMessage.Builder("MY_CUSTOM_DOCUMENT")
+    .addDocumentFeature("OWNER_NAME", "MAX MUSTERMANN")
+    .addDocumentFeature("ISSUE_DATE", "2024-06-15")
+    .build()
+
+val header = VdsHeader.Builder("MY_CUSTOM_DOCUMENT")
+    .setIssuingCountry("D<<")
+    .setSignerIdentifier("TEST")
+    .setCertificateReference("32")
+    .setIssuingDate(LocalDate.now())
+    .setSigDate(LocalDate.now())
+    .build()
+
+val digitalSeal = DigitalSeal(header, vdsMessage, signer)
+```
+
+### Available Coding Types
+
+| Coding        | Description                                                 |
+|---------------|-------------------------------------------------------------|
+| `C40`         | Compressed text encoding (uppercase, digits, special chars) |
+| `MRZ`         | Machine Readable Zone (special C40 variant)                 |
+| `UTF8_STRING` | Direct UTF-8 text                                           |
+| `BYTE`        | Single byte value                                           |
+| `BYTES`       | Variable-length byte array (images, binary data)            |
+| `DATE`        | 3-byte date (ICAO format, e.g. "2024-06-15")                |
+| `MASKED_DATE` | 4-byte date with uncertainty masks                          |
+
+See `src/commonMain/resources/SealCodings.json` for the complete structure of the default codings.
 
 ## Documentation
 
