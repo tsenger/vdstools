@@ -1,9 +1,7 @@
 package de.tsenger.vdstools.vds
 
 import de.tsenger.vdstools.DataEncoder
-import de.tsenger.vdstools.asn1.DerTlv
 
-@OptIn(ExperimentalStdlibApi::class)
 class Feature(val tag: Int, val name: String, private val value: ByteArray, val coding: FeatureCoding) {
 
     val valueBytes: ByteArray
@@ -27,12 +25,4 @@ class Feature(val tag: Int, val name: String, private val value: ByteArray, val 
                     DataEncoder.formatMRZ(unformattedMrz, unformattedMrz.length)
                 }
             }
-
-    companion object {
-        fun fromDerTlv(vdsType: String, derTlv: DerTlv): Feature? {
-            return DataEncoder.encodeDerTlv(vdsType, derTlv)
-        }
-    }
-
-
 }

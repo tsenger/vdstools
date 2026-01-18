@@ -6,6 +6,7 @@ import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generated.ResourceConstants
 import de.tsenger.vdstools.vds.Feature
 import de.tsenger.vdstools.vds.FeatureCoding
+import de.tsenger.vdstools.vds.dto.ExtendedFeatureDefinitionDto
 import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.DelicateCryptographyApi
 import dev.whyoleg.cryptography.algorithms.SHA1
@@ -20,6 +21,7 @@ object DataEncoder {
     private lateinit var featureEncoder: FeatureConverter
     private lateinit var idbMessageTypeParser: IdbMessageTypeParser
     private lateinit var idbDocumentTypeParser: IdbNationalDocumentTypeParser
+    private lateinit var extendedFeatureDefinitionRegistry: ExtendedFeatureDefinitionRegistry
     private val log = Logger.withTag(this::class.simpleName ?: "")
 
     init {
@@ -28,6 +30,7 @@ object DataEncoder {
             featureEncoder = FeatureConverter(ResourceConstants.SEAL_CODINGS_JSON)
             idbMessageTypeParser = IdbMessageTypeParser(ResourceConstants.IDB_MESSAGE_TYPES_JSON)
             idbDocumentTypeParser = IdbNationalDocumentTypeParser(ResourceConstants.IDB_DOCUMENT_TYPES_JSON)
+            extendedFeatureDefinitionRegistry = ExtendedFeatureDefinitionRegistry(ResourceConstants.EXTENDED_FEATURE_DEFINITIONS_JSON)
         } catch (e: Exception) {
             log.e("Failed to initialize from embedded resources: ${e.message}")
             println("Failed to initialize from embedded resources: ${e.message}")
@@ -68,6 +71,17 @@ object DataEncoder {
     }
 
     /**
+     * Allows users to override the default Extended Feature Definitions with custom JSON.
+     *
+     * @param jsonString Custom ExtendedFeatureDefinitions JSON content
+     * @throws Exception if JSON is invalid
+     */
+    fun loadCustomExtendedFeatureDefinitions(jsonString: String) {
+        extendedFeatureDefinitionRegistry = ExtendedFeatureDefinitionRegistry(jsonString)
+        log.i("Loaded custom ExtendedFeatureDefinitions")
+    }
+
+    /**
      * Convenience method to load custom JSON from file using readTextResource.
      *
      * Example usage:
@@ -94,6 +108,14 @@ object DataEncoder {
     @Throws(FileNotFoundException::class)
     fun loadCustomIdbDocumentTypesFromFile(fileName: String) {
         loadCustomIdbDocumentTypes(readTextResource(fileName))
+    }
+
+    /**
+     * Convenience method to load custom Extended Feature Definitions from file.
+     */
+    @Throws(FileNotFoundException::class)
+    fun loadCustomExtendedFeatureDefinitionsFromFile(fileName: String) {
+        loadCustomExtendedFeatureDefinitions(readTextResource(fileName))
     }
 
 
@@ -387,6 +409,63 @@ object DataEncoder {
 
     fun getIdbDocumentTypeName(tag: Int): String {
         return idbDocumentTypeParser.getDocumentType(tag)
+    }
+
+    /**
+     * Checks if the given vdsType requires UUID-based profile lookup.
+     *
+     * @param vdsType The VDS type to check
+     * @return true if this type requires UUID lookup, false otherwise
+     */
+    fun requiresUuidLookup(vdsType: String): Boolean {
+        return featureEncoder.requiresUuidLookup(vdsType)
+    }
+
+    /**
+     * Gets the tag number containing the UUID for profile lookup.
+     *
+     * @param vdsType The VDS type to check
+     * @return The tag number (default 0 if not specified or type not found)
+     */
+    fun getUuidFeatureTag(vdsType: String): Int {
+        return featureEncoder.getUuidFeatureTag(vdsType)
+    }
+
+    /**
+     * Resolves an extended feature definition based on UUID bytes.
+     *
+     * @param uuidBytes 16-byte UUID
+     * @return The matching ExtendedFeatureDefinitionDto, or null if no definition matches
+     */
+    fun resolveExtendedFeatureDefinition(uuidBytes: ByteArray): ExtendedFeatureDefinitionDto? {
+        return extendedFeatureDefinitionRegistry.resolve(uuidBytes)
+    }
+
+    /**
+     * Resolves an extended feature definition based on UUID hex string.
+     *
+     * @param uuidHex UUID as hex string (32 characters, without dashes)
+     * @return The matching ExtendedFeatureDefinitionDto, or null if no definition matches
+     */
+    fun resolveExtendedFeatureDefinition(uuidHex: String): ExtendedFeatureDefinitionDto? {
+        return extendedFeatureDefinitionRegistry.resolve(uuidHex)
+    }
+
+    /**
+     * Encodes a DerTlv to a Feature with extended feature definition-aware lookup.
+     *
+     * @param vdsType The base VDS type
+     * @param extendedDefinition The resolved extended feature definition (may be null)
+     * @param derTlv The DerTlv to encode
+     * @return The Feature, or null if encoding fails
+     */
+    fun encodeDerTlv(vdsType: String, extendedDefinition: ExtendedFeatureDefinitionDto?, derTlv: DerTlv): Feature? {
+        val value = derTlv.value
+        val tag = derTlv.tag.toInt()
+        val name = featureEncoder.getFeatureName(vdsType, extendedDefinition, tag)
+        val coding = featureEncoder.getFeatureCoding(vdsType, extendedDefinition, tag)
+        if (name == "" || coding == FeatureCoding.UNKNOWN) return null
+        return Feature(tag, name, value, coding)
     }
 
     /**

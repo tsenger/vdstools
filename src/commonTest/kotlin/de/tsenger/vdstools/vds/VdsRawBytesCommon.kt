@@ -140,7 +140,21 @@ object VdsRawBytesCommon {
                 "de68124052479585d9756353012dee6d" +
                 "41b2").hexToByteArray()
 
-
+    val meldebescheinigung: ByteArray =
+        ("dc036abc6d38dbdf58c6724b34127770" +
+                "34bb3a2f5834724919da47cb59614e76" +
+                "094e760901c800109a4223406d374ef9" +
+                "9e2cf95e31a23846040a4d7573746572" +
+                "6d616e6e050344722e06054572696b61" +
+                "0700080a31312e31322e313936340910" +
+                "4b6f6d6d616e64616e74656e7374722e" +
+                "0a0231380b0531303936390c06426572" +
+                "6c696e0d0832303235303431340e0100" +
+                "0f083230323530353034ff407b423fba" +
+                "c54a00d992faec76b70966dbfb611f67" +
+                "da6ff83d3bcf8b64ffede2be2201169d" +
+                "e7fb866f048df6e2cd1528767d8d6337" +
+                "20465396e64681e3a49ec74d").hexToByteArray()
 }
 
 

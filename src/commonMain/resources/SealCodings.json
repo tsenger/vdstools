@@ -267,6 +267,8 @@
     "documentType": "ADMINISTRATIVE_DOCUMENTS",
     "documentRef": "01c8",
     "version": 4,
+    "uuidFeatureLookup": true,
+    "uuidFeatureTag": 0,
     "features": [
       {
         "name": "DOC_PROFILE_NUMBER",
@@ -283,102 +285,6 @@
         "required": false,
         "minLength": 1,
         "maxLength": 17
-      },
-      {
-        "name": "SURNAME",
-        "tag": 4,
-        "coding": "UTF8_STRING",
-        "required": true,
-        "minLength": 1,
-        "maxLength": 255
-      },
-      {
-        "name": "ACADEMIC_DEGREE",
-        "tag": 5,
-        "coding": "UTF8_STRING",
-        "required": false,
-        "minLength": 1,
-        "maxLength": 255
-      },
-      {
-        "name": "FIRST_NAME",
-        "tag": 6,
-        "coding": "UTF8_STRING",
-        "required": true,
-        "minLength": 1,
-        "maxLength": 255
-      },
-      {
-        "name": "COMMON_FIRST_NAME",
-        "tag": 7,
-        "coding": "UTF8_STRING",
-        "required": false,
-        "minLength": 1,
-        "maxLength": 255
-      },
-      {
-        "name": "DATE_OF_BIRTH",
-        "tag": 8,
-        "coding": "UTF8_STRING",
-        "required": false,
-        "minLength": 1,
-        "maxLength": 255
-      },
-      {
-        "name": "STREET",
-        "tag": 9,
-        "coding": "UTF8_STRING",
-        "required": true,
-        "minLength": 1,
-        "maxLength": 255
-      },
-      {
-        "name": "HOUSE_NUMBER",
-        "tag": 10,
-        "coding": "UTF8_STRING",
-        "required": true,
-        "minLength": 1,
-        "maxLength": 10
-      },
-      {
-        "name": "POSTAL_CODE",
-        "tag": 11,
-        "coding": "UTF8_STRING",
-        "required": true,
-        "minLength": 5,
-        "maxLength": 5
-      },
-      {
-        "name": "CITY",
-        "tag": 12,
-        "coding": "UTF8_STRING",
-        "required": true,
-        "minLength": 1,
-        "maxLength": 255
-      },
-      {
-        "name": "MOVING_DATE",
-        "tag": 13,
-        "coding": "UTF8_STRING",
-        "required": true,
-        "minLength": 8,
-        "maxLength": 8
-      },
-      {
-        "name": "HOUSING_STATUS",
-        "tag": 14,
-        "coding": "BYTE",
-        "required": true,
-        "minLength": 1,
-        "maxLength": 1
-      },
-      {
-        "name": "DATE_OF_NOTIFICATION",
-        "tag": 15,
-        "coding": "UTF8_STRING",
-        "required": true,
-        "minLength": 8,
-        "maxLength": 8
       }
     ]
   }

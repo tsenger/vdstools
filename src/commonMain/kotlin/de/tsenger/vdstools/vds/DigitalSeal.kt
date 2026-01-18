@@ -23,7 +23,8 @@ class DigitalSeal : Seal {
         this.vdsHeader = vdsHeader
         this.vdsMessage = vdsMessage
         this.vdsSignature = vdsSignature
-        this.documentType = vdsHeader.vdsType
+        // Use effectiveVdsType which considers extended feature definition resolution
+        this.documentType = vdsMessage.effectiveVdsType
     }
 
     constructor(vdsHeader: VdsHeader, vdsMessage: VdsMessage, signer: Signer) {
@@ -167,6 +168,14 @@ class DigitalSeal : Seal {
                 }
             }
             val vdsMessage = VdsMessage(vdsHeader.vdsType, featureList)
+
+            // Resolve extended feature definition if this seal type requires UUID lookup
+            if (DataEncoder.requiresUuidLookup(vdsHeader.vdsType)) {
+                val uuidTag = DataEncoder.getUuidFeatureTag(vdsHeader.vdsType)
+                vdsMessage.resolveExtendedFeatureDefinition(uuidTag)
+                log.d("Resolved effectiveVdsType: ${vdsMessage.effectiveVdsType}")
+            }
+
             return DigitalSeal(vdsHeader, vdsMessage, vdsSignature)
         }
     }

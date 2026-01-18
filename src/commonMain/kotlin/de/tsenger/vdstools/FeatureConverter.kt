@@ -3,6 +3,7 @@ package de.tsenger.vdstools
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.vds.FeatureCoding
+import de.tsenger.vdstools.vds.dto.ExtendedFeatureDefinitionDto
 import de.tsenger.vdstools.vds.dto.FeaturesDto
 import de.tsenger.vdstools.vds.dto.SealDto
 import kotlinx.serialization.json.Json
@@ -44,6 +45,36 @@ class FeatureConverter(jsonString: String) {
         return vdsTypesReverse[docRef]
     }
 
+    /**
+     * Checks if the given vdsType requires UUID-based profile lookup.
+     *
+     * @param vdsType The VDS type to check
+     * @return true if this type requires UUID lookup, false otherwise
+     */
+    fun requiresUuidLookup(vdsType: String): Boolean {
+        return try {
+            val sealDto = getSealDto(vdsType)
+            sealDto.uuidFeatureLookup
+        } catch (e: IllegalArgumentException) {
+            false
+        }
+    }
+
+    /**
+     * Gets the tag number containing the UUID for profile lookup.
+     *
+     * @param vdsType The VDS type to check
+     * @return The tag number (default 0 if not specified or type not found)
+     */
+    fun getUuidFeatureTag(vdsType: String): Int {
+        return try {
+            val sealDto = getSealDto(vdsType)
+            sealDto.uuidFeatureTag
+        } catch (e: IllegalArgumentException) {
+            0
+        }
+    }
+
     val availableVdsFeatures: Set<String?>
         get() = vdsFeatures
 
@@ -66,6 +97,52 @@ class FeatureConverter(jsonString: String) {
         val sealDto = getSealDto(vdsType)
         val tag = derTlv.tag
         return getCoding(sealDto, tag)
+    }
+
+    /**
+     * Gets the feature name for a given tag, considering extended feature definitions.
+     * Lookup order: Extended definition first (if provided), then base type.
+     *
+     * @param baseVdsType The base VDS type (e.g., "ADMINISTRATIVE_DOCUMENTS")
+     * @param extendedDefinition The resolved extended feature definition (may be null)
+     * @param tag The tag number to look up
+     * @return The feature name
+     */
+    @Throws(IllegalArgumentException::class)
+    fun getFeatureName(baseVdsType: String, extendedDefinition: ExtendedFeatureDefinitionDto?, tag: Int): String {
+        // Try extended definition first if available
+        if (extendedDefinition != null) {
+            val definitionFeature = extendedDefinition.features.find { it.tag == tag }
+            if (definitionFeature != null) {
+                return definitionFeature.name
+            }
+        }
+        // Fall back to base type
+        val sealDto = getSealDto(baseVdsType)
+        return getFeatureName(sealDto, tag)
+    }
+
+    /**
+     * Gets the feature coding for a given tag, considering extended feature definitions.
+     * Lookup order: Extended definition first (if provided), then base type.
+     *
+     * @param baseVdsType The base VDS type (e.g., "ADMINISTRATIVE_DOCUMENTS")
+     * @param extendedDefinition The resolved extended feature definition (may be null)
+     * @param tag The tag number to look up
+     * @return The feature coding
+     */
+    @Throws(IllegalArgumentException::class)
+    fun getFeatureCoding(baseVdsType: String, extendedDefinition: ExtendedFeatureDefinitionDto?, tag: Int): FeatureCoding {
+        // Try extended definition first if available
+        if (extendedDefinition != null) {
+            val definitionFeature = extendedDefinition.features.find { it.tag == tag }
+            if (definitionFeature != null) {
+                return definitionFeature.coding
+            }
+        }
+        // Fall back to base type
+        val sealDto = getSealDto(baseVdsType)
+        return getCoding(sealDto, tag.toByte())
     }
 
 

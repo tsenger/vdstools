@@ -161,5 +161,20 @@ class DigitalSealCommonTest {
         assertContentEquals(VdsRawBytesCommon.ankunftsnwPapier2, seal2.encoded)
     }
 
+    @Test
+    fun testMeldebescheinigung() {
+        val seal = DigitalSeal.fromByteArray(VdsRawBytesCommon.meldebescheinigung) as DigitalSeal
+        assertNotNull(seal)
+        println(seal.docTypeCat)
+        assertEquals("MELDEBESCHEINIGUNG", seal.documentType)
+        assertEquals(LocalDate.parse("2025-05-14"), seal.sigDate)
+        assertEquals(LocalDate.parse("2025-05-14"), seal.issuingDate)
+        assertEquals("Mustermann", seal.getMessage("SURNAME")?.valueStr)
+        assertEquals("Dr.", seal.getMessage("ACADEMIC_DEGREE")?.valueStr)
+        assertEquals("Erika", seal.getMessage("FIRST_NAME")?.valueStr)
+        assertEquals("20250414", seal.getMessage("MOVING_DATE")?.valueStr)
+        assertEquals("20250504", seal.getMessage("DATE_OF_NOTIFICATION")?.valueStr)
+    }
+
 
 }
