@@ -15,26 +15,18 @@ VDS and ICD barcodes can be parsed by a generic interface. An example is given i
 
 VDS can be created with the help of this library or, if you want to try it out quickly, via the
 web [Sealgen](https://sealgen.tsenger.de) tool.
-There is also the Sealva mobile app which scans, verifies and displays all VDS profiles defined in the above
+There is also the **Sealva** mobile app which scans, verifies and displays all VDS profiles defined in the above
 specifications.
 
+<a href='https://play.google.com/store/apps/details?id=de.tsenger.sealver&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png' width='155' height='60'/></a>
 
-<table>
-  <tr>
-    <td>
-        <a href='https://play.google.com/store/apps/details?id=de.tsenger.sealver&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png' width='155' height='60'/></a>
-    </td>
-    <td>
-    <a href="https://apps.apple.com/de/app/sealva-vds-validator/id6756822727?itscg=30200&itsct=apps_box_badge&mttnsubad=6756822727" style="display: inline-block;"><img src="https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-app-store/black/en-us?releaseDate=1767571200" alt="Download on the App Store" style="width: 140px; height: 40px; vertical-align: middle; object-fit: contain;" /></a>
-    </td>
-    </tr>
-</table>
+<a href="https://apps.apple.com/de/app/sealva-vds-validator/id6756822727?itscg=30200&itsct=apps_box_badge&mttnsubad=6756822727" style="display: inline-block;"><img src="https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-app-store/black/en-us?releaseDate=1767571200" alt="Download on the App Store" style="width: 155px; height: 45px; vertical-align: middle; object-fit: contain;" /></a>
 
 ## Parse and verify a VDS / IDB
 
-Here is a quick overview how to use the generic parser and verifier. In release 0.9.0 a generic interface was introduced
-to handle VDS and IDB barcode via common function calls.
-When you have the decoded raw string from your favorite datamatrix decoder, just put used the VDS Tools like this:
+Here is a quick overview how to use the generic parser and verifier. The generic interface
+handles VDS and IDB barcode via common function calls.
+When you received the raw string from your favorite datamatrix decoder used the VDS Tools like this:
 
 ```kotlin
 import de.tsenger.vdstools.Verifier
@@ -155,7 +147,8 @@ You will also find an example on how to generate a datamatrix image with the Zxi
 
 VdsTools uses a JSON-based configuration to define seal document types and their feature encodings which follows the
 encoding based on BSI TR-03137.
-Profile definitions according to BSI TR-03171 are currently not fully supported, as the profile definitions are not publicly available at this time.
+Profile definitions according to BSI TR-03171 are currently not fully supported, as the profile definitions are not
+publicly available at this time.
 You can load your own custom codings at runtime to support additional document types beyond the standard ones.
 
 ### Loading Custom Codings
@@ -250,7 +243,7 @@ To include this library to your Gradle build add this dependency:
 
 ```groovy
 dependencies {
-    implementation 'de.tsenger:vdstools:0.10.0'
+    implementation 'de.tsenger:vdstools:0.10.3'
 }
 ```
 
@@ -263,6 +256,6 @@ To include this library to your Maven build add this dependency:
 <dependency>
     <groupId>de.tsenger</groupId>
     <artifactId>vdstools</artifactId>
-    <version>0.10.0</version>
+    <version>0.10.3</version>
 </dependency>
 ```
