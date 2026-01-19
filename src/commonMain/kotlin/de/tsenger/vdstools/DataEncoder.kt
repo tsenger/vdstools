@@ -4,7 +4,7 @@ package de.tsenger.vdstools
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generated.ResourceConstants
-import de.tsenger.vdstools.vds.Feature
+import de.tsenger.vdstools.vds.VdsFeature
 import de.tsenger.vdstools.vds.FeatureCoding
 import de.tsenger.vdstools.vds.FeatureValue
 import de.tsenger.vdstools.vds.dto.ExtendedFeatureDefinitionDto
@@ -370,13 +370,13 @@ object DataEncoder {
         return certSha1.sliceArray(15..19)
     }
 
-    fun encodeDerTlv(vdsType: String, derTlv: DerTlv): Feature? {
+    fun encodeDerTlv(vdsType: String, derTlv: DerTlv): VdsFeature? {
         val bytes = derTlv.value
         val name = featureEncoder.getFeatureName(vdsType, derTlv)
         val tag = derTlv.tag.toInt()
         val coding = featureEncoder.getFeatureCoding(vdsType, derTlv)
         if (name == "" || coding == FeatureCoding.UNKNOWN) return null
-        return Feature(tag, name, coding, FeatureValue.fromBytes(bytes, coding))
+        return VdsFeature(tag, name, coding, FeatureValue.fromBytes(bytes, coding))
     }
 
     fun getVdsType(documentRef: Int): String? {
@@ -459,13 +459,13 @@ object DataEncoder {
      * @param derTlv The DerTlv to encode
      * @return The Feature, or null if encoding fails
      */
-    fun encodeDerTlv(vdsType: String, extendedDefinition: ExtendedFeatureDefinitionDto?, derTlv: DerTlv): Feature? {
+    fun encodeDerTlv(vdsType: String, extendedDefinition: ExtendedFeatureDefinitionDto?, derTlv: DerTlv): VdsFeature? {
         val bytes = derTlv.value
         val tag = derTlv.tag.toInt()
         val name = featureEncoder.getFeatureName(vdsType, extendedDefinition, tag)
         val coding = featureEncoder.getFeatureCoding(vdsType, extendedDefinition, tag)
         if (name == "" || coding == FeatureCoding.UNKNOWN) return null
-        return Feature(tag, name, coding, FeatureValue.fromBytes(bytes, coding))
+        return VdsFeature(tag, name, coding, FeatureValue.fromBytes(bytes, coding))
     }
 
     /**

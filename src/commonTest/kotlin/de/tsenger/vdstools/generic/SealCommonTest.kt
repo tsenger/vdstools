@@ -1,10 +1,10 @@
 package de.tsenger.vdstools.generic
 
 import de.tsenger.vdstools.DataEncoder
-import de.tsenger.vdstools.idb.IcaoBarcode
 import de.tsenger.vdstools.idb.IcbRawStringsCommon
-import de.tsenger.vdstools.vds.DigitalSeal
+import de.tsenger.vdstools.idb.IdbSeal
 import de.tsenger.vdstools.vds.VdsRawBytesCommon
+import de.tsenger.vdstools.vds.VdsSeal
 import kotlin.test.*
 
 @OptIn(ExperimentalStdlibApi::class)
@@ -12,12 +12,12 @@ class SealCommonTest {
 
     @Test
     fun testFromStringIdb() {
-        assertTrue(Seal.fromString(IcbRawStringsCommon.TemporaryPassport) is IcaoBarcode)
+        assertTrue(Seal.fromString(IcbRawStringsCommon.TemporaryPassport) is IdbSeal)
     }
 
     @Test
     fun testFromStringIdb_fail() {
-        assertFalse(Seal.fromString(IcbRawStringsCommon.TemporaryPassport) is DigitalSeal)
+        assertFalse(Seal.fromString(IcbRawStringsCommon.TemporaryPassport) is VdsSeal)
     }
 
 
@@ -97,7 +97,7 @@ class SealCommonTest {
     @Test
     fun testFromStringVds() {
         val rawString = DataEncoder.encodeBase256(VdsRawBytesCommon.emergenyTravelDoc)
-        assertTrue(Seal.fromString(rawString) is DigitalSeal)
+        assertTrue(Seal.fromString(rawString) is VdsSeal)
     }
 
     @Test
@@ -141,7 +141,7 @@ class SealCommonTest {
     }
 
     @Test
-    fun testVdsMessageList() {
+    fun testVdsMessageGroupList() {
         val rawString = DataEncoder.encodeBase256(VdsRawBytesCommon.emergenyTravelDoc)
         val seal = Seal.fromString(rawString)
         assertEquals(1, seal.messageList.size)

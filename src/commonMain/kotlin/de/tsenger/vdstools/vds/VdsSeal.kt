@@ -8,19 +8,18 @@ import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.Seal
 import de.tsenger.vdstools.generic.SignatureInfo
-import de.tsenger.vdstools.vds.FeatureValue
 import kotlinx.datetime.LocalDate
 import okio.Buffer
 
 
-class DigitalSeal : Seal {
+class VdsSeal : Seal {
     private val log = Logger.withTag(this::class.simpleName ?: "")
 
     private val vdsHeader: VdsHeader
-    private val vdsMessage: VdsMessage
+    private val vdsMessage: VdsMessageGroup
     private val vdsSignature: VdsSignature?
 
-    private constructor(vdsHeader: VdsHeader, vdsMessage: VdsMessage, vdsSignature: VdsSignature?) {
+    private constructor(vdsHeader: VdsHeader, vdsMessage: VdsMessageGroup, vdsSignature: VdsSignature?) {
         this.vdsHeader = vdsHeader
         this.vdsMessage = vdsMessage
         this.vdsSignature = vdsSignature
@@ -28,7 +27,7 @@ class DigitalSeal : Seal {
         this.documentType = vdsMessage.effectiveVdsType
     }
 
-    constructor(vdsHeader: VdsHeader, vdsMessage: VdsMessage, signer: Signer) {
+    constructor(vdsHeader: VdsHeader, vdsMessage: VdsMessageGroup, signer: Signer) {
         this.vdsHeader = vdsHeader
         this.vdsMessage = vdsMessage
         this.vdsSignature = createVdsSignature(vdsHeader, vdsMessage, signer)
@@ -73,11 +72,11 @@ class DigitalSeal : Seal {
     override val rawString: String
         get() = DataEncoder.encodeBase256(encoded)
 
-    val featureList: List<Feature>
+    val featureList: List<VdsFeature>
         get() = vdsMessage.featureList
 
 
-    private fun createVdsSignature(vdsHeader: VdsHeader, vdsMessage: VdsMessage, signer: Signer): VdsSignature? {
+    private fun createVdsSignature(vdsHeader: VdsHeader, vdsMessage: VdsMessageGroup, signer: Signer): VdsSignature? {
         val headerMessage = vdsHeader.encoded + vdsMessage.encoded
         try {
             val signatureBytes = signer.sign(headerMessage)
@@ -183,7 +182,7 @@ class DigitalSeal : Seal {
                     featureList.add(derTlv)
                 }
             }
-            val vdsMessage = VdsMessage(vdsHeader.vdsType, featureList)
+            val vdsMessage = VdsMessageGroup(vdsHeader.vdsType, featureList)
 
             // Resolve extended feature definition if this seal type requires UUID lookup
             if (DataEncoder.requiresUuidLookup(vdsHeader.vdsType)) {
@@ -192,7 +191,7 @@ class DigitalSeal : Seal {
                 log.d("Resolved effectiveVdsType: ${vdsMessage.effectiveVdsType}")
             }
 
-            return DigitalSeal(vdsHeader, vdsMessage, vdsSignature)
+            return VdsSeal(vdsHeader, vdsMessage, vdsSignature)
         }
     }
 }

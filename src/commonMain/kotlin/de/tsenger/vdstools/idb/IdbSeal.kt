@@ -10,7 +10,7 @@ import de.tsenger.vdstools.generic.SignatureInfo
 import de.tsenger.vdstools.vds.FeatureValue
 import kotlinx.datetime.LocalDate
 
-class IcaoBarcode : Seal {
+class IdbSeal : Seal {
     private var barcodeFlag: Char = 0x41.toChar()
     var payLoad: IdbPayload
 
@@ -50,13 +50,13 @@ class IcaoBarcode : Seal {
 
 
     override fun getMessage(name: String): Message? {
-        val idbMessage = payLoad.idbMessageGroup.getMessage(name) ?: return null
-        return Message(idbMessage.messageTypeTag, idbMessage.messageTypeName, idbMessage.coding, idbMessage.value)
+        val idbFeature = payLoad.idbMessageGroup.getFeature(name) ?: return null
+        return Message(idbFeature.tag, idbFeature.name, idbFeature.coding, idbFeature.value)
     }
 
     override fun getMessage(tag: Int): Message? {
-        val idbMessage = payLoad.idbMessageGroup.getMessage(tag) ?: return null
-        return Message(idbMessage.messageTypeTag, idbMessage.messageTypeName, idbMessage.coding, idbMessage.value)
+        val idbFeature = payLoad.idbMessageGroup.getFeature(tag) ?: return null
+        return Message(idbFeature.tag, idbFeature.name, idbFeature.coding, idbFeature.value)
     }
 
     /**
@@ -74,8 +74,8 @@ class IcaoBarcode : Seal {
         }
 
     override val messageList: List<Message>
-        get() = payLoad.idbMessageGroup.messagesList.map { idbMessage ->
-            Message(idbMessage.messageTypeTag, idbMessage.messageTypeName, idbMessage.coding, idbMessage.value)
+        get() = payLoad.idbMessageGroup.featureList.map { idbFeature ->
+            Message(idbFeature.tag, idbFeature.name, idbFeature.coding, idbFeature.value)
         }
 
     override val signatureInfo: SignatureInfo?
@@ -156,7 +156,7 @@ class IcaoBarcode : Seal {
             }
 
             val payload = IdbPayload.fromByteArray(payloadBytes, isSigned)
-            return IcaoBarcode(barcodeFlag, payload)
+            return IdbSeal(barcodeFlag, payload)
         }
     }
 }

@@ -1,8 +1,8 @@
 package de.tsenger.vdstools
 
 import co.touchlab.kermit.Logger
-import de.tsenger.vdstools.idb.IcaoBarcode
-import de.tsenger.vdstools.vds.DigitalSeal
+import de.tsenger.vdstools.idb.IdbSeal
+import de.tsenger.vdstools.vds.VdsSeal
 import dev.whyoleg.cryptography.algorithms.*
 import dev.whyoleg.cryptography.algorithms.EC.Curve
 import dev.whyoleg.cryptography.algorithms.EC.PublicKey.Format.RAW
@@ -16,16 +16,16 @@ class Verifier(
     curveName: String
 ) {
 
-    constructor(icb: IcaoBarcode, publicKeyBytes: ByteArray, curveName: String) : this(
+    constructor(icb: IdbSeal, publicKeyBytes: ByteArray, curveName: String) : this(
         icb.payLoad.idbHeader.encoded + icb.payLoad.idbMessageGroup.encoded,
         icb.payLoad.idbSignature?.plainSignatureBytes ?: byteArrayOf(), publicKeyBytes, curveName
     )
 
     constructor(
-        digitalSeal: DigitalSeal,
+        vdsSeal: VdsSeal,
         publicKeyBytes: ByteArray,
         curveName: String
-    ) : this(digitalSeal.signedBytes, digitalSeal.signatureBytes, publicKeyBytes, curveName)
+    ) : this(vdsSeal.signedBytes, vdsSeal.signatureBytes, publicKeyBytes, curveName)
 
 
     private val log = Logger.withTag(this::class.simpleName ?: "")

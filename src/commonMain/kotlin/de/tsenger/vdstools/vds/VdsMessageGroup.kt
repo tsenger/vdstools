@@ -6,7 +6,7 @@ import de.tsenger.vdstools.vds.dto.ExtendedFeatureDefinitionDto
 import okio.Buffer
 
 
-class VdsMessage {
+class VdsMessageGroup {
     private var derTlvList: List<DerTlv>
     var vdsType: String
         private set
@@ -44,24 +44,24 @@ class VdsMessage {
             return buffer.readByteArray()
         }
 
-    val featureList: List<Feature>
+    val featureList: List<VdsFeature>
         /**
-         * @return a list of all decoded Features, using extended feature definition-aware lookup if available
+         * @return a list of all decoded VdsFeatures, using extended feature definition-aware lookup if available
          */
         get() {
-            val featureList: MutableList<Feature> = ArrayList()
+            val featureList: MutableList<VdsFeature> = ArrayList()
             for (derTlv in derTlvList) {
                 DataEncoder.encodeDerTlv(vdsType, extendedFeatureDefinition, derTlv)?.let { featureList.add(it) }
             }
             return featureList
         }
 
-    fun getFeature(featureName: String): Feature? {
-        return featureList.firstOrNull { feature: Feature -> feature.name == featureName }
+    fun getFeature(featureName: String): VdsFeature? {
+        return featureList.firstOrNull { feature: VdsFeature -> feature.name == featureName }
     }
 
-    fun getFeature(featureTag: Int): Feature? {
-        return featureList.firstOrNull { feature: Feature -> feature.tag == featureTag }
+    fun getFeature(featureTag: Int): VdsFeature? {
+        return featureList.firstOrNull { feature: VdsFeature -> feature.tag == featureTag }
     }
 
     /**
@@ -89,15 +89,15 @@ class VdsMessage {
             return this
         }
 
-        fun build(): VdsMessage {
-            return VdsMessage(this)
+        fun build(): VdsMessageGroup {
+            return VdsMessageGroup(this)
         }
     }
 
     companion object {
-        fun fromByteArray(rawBytes: ByteArray, vdsType: String): VdsMessage {
+        fun fromByteArray(rawBytes: ByteArray, vdsType: String): VdsMessageGroup {
             val derTlvList = DataEncoder.parseDerTLvs(rawBytes)
-            return VdsMessage(vdsType, derTlvList)
+            return VdsMessageGroup(vdsType, derTlvList)
         }
     }
 }

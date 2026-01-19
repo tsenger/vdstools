@@ -1,6 +1,6 @@
 package de.tsenger.vdstools.vds
 
-class Feature(
+class VdsFeature(
     val tag: Int,
     val name: String,
     val coding: FeatureCoding,
