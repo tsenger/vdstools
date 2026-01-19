@@ -7,6 +7,7 @@ import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.Seal
 import de.tsenger.vdstools.generic.SignatureInfo
+import de.tsenger.vdstools.vds.FeatureValue
 import kotlinx.datetime.LocalDate
 
 class IcaoBarcode : Seal {
@@ -49,13 +50,13 @@ class IcaoBarcode : Seal {
 
 
     override fun getMessage(name: String): Message? {
-        val idbMessage = payLoad.idbMessageGroup.getMessage(name)
-        return idbMessage?.let { Message(it.messageTypeTag, it.messageTypeName, it.valueBytes, it.coding) }
+        val idbMessage = payLoad.idbMessageGroup.getMessage(name) ?: return null
+        return Message(idbMessage.messageTypeTag, idbMessage.messageTypeName, idbMessage.coding, idbMessage.value)
     }
 
     override fun getMessage(tag: Int): Message? {
-        val idbMessage = payLoad.idbMessageGroup.getMessage(tag)
-        return idbMessage?.let { Message(it.messageTypeTag, it.messageTypeName, it.valueBytes, it.coding) }
+        val idbMessage = payLoad.idbMessageGroup.getMessage(tag) ?: return null
+        return Message(idbMessage.messageTypeTag, idbMessage.messageTypeName, idbMessage.coding, idbMessage.value)
     }
 
     /**
@@ -65,7 +66,8 @@ class IcaoBarcode : Seal {
      */
     override val documentType: String
         get() {
-            val docTypeId = getMessage(0x86)?.valueInt
+            val msg = getMessage(0x86)
+            val docTypeId = (msg?.value as? FeatureValue.ByteValue)?.value
             return if (docTypeId != null) {
                 DataEncoder.getIdbDocumentTypeName(docTypeId)
             } else messageList.joinToString(", ") { it.messageTypeName }
@@ -73,7 +75,7 @@ class IcaoBarcode : Seal {
 
     override val messageList: List<Message>
         get() = payLoad.idbMessageGroup.messagesList.map { idbMessage ->
-            Message(idbMessage.messageTypeTag, idbMessage.messageTypeName, idbMessage.valueBytes, idbMessage.coding)
+            Message(idbMessage.messageTypeTag, idbMessage.messageTypeName, idbMessage.coding, idbMessage.value)
         }
 
     override val signatureInfo: SignatureInfo?

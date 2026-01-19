@@ -6,6 +6,7 @@ import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generated.ResourceConstants
 import de.tsenger.vdstools.vds.Feature
 import de.tsenger.vdstools.vds.FeatureCoding
+import de.tsenger.vdstools.vds.FeatureValue
 import de.tsenger.vdstools.vds.dto.ExtendedFeatureDefinitionDto
 import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.DelicateCryptographyApi
@@ -370,13 +371,12 @@ object DataEncoder {
     }
 
     fun encodeDerTlv(vdsType: String, derTlv: DerTlv): Feature? {
-        //val value = featureEncoder.decodeFeature<Any>(vdsType, derTlv)
-        val value = derTlv.value
+        val bytes = derTlv.value
         val name = featureEncoder.getFeatureName(vdsType, derTlv)
         val tag = derTlv.tag.toInt()
         val coding = featureEncoder.getFeatureCoding(vdsType, derTlv)
         if (name == "" || coding == FeatureCoding.UNKNOWN) return null
-        return Feature(tag, name, value, coding)
+        return Feature(tag, name, coding, FeatureValue.fromBytes(bytes, coding))
     }
 
     fun getVdsType(documentRef: Int): String? {
@@ -460,12 +460,12 @@ object DataEncoder {
      * @return The Feature, or null if encoding fails
      */
     fun encodeDerTlv(vdsType: String, extendedDefinition: ExtendedFeatureDefinitionDto?, derTlv: DerTlv): Feature? {
-        val value = derTlv.value
+        val bytes = derTlv.value
         val tag = derTlv.tag.toInt()
         val name = featureEncoder.getFeatureName(vdsType, extendedDefinition, tag)
         val coding = featureEncoder.getFeatureCoding(vdsType, extendedDefinition, tag)
         if (name == "" || coding == FeatureCoding.UNKNOWN) return null
-        return Feature(tag, name, value, coding)
+        return Feature(tag, name, coding, FeatureValue.fromBytes(bytes, coding))
     }
 
     /**

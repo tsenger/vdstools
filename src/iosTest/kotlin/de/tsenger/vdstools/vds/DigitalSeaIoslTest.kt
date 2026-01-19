@@ -19,10 +19,10 @@ class DigitalSeaIoslTest {
     fun testParseSocialInsurranceCard() {
         val seal = DigitalSeal.fromByteArray(VdsRawBytesIos.socialInsurance) as DigitalSeal
         assertEquals("SOCIAL_INSURANCE_CARD", seal.documentType)
-        assertEquals("65170839J003", seal.getMessage("SOCIAL_INSURANCE_NUMBER")?.valueStr)
-        assertEquals("Perschweiß", seal.getMessage("SURNAME")?.valueStr)
-        assertEquals("Oscar", seal.getMessage("FIRST_NAME")?.valueStr)
-        assertEquals("Jâcobénidicturius", seal.getMessage("BIRTH_NAME")?.valueStr)
+        assertEquals("65170839J003", seal.getMessage("SOCIAL_INSURANCE_NUMBER")?.value.toString())
+        assertEquals("Perschweiß", seal.getMessage("SURNAME")?.value.toString())
+        assertEquals("Oscar", seal.getMessage("FIRST_NAME")?.value.toString())
+        assertEquals("Jâcobénidicturius", seal.getMessage("BIRTH_NAME")?.value.toString())
     }
 
     @Test
@@ -30,10 +30,10 @@ class DigitalSeaIoslTest {
         val seal = DigitalSeal.fromByteArray(VdsRawBytesIos.arrivalAttestationV02) as DigitalSeal
         assertEquals(
             "MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
-            seal.getMessage("MRZ")?.valueStr
+            seal.getMessage("MRZ")?.value.toString()
         )
         assertEquals("0004F", seal.certificateReference)
-        assertEquals("ABC123456DEF", seal.getMessage("AZR")?.valueStr)
+        assertEquals("ABC123456DEF", seal.getMessage("AZR")?.value.toString())
         assertNull(seal.getMessage("FIRST_NAME"))
     }
 
@@ -42,9 +42,9 @@ class DigitalSeaIoslTest {
         val seal = DigitalSeal.fromByteArray(VdsRawBytesIos.residentPermit) as DigitalSeal
         assertEquals(
             "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
-            seal.getMessage("MRZ")?.valueStr
+            seal.getMessage("MRZ")?.value.toString()
         )
-        assertEquals("UFO001979", seal.getMessage("PASSPORT_NUMBER")?.valueStr)
+        assertEquals("UFO001979", seal.getMessage("PASSPORT_NUMBER")?.value.toString())
     }
 
     @Test
@@ -52,9 +52,9 @@ class DigitalSeaIoslTest {
         val seal = DigitalSeal.fromByteArray(VdsRawBytesIos.supplementSheet) as DigitalSeal
         assertEquals(
             "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
-            seal.getMessage("MRZ")?.valueStr
+            seal.getMessage("MRZ")?.value.toString()
         )
-        assertEquals("PA0000005", seal.getMessage("SHEET_NUMBER")?.valueStr)
+        assertEquals("PA0000005", seal.getMessage("SHEET_NUMBER")?.value.toString())
     }
 
     @Test
@@ -62,24 +62,24 @@ class DigitalSeaIoslTest {
         val seal = DigitalSeal.fromByteArray(VdsRawBytesIos.emergenyTravelDoc) as DigitalSeal
         assertEquals(
             "I<GBRSUPAMANN<<MARY<<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
-            seal.getMessage("MRZ")?.valueStr
+            seal.getMessage("MRZ")?.value.toString()
         )
     }
 
     @Test
     fun testParseAddressStickerId() {
         val seal = DigitalSeal.fromByteArray(VdsRawBytesIos.addressStickerId) as DigitalSeal
-        assertEquals("T2000AK47", seal.getMessage("DOCUMENT_NUMBER")?.valueStr)
-        assertEquals("05314000", seal.getMessage("AGS")?.valueStr)
-        assertEquals("53175HEINEMANNSTR11", seal.getMessage("ADDRESS")?.valueStr)
+        assertEquals("T2000AK47", seal.getMessage("DOCUMENT_NUMBER")?.value.toString())
+        assertEquals("05314000", seal.getMessage("AGS")?.value.toString())
+        assertEquals("53175HEINEMANNSTR11", seal.getMessage("ADDRESS")?.value.toString())
     }
 
     @Test
     fun testParseAddressStickerPassport() {
         val seal = DigitalSeal.fromByteArray(VdsRawBytesIos.addressStickerPassport) as DigitalSeal
-        assertEquals("PA5500K11", seal.getMessage("DOCUMENT_NUMBER")?.valueStr)
-        assertEquals("03359010", seal.getMessage("AGS")?.valueStr)
-        assertEquals("21614", seal.getMessage("POSTAL_CODE")?.valueStr)
+        assertEquals("PA5500K11", seal.getMessage("DOCUMENT_NUMBER")?.value.toString())
+        assertEquals("03359010", seal.getMessage("AGS")?.value.toString())
+        assertEquals("21614", seal.getMessage("POSTAL_CODE")?.value.toString())
     }
 
     @Test
@@ -87,10 +87,10 @@ class DigitalSeaIoslTest {
         val seal = DigitalSeal.fromByteArray(VdsRawBytesIos.visa_224bitSig) as DigitalSeal
         assertEquals(
             "VCD<<DENT<<ARTHUR<PHILIP<<<<<<<<<<<<\n1234567XY7GBR5203116M2005250<<<<<<<<",
-            seal.getMessage("MRZ_MRVB")?.valueStr
+            seal.getMessage("MRZ_MRVB")?.value.toString()
         )
-        assertEquals("47110815P", seal.getMessage("PASSPORT_NUMBER")?.valueStr)
-        assertEquals("a00000", seal.getMessage("DURATION_OF_STAY")?.valueStr)
+        assertEquals("47110815P", seal.getMessage("PASSPORT_NUMBER")?.value.toString())
+        assertEquals("a00000", seal.getMessage("DURATION_OF_STAY")?.value.toString())
         assertNull(seal.getMessage("NUMBER_OF_ENTRIES"))
     }
 

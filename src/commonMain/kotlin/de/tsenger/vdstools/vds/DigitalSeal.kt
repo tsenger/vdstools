@@ -8,6 +8,7 @@ import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.Seal
 import de.tsenger.vdstools.generic.SignatureInfo
+import de.tsenger.vdstools.vds.FeatureValue
 import kotlinx.datetime.LocalDate
 import okio.Buffer
 
@@ -88,16 +89,27 @@ class DigitalSeal : Seal {
     }
 
     override fun getMessage(name: String): Message? {
-        val feature = vdsMessage.getFeature(name)
-        return feature?.let { Message(it.tag, it.name, it.valueBytes, it.coding) }
+        val feature = vdsMessage.getFeature(name) ?: return null
+        val mrzLength = getMrzLength(feature.name)
+        return Message(
+            feature.tag, feature.name, feature.coding,
+            FeatureValue.fromBytes(feature.value.rawBytes, feature.coding, mrzLength)
+        )
     }
 
     override fun getMessage(tag: Int): Message? {
-        val feature = vdsMessage.getFeature(tag)
-        if (feature != null) {
-            return Message(feature.tag, feature.name, feature.valueBytes, feature.coding)
-        }
-        return null
+        val feature = vdsMessage.getFeature(tag) ?: return null
+        val mrzLength = getMrzLength(feature.name)
+        return Message(
+            feature.tag, feature.name, feature.coding,
+            FeatureValue.fromBytes(feature.value.rawBytes, feature.coding, mrzLength)
+        )
+    }
+
+    private fun getMrzLength(featureName: String): Int? = when (featureName) {
+        "MRZ_MRVA" -> 88
+        "MRZ_MRVB" -> 72
+        else -> null
     }
 
     override val signatureInfo: SignatureInfo?
@@ -122,7 +134,11 @@ class DigitalSeal : Seal {
 
     override val messageList: List<Message>
         get() = vdsMessage.featureList.map { feature ->
-            Message(feature.tag, feature.name, feature.valueBytes, feature.coding)
+            val mrzLength = getMrzLength(feature.name)
+            Message(
+                feature.tag, feature.name, feature.coding,
+                FeatureValue.fromBytes(feature.value.rawBytes, feature.coding, mrzLength)
+            )
         }
 
     companion object {

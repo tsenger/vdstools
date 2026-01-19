@@ -28,10 +28,10 @@ class DigitalSealJvmTest {
     fun testParseSocialInsurranceCard() {
         val seal = DigitalSeal.fromByteArray(VdsRawBytesJvm.socialInsurance) as DigitalSeal
         Assert.assertEquals("SOCIAL_INSURANCE_CARD", seal.documentType)
-        Assert.assertEquals("65170839J003", seal.getMessage("SOCIAL_INSURANCE_NUMBER")?.valueStr)
-        Assert.assertEquals("Perschweiß", seal.getMessage("SURNAME")?.valueStr)
-        Assert.assertEquals("Oscar", seal.getMessage("FIRST_NAME")?.valueStr)
-        Assert.assertEquals("Jâcobénidicturius", seal.getMessage("BIRTH_NAME")?.valueStr)
+        Assert.assertEquals("65170839J003", seal.getMessage("SOCIAL_INSURANCE_NUMBER")?.value.toString())
+        Assert.assertEquals("Perschweiß", seal.getMessage("SURNAME")?.value.toString())
+        Assert.assertEquals("Oscar", seal.getMessage("FIRST_NAME")?.value.toString())
+        Assert.assertEquals("Jâcobénidicturius", seal.getMessage("BIRTH_NAME")?.value.toString())
     }
 
     @Test
@@ -40,10 +40,10 @@ class DigitalSealJvmTest {
         val seal = DigitalSeal.fromByteArray(VdsRawBytesJvm.arrivalAttestationV02) as DigitalSeal
         Assert.assertEquals(
             "MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
-            seal.getMessage("MRZ")?.valueStr
+            seal.getMessage("MRZ")?.value.toString()
         )
         Assert.assertEquals("0004F", seal.certificateReference)
-        Assert.assertEquals("ABC123456DEF", seal.getMessage("AZR")!!.valueStr)
+        Assert.assertEquals("ABC123456DEF", seal.getMessage("AZR")!!.value.toString())
         Assert.assertNull(seal.getMessage("FIRST_NAME"))
     }
 
@@ -53,9 +53,9 @@ class DigitalSealJvmTest {
         val seal = DigitalSeal.fromByteArray(VdsRawBytesJvm.residentPermit) as DigitalSeal
         Assert.assertEquals(
             "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
-            seal.getMessage("MRZ")?.valueStr
+            seal.getMessage("MRZ")?.value.toString()
         )
-        Assert.assertEquals("UFO001979", seal.getMessage("PASSPORT_NUMBER")?.valueStr)
+        Assert.assertEquals("UFO001979", seal.getMessage("PASSPORT_NUMBER")?.value.toString())
     }
 
     @Test
@@ -64,9 +64,9 @@ class DigitalSealJvmTest {
         val seal = DigitalSeal.fromByteArray(VdsRawBytesJvm.supplementSheet) as DigitalSeal
         Assert.assertEquals(
             "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
-            seal.getMessage("MRZ")?.valueStr
+            seal.getMessage("MRZ")?.value.toString()
         )
-        Assert.assertEquals("PA0000005", seal.getMessage("SHEET_NUMBER")?.valueStr)
+        Assert.assertEquals("PA0000005", seal.getMessage("SHEET_NUMBER")?.value.toString())
     }
 
     @Test
@@ -75,7 +75,7 @@ class DigitalSealJvmTest {
         val seal = DigitalSeal.fromByteArray(VdsRawBytesJvm.emergenyTravelDoc) as DigitalSeal
         Assert.assertEquals(
             "I<GBRSUPAMANN<<MARY<<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
-            seal.getMessage("MRZ")?.valueStr
+            seal.getMessage("MRZ")?.value.toString()
         )
     }
 
@@ -83,18 +83,18 @@ class DigitalSealJvmTest {
     @Throws(IOException::class)
     fun testParseAddressStickerId() {
         val seal = DigitalSeal.fromByteArray(VdsRawBytesJvm.addressStickerId) as DigitalSeal
-        Assert.assertEquals("T2000AK47", seal.getMessage("DOCUMENT_NUMBER")?.valueStr)
-        Assert.assertEquals("05314000", seal.getMessage("AGS")?.valueStr)
-        Assert.assertEquals("53175HEINEMANNSTR11", seal.getMessage("ADDRESS")?.valueStr)
+        Assert.assertEquals("T2000AK47", seal.getMessage("DOCUMENT_NUMBER")?.value.toString())
+        Assert.assertEquals("05314000", seal.getMessage("AGS")?.value.toString())
+        Assert.assertEquals("53175HEINEMANNSTR11", seal.getMessage("ADDRESS")?.value.toString())
     }
 
     @Test
     @Throws(IOException::class)
     fun testParseAddressStickerPassport() {
         val seal = DigitalSeal.fromByteArray(VdsRawBytesJvm.addressStickerPassport) as DigitalSeal
-        Assert.assertEquals("PA5500K11", seal.getMessage("DOCUMENT_NUMBER")?.valueStr)
-        Assert.assertEquals("03359010", seal.getMessage("AGS")?.valueStr)
-        Assert.assertEquals("21614", seal.getMessage("POSTAL_CODE")?.valueStr)
+        Assert.assertEquals("PA5500K11", seal.getMessage("DOCUMENT_NUMBER")?.value.toString())
+        Assert.assertEquals("03359010", seal.getMessage("AGS")?.value.toString())
+        Assert.assertEquals("21614", seal.getMessage("POSTAL_CODE")?.value.toString())
     }
 
     @Test
@@ -104,12 +104,12 @@ class DigitalSealJvmTest {
         Assert.assertEquals(
             "VCD<<DENT<<ARTHUR<PHILIP<<<<<<<<<<<<\n1234567XY7GBR5203116M2005250<<<<<<<<", seal.getMessage(
                 "MRZ_MRVB"
-            )?.valueStr
+            )?.value.toString()
         )
-        Assert.assertEquals("47110815P", seal.getMessage("PASSPORT_NUMBER")?.valueStr)
+        Assert.assertEquals("47110815P", seal.getMessage("PASSPORT_NUMBER")?.value.toString())
         Assert.assertEquals(
             "a00000", Hex.toHexString(
-                seal.getMessage("DURATION_OF_STAY")?.valueBytes
+                seal.getMessage("DURATION_OF_STAY")?.value?.rawBytes
             )
         )
         Assert.assertNull(seal.getMessage("NUMBER_OF_ENTRIES"))

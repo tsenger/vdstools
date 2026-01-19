@@ -24,7 +24,7 @@ class SealCommonTest {
     @Test
     fun testIdbGetMessageTag() {
         val seal = Seal.fromString(IcbRawStringsCommon.TemporaryPassport)
-        val mrz = seal.getMessage(8)?.valueStr
+        val mrz = seal.getMessage(8)?.value.toString()
         assertEquals(
             "PPD<<FOLKS<<TALLULAH<<<<<<<<<<<<<<<<<<<<<<<<\n3113883489D<<9709155F1601013<<<<<<<<<<<<<<04", mrz
         )
@@ -33,7 +33,7 @@ class SealCommonTest {
     @Test
     fun testIdbGetMessageName() {
         val seal = Seal.fromString(IcbRawStringsCommon.TemporaryPassport)
-        val mrz = seal.getMessage("MRZ_TD3")?.valueStr
+        val mrz = seal.getMessage("MRZ_TD3")?.value.toString()
         assertEquals(
             "PPD<<FOLKS<<TALLULAH<<<<<<<<<<<<<<<<<<<<<<<<\n3113883489D<<9709155F1601013<<<<<<<<<<<<<<04", mrz
         )
@@ -104,7 +104,7 @@ class SealCommonTest {
     fun testVdsGetMessageTag() {
         val rawString = DataEncoder.encodeBase256(VdsRawBytesCommon.emergenyTravelDoc)
         val seal = Seal.fromString(rawString)
-        val mrz = seal.getMessage(2)?.valueStr
+        val mrz = seal.getMessage(2)?.value.toString()
         assertEquals(
             "I<GBRSUPAMANN<<MARY<<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06", mrz
         )
@@ -114,7 +114,7 @@ class SealCommonTest {
     fun testVdsGetMessageName() {
         val rawString = DataEncoder.encodeBase256(VdsRawBytesCommon.emergenyTravelDoc)
         val seal = Seal.fromString(rawString)
-        val mrz = seal.getMessage("MRZ")?.valueStr
+        val mrz = seal.getMessage("MRZ")?.value.toString()
         assertEquals(
             "I<GBRSUPAMANN<<MARY<<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06", mrz
         )

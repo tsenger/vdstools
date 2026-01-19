@@ -44,34 +44,17 @@ class IdbMessageGroup {
             val coding = DataEncoder.getIdbMessageTypeCoding(tag)
             when (value) {
                 is String, is ByteArray, is Int -> {
-                    when (coding) {
-                        FeatureCoding.C40 -> messageList.add(IdbMessage(tag, DataEncoder.encodeC40(value as String)))
-                        FeatureCoding.UTF8_STRING -> messageList.add(
-                            IdbMessage(
-                                tag,
-                                (value as String).encodeToByteArray()
-                            )
-                        )
-
-                        FeatureCoding.BYTES -> messageList.add(IdbMessage(tag, value as ByteArray))
-                        FeatureCoding.BYTE -> messageList.add(
-                            IdbMessage(
-                                tag,
-                                byteArrayOf(((value as Int) and 0xFF).toByte())
-                            )
-                        )
-
-                        FeatureCoding.MASKED_DATE -> messageList.add(
-                            IdbMessage(
-                                tag,
-                                DataEncoder.encodeMaskedDate(value as String)
-                            )
-                        )
-
-                        FeatureCoding.DATE -> messageList.add(IdbMessage(tag, DataEncoder.encodeDate(value as String)))
-                        FeatureCoding.MRZ -> messageList.add(IdbMessage(tag, DataEncoder.encodeC40(value as String)))
+                    val content: ByteArray = when (coding) {
+                        FeatureCoding.C40 -> DataEncoder.encodeC40(value as String)
+                        FeatureCoding.UTF8_STRING -> (value as String).encodeToByteArray()
+                        FeatureCoding.BYTES -> value as ByteArray
+                        FeatureCoding.BYTE -> byteArrayOf(((value as Int) and 0xFF).toByte())
+                        FeatureCoding.MASKED_DATE -> DataEncoder.encodeMaskedDate(value as String)
+                        FeatureCoding.DATE -> DataEncoder.encodeDate(value as String)
+                        FeatureCoding.MRZ -> DataEncoder.encodeC40(value as String)
                         FeatureCoding.UNKNOWN -> throw IllegalArgumentException("Unsupported tag: $tag")
                     }
+                    messageList.add(IdbMessage.fromTagAndContent(tag, content))
                 }
 
                 else -> throw IllegalArgumentException("Unsupported type: ${T::class.simpleName}")

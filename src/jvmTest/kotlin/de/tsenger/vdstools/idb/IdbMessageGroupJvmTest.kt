@@ -15,7 +15,7 @@ class IdbMessageGroupJvmTest {
 
     @Test
     fun testConstructorIdbMessage() {
-        val message = IdbMessage("CAN", Hex.decode("a0a1a2a3a4a5a6a7a8a9aa"))
+        val message = IdbMessage.fromNameAndRawBytes("CAN", Hex.decode("a0a1a2a3a4a5a6a7a8a9aa"))
         val messageGroup = IdbMessageGroup(listOf<IdbMessage>(message))
         Assert.assertNotNull(messageGroup)
         Assert.assertEquals(1, messageGroup.messagesList.size.toLong())
@@ -40,8 +40,8 @@ class IdbMessageGroupJvmTest {
     @Test
     @Throws(IOException::class)
     fun testGetEncoded() {
-        val message1 = IdbMessage("CAN", Hex.decode("a0a1a2a3a4a5a6a7a8a9aa"))
-        val message2 = IdbMessage("MRZ_TD1", Hex.decode("b0b1b2b3b4b5b6b7b8b9babbbcbdbebf"))
+        val message1 = IdbMessage.fromNameAndRawBytes("CAN", Hex.decode("a0a1a2a3a4a5a6a7a8a9aa"))
+        val message2 = IdbMessage.fromNameAndRawBytes("MRZ_TD1", Hex.decode("b0b1b2b3b4b5b6b7b8b9babbbcbdbebf"))
         val messageGroup = IdbMessageGroup(listOf(message1, message2))
         Assert.assertEquals(
             "611f090ba0a1a2a3a4a5a6a7a8a9aa0710b0b1b2b3b4b5b6b7b8b9babbbcbdbebf",

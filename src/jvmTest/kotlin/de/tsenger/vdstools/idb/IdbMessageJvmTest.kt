@@ -24,7 +24,7 @@ class IdbMessageJvmTest {
      @Test
      @Throws(IOException::class)
      fun testConstructor() {
-         val message = IdbMessage("VISA", visa_content)
+         val message = IdbMessage.fromNameAndContent("VISA", visa_content)
          println(Hex.toHexString(message.encoded))
          Assert.assertNotNull(message)
      }
@@ -39,7 +39,7 @@ class IdbMessageJvmTest {
     @Test
     @Throws(IOException::class)
     fun testGetEncoded() {
-        val message = IdbMessage("VISA", visa_content)
+        val message = IdbMessage.fromNameAndContent("VISA", visa_content)
         Assert.assertArrayEquals(idbMessageBytes, message.encoded)
     }
 
@@ -54,6 +54,6 @@ class IdbMessageJvmTest {
     @Throws(IOException::class)
     fun testGetMessageContent() {
         val message = fromByteArray(idbMessageBytes)
-        Assert.assertArrayEquals(visa_content, message.valueBytes)
+        Assert.assertArrayEquals(visa_content, message.value.rawBytes)
     }
 }

@@ -23,7 +23,7 @@ class IdbMessageIosTest {
 
     @Test
     fun testConstructor() {
-        val message = IdbMessage("VISA", visa_content)
+        val message = IdbMessage.fromNameAndContent("VISA", visa_content)
         assertNotNull(message)
     }
 
@@ -35,7 +35,7 @@ class IdbMessageIosTest {
 
     @Test
     fun testGetEncoded() {
-        val message = IdbMessage("VISA", visa_content)
+        val message = IdbMessage.fromNameAndContent("VISA", visa_content)
         assertContentEquals(idbMessageBytes, message.encoded)
     }
 
@@ -48,6 +48,6 @@ class IdbMessageIosTest {
     @Test
     fun testGetMessageContent() {
         val message = IdbMessage.fromByteArray(idbMessageBytes)
-        assertContentEquals(visa_content, message.valueBytes)
+        assertContentEquals(visa_content, message.value.rawBytes)
     }
 }
