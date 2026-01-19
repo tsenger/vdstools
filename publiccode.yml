@@ -1,0 +1,123 @@
+# This repository adheres to the publiccode.yml standard by including this 
+# metadata file that makes public software easily discoverable.
+# More info at https://github.com/italia/publiccode.yml
+
+publiccodeYmlVersion: '0.2'
+name: VdsTools
+url: 'https://github.com/tsenger/vdstools'
+releaseDate: '2026-01-07'
+softwareVersion: 0.10.3
+softwareType: library
+platforms:
+  - ios
+  - android
+  - linux
+  - mac
+  - windows
+categories:
+  - document-management
+  - data-analytics
+  - identity-management
+  - it-security
+  - it-development
+developmentStatus: beta
+maintenance:
+  type: internal
+  contacts:
+    - name: Tobias Senger
+      email: tobias@t-senger.de
+legal:
+  license: Apache-2.0
+  mainCopyrightOwner: Tobias Senger
+  repoOwner: Tobias Senger
+intendedAudience:
+  scope:
+    - government
+    - security
+localisation:
+  localisationReady: true
+  availableLanguages:
+    - de
+    - en
+description:
+  de:
+    shortDescription: >-
+      VdsTools is a software library for decoding, verifying,  encoding, and
+      signing Visible Digital Seals (VDS).
+    longDescription: >
+      VdsTools is a software library for decoding, verifying, encoding, and
+      signing Visible Digital Seals (VDS). These visual digital seals are found
+      on official government documents such as:
+
+
+      - Residence permits 
+
+      - Arrival attestation 
+
+      - Address stickers on ID cards and passports 
+
+      - Emergency travel documents 
+
+      - Visas 
+
+      - ... and upcoming profiles 
+
+
+      The library processes the content of barcodes and makes the information
+      available via a generic API. The scanning and reading of the seal barcode
+      itself must be handled by a separate component (e.g., a barcode scanner
+      library). The library implements the following specifications:
+
+
+      - BSI TR-03137-1 
+
+      - ICAO Doc 9303-13: Visible Digital Seals 
+
+      - ICAO TR "VDS for Non-Electronic Documents" 
+
+      - ICAO Datastructure for Barcode 
+
+
+      Releases are available on Maven Central for easy integration into own
+      projects.
+    genericName: VdsTools
+  en:
+    shortDescription: >-
+      VdsTools is a software library for decoding, verifying,  encoding, and
+      signing Visible Digital Seals (VDS).
+    longDescription: >
+      VdsTools is a software library for decoding, verifying, encoding, and
+      signing Visible Digital Seals (VDS). These visual digital seals are found
+      on official government documents such as:
+
+
+      - Residence permits 
+
+      - Arrival attestation 
+
+      - Address stickers on ID cards and passports 
+
+      - Emergency travel documents 
+
+      - Visas 
+
+      - ... and upcoming profiles 
+
+
+      The library processes the content of barcodes and makes the information
+      available via a generic API. The scanning and reading of the seal barcode
+      itself must be handled by a separate component (e.g., a barcode scanner
+      library). The library implements the following specifications:
+
+
+      - BSI TR-03137-1 
+
+      - ICAO Doc 9303-13: Visible Digital Seals 
+
+      - ICAO TR "VDS for Non-Electronic Documents" 
+
+      - ICAO Datastructure for Barcode 
+
+
+      Releases are available on Maven Central for easy integration into own
+      projects.
