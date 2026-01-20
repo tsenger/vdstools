@@ -2,7 +2,6 @@ package de.tsenger.vdstools.idb
 
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.asn1.DerTlv
-import de.tsenger.vdstools.vds.FeatureCoding
 import de.tsenger.vdstools.vds.FeatureValue
 import okio.Buffer
 
@@ -47,30 +46,15 @@ class IdbMessageGroup {
         val derTlvList: MutableList<DerTlv> = ArrayList(5)
 
         @Throws(IllegalArgumentException::class)
-        inline fun <reified T> addFeature(tag: Int, value: T): Builder {
+        fun <T> addFeature(tag: Int, value: T): Builder {
             val coding = DataEncoder.getIdbMessageTypeCoding(tag)
-            when (value) {
-                is String, is ByteArray, is Int -> {
-                    val content: ByteArray = when (coding) {
-                        FeatureCoding.C40 -> DataEncoder.encodeC40(value as String)
-                        FeatureCoding.UTF8_STRING -> (value as String).encodeToByteArray()
-                        FeatureCoding.BYTES -> value as ByteArray
-                        FeatureCoding.BYTE -> byteArrayOf(((value as Int) and 0xFF).toByte())
-                        FeatureCoding.MASKED_DATE -> DataEncoder.encodeMaskedDate(value as String)
-                        FeatureCoding.DATE -> DataEncoder.encodeDate(value as String)
-                        FeatureCoding.MRZ -> DataEncoder.encodeC40(value as String)
-                        FeatureCoding.UNKNOWN -> throw IllegalArgumentException("Unsupported tag: $tag")
-                    }
-                    derTlvList.add(DerTlv(tag.toByte(), content))
-                }
-
-                else -> throw IllegalArgumentException("Unsupported type: ${T::class.simpleName}")
-            }
+            val content = DataEncoder.encodeValueByCoding(coding, value, tag)
+            derTlvList.add(DerTlv(tag.toByte(), content))
             return this
         }
 
         @Throws(IllegalArgumentException::class)
-        inline fun <reified T> addFeature(name: String, value: T): Builder {
+        fun <T> addFeature(name: String, value: T): Builder {
             return addFeature(DataEncoder.getIdbMessageTypeTag(name) ?: 0, value)
         }
 

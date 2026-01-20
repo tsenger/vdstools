@@ -215,7 +215,7 @@ class IdbSealJvmTest {
         // Build Emergency Travel Document VdsMessageGroup
         val mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06"
         val vdsMessage = VdsMessageGroup.Builder("ICAO_EMERGENCY_TRAVEL_DOCUMENT")
-            .addDocumentFeature("MRZ", mrz)
+            .addFeature("MRZ", mrz)
             .build()
 
         // Add ETD to an IdbMessageGroup

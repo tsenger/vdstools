@@ -146,8 +146,8 @@ class DigitalSeaIoslTest {
         val mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06"
         val passportNumber = "UFO001979"
         val vdsMessage = VdsMessageGroup.Builder("RESIDENCE_PERMIT")
-            .addDocumentFeature("MRZ", mrz)
-            .addDocumentFeature("PASSPORT_NUMBER", passportNumber)
+            .addFeature("MRZ", mrz)
+            .addFeature("PASSPORT_NUMBER", passportNumber)
             .build()
 
         val keyPairGenerator = getCryptoProvider().get(ECDSA).keyPairGenerator(Curve("brainpoolP224r1"))
@@ -192,8 +192,8 @@ class DigitalSeaIoslTest {
         val mrz = "MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06"
         val azr = "ABC123456DEF"
         val vdsMessage = VdsMessageGroup.Builder(header.vdsType)
-            .addDocumentFeature("MRZ", mrz)
-            .addDocumentFeature("AZR", azr)
+            .addFeature("MRZ", mrz)
+            .addFeature("AZR", azr)
             .build()
         val vdsSeal = VdsSeal(header, vdsMessage, signer)
 

@@ -4,9 +4,9 @@ package de.tsenger.vdstools
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generated.ResourceConstants
-import de.tsenger.vdstools.vds.VdsFeature
 import de.tsenger.vdstools.vds.FeatureCoding
 import de.tsenger.vdstools.vds.FeatureValue
+import de.tsenger.vdstools.vds.VdsFeature
 import de.tsenger.vdstools.vds.dto.ExtendedFeatureDefinitionDto
 import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.DelicateCryptographyApi
@@ -31,7 +31,8 @@ object DataEncoder {
             featureEncoder = FeatureConverter(ResourceConstants.SEAL_CODINGS_JSON)
             idbMessageTypeParser = IdbMessageTypeParser(ResourceConstants.IDB_MESSAGE_TYPES_JSON)
             idbDocumentTypeParser = IdbNationalDocumentTypeParser(ResourceConstants.IDB_DOCUMENT_TYPES_JSON)
-            extendedFeatureDefinitionRegistry = ExtendedFeatureDefinitionRegistry(ResourceConstants.EXTENDED_FEATURE_DEFINITIONS_JSON)
+            extendedFeatureDefinitionRegistry =
+                ExtendedFeatureDefinitionRegistry(ResourceConstants.EXTENDED_FEATURE_DEFINITIONS_JSON)
         } catch (e: Exception) {
             log.e("Failed to initialize from embedded resources: ${e.message}")
             println("Failed to initialize from embedded resources: ${e.message}")
@@ -387,8 +388,46 @@ object DataEncoder {
         return featureEncoder.getDocumentRef(vdsType)
     }
 
-    fun <T> encodeFeature(vdsType: String, feature: String, value: T): DerTlv {
-        return featureEncoder.encodeFeature(vdsType, feature, value)
+    fun <T> encodeFeature(vdsType: String, featureName: String, value: T): DerTlv {
+        return featureEncoder.encodeFeature(vdsType, featureName, value)
+    }
+
+    fun getFeatureTag(vdsType: String, featureName: String): Int {
+        return featureEncoder.getFeatureTag(vdsType, featureName)
+    }
+
+    fun getFeatureCoding(vdsType: String, tag: Int): FeatureCoding {
+        return featureEncoder.getFeatureCoding(vdsType, tag)
+    }
+
+    /**
+     * Encodes a value to ByteArray based on the given FeatureCoding.
+     *
+     * @param coding The FeatureCoding that determines how to encode the value
+     * @param value The value to encode (String, ByteArray, Int, or Byte)
+     * @param tag Optional tag number for error messages (used when coding is UNKNOWN)
+     * @return The encoded ByteArray
+     * @throws IllegalArgumentException if the coding is UNKNOWN and tag is provided,
+     *         or if the value type doesn't match the expected type for the coding
+     */
+    fun <T> encodeValueByCoding(coding: FeatureCoding, value: T, tag: Int? = null): ByteArray {
+        return when (coding) {
+            FeatureCoding.C40, FeatureCoding.MRZ -> encodeC40(value as String)
+            FeatureCoding.UTF8_STRING -> (value as String).encodeToByteArray()
+            FeatureCoding.BYTES -> value as ByteArray
+            FeatureCoding.BYTE -> when (value) {
+                is Int -> byteArrayOf((value and 0xFF).toByte())
+                is Byte -> byteArrayOf(value)
+                else -> throw IllegalArgumentException("BYTE coding expects Int or Byte, got ${value!!::class.simpleName}")
+            }
+            FeatureCoding.MASKED_DATE -> encodeMaskedDate(value as String)
+            FeatureCoding.DATE -> encodeDate(value as String)
+            FeatureCoding.UNKNOWN -> if (tag != null) {
+                throw IllegalArgumentException("Unsupported tag: $tag")
+            } else {
+                value as ByteArray
+            }
+        }
     }
 
     fun getIdbMessageTypeName(tag: Int): String {

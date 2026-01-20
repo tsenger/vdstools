@@ -132,7 +132,11 @@ class FeatureConverter(jsonString: String) {
      * @return The feature coding
      */
     @Throws(IllegalArgumentException::class)
-    fun getFeatureCoding(baseVdsType: String, extendedDefinition: ExtendedFeatureDefinitionDto?, tag: Int): FeatureCoding {
+    fun getFeatureCoding(
+        baseVdsType: String,
+        extendedDefinition: ExtendedFeatureDefinitionDto?,
+        tag: Int
+    ): FeatureCoding {
         // Try extended definition first if available
         if (extendedDefinition != null) {
             val definitionFeature = extendedDefinition.features.find { it.tag == tag }
@@ -147,47 +151,46 @@ class FeatureConverter(jsonString: String) {
 
 
     @Throws(IllegalArgumentException::class)
-    fun <T> encodeFeature(vdsType: String, feature: String, inputValue: T): DerTlv {
+    fun <T> encodeFeature(vdsType: String, featureName: String, inputValue: T): DerTlv {
         if (!vdsTypes.containsKey(vdsType)) {
             log.w("No VdsSeal type with name '$vdsType' was found.")
             throw IllegalArgumentException("No seal type with name '$vdsType' was found.")
         }
-        if (!vdsFeatures.contains(feature)) {
-            log.w("No VdsSeal feature with name '$feature' was found.")
-            throw IllegalArgumentException("No VdsSeal feature with name '$feature' was found.")
+        if (!vdsFeatures.contains(featureName)) {
+            log.w("No VdsSeal feature with name '$featureName' was found.")
+            throw IllegalArgumentException("No VdsSeal feature with name '$featureName' was found.")
         }
         val sealDto = getSealDto(vdsType)
-        return encodeFeature(sealDto, feature, inputValue)
+        return encodeFeature(sealDto, featureName, inputValue)
     }
 
     @Throws(IllegalArgumentException::class)
-    private fun <T> encodeFeature(sealDto: SealDto, feature: String, inputValue: T): DerTlv {
-        val tag = getTag(sealDto, feature)
+    private fun <T> encodeFeature(sealDto: SealDto, featureName: String, inputValue: T): DerTlv {
+        val tag = getFeatureTag(sealDto, featureName)
         if (tag.toInt() == 0) {
-            log.w("VdsType: " + sealDto.documentType + " has no Feature " + feature)
-            throw IllegalArgumentException("VdsType: " + sealDto.documentType + " has no Feature " + feature)
+            log.w("VdsType: " + sealDto.documentType + " has no Feature " + featureName)
+            throw IllegalArgumentException("VdsType: " + sealDto.documentType + " has no Feature " + featureName)
         }
-        val coding = getCoding(sealDto, feature)
-        val value: ByteArray
-        when (coding) {
-            FeatureCoding.C40, FeatureCoding.MRZ -> {
-                val valueStr = inputValue as String
-                value = DataEncoder.encodeC40(valueStr)
-            }
-
-            FeatureCoding.UTF8_STRING -> value = (inputValue as String).encodeToByteArray()
-            FeatureCoding.BYTE -> value = byteArrayOf(inputValue as Byte)
-            FeatureCoding.BYTES -> value = inputValue as ByteArray
-            FeatureCoding.MASKED_DATE -> value = DataEncoder.encodeMaskedDate(inputValue as String)
-            FeatureCoding.DATE -> value = DataEncoder.encodeDate(inputValue as String)
-            FeatureCoding.UNKNOWN -> value = inputValue as ByteArray
-        }
+        val coding = getCoding(sealDto, featureName)
+        val value = DataEncoder.encodeValueByCoding(coding, inputValue)
         return DerTlv(tag, value)
     }
 
 
     @Throws(IllegalArgumentException::class)
-    private fun getTag(sealDto: SealDto, feature: String): Byte {
+    fun getFeatureTag(vdsType: String, featureName: String): Int {
+        val sealDto = getSealDto(vdsType)
+        return getFeatureTag(sealDto, featureName).toInt()
+    }
+
+    @Throws(IllegalArgumentException::class)
+    fun getFeatureCoding(vdsType: String, tag: Int): FeatureCoding {
+        val sealDto = getSealDto(vdsType)
+        return getCoding(sealDto, tag.toByte())
+    }
+
+    @Throws(IllegalArgumentException::class)
+    private fun getFeatureTag(sealDto: SealDto, feature: String): Byte {
         for ((name, tag) in sealDto.features) {
             if (name.equals(feature, ignoreCase = true)) {
                 return tag.toByte()

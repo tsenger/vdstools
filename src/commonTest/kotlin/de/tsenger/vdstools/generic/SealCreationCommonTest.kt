@@ -45,8 +45,8 @@ class SealCreationCommonTest {
         val passportNumber = "UFO001979"
 
         val messageGroup = VdsMessageGroup.Builder("RESIDENCE_PERMIT")
-            .addDocumentFeature("MRZ", mrz)
-            .addDocumentFeature("PASSPORT_NUMBER", passportNumber)
+            .addFeature("MRZ", mrz)
+            .addFeature("PASSPORT_NUMBER", passportNumber)
             .build()
 
         assertNotNull(messageGroup)
@@ -73,7 +73,7 @@ class SealCreationCommonTest {
         val mrz = "PPD<<FOLKS<<TALLULAH<<<<<<<<<<<<<<<<<<<<<<<<\n3113883489D<<9709155F1601013<<<<<<<<<<<<<<04"
 
         val messageGroup = VdsMessageGroup.Builder("ICAO_EMERGENCY_TRAVEL_DOCUMENT")
-            .addDocumentFeature("MRZ", mrz)
+            .addFeature("MRZ", mrz)
             .build()
 
         assertNotNull(messageGroup)
@@ -87,7 +87,7 @@ class SealCreationCommonTest {
     @Test
     fun testVdsMessageGroup_FeatureAccessByTag() {
         val messageGroup = VdsMessageGroup.Builder("RESIDENCE_PERMIT")
-            .addDocumentFeature("MRZ", "ATD<<TEST<<DATA<<<<<<<<<<<<<<<<<<<<1234567890USA7001011M2501011<<<<<<00")
+            .addFeature("MRZ", "ATD<<TEST<<DATA<<<<<<<<<<<<<<<<<<<<1234567890USA7001011M2501011<<<<<<00")
             .build()
 
         // Access by tag (MRZ has tag 0x02)
@@ -161,7 +161,7 @@ class SealCreationCommonTest {
         assertEquals("NATIONAL_DOCUMENT_IDENTIFIER", docTypeFeature.name)
         assertEquals(FeatureCoding.BYTE, docTypeFeature.coding)
         assertTrue(docTypeFeature.value is FeatureValue.ByteValue)
-        assertEquals(0x01, (docTypeFeature.value as FeatureValue.ByteValue).value)
+        assertEquals(0x01, (docTypeFeature.value).value)
     }
 
     @Test
@@ -318,7 +318,7 @@ class SealCreationCommonTest {
     fun testApiConsistency_FeatureAccess() {
         // VDS: Create message group and access features
         val vdsMessageGroup = VdsMessageGroup.Builder("RESIDENCE_PERMIT")
-            .addDocumentFeature("MRZ", "ATD<<TEST<<<<<<<<<<<<<<<<<<<<<<<<<<1234567890USA7001011M2501011<<<<<<00")
+            .addFeature("MRZ", "ATD<<TEST<<<<<<<<<<<<<<<<<<<<<<<<<<1234567890USA7001011M2501011<<<<<<00")
             .build()
 
         val vdsFeature = vdsMessageGroup.getFeature("MRZ")
@@ -349,8 +349,8 @@ class SealCreationCommonTest {
     @Test
     fun testApiConsistency_FeatureList() {
         val vdsMessageGroup = VdsMessageGroup.Builder("RESIDENCE_PERMIT")
-            .addDocumentFeature("MRZ", "ATD<<TEST<<<<<<<<<<<<<<<<<<<<<<<<<<1234567890USA7001011M2501011<<<<<<00")
-            .addDocumentFeature("PASSPORT_NUMBER", "ABC123")
+            .addFeature("MRZ", "ATD<<TEST<<<<<<<<<<<<<<<<<<<<<<<<<<1234567890USA7001011M2501011<<<<<<00")
+            .addFeature("PASSPORT_NUMBER", "ABC123")
             .build()
 
         val idbMessageGroup = IdbMessageGroup.Builder()

@@ -33,8 +33,8 @@ class DataMatrixJvmTest {
     fun testSaveDataMatrixToFile() {
         val mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<" + "6525845096USA7008038M2201018<<<<<<06"
         val passportNumber = "UFO001979"
-        val vdsMessage = VdsMessageGroup.Builder("RESIDENCE_PERMIT").addDocumentFeature("MRZ", mrz)
-            .addDocumentFeature("PASSPORT_NUMBER", passportNumber).build()
+        val vdsMessage = VdsMessageGroup.Builder("RESIDENCE_PERMIT").addFeature("MRZ", mrz)
+            .addFeature("PASSPORT_NUMBER", passportNumber).build()
 
         val ks = keystore
         val ecKey = ks!!.getKey("utts5b", keyStorePassword.toCharArray()) as ECPrivateKey

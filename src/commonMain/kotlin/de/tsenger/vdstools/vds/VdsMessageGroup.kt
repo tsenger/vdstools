@@ -38,8 +38,8 @@ class VdsMessageGroup {
     val encoded: ByteArray
         get() {
             val buffer = Buffer()
-            for (feature in derTlvList) {
-                buffer.write(feature.encoded)
+            for (derTlv in derTlvList) {
+                buffer.write(derTlv.encoded)
             }
             return buffer.readByteArray()
         }
@@ -83,10 +83,16 @@ class VdsMessageGroup {
         val derTlvList: MutableList<DerTlv> = ArrayList(5)
 
         @Throws(IllegalArgumentException::class)
-        fun <T> addDocumentFeature(feature: String, value: T): Builder {
-            val derTlv = DataEncoder.encodeFeature(this.vdsType, feature, value)
-            derTlvList.add(derTlv)
+        fun <T> addFeature(tag: Int, value: T): Builder {
+            val coding = DataEncoder.getFeatureCoding(vdsType, tag)
+            val content = DataEncoder.encodeValueByCoding(coding, value, tag)
+            derTlvList.add(DerTlv(tag.toByte(), content))
             return this
+        }
+
+        @Throws(IllegalArgumentException::class)
+        fun <T> addFeature(name: String, value: T): Builder {
+            return addFeature(DataEncoder.getFeatureTag(vdsType, name), value)
         }
 
         fun build(): VdsMessageGroup {
