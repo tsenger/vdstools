@@ -73,9 +73,6 @@ class VdsSeal : Seal {
     override val rawString: String
         get() = DataEncoder.encodeBase256(encoded)
 
-    val vdsMessageList: List<Message>
-        get() = vdsMessageGroup.messageList
-
 
     private fun createVdsSignature(
         vdsHeader: VdsHeader,
