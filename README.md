@@ -33,37 +33,44 @@ import de.tsenger.vdstools.Verifier
 import de.tsenger.vdstools.generic.Seal
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.SignatureInfo
-import de.tsenger.vdstools.vds.MessageValue
+import de.tsenger.vdstools.generic.MessageValue
 
-// Parse VDS or IDB barcode from raw string
+// example raw string coming as result from your used barcode scanner library
+val rawString =
+    "RDB1BNK6ADJL2PECXOABAHIMWDAQEE6ATAXHCCNJVXVGK5TEHZJGMV22BGPATHQJTYEZ4CM6D73Z2FE4O4Q7RLE6RVZJNXMTHKH7GJN6BGPATNOAIEA7EAAAAADDKKAQCADIKQ4FAAAAACRTHI6LQNJYDEIAAAAAAA2TQGIQAAAAAI5VHAMTIAAAAAFTJNBSHEAAAACAQAAAAMQAACBYHAAAAAAAAB5RW63DSAEAAAAAAAAIQAAAADJZGK4ZAAAAAAETSMVZWGAJMAD7ACLAA7YCAIAAAAAAGU4BSMP7U772RAAUQAAAAAAAGIAAAACAQAAAAAAAAAAAAAAAAAZAAAAAICAAAAAAAAAAAAAAACBYBAH7VYAAXIJTTKZ2MM5GGOZCGGZDDMRVMHYED4CB5UP7VEAAMAAAAAAIAAMCAIAAA75SAADQAAFGFIX2KKAZF6MRSG37ZAAAKAAAAAAADB4AAD74TY7FX6HL6CBIU4OROHXUXWYFSZTVXFI47EE2NADZRJWKVIGHF7BZDEJUHKDBB2LVVJBUG6MCWD66UJDQPTNHAIKTKEB4THMTRBKM6ORXIEW5WWVQDEYMMIFHA43M5OEHWK62OQHQQKTBLBNONJTM3INJTFMRPXM6NUTBYIQWXPHK6EMENBL25ZRIW5FXG2PZO3CLJC6WCXCLFGNZKYPSKOQ7EULA7BVUAKBQ44Q6HCLT5RDUZM4D3TT55GA7H57NQ7G7LXSG4W4NNAT344KM5LE7EMSDFOE5OFQDYF6PQYZRXR3RQSBCDGV34YNJG3VUWGUJ3DL7TJAYWW7YVI5GVGPX4IKM25DFVEAGB6OM2VFHQAGMFNJFT56I7V5XIRMFOIFJDG2SRS5GFCKY6UUYUVPBL3TG2ULE6ULYNIICKTLUJK6ALUA2SNNU7TSPBXVQVRPEJ7R7UHJWBWI6XGNKWRRBXEFB27VLV3OEVKMVQBCLRFUWXFYXFVOWMF7I763YAUQXDNTP7E42DG26XKBB4HYG4UPR3NQONHCMQKS5FOZOP6JDW75G5EPKRLSGBURBIMMLAW72X4TTXLFH5ATDGB4VCA6US4G57CFEPCE6SB6JUZJGDLWTD2L7YLDXCTYPXZYSMPITJV5ABIDRACHAYDBJZXQXWIPCWWX6TVPXTIA6MQQJNAVSETK7IYNK6NXA66V2A6UELOCCMQDDEKQYNOCLDZ2NGWSIRQFODRERJXLTKFZ2PIUHF34VJDGYKAAFN67I2WUVWD2UY3FOBWKVU5YXMYV5FRRN6DWNJWA76JYR2ONQ72CZHBHYBTN7XNRGVNVRMMT7DZLUXZPOA2HA46H6ADOTMVJTNWAG6SENPRKH4SJQZWGSFXXFGP4P6Q3J5NSRFZZBLFGHVFGLQIYB5VGSHBBE2YEXIPMP4XGND45NCNSKOJIN6LIT4ZQO2QXRWLOX6BY7QNMEHHI4A5VUX54LSUSASKQRNZUREAU2IATUK5OYDB3XGQTZBHZC3SHGSQJPCRSBJVFG72WXX6RN2R34JFPYXVPUKMEM55ZTGXLR76AJR2TPT7HKGO6RTEIDE6RBFNRKJRR4NPILHJ5XLUEMZKB4A65NSF6T2YN3Y3T4EXDIQCQ3XQ2N7ERQQKZYWTTVPVCNFAJMMNE4JXNFCY4FRH27KA5P3LWZGCF4TIPXSWR2QZESM4AOSH74XRORBXWWCTS3VO4CW6Q773GBQQWPJEA4DG43NESDACDL7IABCBTZ3ZUTZWNPRAW35KVFV3NSTBLXPY7FHG3HEUY3XDT6KR37OK3J3LEJSGIENHILIYX5D2OZKBGMU7FCU7ZIXAPJORJA7MBTGAQEN"
+
 val seal: Seal = Seal.fromString(rawString)
 
-// Access message data by name - value.toString() returns the decoded value
-val mrz: String? = seal.getMessage("MRZ")?.value?.toString()
-
-// Or use type-safe access via sealed class
-val mrzValue = seal.getMessage("MRZ")?.value
-if (mrzValue is MessageValue.MrzValue) {
-    println("MRZ: ${mrzValue.mrz}")
+//Get list with all messages in seal
+val messageList = seal.messageList
+for (message in messageList) {
+    println("${message.name} (${message.coding}) -> ${message.value}")
 }
 
-// Get all available Messages as a List
-val messageList: List<Message> = seal.messageList
+// Access message data by name - value.toString() returns the decoded value
+val mrz: String? = seal.getMessage("MRZ_TD2")?.toString()
 
-for (message in messageList) {
-    println("${message.messageTypeName}: ${message.value}")
+// Or use type-safe access via sealed class
+val messageValue = seal.getMessage("MRZ_TD2")?.value
+if (messageValue is MessageValue.MrzValue) {
+    println("MRZ: ${messageValue.mrz}")
+} else {
+    // rawBytes is always an option
+    println(messageValue?.rawBytes?.toHexString())
 }
 
 // SignatureInfo contains all signature relevant data
 val signatureInfo: SignatureInfo? = seal.signatureInfo
+println("Signing date: ${signatureInfo?.signingDate}")
 
 // Get the signer certificate reference
 val signerCertRef: String? = signatureInfo?.signerCertificateReference
+println("Signer certificate reference: $signerCertRef")
 
 // Since X509 certificate handling is strongly platform-dependent,
 // the Verifier is given the plain publicKey (r|s) and the curve name.
 val publicKeyBytes: ByteArray = ... // load from your certificate store
-val verifier: Verifier = Verifier(
+val verifier = Verifier(
     seal.signedBytes,
     signatureInfo!!.plainSignatureBytes,
     publicKeyBytes,
@@ -91,7 +98,7 @@ val cert: X509Certificate = keystore.getCertificate(keyAlias)
 val ecKey: ECPrivateKey = keystore.getKey(certAlias, keyStorePassword.toCharArray())
 
 // Initialize the Signer with the private key bytes and curve name
-val signer: Signer = Signer(ecKey.encoded, curveName)
+val signer = Signer(ecKey.encoded, curveName)
 
 // 1. Build a VdsHeader
 val header = VdsHeader.Builder("ARRIVAL_ATTESTATION")
@@ -268,7 +275,7 @@ To include this library to your Gradle build add this dependency:
 
 ```groovy
 dependencies {
-    implementation 'de.tsenger:vdstools:0.10.3'
+    implementation 'de.tsenger:vdstools:0.11.0'
 }
 ```
 
@@ -281,6 +288,6 @@ To include this library to your Maven build add this dependency:
 <dependency>
     <groupId>de.tsenger</groupId>
     <artifactId>vdstools</artifactId>
-    <version>0.10.3</version>
+    <version>0.11.0</version>
 </dependency>
 ```
