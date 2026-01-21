@@ -2,7 +2,7 @@ package de.tsenger.vdstools.vds
 
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.asn1.DerTlv
-import de.tsenger.vdstools.vds.dto.ExtendedFeatureDefinitionDto
+import de.tsenger.vdstools.vds.dto.ExtendedMessageDefinitionDto
 import okio.Buffer
 
 
@@ -12,18 +12,18 @@ class VdsMessageGroup {
         private set
 
     /**
-     * The resolved extended feature definition for UUID-based seals.
+     * The resolved extended message definition for UUID-based seals.
      * Null if no definition lookup was performed or no matching definition was found.
      */
-    var extendedFeatureDefinition: ExtendedFeatureDefinitionDto? = null
+    var extendedMessageDefinition: ExtendedMessageDefinitionDto? = null
         private set
 
     /**
-     * The effective VDS type, considering extended feature definition resolution.
+     * The effective VDS type, considering extended message definition resolution.
      * Returns the definition name if resolved, otherwise the base vdsType.
      */
     val effectiveVdsType: String
-        get() = extendedFeatureDefinition?.definitionName ?: vdsType
+        get() = extendedMessageDefinition?.definitionName ?: vdsType
 
     constructor(vdsType: String, derTlvList: List<DerTlv>) {
         this.vdsType = vdsType
@@ -44,37 +44,37 @@ class VdsMessageGroup {
             return buffer.readByteArray()
         }
 
-    val featureList: List<VdsFeature>
+    val messageList: List<VdsMessage>
         /**
-         * @return a list of all decoded VdsFeatures, using extended feature definition-aware lookup if available
+         * @return a list of all decoded VdsMessages, using extended message definition-aware lookup if available
          */
         get() {
-            val featureList: MutableList<VdsFeature> = ArrayList()
+            val messageList: MutableList<VdsMessage> = ArrayList()
             for (derTlv in derTlvList) {
-                DataEncoder.encodeDerTlv(vdsType, extendedFeatureDefinition, derTlv)?.let { featureList.add(it) }
+                DataEncoder.encodeDerTlv(vdsType, extendedMessageDefinition, derTlv)?.let { messageList.add(it) }
             }
-            return featureList
+            return messageList
         }
 
-    fun getFeature(featureName: String): VdsFeature? {
-        return featureList.firstOrNull { feature: VdsFeature -> feature.name == featureName }
+    fun getMessage(messageName: String): VdsMessage? {
+        return messageList.firstOrNull { message: VdsMessage -> message.name == messageName }
     }
 
-    fun getFeature(featureTag: Int): VdsFeature? {
-        return featureList.firstOrNull { feature: VdsFeature -> feature.tag == featureTag }
+    fun getMessage(messageTag: Int): VdsMessage? {
+        return messageList.firstOrNull { message: VdsMessage -> message.tag == messageTag }
     }
 
     /**
-     * Resolves the extended feature definition based on the UUID in the specified tag.
+     * Resolves the extended message definition based on the UUID in the specified tag.
      * This method should be called after parsing for seal types that require UUID lookup.
      *
      * @param uuidTag The tag number containing the UUID (typically 0)
      * @return The definition name if resolved, or the base vdsType if no definition found
      */
-    fun resolveExtendedFeatureDefinition(uuidTag: Int): String {
+    fun resolveExtendedMessageDefinition(uuidTag: Int): String {
         val uuidTlv = derTlvList.find { it.tag.toInt() == uuidTag }
         if (uuidTlv != null) {
-            extendedFeatureDefinition = DataEncoder.resolveExtendedFeatureDefinition(uuidTlv.value)
+            extendedMessageDefinition = DataEncoder.resolveExtendedMessageDefinition(uuidTlv.value)
         }
         return effectiveVdsType
     }
@@ -83,16 +83,16 @@ class VdsMessageGroup {
         val derTlvList: MutableList<DerTlv> = ArrayList(5)
 
         @Throws(IllegalArgumentException::class)
-        fun <T> addFeature(tag: Int, value: T): Builder {
-            val coding = DataEncoder.getFeatureCoding(vdsType, tag)
+        fun <T> addMessage(tag: Int, value: T): Builder {
+            val coding = DataEncoder.getMessageCoding(vdsType, tag)
             val content = DataEncoder.encodeValueByCoding(coding, value, tag)
             derTlvList.add(DerTlv(tag.toByte(), content))
             return this
         }
 
         @Throws(IllegalArgumentException::class)
-        fun <T> addFeature(name: String, value: T): Builder {
-            return addFeature(DataEncoder.getFeatureTag(vdsType, name), value)
+        fun <T> addMessage(name: String, value: T): Builder {
+            return addMessage(DataEncoder.getMessageTag(vdsType, name), value)
         }
 
         fun build(): VdsMessageGroup {

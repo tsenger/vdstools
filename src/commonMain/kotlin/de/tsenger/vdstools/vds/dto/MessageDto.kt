@@ -1,13 +1,13 @@
 package de.tsenger.vdstools.vds.dto
 
 import kotlinx.serialization.Serializable
-import de.tsenger.vdstools.vds.FeatureCoding
+import de.tsenger.vdstools.vds.MessageCoding
 
 @Serializable
-data class FeaturesDto(
+data class MessageDto(
     var name: String = "",
     var tag: Int = 0,
-    var coding: FeatureCoding = FeatureCoding.UNKNOWN,
+    var coding: MessageCoding = MessageCoding.UNKNOWN,
     var decodedLength: Int = 0,
     var required: Boolean = false,
     var minLength: Int = 0,

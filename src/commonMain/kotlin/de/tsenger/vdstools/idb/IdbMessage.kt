@@ -1,14 +1,14 @@
 package de.tsenger.vdstools.idb
 
 import de.tsenger.vdstools.asn1.DerTlv
-import de.tsenger.vdstools.vds.FeatureCoding
-import de.tsenger.vdstools.vds.FeatureValue
+import de.tsenger.vdstools.vds.MessageCoding
+import de.tsenger.vdstools.vds.MessageValue
 
-class IdbFeature(
+class IdbMessage(
     val tag: Int,
     val name: String,
-    val coding: FeatureCoding,
-    val value: FeatureValue
+    val coding: MessageCoding,
+    val value: MessageValue
 ) {
     val encoded: ByteArray
         get() = DerTlv(tag.toByte(), value.rawBytes).encoded

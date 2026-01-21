@@ -16,21 +16,21 @@ class VdsSeal : Seal {
     private val log = Logger.withTag(this::class.simpleName ?: "")
 
     private val vdsHeader: VdsHeader
-    private val vdsMessage: VdsMessageGroup
+    private val vdsMessageGroup: VdsMessageGroup
     private val vdsSignature: VdsSignature?
 
-    private constructor(vdsHeader: VdsHeader, vdsMessage: VdsMessageGroup, vdsSignature: VdsSignature?) {
+    private constructor(vdsHeader: VdsHeader, vdsMessageGroup: VdsMessageGroup, vdsSignature: VdsSignature?) {
         this.vdsHeader = vdsHeader
-        this.vdsMessage = vdsMessage
+        this.vdsMessageGroup = vdsMessageGroup
         this.vdsSignature = vdsSignature
-        // Use effectiveVdsType which considers extended feature definition resolution
-        this.documentType = vdsMessage.effectiveVdsType
+        // Use effectiveVdsType which considers extended message definition resolution
+        this.documentType = vdsMessageGroup.effectiveVdsType
     }
 
-    constructor(vdsHeader: VdsHeader, vdsMessage: VdsMessageGroup, signer: Signer) {
+    constructor(vdsHeader: VdsHeader, vdsMessageGroup: VdsMessageGroup, signer: Signer) {
         this.vdsHeader = vdsHeader
-        this.vdsMessage = vdsMessage
-        this.vdsSignature = createVdsSignature(vdsHeader, vdsMessage, signer)
+        this.vdsMessageGroup = vdsMessageGroup
+        this.vdsSignature = createVdsSignature(vdsHeader, vdsMessageGroup, signer)
         this.documentType = vdsHeader.vdsType
     }
 
@@ -61,10 +61,10 @@ class VdsSeal : Seal {
         get() = vdsHeader.docTypeCat
 
     override val signedBytes: ByteArray
-        get() = vdsHeader.encoded + vdsMessage.encoded
+        get() = vdsHeader.encoded + vdsMessageGroup.encoded
 
     val encoded: ByteArray
-        get() = vdsHeader.encoded + vdsMessage.encoded + (vdsSignature?.encoded ?: byteArrayOf())
+        get() = vdsHeader.encoded + vdsMessageGroup.encoded + (vdsSignature?.encoded ?: byteArrayOf())
 
     val signatureBytes: ByteArray
         get() = vdsSignature?.plainSignatureBytes ?: byteArrayOf()
@@ -72,12 +72,12 @@ class VdsSeal : Seal {
     override val rawString: String
         get() = DataEncoder.encodeBase256(encoded)
 
-    val featureList: List<VdsFeature>
-        get() = vdsMessage.featureList
+    val vdsMessageList: List<VdsMessage>
+        get() = vdsMessageGroup.messageList
 
 
-    private fun createVdsSignature(vdsHeader: VdsHeader, vdsMessage: VdsMessageGroup, signer: Signer): VdsSignature? {
-        val headerMessage = vdsHeader.encoded + vdsMessage.encoded
+    private fun createVdsSignature(vdsHeader: VdsHeader, vdsMessageGroup: VdsMessageGroup, signer: Signer): VdsSignature? {
+        val headerMessage = vdsHeader.encoded + vdsMessageGroup.encoded
         try {
             val signatureBytes = signer.sign(headerMessage)
             return VdsSignature(signatureBytes)
@@ -88,24 +88,24 @@ class VdsSeal : Seal {
     }
 
     override fun getMessage(name: String): Message? {
-        val feature = vdsMessage.getFeature(name) ?: return null
-        val mrzLength = getMrzLength(feature.name)
+        val vdsMessage = vdsMessageGroup.getMessage(name) ?: return null
+        val mrzLength = getMrzLength(vdsMessage.name)
         return Message(
-            feature.tag, feature.name, feature.coding,
-            FeatureValue.fromBytes(feature.value.rawBytes, feature.coding, mrzLength)
+            vdsMessage.tag, vdsMessage.name, vdsMessage.coding,
+            MessageValue.fromBytes(vdsMessage.value.rawBytes, vdsMessage.coding, mrzLength)
         )
     }
 
     override fun getMessage(tag: Int): Message? {
-        val feature = vdsMessage.getFeature(tag) ?: return null
-        val mrzLength = getMrzLength(feature.name)
+        val vdsMessage = vdsMessageGroup.getMessage(tag) ?: return null
+        val mrzLength = getMrzLength(vdsMessage.name)
         return Message(
-            feature.tag, feature.name, feature.coding,
-            FeatureValue.fromBytes(feature.value.rawBytes, feature.coding, mrzLength)
+            vdsMessage.tag, vdsMessage.name, vdsMessage.coding,
+            MessageValue.fromBytes(vdsMessage.value.rawBytes, vdsMessage.coding, mrzLength)
         )
     }
 
-    private fun getMrzLength(featureName: String): Int? = when (featureName) {
+    private fun getMrzLength(messageName: String): Int? = when (messageName) {
         "MRZ_MRVA" -> 88
         "MRZ_MRVB" -> 72
         else -> null
@@ -132,11 +132,11 @@ class VdsSeal : Seal {
         }
 
     override val messageList: List<Message>
-        get() = vdsMessage.featureList.map { feature ->
-            val mrzLength = getMrzLength(feature.name)
+        get() = vdsMessageGroup.messageList.map { vdsMessage ->
+            val mrzLength = getMrzLength(vdsMessage.name)
             Message(
-                feature.tag, feature.name, feature.coding,
-                FeatureValue.fromBytes(feature.value.rawBytes, feature.coding, mrzLength)
+                vdsMessage.tag, vdsMessage.name, vdsMessage.coding,
+                MessageValue.fromBytes(vdsMessage.value.rawBytes, vdsMessage.coding, mrzLength)
             )
         }
 
@@ -173,25 +173,25 @@ class VdsSeal : Seal {
             val derTlvList = DataEncoder
                 .parseDerTLvs(rawDataBuffer.readByteArray())
 
-            val featureList: MutableList<DerTlv> = ArrayList(derTlvList.size - 1)
+            val messageList: MutableList<DerTlv> = ArrayList(derTlvList.size - 1)
 
             for (derTlv in derTlvList) {
                 if (derTlv.tag == 0xff.toByte()) {
                     vdsSignature = VdsSignature.fromByteArray(derTlv.encoded)
                 } else {
-                    featureList.add(derTlv)
+                    messageList.add(derTlv)
                 }
             }
-            val vdsMessage = VdsMessageGroup(vdsHeader.vdsType, featureList)
+            val vdsMessageGroup = VdsMessageGroup(vdsHeader.vdsType, messageList)
 
-            // Resolve extended feature definition if this seal type requires UUID lookup
+            // Resolve extended message definition if this seal type requires UUID lookup
             if (DataEncoder.requiresUuidLookup(vdsHeader.vdsType)) {
-                val uuidTag = DataEncoder.getUuidFeatureTag(vdsHeader.vdsType)
-                vdsMessage.resolveExtendedFeatureDefinition(uuidTag)
-                log.d("Resolved effectiveVdsType: ${vdsMessage.effectiveVdsType}")
+                val uuidTag = DataEncoder.getUuidMessageTag(vdsHeader.vdsType)
+                vdsMessageGroup.resolveExtendedMessageDefinition(uuidTag)
+                log.d("Resolved effectiveVdsType: ${vdsMessageGroup.effectiveVdsType}")
             }
 
-            return VdsSeal(vdsHeader, vdsMessage, vdsSignature)
+            return VdsSeal(vdsHeader, vdsMessageGroup, vdsSignature)
         }
     }
 }

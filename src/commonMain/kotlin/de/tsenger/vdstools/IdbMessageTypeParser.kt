@@ -2,7 +2,7 @@ package de.tsenger.vdstools
 
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.idb.dto.IdbMessageTypeDto
-import de.tsenger.vdstools.vds.FeatureCoding
+import de.tsenger.vdstools.vds.MessageCoding
 import kotlinx.serialization.json.Json
 
 class IdbMessageTypeParser(jsonString: String) {
@@ -34,12 +34,12 @@ class IdbMessageTypeParser(jsonString: String) {
         return messageTypesInverse[messageTypeName]?.tag
     }
 
-    fun getMessageTypeCoding(messageTypeName: String): FeatureCoding {
-        return messageTypesInverse[messageTypeName]?.coding ?: FeatureCoding.UNKNOWN
+    fun getMessageTypeCoding(messageTypeName: String): MessageCoding {
+        return messageTypesInverse[messageTypeName]?.coding ?: MessageCoding.UNKNOWN
     }
 
-    fun getMessageTypeCoding(messageTypeTag: Int): FeatureCoding {
-        return messageTypes[messageTypeTag]?.coding ?: FeatureCoding.UNKNOWN
+    fun getMessageTypeCoding(messageTypeTag: Int): MessageCoding {
+        return messageTypes[messageTypeTag]?.coding ?: MessageCoding.UNKNOWN
     }
 
 }

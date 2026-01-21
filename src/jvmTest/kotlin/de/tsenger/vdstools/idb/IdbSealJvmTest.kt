@@ -215,11 +215,11 @@ class IdbSealJvmTest {
         // Build Emergency Travel Document VdsMessageGroup
         val mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06"
         val vdsMessage = VdsMessageGroup.Builder("ICAO_EMERGENCY_TRAVEL_DOCUMENT")
-            .addFeature("MRZ", mrz)
+            .addMessage("MRZ", mrz)
             .build()
 
         // Add ETD to an IdbMessageGroup
-        val messageGroup = IdbMessageGroup.Builder().addFeature("EMERGENCY_TRAVEL_DOCUMENT", vdsMessage.encoded).build()
+        val messageGroup = IdbMessageGroup.Builder().addMessage("EMERGENCY_TRAVEL_DOCUMENT", vdsMessage.encoded).build()
 
         // Generate Signature
         val ecPrivKey = keystore.getKey(signerCertRef, keyStorePassword.toCharArray()) as BCECPrivateKey

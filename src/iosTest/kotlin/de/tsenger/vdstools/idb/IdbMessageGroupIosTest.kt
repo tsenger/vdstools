@@ -20,23 +20,23 @@ class IdbMessageGroupIosTest {
         val derTlv = DerTlv(0x09, "a0a1a2a3a4a5a6a7a8a9aa".hexToByteArray())
         val messageGroup = IdbMessageGroup(listOf(derTlv))
         assertNotNull(messageGroup)
-        assertEquals(1, messageGroup.featureList.size.toLong())
+        assertEquals(1, messageGroup.messageList.size.toLong())
     }
 
 
     @Test
-    fun testFeatureList() {
+    fun testMessageList() {
         val messageGroup = IdbMessageGroup.Builder()
-            .addFeature("CAN", "654321")
-            .addFeature(
+            .addMessage("CAN", "654321")
+            .addMessage(
                 "MRZ_TD1",
                 "I<URYEWCVECOXY8<<<<<<<<<<<<<<<7206122M2811062URY<<<<<<<<<<<8BUCKLEY<<WINIFRED<<<<<<<<<<<<<"
             )
             .build()
-        assertEquals(2, messageGroup.featureList.size.toLong())
-        val featureList = messageGroup.featureList
-        assertEquals("CAN", featureList[0].name)
-        assertEquals("MRZ_TD1", featureList[1].name)
+        assertEquals(2, messageGroup.messageList.size.toLong())
+        val messageList = messageGroup.messageList
+        assertEquals("CAN", messageList[0].name)
+        assertEquals("MRZ_TD1", messageList[1].name)
     }
 
     @Test
@@ -55,8 +55,8 @@ class IdbMessageGroupIosTest {
     fun testFromByteArray() {
         val messageGroup =
             fromByteArray("611f090ba0a1a2a3a4a5a6a7a8a9aa0710b0b1b2b3b4b5b6b7b8b9babbbcbdbebf".hexToByteArray())
-        val featureList = messageGroup.featureList
-        assertEquals("CAN", featureList[0].name)
-        assertEquals("MRZ_TD1", featureList[1].name)
+        val messageList = messageGroup.messageList
+        assertEquals("CAN", messageList[0].name)
+        assertEquals("MRZ_TD1", messageList[1].name)
     }
 }

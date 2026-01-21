@@ -4,7 +4,7 @@
     "definitionName": "MELDEBESCHEINIGUNG",
     "baseDocumentType": "ADMINISTRATIVE_DOCUMENTS",
     "version": 1,
-    "features": [
+    "messages": [
       {
         "name": "SURNAME",
         "tag": 4,

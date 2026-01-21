@@ -1,7 +1,7 @@
 package de.tsenger.vdstools.idb
 
 import de.tsenger.vdstools.Verifier
-import de.tsenger.vdstools.vds.FeatureValue
+import de.tsenger.vdstools.vds.MessageValue
 import de.tsenger.vdstools.vds.VdsMessageGroup
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.junit.BeforeClass
@@ -22,14 +22,14 @@ class IcbJvmTest {
         val icb = IdbSeal.fromString(IcbRawStringsJvm.SubstituteIdentityDocument) as IdbSeal
         assertNotNull(icb)
 
-        val numberOfMessages = icb.payLoad.idbMessageGroup.featureList.size
+        val numberOfMessages = icb.payLoad.idbMessageGroup.messageList.size
         assertEquals(4, numberOfMessages)
         assertEquals(
             "AID<<KOEPPENIK<<JONATHAN<GERALD<<<<<\n2L1T3QPB04D<<8506210M2604239<<<<<<<8",
             icb.getMessage("MRZ_TD2")?.value.toString()
         )
         assertEquals("2026-04-23", icb.getMessage("EXPIRY_DATE")?.value.toString())
-        assertEquals(1, (icb.getMessage("NATIONAL_DOCUMENT_IDENTIFIER")?.value as? FeatureValue.ByteValue)?.value)
+        assertEquals(1, (icb.getMessage("NATIONAL_DOCUMENT_IDENTIFIER")?.value as? MessageValue.ByteValue)?.value)
         assertEquals(996, icb.getMessage("FACE_IMAGE")?.value?.rawBytes?.size)
 
         val cert = keystore.getCertificate("utts5b") as X509Certificate
@@ -48,18 +48,18 @@ class IcbJvmTest {
         val icb = IdbSeal.fromString(IcbRawStringsJvm.EmergencyTravelDocument) as IdbSeal
         assertNotNull(icb)
 
-        val numberOfMessages = icb.payLoad.idbMessageGroup.featureList.size
+        val numberOfMessages = icb.payLoad.idbMessageGroup.messageList.size
         assertEquals(4, numberOfMessages)
 
         val etdBytes = icb.getMessage("EMERGENCY_TRAVEL_DOCUMENT")?.value?.rawBytes
         assertNotNull(etdBytes)
         val mrz = VdsMessageGroup.fromByteArray(etdBytes, "ICAO_EMERGENCY_TRAVEL_DOCUMENT")
-            .getFeature("MRZ")?.value.toString()
+            .getMessage("MRZ")?.value.toString()
         assertEquals(
             "PUD<<KOEPPENIK<<JONATHAN<GERALD<<<<<\n2L1T3QPB04D<<8506210M2604239<<<<<<<8", mrz
         )
         assertEquals("2026-04-23", icb.getMessage("EXPIRY_DATE")?.value.toString())
-        assertEquals(2, (icb.getMessage("NATIONAL_DOCUMENT_IDENTIFIER")?.value as? FeatureValue.ByteValue)?.value)
+        assertEquals(2, (icb.getMessage("NATIONAL_DOCUMENT_IDENTIFIER")?.value as? MessageValue.ByteValue)?.value)
         assertEquals(996, icb.getMessage("FACE_IMAGE")?.value?.rawBytes?.size)
 
         val cert = keystore.getCertificate("utts5b") as X509Certificate
@@ -73,7 +73,7 @@ class IcbJvmTest {
         val icb = IdbSeal.fromString(IcbRawStringsJvm.TemporaryPassport) as IdbSeal
         assertNotNull(icb)
 
-        val numberOfMessages = icb.payLoad.idbMessageGroup.featureList.size
+        val numberOfMessages = icb.payLoad.idbMessageGroup.messageList.size
         assertEquals(4, numberOfMessages)
 
         val mrz = icb.getMessage(8)?.value.toString()
@@ -81,7 +81,7 @@ class IcbJvmTest {
             "PPD<<FOLKS<<TALLULAH<<<<<<<<<<<<<<<<<<<<<<<<\n3113883489D<<9709155F1601013<<<<<<<<<<<<<<04", mrz
         )
         assertEquals("2027-01-31", icb.getMessage("EXPIRY_DATE")?.value.toString())
-        assertEquals(6, (icb.getMessage("NATIONAL_DOCUMENT_IDENTIFIER")?.value as? FeatureValue.ByteValue)?.value)
+        assertEquals(6, (icb.getMessage("NATIONAL_DOCUMENT_IDENTIFIER")?.value as? MessageValue.ByteValue)?.value)
         assertEquals(998, icb.getMessage("FACE_IMAGE")?.value?.rawBytes?.size)
 
         val cert = keystore.getCertificate("utts5b") as X509Certificate
@@ -95,7 +95,7 @@ class IcbJvmTest {
         val icb = IdbSeal.fromString(IcbRawStringsJvm.ArrivalAttestation) as IdbSeal
         assertNotNull(icb)
 
-        val numberOfMessages = icb.payLoad.idbMessageGroup.featureList.size
+        val numberOfMessages = icb.payLoad.idbMessageGroup.messageList.size
         assertEquals(4, numberOfMessages)
 
         val mrz = icb.getMessage(0x81)?.value.toString()
@@ -103,7 +103,7 @@ class IcbJvmTest {
             "AUD<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06", mrz
         )
         assertEquals("ABC123456DEF", icb.getMessage(0x83)?.value.toString())
-        assertEquals(0x0D, (icb.getMessage(0x86)?.value as? FeatureValue.ByteValue)?.value)
+        assertEquals(0x0D, (icb.getMessage(0x86)?.value as? MessageValue.ByteValue)?.value)
         assertEquals(996, icb.getMessage(0x80)?.value?.rawBytes?.size)
 
         val cert = keystore.getCertificate("utts5b") as X509Certificate
@@ -117,7 +117,7 @@ class IcbJvmTest {
         val icb = IdbSeal.fromString(IcbRawStringsJvm.ProvisionalResidenceDocument) as IdbSeal
         assertNotNull(icb)
 
-        val numberOfMessages = icb.payLoad.idbMessageGroup.featureList.size
+        val numberOfMessages = icb.payLoad.idbMessageGroup.messageList.size
         assertEquals(4, numberOfMessages)
 
         val mrz = icb.getMessage(0x81)?.value.toString()
@@ -126,7 +126,7 @@ class IcbJvmTest {
         )
         assertEquals("123456789", icb.getMessage(0x82)?.value.toString())
         assertEquals("ABC123456DEF", icb.getMessage(0x83)?.value.toString())
-        assertEquals(0x0E, (icb.getMessage(0x86)?.value as? FeatureValue.ByteValue)?.value)
+        assertEquals(0x0E, (icb.getMessage(0x86)?.value as? MessageValue.ByteValue)?.value)
 
 
         val cert = keystore.getCertificate("utts5b") as X509Certificate
@@ -140,12 +140,12 @@ class IcbJvmTest {
         val icb = IdbSeal.fromString(IcbRawStringsJvm.CertifyingPermanentResidence) as IdbSeal
         assertNotNull(icb)
 
-        val numberOfMessages = icb.payLoad.idbMessageGroup.featureList.size
+        val numberOfMessages = icb.payLoad.idbMessageGroup.messageList.size
         assertEquals(3, numberOfMessages)
 
         assertEquals("123456789", icb.getMessage(0x82)?.value.toString())
         assertEquals("ABC123456DEF", icb.getMessage(0x83)?.value.toString())
-        assertEquals(0x10, (icb.getMessage(0x86)?.value as? FeatureValue.ByteValue)?.value)
+        assertEquals(0x10, (icb.getMessage(0x86)?.value as? MessageValue.ByteValue)?.value)
 
         val cert = keystore.getCertificate("utts5b") as X509Certificate
         val verifier = Verifier(icb, cert.publicKey.encoded, "brainpoolP256r1")
@@ -158,7 +158,7 @@ class IcbJvmTest {
         val icb = IdbSeal.fromString(IcbRawStringsJvm.FrontierWorkerPermit) as IdbSeal
         assertNotNull(icb)
 
-        val numberOfMessages = icb.payLoad.idbMessageGroup.featureList.size
+        val numberOfMessages = icb.payLoad.idbMessageGroup.messageList.size
         assertEquals(4, numberOfMessages)
 
         assertEquals(996, icb.getMessage(0x80)?.value?.rawBytes?.size)
@@ -167,7 +167,7 @@ class IcbJvmTest {
             icb.getMessage(0x81)?.value.toString()
         )
         assertEquals("ABCDEFGHI", icb.getMessage(0x82)?.value.toString())
-        assertEquals(0x11, (icb.getMessage(0x86)?.value as? FeatureValue.ByteValue)?.value)
+        assertEquals(0x11, (icb.getMessage(0x86)?.value as? MessageValue.ByteValue)?.value)
 
         val cert = keystore.getCertificate("utts5b") as X509Certificate
         val verifier = Verifier(icb, cert.publicKey.encoded, "brainpoolP256r1")
@@ -180,7 +180,7 @@ class IcbJvmTest {
         val icb = IdbSeal.fromString(IcbRawStringsJvm.SupplementarySheetResidencePermit) as IdbSeal
         assertNotNull(icb)
 
-        val numberOfMessages = icb.payLoad.idbMessageGroup.featureList.size
+        val numberOfMessages = icb.payLoad.idbMessageGroup.messageList.size
         assertEquals(4, numberOfMessages)
 
 
@@ -192,7 +192,7 @@ class IcbJvmTest {
         )
         assertEquals("5W1ETCGE2", icb.getMessage(0x82)?.value.toString())
         assertEquals("ABCDEFGHI", icb.getMessage(0x85)?.value.toString())
-        assertEquals(0x12, (icb.getMessage(0x86)?.value as? FeatureValue.ByteValue)?.value)
+        assertEquals(0x12, (icb.getMessage(0x86)?.value as? MessageValue.ByteValue)?.value)
 
         val cert = keystore.getCertificate("utts5b") as X509Certificate
         val verifier = Verifier(icb, cert.publicKey.encoded, "brainpoolP256r1")

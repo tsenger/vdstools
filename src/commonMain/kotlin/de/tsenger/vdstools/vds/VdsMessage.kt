@@ -1,10 +1,10 @@
 package de.tsenger.vdstools.vds
 
-class VdsFeature(
+class VdsMessage(
     val tag: Int,
     val name: String,
-    val coding: FeatureCoding,
-    val value: FeatureValue
+    val coding: MessageCoding,
+    val value: MessageValue
 ) {
     override fun toString(): String = "$name: $value"
 }

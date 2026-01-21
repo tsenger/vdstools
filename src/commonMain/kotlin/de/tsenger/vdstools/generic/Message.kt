@@ -1,13 +1,13 @@
 package de.tsenger.vdstools.generic
 
-import de.tsenger.vdstools.vds.FeatureCoding
-import de.tsenger.vdstools.vds.FeatureValue
+import de.tsenger.vdstools.vds.MessageCoding
+import de.tsenger.vdstools.vds.MessageValue
 
 class Message(
     val messageTypeTag: Int,
     val messageTypeName: String,
-    val coding: FeatureCoding,
-    val value: FeatureValue
+    val coding: MessageCoding,
+    val value: MessageValue
 ) {
     override fun toString(): String = "$messageTypeName: $value"
 }

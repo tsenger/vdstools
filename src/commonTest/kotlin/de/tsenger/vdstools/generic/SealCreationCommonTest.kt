@@ -1,8 +1,8 @@
 package de.tsenger.vdstools.generic
 
 import de.tsenger.vdstools.idb.*
-import de.tsenger.vdstools.vds.FeatureCoding
-import de.tsenger.vdstools.vds.FeatureValue
+import de.tsenger.vdstools.vds.MessageCoding
+import de.tsenger.vdstools.vds.MessageValue
 import de.tsenger.vdstools.vds.VdsHeader
 import de.tsenger.vdstools.vds.VdsMessageGroup
 import kotlin.test.Test
@@ -12,7 +12,7 @@ import kotlin.test.assertTrue
 
 /**
  * Generic test cases demonstrating the creation of IDB and VDS seals
- * with focus on Feature and MessageGroup creation.
+ * with focus on Message and MessageGroup creation.
  *
  * IDB Message Type Tags (from IdbMessageTypes.json):
  * - 0x01 (1): VISA
@@ -36,7 +36,7 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalStdlibApi::class)
 class SealCreationCommonTest {
 
-    // ========== VDS MessageGroup and Feature Tests ==========
+    // ========== VDS MessageGroup and Message Tests ==========
 
     @Test
     fun testVdsMessageGroup_ResidencePermit() {
@@ -45,25 +45,25 @@ class SealCreationCommonTest {
         val passportNumber = "UFO001979"
 
         val messageGroup = VdsMessageGroup.Builder("RESIDENCE_PERMIT")
-            .addFeature("MRZ", mrz)
-            .addFeature("PASSPORT_NUMBER", passportNumber)
+            .addMessage("MRZ", mrz)
+            .addMessage("PASSPORT_NUMBER", passportNumber)
             .build()
 
         assertNotNull(messageGroup)
         assertEquals("RESIDENCE_PERMIT", messageGroup.vdsType)
 
-        // Verify features are accessible
-        val featureList = messageGroup.featureList
-        assertEquals(2, featureList.size)
+        // Verify messages are accessible
+        val messageList = messageGroup.messageList
+        assertEquals(2, messageList.size)
 
-        // Check MRZ feature
-        val mrzFeature = messageGroup.getFeature("MRZ")
+        // Check MRZ message
+        val mrzFeature = messageGroup.getMessage("MRZ")
         assertNotNull(mrzFeature)
         assertEquals("MRZ", mrzFeature.name)
-        assertEquals(FeatureCoding.MRZ, mrzFeature.coding)
+        assertEquals(MessageCoding.MRZ, mrzFeature.coding)
 
-        // Check PASSPORT_NUMBER feature
-        val passportFeature = messageGroup.getFeature("PASSPORT_NUMBER")
+        // Check PASSPORT_NUMBER message
+        val passportFeature = messageGroup.getMessage("PASSPORT_NUMBER")
         assertNotNull(passportFeature)
         assertEquals("PASSPORT_NUMBER", passportFeature.name)
     }
@@ -73,13 +73,13 @@ class SealCreationCommonTest {
         val mrz = "PPD<<FOLKS<<TALLULAH<<<<<<<<<<<<<<<<<<<<<<<<\n3113883489D<<9709155F1601013<<<<<<<<<<<<<<04"
 
         val messageGroup = VdsMessageGroup.Builder("ICAO_EMERGENCY_TRAVEL_DOCUMENT")
-            .addFeature("MRZ", mrz)
+            .addMessage("MRZ", mrz)
             .build()
 
         assertNotNull(messageGroup)
         assertEquals("ICAO_EMERGENCY_TRAVEL_DOCUMENT", messageGroup.vdsType)
 
-        val mrzFeature = messageGroup.getFeature("MRZ")
+        val mrzFeature = messageGroup.getMessage("MRZ")
         assertNotNull(mrzFeature)
         assertEquals(0x02, mrzFeature.tag)
     }
@@ -87,16 +87,16 @@ class SealCreationCommonTest {
     @Test
     fun testVdsMessageGroup_FeatureAccessByTag() {
         val messageGroup = VdsMessageGroup.Builder("RESIDENCE_PERMIT")
-            .addFeature("MRZ", "ATD<<TEST<<DATA<<<<<<<<<<<<<<<<<<<<1234567890USA7001011M2501011<<<<<<00")
+            .addMessage("MRZ", "ATD<<TEST<<DATA<<<<<<<<<<<<<<<<<<<<1234567890USA7001011M2501011<<<<<<00")
             .build()
 
         // Access by tag (MRZ has tag 0x02)
-        val featureByTag = messageGroup.getFeature(0x02)
+        val featureByTag = messageGroup.getMessage(0x02)
         assertNotNull(featureByTag)
         assertEquals("MRZ", featureByTag.name)
 
         // Access by name
-        val featureByName = messageGroup.getFeature("MRZ")
+        val featureByName = messageGroup.getMessage("MRZ")
         assertNotNull(featureByName)
         assertEquals(0x02, featureByName.tag)
     }
@@ -116,7 +116,7 @@ class SealCreationCommonTest {
         assertEquals("DETS32", header.signerCertRef)
     }
 
-    // ========== IDB MessageGroup and Feature Tests ==========
+    // ========== IDB MessageGroup and Message Tests ==========
 
     @Test
     fun testIdbMessageGroup_SubstituteIdentityDocument() {
@@ -126,41 +126,41 @@ class SealCreationCommonTest {
         val faceImage = "faceImageBytesHere".encodeToByteArray()
 
         val messageGroup = IdbMessageGroup.Builder()
-            .addFeature(0x80, faceImage)                    // FACE_IMAGE (tag 128)
-            .addFeature(0x81, mrzTd2)                       // MRZ_TD2 (tag 129)
-            .addFeature(0x84, "2026-04-23")                 // EXPIRY_DATE (tag 132)
-            .addFeature(0x86, 0x01)                         // NATIONAL_DOCUMENT_IDENTIFIER (tag 134)
+            .addMessage(0x80, faceImage)                    // FACE_IMAGE (tag 128)
+            .addMessage(0x81, mrzTd2)                       // MRZ_TD2 (tag 129)
+            .addMessage(0x84, "2026-04-23")                 // EXPIRY_DATE (tag 132)
+            .addMessage(0x86, 0x01)                         // NATIONAL_DOCUMENT_IDENTIFIER (tag 134)
             .build()
 
         assertNotNull(messageGroup)
 
-        // Verify features
-        val featureList = messageGroup.featureList
-        assertEquals(4, featureList.size)
+        // Verify messages
+        val messageList = messageGroup.messageList
+        assertEquals(4, messageList.size)
 
         // Check by tag
-        val faceFeature = messageGroup.getFeature(0x80)
+        val faceFeature = messageGroup.getMessage(0x80)
         assertNotNull(faceFeature)
         assertEquals("FACE_IMAGE", faceFeature.name)
-        assertEquals(FeatureCoding.BYTES, faceFeature.coding)
+        assertEquals(MessageCoding.BYTES, faceFeature.coding)
 
         // Check by name
-        val mrzFeature = messageGroup.getFeature("MRZ_TD2")
+        val mrzFeature = messageGroup.getMessage("MRZ_TD2")
         assertNotNull(mrzFeature)
         assertEquals(0x81, mrzFeature.tag)
-        assertEquals(FeatureCoding.MRZ, mrzFeature.coding)
+        assertEquals(MessageCoding.MRZ, mrzFeature.coding)
 
-        // Check date feature
-        val expiryFeature = messageGroup.getFeature("EXPIRY_DATE")
+        // Check date message
+        val expiryFeature = messageGroup.getMessage("EXPIRY_DATE")
         assertNotNull(expiryFeature)
-        assertEquals(FeatureCoding.MASKED_DATE, expiryFeature.coding)
+        assertEquals(MessageCoding.MASKED_DATE, expiryFeature.coding)
 
-        // Check byte feature (document type)
-        val docTypeFeature = messageGroup.getFeature(0x86)
+        // Check byte message (document type)
+        val docTypeFeature = messageGroup.getMessage(0x86)
         assertNotNull(docTypeFeature)
         assertEquals("NATIONAL_DOCUMENT_IDENTIFIER", docTypeFeature.name)
-        assertEquals(FeatureCoding.BYTE, docTypeFeature.coding)
-        assertTrue(docTypeFeature.value is FeatureValue.ByteValue)
+        assertEquals(MessageCoding.BYTE, docTypeFeature.coding)
+        assertTrue(docTypeFeature.value is MessageValue.ByteValue)
         assertEquals(0x01, (docTypeFeature.value).value)
     }
 
@@ -170,32 +170,32 @@ class SealCreationCommonTest {
         val mrzTd2 = "AUD<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<6525845096USA7008038M2201018"
 
         val messageGroup = IdbMessageGroup.Builder()
-            .addFeature("MRZ_TD2", mrzTd2)
-            .addFeature("AZR", "ABC123456DEF")
-            .addFeature("NATIONAL_DOCUMENT_IDENTIFIER", 0x0D)  // Arrival Attestation
+            .addMessage("MRZ_TD2", mrzTd2)
+            .addMessage("AZR", "ABC123456DEF")
+            .addMessage("NATIONAL_DOCUMENT_IDENTIFIER", 0x0D)  // Arrival Attestation
             .build()
 
         assertNotNull(messageGroup)
-        assertEquals(3, messageGroup.featureList.size)
+        assertEquals(3, messageGroup.messageList.size)
 
-        val docType = messageGroup.getFeature("NATIONAL_DOCUMENT_IDENTIFIER")
+        val docType = messageGroup.getMessage("NATIONAL_DOCUMENT_IDENTIFIER")
         assertNotNull(docType)
-        assertEquals(0x0D, (docType.value as FeatureValue.ByteValue).value)
+        assertEquals(0x0D, (docType.value as MessageValue.ByteValue).value)
     }
 
     @Test
     fun testIdbMessageGroup_WithStringNames() {
-        // Test using feature names instead of tags
+        // Test using message names instead of tags
         val messageGroup = IdbMessageGroup.Builder()
-            .addFeature("PROOF_OF_VACCINATION", "b0b1b2b3b4b5b6b7b8b9babbbcbdbebf".hexToByteArray())
+            .addMessage("PROOF_OF_VACCINATION", "b0b1b2b3b4b5b6b7b8b9babbbcbdbebf".hexToByteArray())
             .build()
 
         assertNotNull(messageGroup)
 
-        val feature = messageGroup.getFeature("PROOF_OF_VACCINATION")
+        val feature = messageGroup.getMessage("PROOF_OF_VACCINATION")
         assertNotNull(feature)
         assertEquals(0x04, feature.tag)
-        assertEquals(FeatureCoding.BYTES, feature.coding)
+        assertEquals(MessageCoding.BYTES, feature.coding)
     }
 
     @Test
@@ -229,7 +229,7 @@ class SealCreationCommonTest {
         val header = IdbHeader("D<<")
 
         val messageGroup = IdbMessageGroup.Builder()
-            .addFeature("PROOF_OF_RECOVERY", "b0b1b2b3b4b5b6b7b8b9babbbcbdbebf".hexToByteArray())
+            .addMessage("PROOF_OF_RECOVERY", "b0b1b2b3b4b5b6b7b8b9babbbcbdbebf".hexToByteArray())
             .build()
 
         val payload = IdbPayload(header, messageGroup, null, null)
@@ -254,7 +254,7 @@ class SealCreationCommonTest {
         )
 
         val messageGroup = IdbMessageGroup.Builder()
-            .addFeature("PROOF_OF_VACCINATION", "b0b1b2b3b4b5b6b7b8b9babbbcbdbebf".hexToByteArray())
+            .addMessage("PROOF_OF_VACCINATION", "b0b1b2b3b4b5b6b7b8b9babbbcbdbebf".hexToByteArray())
             .build()
 
         // Use a dummy signature for testing
@@ -288,8 +288,8 @@ class SealCreationCommonTest {
         )
 
         val messageGroup = IdbMessageGroup.Builder()
-            .addFeature(0x81, "IDD<<MUSTERMANN<<ERIKA<<<<<<<<<<<<<<L01X00T471D<<6408125F2702281")
-            .addFeature(0x86, 0x01)
+            .addMessage(0x81, "IDD<<MUSTERMANN<<ERIKA<<<<<<<<<<<<<<L01X00T471D<<6408125F2702281")
+            .addMessage(0x86, 0x01)
             .build()
 
         val signature = IdbSignature(
@@ -316,24 +316,24 @@ class SealCreationCommonTest {
 
     @Test
     fun testApiConsistency_FeatureAccess() {
-        // VDS: Create message group and access features
+        // VDS: Create message group and access messages
         val vdsMessageGroup = VdsMessageGroup.Builder("RESIDENCE_PERMIT")
-            .addFeature("MRZ", "ATD<<TEST<<<<<<<<<<<<<<<<<<<<<<<<<<1234567890USA7001011M2501011<<<<<<00")
+            .addMessage("MRZ", "ATD<<TEST<<<<<<<<<<<<<<<<<<<<<<<<<<1234567890USA7001011M2501011<<<<<<00")
             .build()
 
-        val vdsFeature = vdsMessageGroup.getFeature("MRZ")
+        val vdsFeature = vdsMessageGroup.getMessage("MRZ")
         assertNotNull(vdsFeature)
         assertEquals("MRZ", vdsFeature.name)
         assertEquals(0x02, vdsFeature.tag)
         assertNotNull(vdsFeature.value)
         assertNotNull(vdsFeature.coding)
 
-        // IDB: Create message group and access features (same pattern!)
+        // IDB: Create message group and access messages (same pattern!)
         val idbMessageGroup = IdbMessageGroup.Builder()
-            .addFeature("MRZ_TD2", "IDD<<TEST<<<<<<<<<<<<<<<<<<<<<<<<<<1234567890USA7001011M2501011")
+            .addMessage("MRZ_TD2", "IDD<<TEST<<<<<<<<<<<<<<<<<<<<<<<<<<1234567890USA7001011M2501011")
             .build()
 
-        val idbFeature = idbMessageGroup.getFeature("MRZ_TD2")
+        val idbFeature = idbMessageGroup.getMessage("MRZ_TD2")
         assertNotNull(idbFeature)
         assertEquals("MRZ_TD2", idbFeature.name)
         assertEquals(0x81, idbFeature.tag)
@@ -341,36 +341,36 @@ class SealCreationCommonTest {
         assertNotNull(idbFeature.coding)
 
         // Both have consistent API:
-        // - getFeature(name) / getFeature(tag)
-        // - featureList property
+        // - getMessage(name) / getMessage(tag)
+        // - messageList property
         // - Feature/IdbFeature have: tag, name, coding, value
     }
 
     @Test
     fun testApiConsistency_FeatureList() {
         val vdsMessageGroup = VdsMessageGroup.Builder("RESIDENCE_PERMIT")
-            .addFeature("MRZ", "ATD<<TEST<<<<<<<<<<<<<<<<<<<<<<<<<<1234567890USA7001011M2501011<<<<<<00")
-            .addFeature("PASSPORT_NUMBER", "ABC123")
+            .addMessage("MRZ", "ATD<<TEST<<<<<<<<<<<<<<<<<<<<<<<<<<1234567890USA7001011M2501011<<<<<<00")
+            .addMessage("PASSPORT_NUMBER", "ABC123")
             .build()
 
         val idbMessageGroup = IdbMessageGroup.Builder()
-            .addFeature("MRZ_TD2", "IDD<<TEST<<<<<<<<<<<<<<<<<<<<<<<<<<1234567890USA7001011M2501011")
-            .addFeature("AZR", "ABC123456DEF")
+            .addMessage("MRZ_TD2", "IDD<<TEST<<<<<<<<<<<<<<<<<<<<<<<<<<1234567890USA7001011M2501011")
+            .addMessage("AZR", "ABC123456DEF")
             .build()
 
-        // Both use featureList property
-        assertEquals(2, vdsMessageGroup.featureList.size)
-        assertEquals(2, idbMessageGroup.featureList.size)
+        // Both use messageList property
+        assertEquals(2, vdsMessageGroup.messageList.size)
+        assertEquals(2, idbMessageGroup.messageList.size)
 
-        // Both features have same structure
-        vdsMessageGroup.featureList.forEach { feature ->
+        // Both messages have same structure
+        vdsMessageGroup.messageList.forEach { feature ->
             assertNotNull(feature.tag)
             assertNotNull(feature.name)
             assertNotNull(feature.coding)
             assertNotNull(feature.value)
         }
 
-        idbMessageGroup.featureList.forEach { feature ->
+        idbMessageGroup.messageList.forEach { feature ->
             assertNotNull(feature.tag)
             assertNotNull(feature.name)
             assertNotNull(feature.coding)

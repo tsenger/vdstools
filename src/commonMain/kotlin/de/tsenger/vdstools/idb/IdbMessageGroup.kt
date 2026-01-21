@@ -2,7 +2,7 @@ package de.tsenger.vdstools.idb
 
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.asn1.DerTlv
-import de.tsenger.vdstools.vds.FeatureValue
+import de.tsenger.vdstools.vds.MessageValue
 import okio.Buffer
 
 class IdbMessageGroup {
@@ -16,21 +16,21 @@ class IdbMessageGroup {
         this.derTlvList = builder.derTlvList
     }
 
-    val featureList: List<IdbFeature>
+    val messageList: List<IdbMessage>
         get() = derTlvList.map { derTlv ->
             val tag = derTlv.tag.toInt() and 0xFF
             val name = DataEncoder.getIdbMessageTypeName(tag)
             val coding = DataEncoder.getIdbMessageTypeCoding(name)
-            val value = FeatureValue.fromBytes(derTlv.value, coding)
-            IdbFeature(tag, name, coding, value)
+            val value = MessageValue.fromBytes(derTlv.value, coding)
+            IdbMessage(tag, name, coding, value)
         }
 
-    fun getFeature(featureTag: Int): IdbFeature? {
-        return featureList.firstOrNull { it.tag == featureTag }
+    fun getMessage(messageTag: Int): IdbMessage? {
+        return messageList.firstOrNull { it.tag == messageTag }
     }
 
-    fun getFeature(featureName: String): IdbFeature? {
-        return featureList.firstOrNull { it.name == featureName }
+    fun getMessage(messageName: String): IdbMessage? {
+        return messageList.firstOrNull { it.name == messageName }
     }
 
     val encoded: ByteArray
@@ -46,7 +46,7 @@ class IdbMessageGroup {
         val derTlvList: MutableList<DerTlv> = ArrayList(5)
 
         @Throws(IllegalArgumentException::class)
-        fun <T> addFeature(tag: Int, value: T): Builder {
+        fun <T> addMessage(tag: Int, value: T): Builder {
             val coding = DataEncoder.getIdbMessageTypeCoding(tag)
             val content = DataEncoder.encodeValueByCoding(coding, value, tag)
             derTlvList.add(DerTlv(tag.toByte(), content))
@@ -54,8 +54,8 @@ class IdbMessageGroup {
         }
 
         @Throws(IllegalArgumentException::class)
-        fun <T> addFeature(name: String, value: T): Builder {
-            return addFeature(DataEncoder.getIdbMessageTypeTag(name) ?: 0, value)
+        fun <T> addMessage(name: String, value: T): Builder {
+            return addMessage(DataEncoder.getIdbMessageTypeTag(name) ?: 0, value)
         }
 
         fun build(): IdbMessageGroup {

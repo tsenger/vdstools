@@ -13,8 +13,8 @@ class VdsMessageGroupCommonTest {
         val mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06"
         val passportNumber = "UFO001979"
         val vdsMessage = VdsMessageGroup.Builder("RESIDENCE_PERMIT")
-            .addFeature("MRZ", mrz)
-            .addFeature("PASSPORT_NUMBER", passportNumber)
+            .addMessage("MRZ", mrz)
+            .addMessage("PASSPORT_NUMBER", passportNumber)
             .build()
         assertEquals(
             "02305cba135875976ec066d417b59e8c6abc133c133c133c133c3fef3a2938ee43f1593d1ae52dbb26751fe64b7c133c136b0306d79519a65306",
@@ -28,8 +28,8 @@ class VdsMessageGroupCommonTest {
         val mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06"
         val passportNumber = "UFO001979"
         val vdsMessage = VdsMessageGroup.Builder("RESIDENCE_PERMIT")
-            .addFeature(0x02, mrz)
-            .addFeature(0x03, passportNumber)
+            .addMessage(0x02, mrz)
+            .addMessage(0x03, passportNumber)
             .build()
         assertEquals(
             "02305cba135875976ec066d417b59e8c6abc133c133c133c133c3fef3a2938ee43f1593d1ae52dbb26751fe64b7c133c136b0306d79519a65306",
@@ -43,8 +43,8 @@ class VdsMessageGroupCommonTest {
         val mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06"
         val passportNumber = "UFO001979"
         val vdsMessage = VdsMessageGroup.Builder("RESIDENCE_PERMIT")
-            .addFeature("MRZ", mrz)
-            .addFeature(0x03, passportNumber)
+            .addMessage("MRZ", mrz)
+            .addMessage(0x03, passportNumber)
             .build()
         assertEquals(
             "02305cba135875976ec066d417b59e8c6abc133c133c133c133c3fef3a2938ee43f1593d1ae52dbb26751fe64b7c133c136b0306d79519a65306",
@@ -56,7 +56,7 @@ class VdsMessageGroupCommonTest {
     fun testBuildVdsMessageGroupWithInvalidTag() {
         assertFailsWith<IllegalArgumentException> {
             VdsMessageGroup.Builder("RESIDENCE_PERMIT")
-                .addFeature(0xFF, "some value")
+                .addMessage(0xFF, "some value")
                 .build()
         }
     }

@@ -3,9 +3,9 @@ package de.tsenger.vdstools.vds.dto
 import kotlinx.serialization.Serializable
 
 /**
- * Data class representing an extended feature definition for UUID-based seal lookup.
+ * Data class representing an extended message definition for UUID-based seal lookup.
  *
- * Extended feature definitions allow for a two-stage lookup process as specified in TR-03171:
+ * Extended message definitions allow for a two-stage lookup process as specified in TR-03171:
  * 1. The documentRef in the header determines the base type (e.g., ADMINISTRATIVE_DOCUMENTS)
  * 2. The UUID in Tag 0 (Dokumentenprofilnummer) determines the specific definition (e.g., MELDEBESCHEINIGUNG)
  *
@@ -16,13 +16,13 @@ import kotlinx.serialization.Serializable
  * @property definitionName The effective vdsType name (e.g., "MELDEBESCHEINIGUNG")
  * @property baseDocumentType Link to the base type in SealCodings.json
  * @property version Definition version
- * @property features Definition-specific features (base type features are inherited)
+ * @property messages Definition-specific messages (base type messages are inherited)
  */
 @Serializable
-data class ExtendedFeatureDefinitionDto(
+data class ExtendedMessageDefinitionDto(
     val definitionId: String = "",
     val definitionName: String = "",
     val baseDocumentType: String = "",
     val version: Int = 1,
-    val features: List<FeaturesDto> = emptyList()
+    val messages: List<MessageDto> = emptyList()
 )

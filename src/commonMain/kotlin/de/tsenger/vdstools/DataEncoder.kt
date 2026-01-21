@@ -4,10 +4,10 @@ package de.tsenger.vdstools
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generated.ResourceConstants
-import de.tsenger.vdstools.vds.FeatureCoding
-import de.tsenger.vdstools.vds.FeatureValue
-import de.tsenger.vdstools.vds.VdsFeature
-import de.tsenger.vdstools.vds.dto.ExtendedFeatureDefinitionDto
+import de.tsenger.vdstools.vds.MessageCoding
+import de.tsenger.vdstools.vds.MessageValue
+import de.tsenger.vdstools.vds.VdsMessage
+import de.tsenger.vdstools.vds.dto.ExtendedMessageDefinitionDto
 import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.DelicateCryptographyApi
 import dev.whyoleg.cryptography.algorithms.SHA1
@@ -19,20 +19,20 @@ import okio.*
 
 
 object DataEncoder {
-    private lateinit var featureEncoder: FeatureConverter
+    private lateinit var messageEncoder: MessageConverter
     private lateinit var idbMessageTypeParser: IdbMessageTypeParser
     private lateinit var idbDocumentTypeParser: IdbNationalDocumentTypeParser
-    private lateinit var extendedFeatureDefinitionRegistry: ExtendedFeatureDefinitionRegistry
+    private lateinit var extendedMessageDefinitionRegistry: ExtendedMessageDefinitionRegistry
     private val log = Logger.withTag(this::class.simpleName ?: "")
 
     init {
         try {
             // Use generated constants (embedded at compile time)
-            featureEncoder = FeatureConverter(ResourceConstants.SEAL_CODINGS_JSON)
+            messageEncoder = MessageConverter(ResourceConstants.SEAL_CODINGS_JSON)
             idbMessageTypeParser = IdbMessageTypeParser(ResourceConstants.IDB_MESSAGE_TYPES_JSON)
             idbDocumentTypeParser = IdbNationalDocumentTypeParser(ResourceConstants.IDB_DOCUMENT_TYPES_JSON)
-            extendedFeatureDefinitionRegistry =
-                ExtendedFeatureDefinitionRegistry(ResourceConstants.EXTENDED_FEATURE_DEFINITIONS_JSON)
+            extendedMessageDefinitionRegistry =
+                ExtendedMessageDefinitionRegistry(ResourceConstants.EXTENDED_MESSAGE_DEFINITIONS_JSON)
         } catch (e: Exception) {
             log.e("Failed to initialize from embedded resources: ${e.message}")
             println("Failed to initialize from embedded resources: ${e.message}")
@@ -46,7 +46,7 @@ object DataEncoder {
      * @throws Exception if JSON is invalid
      */
     fun loadCustomSealCodings(jsonString: String) {
-        featureEncoder = FeatureConverter(jsonString)
+        messageEncoder = MessageConverter(jsonString)
         log.i("Loaded custom SealCodings")
     }
 
@@ -73,14 +73,14 @@ object DataEncoder {
     }
 
     /**
-     * Allows users to override the default Extended Feature Definitions with custom JSON.
+     * Allows users to override the default Extended Message Definitions with custom JSON.
      *
-     * @param jsonString Custom ExtendedFeatureDefinitions JSON content
+     * @param jsonString Custom ExtendedMessageDefinitions JSON content
      * @throws Exception if JSON is invalid
      */
-    fun loadCustomExtendedFeatureDefinitions(jsonString: String) {
-        extendedFeatureDefinitionRegistry = ExtendedFeatureDefinitionRegistry(jsonString)
-        log.i("Loaded custom ExtendedFeatureDefinitions")
+    fun loadCustomExtendedMessageDefinitions(jsonString: String) {
+        extendedMessageDefinitionRegistry = ExtendedMessageDefinitionRegistry(jsonString)
+        log.i("Loaded custom ExtendedMessageDefinitions")
     }
 
     /**
@@ -113,11 +113,11 @@ object DataEncoder {
     }
 
     /**
-     * Convenience method to load custom Extended Feature Definitions from file.
+     * Convenience method to load custom Extended Message Definitions from file.
      */
     @Throws(FileNotFoundException::class)
-    fun loadCustomExtendedFeatureDefinitionsFromFile(fileName: String) {
-        loadCustomExtendedFeatureDefinitions(readTextResource(fileName))
+    fun loadCustomExtendedMessageDefinitionsFromFile(fileName: String) {
+        loadCustomExtendedMessageDefinitions(readTextResource(fileName))
     }
 
 
@@ -354,8 +354,8 @@ object DataEncoder {
         return compressedBytes
     }
 
-    fun setFeatureEncoder(featureEncoder: FeatureConverter) {
-        DataEncoder.featureEncoder = featureEncoder
+    fun setMessageEncoder(messageEncoder: MessageConverter) {
+        DataEncoder.messageEncoder = messageEncoder
     }
 
 
@@ -371,58 +371,58 @@ object DataEncoder {
         return certSha1.sliceArray(15..19)
     }
 
-    fun encodeDerTlv(vdsType: String, derTlv: DerTlv): VdsFeature? {
+    fun encodeDerTlv(vdsType: String, derTlv: DerTlv): VdsMessage? {
         val bytes = derTlv.value
-        val name = featureEncoder.getFeatureName(vdsType, derTlv)
+        val name = messageEncoder.getMessageName(vdsType, derTlv)
         val tag = derTlv.tag.toInt()
-        val coding = featureEncoder.getFeatureCoding(vdsType, derTlv)
-        if (name == "" || coding == FeatureCoding.UNKNOWN) return null
-        return VdsFeature(tag, name, coding, FeatureValue.fromBytes(bytes, coding))
+        val coding = messageEncoder.getMessageCoding(vdsType, derTlv)
+        if (name == "" || coding == MessageCoding.UNKNOWN) return null
+        return VdsMessage(tag, name, coding, MessageValue.fromBytes(bytes, coding))
     }
 
     fun getVdsType(documentRef: Int): String? {
-        return featureEncoder.getVdsType(documentRef)
+        return messageEncoder.getVdsType(documentRef)
     }
 
     fun getDocumentRef(vdsType: String): Int? {
-        return featureEncoder.getDocumentRef(vdsType)
+        return messageEncoder.getDocumentRef(vdsType)
     }
 
-    fun <T> encodeFeature(vdsType: String, featureName: String, value: T): DerTlv {
-        return featureEncoder.encodeFeature(vdsType, featureName, value)
+    fun <T> encodeMessage(vdsType: String, messageName: String, value: T): DerTlv {
+        return messageEncoder.encodeMessage(vdsType, messageName, value)
     }
 
-    fun getFeatureTag(vdsType: String, featureName: String): Int {
-        return featureEncoder.getFeatureTag(vdsType, featureName)
+    fun getMessageTag(vdsType: String, messageName: String): Int {
+        return messageEncoder.getMessageTag(vdsType, messageName)
     }
 
-    fun getFeatureCoding(vdsType: String, tag: Int): FeatureCoding {
-        return featureEncoder.getFeatureCoding(vdsType, tag)
+    fun getMessageCoding(vdsType: String, tag: Int): MessageCoding {
+        return messageEncoder.getMessageCoding(vdsType, tag)
     }
 
     /**
-     * Encodes a value to ByteArray based on the given FeatureCoding.
+     * Encodes a value to ByteArray based on the given MessageCoding.
      *
-     * @param coding The FeatureCoding that determines how to encode the value
+     * @param coding The MessageCoding that determines how to encode the value
      * @param value The value to encode (String, ByteArray, Int, or Byte)
      * @param tag Optional tag number for error messages (used when coding is UNKNOWN)
      * @return The encoded ByteArray
      * @throws IllegalArgumentException if the coding is UNKNOWN and tag is provided,
      *         or if the value type doesn't match the expected type for the coding
      */
-    fun <T> encodeValueByCoding(coding: FeatureCoding, value: T, tag: Int? = null): ByteArray {
+    fun <T> encodeValueByCoding(coding: MessageCoding, value: T, tag: Int? = null): ByteArray {
         return when (coding) {
-            FeatureCoding.C40, FeatureCoding.MRZ -> encodeC40(value as String)
-            FeatureCoding.UTF8_STRING -> (value as String).encodeToByteArray()
-            FeatureCoding.BYTES -> value as ByteArray
-            FeatureCoding.BYTE -> when (value) {
+            MessageCoding.C40, MessageCoding.MRZ -> encodeC40(value as String)
+            MessageCoding.UTF8_STRING -> (value as String).encodeToByteArray()
+            MessageCoding.BYTES -> value as ByteArray
+            MessageCoding.BYTE -> when (value) {
                 is Int -> byteArrayOf((value and 0xFF).toByte())
                 is Byte -> byteArrayOf(value)
                 else -> throw IllegalArgumentException("BYTE coding expects Int or Byte, got ${value!!::class.simpleName}")
             }
-            FeatureCoding.MASKED_DATE -> encodeMaskedDate(value as String)
-            FeatureCoding.DATE -> encodeDate(value as String)
-            FeatureCoding.UNKNOWN -> if (tag != null) {
+            MessageCoding.MASKED_DATE -> encodeMaskedDate(value as String)
+            MessageCoding.DATE -> encodeDate(value as String)
+            MessageCoding.UNKNOWN -> if (tag != null) {
                 throw IllegalArgumentException("Unsupported tag: $tag")
             } else {
                 value as ByteArray
@@ -438,11 +438,11 @@ object DataEncoder {
         return idbMessageTypeParser.getMessageType(messageTypeName)
     }
 
-    fun getIdbMessageTypeCoding(messageTypeName: String): FeatureCoding {
+    fun getIdbMessageTypeCoding(messageTypeName: String): MessageCoding {
         return idbMessageTypeParser.getMessageTypeCoding(messageTypeName)
     }
 
-    fun getIdbMessageTypeCoding(messageTypeTag: Int): FeatureCoding {
+    fun getIdbMessageTypeCoding(messageTypeTag: Int): MessageCoding {
         return idbMessageTypeParser.getMessageTypeCoding(messageTypeTag)
     }
 
@@ -457,7 +457,7 @@ object DataEncoder {
      * @return true if this type requires UUID lookup, false otherwise
      */
     fun requiresUuidLookup(vdsType: String): Boolean {
-        return featureEncoder.requiresUuidLookup(vdsType)
+        return messageEncoder.requiresUuidLookup(vdsType)
     }
 
     /**
@@ -466,45 +466,45 @@ object DataEncoder {
      * @param vdsType The VDS type to check
      * @return The tag number (default 0 if not specified or type not found)
      */
-    fun getUuidFeatureTag(vdsType: String): Int {
-        return featureEncoder.getUuidFeatureTag(vdsType)
+    fun getUuidMessageTag(vdsType: String): Int {
+        return messageEncoder.getUuidMessageTag(vdsType)
     }
 
     /**
-     * Resolves an extended feature definition based on UUID bytes.
+     * Resolves an extended message definition based on UUID bytes.
      *
      * @param uuidBytes 16-byte UUID
-     * @return The matching ExtendedFeatureDefinitionDto, or null if no definition matches
+     * @return The matching ExtendedMessageDefinitionDto, or null if no definition matches
      */
-    fun resolveExtendedFeatureDefinition(uuidBytes: ByteArray): ExtendedFeatureDefinitionDto? {
-        return extendedFeatureDefinitionRegistry.resolve(uuidBytes)
+    fun resolveExtendedMessageDefinition(uuidBytes: ByteArray): ExtendedMessageDefinitionDto? {
+        return extendedMessageDefinitionRegistry.resolve(uuidBytes)
     }
 
     /**
-     * Resolves an extended feature definition based on UUID hex string.
+     * Resolves an extended message definition based on UUID hex string.
      *
      * @param uuidHex UUID as hex string (32 characters, without dashes)
-     * @return The matching ExtendedFeatureDefinitionDto, or null if no definition matches
+     * @return The matching ExtendedMessageDefinitionDto, or null if no definition matches
      */
-    fun resolveExtendedFeatureDefinition(uuidHex: String): ExtendedFeatureDefinitionDto? {
-        return extendedFeatureDefinitionRegistry.resolve(uuidHex)
+    fun resolveExtendedMessageDefinition(uuidHex: String): ExtendedMessageDefinitionDto? {
+        return extendedMessageDefinitionRegistry.resolve(uuidHex)
     }
 
     /**
-     * Encodes a DerTlv to a Feature with extended feature definition-aware lookup.
+     * Encodes a DerTlv to a Message with extended message definition-aware lookup.
      *
      * @param vdsType The base VDS type
-     * @param extendedDefinition The resolved extended feature definition (may be null)
+     * @param extendedDefinition The resolved extended message definition (may be null)
      * @param derTlv The DerTlv to encode
-     * @return The Feature, or null if encoding fails
+     * @return The Message, or null if encoding fails
      */
-    fun encodeDerTlv(vdsType: String, extendedDefinition: ExtendedFeatureDefinitionDto?, derTlv: DerTlv): VdsFeature? {
+    fun encodeDerTlv(vdsType: String, extendedDefinition: ExtendedMessageDefinitionDto?, derTlv: DerTlv): VdsMessage? {
         val bytes = derTlv.value
         val tag = derTlv.tag.toInt()
-        val name = featureEncoder.getFeatureName(vdsType, extendedDefinition, tag)
-        val coding = featureEncoder.getFeatureCoding(vdsType, extendedDefinition, tag)
-        if (name == "" || coding == FeatureCoding.UNKNOWN) return null
-        return VdsFeature(tag, name, coding, FeatureValue.fromBytes(bytes, coding))
+        val name = messageEncoder.getMessageName(vdsType, extendedDefinition, tag)
+        val coding = messageEncoder.getMessageCoding(vdsType, extendedDefinition, tag)
+        if (name == "" || coding == MessageCoding.UNKNOWN) return null
+        return VdsMessage(tag, name, coding, MessageValue.fromBytes(bytes, coding))
     }
 
     /**

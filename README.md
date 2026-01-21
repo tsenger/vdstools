@@ -33,7 +33,7 @@ import de.tsenger.vdstools.Verifier
 import de.tsenger.vdstools.generic.Seal
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.SignatureInfo
-import de.tsenger.vdstools.vds.FeatureValue
+import de.tsenger.vdstools.vds.MessageValue
 
 // Parse VDS or IDB barcode from raw string
 val seal: Seal = Seal.fromString(rawString)
@@ -43,11 +43,11 @@ val mrz: String? = seal.getMessage("MRZ")?.value?.toString()
 
 // Or use type-safe access via sealed class
 val mrzValue = seal.getMessage("MRZ")?.value
-if (mrzValue is FeatureValue.MrzValue) {
+if (mrzValue is MessageValue.MrzValue) {
     println("MRZ: ${mrzValue.mrz}")
 }
 
-// Get all available Messages/Features as a List
+// Get all available Messages as a List
 val messageList: List<Message> = seal.messageList
 
 for (message in messageList) {
@@ -102,12 +102,12 @@ val header = VdsHeader.Builder("ARRIVAL_ATTESTATION")
     .setSigDate(LocalDate.parse("2024-09-27"))
     .build()
 
-// 2. Build a VdsMessageGroup with features
+// 2. Build a VdsMessageGroup with messages
 val mrz = "MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06"
 val azr = "ABC123456DEF"
 val messageGroup = VdsMessageGroup.Builder(header.vdsType)
-    .addDocumentFeature("MRZ", mrz)
-    .addDocumentFeature("AZR", azr)
+    .addMessage("MRZ", mrz)
+    .addMessage("AZR", azr)
     .build()
 
 // 3. Build a signed VdsSeal
@@ -143,12 +143,12 @@ val header = IdbHeader(
     signatureCreationDate = "2025-02-11"
 )
 
-// 2. Build an IdbMessageGroup with features
+// 2. Build an IdbMessageGroup with messages
 val messageGroup = IdbMessageGroup.Builder()
-    .addFeature(0x80, faceImageBytes)           // FACE_IMAGE
-    .addFeature(0x81, mrzTd2String)             // MRZ_TD2
-    .addFeature(0x84, "2026-04-23")             // EXPIRY_DATE
-    .addFeature(0x86, 0x01)                     // NATIONAL_DOCUMENT_IDENTIFIER
+    .addMessage(0x80, faceImageBytes)           // FACE_IMAGE
+    .addMessage(0x81, mrzTd2String)             // MRZ_TD2
+    .addMessage(0x84, "2026-04-23")             // EXPIRY_DATE
+    .addMessage(0x86, 0x01)                     // NATIONAL_DOCUMENT_IDENTIFIER
     .build()
 
 // 3. Sign the header + messageGroup
@@ -170,7 +170,7 @@ You will also find an example on how to generate a datamatrix image with the Zxi
 
 ## Custom seal codings
 
-VdsTools uses a JSON-based configuration to define seal document types and their feature encodings which follows the
+VdsTools uses a JSON-based configuration to define seal document types and their message encodings which follows the
 encoding based on BSI TR-03137.
 Profile definitions according to BSI TR-03171 are currently not fully supported, as the profile definitions are not
 publicly available at this time.
@@ -185,7 +185,7 @@ val customJson = """[
     "documentType": "MY_CUSTOM_DOCUMENT",
     "documentRef": "ab01",
     "version": 1,
-    "features": [
+    "messages": [
       {
         "name": "OWNER_NAME",
         "tag": 1,
@@ -219,8 +219,8 @@ Once loaded, custom document types work seamlessly with the existing API:
 
 ```kotlin
 val messageGroup = VdsMessageGroup.Builder("MY_CUSTOM_DOCUMENT")
-    .addDocumentFeature("OWNER_NAME", "MAX MUSTERMANN")
-    .addDocumentFeature("ISSUE_DATE", "2024-06-15")
+    .addMessage("OWNER_NAME", "MAX MUSTERMANN")
+    .addMessage("ISSUE_DATE", "2024-06-15")
     .build()
 
 val header = VdsHeader.Builder("MY_CUSTOM_DOCUMENT")

@@ -2,20 +2,20 @@ package de.tsenger.vdstools
 
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.asn1.DerTlv
-import de.tsenger.vdstools.vds.FeatureCoding
-import de.tsenger.vdstools.vds.dto.ExtendedFeatureDefinitionDto
-import de.tsenger.vdstools.vds.dto.FeaturesDto
+import de.tsenger.vdstools.vds.MessageCoding
+import de.tsenger.vdstools.vds.dto.ExtendedMessageDefinitionDto
+import de.tsenger.vdstools.vds.dto.MessageDto
 import de.tsenger.vdstools.vds.dto.SealDto
 import kotlinx.serialization.json.Json
 
 
-class FeatureConverter(jsonString: String) {
+class MessageConverter(jsonString: String) {
     private val log = Logger.withTag(this::class.simpleName ?: "")
     private var sealDtoList: List<SealDto>
 
     private val vdsTypes: MutableMap<String, Int> = HashMap()
     private val vdsTypesReverse: MutableMap<Int, String> = HashMap()
-    private val vdsFeatures: MutableSet<String> = mutableSetOf()
+    private val vdsMessages: MutableSet<String> = mutableSetOf()
 
 
     init {
@@ -25,12 +25,12 @@ class FeatureConverter(jsonString: String) {
     }
 
     private fun populateMappings() {
-        for ((documentType, documentRef, _, features) in sealDtoList) {
+        for ((documentType, documentRef, _, messages) in sealDtoList) {
             if (documentType != "" && documentRef != "") {
                 vdsTypes[documentType] = documentRef.toInt(16)
                 vdsTypesReverse[documentRef.toInt(16)] = documentType
             }
-            features.forEach { vdsFeatures.add(it.name) }
+            messages.forEach { vdsMessages.add(it.name) }
         }
     }
 
@@ -54,8 +54,8 @@ class FeatureConverter(jsonString: String) {
     fun requiresUuidLookup(vdsType: String): Boolean {
         return try {
             val sealDto = getSealDto(vdsType)
-            sealDto.uuidFeatureLookup
-        } catch (e: IllegalArgumentException) {
+            sealDto.uuidMessageLookup
+        } catch (_: IllegalArgumentException) {
             false
         }
     }
@@ -66,30 +66,30 @@ class FeatureConverter(jsonString: String) {
      * @param vdsType The VDS type to check
      * @return The tag number (default 0 if not specified or type not found)
      */
-    fun getUuidFeatureTag(vdsType: String): Int {
+    fun getUuidMessageTag(vdsType: String): Int {
         return try {
             val sealDto = getSealDto(vdsType)
-            sealDto.uuidFeatureTag
-        } catch (e: IllegalArgumentException) {
+            sealDto.uuidMessageTag
+        } catch (_: IllegalArgumentException) {
             0
         }
     }
 
-    val availableVdsFeatures: Set<String?>
-        get() = vdsFeatures
+    val availableVdsMessages: Set<String?>
+        get() = vdsMessages
 
     @Throws(IllegalArgumentException::class)
-    fun getFeatureName(vdsType: String, derTlv: DerTlv): String {
+    fun getMessageName(vdsType: String, derTlv: DerTlv): String {
         if (!vdsTypes.containsKey(vdsType)) {
             log.w("No seal type with name '$vdsType' was found.")
             throw IllegalArgumentException("No seal type with name '$vdsType' was found.")
         }
         val sealDto = getSealDto(vdsType)
-        return getFeatureName(sealDto, derTlv.tag.toInt())
+        return getMessageName(sealDto, derTlv.tag.toInt())
     }
 
     @Throws(IllegalArgumentException::class)
-    fun getFeatureCoding(vdsType: String, derTlv: DerTlv): FeatureCoding {
+    fun getMessageCoding(vdsType: String, derTlv: DerTlv): MessageCoding {
         if (!vdsTypes.containsKey(vdsType)) {
             log.w("No seal type with name '$vdsType' was found.")
             throw IllegalArgumentException("No seal type with name '$vdsType' was found.")
@@ -100,48 +100,48 @@ class FeatureConverter(jsonString: String) {
     }
 
     /**
-     * Gets the feature name for a given tag, considering extended feature definitions.
+     * Gets the message name for a given tag, considering extended message definitions.
      * Lookup order: Extended definition first (if provided), then base type.
      *
      * @param baseVdsType The base VDS type (e.g., "ADMINISTRATIVE_DOCUMENTS")
-     * @param extendedDefinition The resolved extended feature definition (may be null)
+     * @param extendedDefinition The resolved extended message definition (can be null)
      * @param tag The tag number to look up
-     * @return The feature name
+     * @return The message name
      */
     @Throws(IllegalArgumentException::class)
-    fun getFeatureName(baseVdsType: String, extendedDefinition: ExtendedFeatureDefinitionDto?, tag: Int): String {
+    fun getMessageName(baseVdsType: String, extendedDefinition: ExtendedMessageDefinitionDto?, tag: Int): String {
         // Try extended definition first if available
         if (extendedDefinition != null) {
-            val definitionFeature = extendedDefinition.features.find { it.tag == tag }
-            if (definitionFeature != null) {
-                return definitionFeature.name
+            val definitionMessage = extendedDefinition.messages.find { it.tag == tag }
+            if (definitionMessage != null) {
+                return definitionMessage.name
             }
         }
         // Fall back to base type
         val sealDto = getSealDto(baseVdsType)
-        return getFeatureName(sealDto, tag)
+        return getMessageName(sealDto, tag)
     }
 
     /**
-     * Gets the feature coding for a given tag, considering extended feature definitions.
+     * Gets the message coding for a given tag, considering extended message definitions.
      * Lookup order: Extended definition first (if provided), then base type.
      *
      * @param baseVdsType The base VDS type (e.g., "ADMINISTRATIVE_DOCUMENTS")
-     * @param extendedDefinition The resolved extended feature definition (may be null)
+     * @param extendedDefinition The resolved extended message definition (can be null)
      * @param tag The tag number to look up
-     * @return The feature coding
+     * @return The message coding
      */
     @Throws(IllegalArgumentException::class)
-    fun getFeatureCoding(
+    fun getMessageCoding(
         baseVdsType: String,
-        extendedDefinition: ExtendedFeatureDefinitionDto?,
+        extendedDefinition: ExtendedMessageDefinitionDto?,
         tag: Int
-    ): FeatureCoding {
+    ): MessageCoding {
         // Try extended definition first if available
         if (extendedDefinition != null) {
-            val definitionFeature = extendedDefinition.features.find { it.tag == tag }
-            if (definitionFeature != null) {
-                return definitionFeature.coding
+            val definitionMessage = extendedDefinition.messages.find { it.tag == tag }
+            if (definitionMessage != null) {
+                return definitionMessage.coding
             }
         }
         // Fall back to base type
@@ -151,92 +151,92 @@ class FeatureConverter(jsonString: String) {
 
 
     @Throws(IllegalArgumentException::class)
-    fun <T> encodeFeature(vdsType: String, featureName: String, inputValue: T): DerTlv {
+    fun <T> encodeMessage(vdsType: String, messageName: String, inputValue: T): DerTlv {
         if (!vdsTypes.containsKey(vdsType)) {
             log.w("No VdsSeal type with name '$vdsType' was found.")
             throw IllegalArgumentException("No seal type with name '$vdsType' was found.")
         }
-        if (!vdsFeatures.contains(featureName)) {
-            log.w("No VdsSeal feature with name '$featureName' was found.")
-            throw IllegalArgumentException("No VdsSeal feature with name '$featureName' was found.")
+        if (!vdsMessages.contains(messageName)) {
+            log.w("No VdsSeal message with name '$messageName' was found.")
+            throw IllegalArgumentException("No VdsSeal message with name '$messageName' was found.")
         }
         val sealDto = getSealDto(vdsType)
-        return encodeFeature(sealDto, featureName, inputValue)
+        return encodeMessage(sealDto, messageName, inputValue)
     }
 
     @Throws(IllegalArgumentException::class)
-    private fun <T> encodeFeature(sealDto: SealDto, featureName: String, inputValue: T): DerTlv {
-        val tag = getFeatureTag(sealDto, featureName)
+    private fun <T> encodeMessage(sealDto: SealDto, messageName: String, inputValue: T): DerTlv {
+        val tag = getMessageTag(sealDto, messageName)
         if (tag.toInt() == 0) {
-            log.w("VdsType: " + sealDto.documentType + " has no Feature " + featureName)
-            throw IllegalArgumentException("VdsType: " + sealDto.documentType + " has no Feature " + featureName)
+            log.w("VdsType: " + sealDto.documentType + " has no Message " + messageName)
+            throw IllegalArgumentException("VdsType: " + sealDto.documentType + " has no Message " + messageName)
         }
-        val coding = getCoding(sealDto, featureName)
+        val coding = getCoding(sealDto, messageName)
         val value = DataEncoder.encodeValueByCoding(coding, inputValue)
         return DerTlv(tag, value)
     }
 
 
     @Throws(IllegalArgumentException::class)
-    fun getFeatureTag(vdsType: String, featureName: String): Int {
+    fun getMessageTag(vdsType: String, messageName: String): Int {
         val sealDto = getSealDto(vdsType)
-        return getFeatureTag(sealDto, featureName).toInt()
+        return getMessageTag(sealDto, messageName).toInt()
     }
 
     @Throws(IllegalArgumentException::class)
-    fun getFeatureCoding(vdsType: String, tag: Int): FeatureCoding {
+    fun getMessageCoding(vdsType: String, tag: Int): MessageCoding {
         val sealDto = getSealDto(vdsType)
         return getCoding(sealDto, tag.toByte())
     }
 
     @Throws(IllegalArgumentException::class)
-    private fun getFeatureTag(sealDto: SealDto, feature: String): Byte {
-        for ((name, tag) in sealDto.features) {
-            if (name.equals(feature, ignoreCase = true)) {
+    private fun getMessageTag(sealDto: SealDto, message: String): Byte {
+        for ((name, tag) in sealDto.messages) {
+            if (name.equals(message, ignoreCase = true)) {
                 return tag.toByte()
             }
         }
-        throw IllegalArgumentException("Feature '" + feature + "' is unspecified for the given seal '" + sealDto.documentType + "'")
+        throw IllegalArgumentException("Message '" + message + "' is unspecified for the given seal '" + sealDto.documentType + "'")
     }
 
     @Throws(IllegalArgumentException::class)
-    private fun getFeatureName(sealDto: SealDto, tag: Int): String {
-        for ((name, tag1) in sealDto.features) {
+    private fun getMessageName(sealDto: SealDto, tag: Int): String {
+        for ((name, tag1) in sealDto.messages) {
             if (tag1 == tag) {
                 return name
             }
         }
-        throw IllegalArgumentException("No Feature with tag '" + tag + "' is specified for the given seal '" + sealDto.documentType + "'")
+        throw IllegalArgumentException("No Message with tag '" + tag + "' is specified for the given seal '" + sealDto.documentType + "'")
     }
 
     @Throws(IllegalArgumentException::class)
-    private fun getCoding(sealDto: SealDto, feature: String): FeatureCoding {
-        for ((name, _, coding) in sealDto.features) {
-            if (name.equals(feature, ignoreCase = true)) {
+    private fun getCoding(sealDto: SealDto, message: String): MessageCoding {
+        for ((name, _, coding) in sealDto.messages) {
+            if (name.equals(message, ignoreCase = true)) {
                 return coding
             }
         }
-        throw IllegalArgumentException("Feature '" + feature + "' is unspecified for the given seal '" + sealDto.documentType + "'")
+        throw IllegalArgumentException("Message '" + message + "' is unspecified for the given seal '" + sealDto.documentType + "'")
     }
 
     @Throws(IllegalArgumentException::class)
-    private fun getCoding(sealDto: SealDto, tag: Byte): FeatureCoding {
-        for ((_, tag1, coding) in sealDto.features) {
+    private fun getCoding(sealDto: SealDto, tag: Byte): MessageCoding {
+        for ((_, tag1, coding) in sealDto.messages) {
             if (tag1 == tag.toInt()) {
                 return coding
             }
         }
-        throw IllegalArgumentException("No Feature with tag '" + tag + "' is specified for the given seal '" + sealDto.documentType + "'")
+        throw IllegalArgumentException("No Message with tag '" + tag + "' is specified for the given seal '" + sealDto.documentType + "'")
     }
 
     @Throws(IllegalArgumentException::class)
-    private fun getFeatureDto(sealDto: SealDto, tag: Byte): FeaturesDto {
-        for (featureDto in sealDto.features) {
-            if (featureDto.tag == tag.toInt()) {
-                return featureDto
+    private fun getMessageDto(sealDto: SealDto, tag: Byte): MessageDto {
+        for (messageDto in sealDto.messages) {
+            if (messageDto.tag == tag.toInt()) {
+                return messageDto
             }
         }
-        throw IllegalArgumentException("No Feature with tag '" + tag + "' is specified for the given seal '" + sealDto.documentType + "'")
+        throw IllegalArgumentException("No Message with tag '" + tag + "' is specified for the given seal '" + sealDto.documentType + "'")
     }
 
     @Throws(IllegalArgumentException::class)
@@ -251,4 +251,3 @@ class FeatureConverter(jsonString: String) {
 
 
 }
-

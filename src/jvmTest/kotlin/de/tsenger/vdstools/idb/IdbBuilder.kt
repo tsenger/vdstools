@@ -33,10 +33,10 @@ class IdbBuilder {
 
         //MessageGroup
         val messageGroup = IdbMessageGroup.Builder()
-            .addFeature(0x80, readBinaryFromResource("face_image_gen.jp2"))
-            .addFeature(0x81, "AID<<KOEPPENIK<<JONATHAN<GERALD<<<<<2L1T3QPB04D<<8506210M2604239<<<<<<<8")
-            .addFeature(0x84, "2026-04-23")
-            .addFeature(0x86, 0x01)
+            .addMessage(0x80, readBinaryFromResource("face_image_gen.jp2"))
+            .addMessage(0x81, "AID<<KOEPPENIK<<JONATHAN<GERALD<<<<<2L1T3QPB04D<<8506210M2604239<<<<<<<8")
+            .addMessage(0x84, "2026-04-23")
+            .addMessage(0x86, 0x01)
             .build()
 
         println("MessageGroupBytes: ${messageGroup.encoded.toHexString()}")
@@ -63,14 +63,14 @@ class IdbBuilder {
         //MessageGroup
         val mrz = "PUD<<KOEPPENIK<<JONATHAN<GERALD<<<<<\n2L1T3QPB04D<<8506210M2604239<<<<<<<8"
         val vdsMessage = VdsMessageGroup.Builder("ICAO_EMERGENCY_TRAVEL_DOCUMENT")
-            .addFeature("MRZ", mrz)
+            .addMessage("MRZ", mrz)
             .build()
 
         val messageGroup = IdbMessageGroup.Builder()
-            .addFeature(0x02, vdsMessage.encoded)
-            .addFeature(0x80, readBinaryFromResource("face_image_gen.jp2"))
-            .addFeature(0x84, "2026-04-23")
-            .addFeature(0x86, 0x02)
+            .addMessage(0x02, vdsMessage.encoded)
+            .addMessage(0x80, readBinaryFromResource("face_image_gen.jp2"))
+            .addMessage(0x84, "2026-04-23")
+            .addMessage(0x86, 0x02)
             .build()
 
         println("MessageGroupBytes: ${messageGroup.encoded.toHexString()}")
@@ -98,10 +98,10 @@ class IdbBuilder {
         val mrzString = "PPD<<FOLKS<<TALLULAH<<<<<<<<<<<<<<<<<<<<<<<<\n3113883489D<<9709155F1601013<<<<<<<<<<<<<<04"
 
         val messageGroup = IdbMessageGroup.Builder()
-            .addFeature(0x08, mrzString)
-            .addFeature(0x80, readBinaryFromResource("face_image_gen_female.jp2"))
-            .addFeature(0x84, "2027-01-31")
-            .addFeature(0x86, 0x06)
+            .addMessage(0x08, mrzString)
+            .addMessage(0x80, readBinaryFromResource("face_image_gen_female.jp2"))
+            .addMessage(0x84, "2027-01-31")
+            .addMessage(0x86, 0x06)
             .build()
 
         println("MessageGroupBytes: ${messageGroup.encoded.toHexString()}")
@@ -129,10 +129,10 @@ class IdbBuilder {
         val mrzString = "AUD<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06"
 
         val messageGroup = IdbMessageGroup.Builder()
-            .addFeature(0x81, mrzString)
-            .addFeature(0x80, readBinaryFromResource("face_image_gen.jp2"))
-            .addFeature(0x83, "ABC123456DEF")
-            .addFeature(0x86, 0x0D)
+            .addMessage(0x81, mrzString)
+            .addMessage(0x80, readBinaryFromResource("face_image_gen.jp2"))
+            .addMessage(0x83, "ABC123456DEF")
+            .addMessage(0x86, 0x0D)
             .build()
 
         println("MessageGroupBytes: ${messageGroup.encoded.toHexString()}")
@@ -160,10 +160,10 @@ class IdbBuilder {
         val mrzString = "ABD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018T2506012"
 
         val messageGroup = IdbMessageGroup.Builder()
-            .addFeature(0x81, mrzString)
-            .addFeature(0x82, "123456789")
-            .addFeature(0x83, "ABC123456DEF")
-            .addFeature(0x86, 0x0E)
+            .addMessage(0x81, mrzString)
+            .addMessage(0x82, "123456789")
+            .addMessage(0x83, "ABC123456DEF")
+            .addMessage(0x86, 0x0E)
             .build()
 
         println("MessageGroupBytes: ${messageGroup.encoded.toHexString()}")
@@ -189,9 +189,9 @@ class IdbBuilder {
 
         //MessageGroup
         val messageGroup = IdbMessageGroup.Builder()
-            .addFeature(0x82, "123456789")
-            .addFeature(0x83, "ABC123456DEF")
-            .addFeature(0x86, 0x10)
+            .addMessage(0x82, "123456789")
+            .addMessage(0x83, "ABC123456DEF")
+            .addMessage(0x86, 0x10)
             .build()
 
         println("MessageGroupBytes: ${messageGroup.encoded.toHexString()}")
@@ -213,10 +213,10 @@ class IdbBuilder {
         val header = getHeader()
         //MessageGroup
         val messageGroup = IdbMessageGroup.Builder()
-            .addFeature(0x80, readBinaryFromResource("face_image_gen.jp2"))
-            .addFeature(0x81, "AGD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018T2506012")
-            .addFeature(0x82, "ABCDEFGHI")
-            .addFeature(0x86, 0x11)
+            .addMessage(0x80, readBinaryFromResource("face_image_gen.jp2"))
+            .addMessage(0x81, "AGD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018T2506012")
+            .addMessage(0x82, "ABCDEFGHI")
+            .addMessage(0x86, 0x11)
             .build()
 
 
@@ -239,15 +239,15 @@ class IdbBuilder {
         val header = getHeader()
         //MessageGroup
         val messageGroup = IdbMessageGroup.Builder()
-            .addFeature(
+            .addMessage(
                 0x07,
                 "AZD<<5W1ETCGE25<<<<<<<<<<<<<<<\n" +
                         "8703123F2908258CHL<<<<<<<<<<<4\n" +
                         "BORIC<<BRYAN<<<<<<<<<<<<<<<<<<"
             )
-            .addFeature(0x82, "5W1ETCGE2")
-            .addFeature(0x85, "ABCDEFGHI")
-            .addFeature(0x86, 0x12)
+            .addMessage(0x82, "5W1ETCGE2")
+            .addMessage(0x85, "ABCDEFGHI")
+            .addMessage(0x86, 0x12)
             .build()
 
         println("MessageGroupBytes: ${messageGroup.encoded.toHexString()}")
