@@ -1,5 +1,6 @@
-package de.tsenger.vdstools.vds
+package de.tsenger.vdstools.generic
 
+import de.tsenger.vdstools.DataEncoder
 import kotlinx.datetime.LocalDate
 
 sealed class MessageValue {
@@ -107,18 +108,19 @@ sealed class MessageValue {
                         if (bytes.isEmpty()) BytesValue(bytes)
                         else ByteValue(bytes[0].toInt() and 0xFF, bytes)
                     }
-                    MessageCoding.C40 -> StringValue(de.tsenger.vdstools.DataEncoder.decodeC40(bytes), bytes)
+
+                    MessageCoding.C40 -> StringValue(DataEncoder.decodeC40(bytes), bytes)
                     MessageCoding.UTF8_STRING -> StringValue(bytes.decodeToString(), bytes)
-                    MessageCoding.DATE -> DateValue(de.tsenger.vdstools.DataEncoder.decodeDate(bytes), bytes)
+                    MessageCoding.DATE -> DateValue(DataEncoder.decodeDate(bytes), bytes)
                     MessageCoding.MASKED_DATE -> MaskedDateValue(
-                        de.tsenger.vdstools.DataEncoder.decodeMaskedDate(bytes),
+                        DataEncoder.decodeMaskedDate(bytes),
                         bytes
                     )
 
                     MessageCoding.MRZ -> {
-                        val unformattedMrz = de.tsenger.vdstools.DataEncoder.decodeC40(bytes)
+                        val unformattedMrz = DataEncoder.decodeC40(bytes)
                         val length = mrzLength ?: unformattedMrz.length
-                        MrzValue(de.tsenger.vdstools.DataEncoder.formatMRZ(unformattedMrz, length), bytes)
+                        MrzValue(DataEncoder.formatMRZ(unformattedMrz, length), bytes)
                     }
 
                     MessageCoding.BYTES, MessageCoding.UNKNOWN -> BytesValue(bytes)

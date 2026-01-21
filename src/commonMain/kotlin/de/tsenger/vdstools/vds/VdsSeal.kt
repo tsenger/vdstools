@@ -6,6 +6,7 @@ import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.Signer
 import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generic.Message
+import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.generic.Seal
 import de.tsenger.vdstools.generic.SignatureInfo
 import kotlinx.datetime.LocalDate
@@ -72,11 +73,15 @@ class VdsSeal : Seal {
     override val rawString: String
         get() = DataEncoder.encodeBase256(encoded)
 
-    val vdsMessageList: List<VdsMessage>
+    val vdsMessageList: List<Message>
         get() = vdsMessageGroup.messageList
 
 
-    private fun createVdsSignature(vdsHeader: VdsHeader, vdsMessageGroup: VdsMessageGroup, signer: Signer): VdsSignature? {
+    private fun createVdsSignature(
+        vdsHeader: VdsHeader,
+        vdsMessageGroup: VdsMessageGroup,
+        signer: Signer
+    ): VdsSignature? {
         val headerMessage = vdsHeader.encoded + vdsMessageGroup.encoded
         try {
             val signatureBytes = signer.sign(headerMessage)

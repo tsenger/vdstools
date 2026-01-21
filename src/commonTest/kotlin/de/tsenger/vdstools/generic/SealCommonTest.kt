@@ -62,7 +62,7 @@ class SealCommonTest {
     fun testIdbMessageList() {
         val seal = Seal.fromString(IcbRawStringsCommon.TemporaryPassport)
         assertEquals(4, seal.messageList.size)
-        assertTrue(seal.messageList.any { it.messageTypeName == "MRZ_TD3" })
+        assertTrue(seal.messageList.any { it.name == "MRZ_TD3" })
     }
 
     @Test
@@ -145,7 +145,7 @@ class SealCommonTest {
         val rawString = DataEncoder.encodeBase256(VdsRawBytesCommon.emergenyTravelDoc)
         val seal = Seal.fromString(rawString)
         assertEquals(1, seal.messageList.size)
-        assertTrue(seal.messageList.any { it.messageTypeName == "MRZ" })
+        assertTrue(seal.messageList.any { it.name == "MRZ" })
     }
 
     @Test

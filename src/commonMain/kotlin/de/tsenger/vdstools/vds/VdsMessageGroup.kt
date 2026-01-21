@@ -2,6 +2,7 @@ package de.tsenger.vdstools.vds
 
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.asn1.DerTlv
+import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.vds.dto.ExtendedMessageDefinitionDto
 import okio.Buffer
 
@@ -44,24 +45,24 @@ class VdsMessageGroup {
             return buffer.readByteArray()
         }
 
-    val messageList: List<VdsMessage>
+    val messageList: List<Message>
         /**
-         * @return a list of all decoded VdsMessages, using extended message definition-aware lookup if available
+         * @return a list of all decoded Messages, using extended message definition-aware lookup if available
          */
         get() {
-            val messageList: MutableList<VdsMessage> = ArrayList()
+            val messageList: MutableList<Message> = ArrayList()
             for (derTlv in derTlvList) {
                 DataEncoder.encodeDerTlv(vdsType, extendedMessageDefinition, derTlv)?.let { messageList.add(it) }
             }
             return messageList
         }
 
-    fun getMessage(messageName: String): VdsMessage? {
-        return messageList.firstOrNull { message: VdsMessage -> message.name == messageName }
+    fun getMessage(messageName: String): Message? {
+        return messageList.firstOrNull { message: Message -> message.name == messageName }
     }
 
-    fun getMessage(messageTag: Int): VdsMessage? {
-        return messageList.firstOrNull { message: VdsMessage -> message.tag == messageTag }
+    fun getMessage(messageTag: Int): Message? {
+        return messageList.firstOrNull { message: Message -> message.tag == messageTag }
     }
 
     /**

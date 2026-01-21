@@ -1,7 +1,7 @@
 package de.tsenger.vdstools.idb
 
 import de.tsenger.vdstools.Verifier
-import de.tsenger.vdstools.vds.MessageValue
+import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.vds.VdsMessageGroup
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.junit.BeforeClass

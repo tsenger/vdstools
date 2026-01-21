@@ -1,13 +1,15 @@
 package de.tsenger.vdstools.generic
 
-import de.tsenger.vdstools.vds.MessageCoding
-import de.tsenger.vdstools.vds.MessageValue
+import de.tsenger.vdstools.asn1.DerTlv
 
 class Message(
-    val messageTypeTag: Int,
-    val messageTypeName: String,
+    val tag: Int,
+    val name: String,
     val coding: MessageCoding,
     val value: MessageValue
 ) {
-    override fun toString(): String = "$messageTypeName: $value"
+    val encoded: ByteArray
+        get() = DerTlv(tag.toByte(), value.rawBytes).encoded
+
+    override fun toString(): String = value.toString()
 }

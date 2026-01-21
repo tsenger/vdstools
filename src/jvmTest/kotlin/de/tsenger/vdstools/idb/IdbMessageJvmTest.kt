@@ -1,17 +1,18 @@
 package de.tsenger.vdstools.idb
 
-import de.tsenger.vdstools.vds.MessageCoding
-import de.tsenger.vdstools.vds.MessageValue
+import de.tsenger.vdstools.generic.Message
+import de.tsenger.vdstools.generic.MessageCoding
+import de.tsenger.vdstools.generic.MessageValue
 import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert
 import org.junit.Test
 
-class IdbMessageJvmTest {
+class MessageJvmTest {
 
     @Test
-    fun testIdbMessageConstructor() {
+    fun testMessageConstructor() {
         val bytes = Hex.decode("a0a1a2a3a4a5")
-        val message = IdbMessage(0x09, "CAN", MessageCoding.UTF8_STRING, MessageValue.BytesValue(bytes))
+        val message = Message(0x09, "CAN", MessageCoding.UTF8_STRING, MessageValue.BytesValue(bytes))
         Assert.assertNotNull(message)
         Assert.assertEquals(0x09, message.tag)
         Assert.assertEquals("CAN", message.name)
@@ -19,23 +20,23 @@ class IdbMessageJvmTest {
     }
 
     @Test
-    fun testIdbMessageToString() {
+    fun testMessageToString() {
         val bytes = "TestValue".encodeToByteArray()
-        val message = IdbMessage(0x09, "CAN", MessageCoding.UTF8_STRING, MessageValue.StringValue("TestValue", bytes))
-        Assert.assertEquals("CAN: TestValue", message.toString())
+        val message = Message(0x09, "CAN", MessageCoding.UTF8_STRING, MessageValue.StringValue("TestValue", bytes))
+        Assert.assertEquals("TestValue", message.toString())
     }
 
     @Test
-    fun testIdbMessageEncoded() {
+    fun testMessageEncoded() {
         val bytes = Hex.decode("a0a1a2a3")
-        val message = IdbMessage(0x09, "CAN", MessageCoding.BYTES, MessageValue.BytesValue(bytes))
+        val message = Message(0x09, "CAN", MessageCoding.BYTES, MessageValue.BytesValue(bytes))
         // DerTlv encoding: tag (0x09) + length (0x04) + value
         Assert.assertEquals("0904a0a1a2a3", Hex.toHexString(message.encoded))
     }
 
     @Test
-    fun testIdbMessageFromMessageGroup() {
-        // Create IdbMessageGroup and get IdbMessage from it
+    fun testMessageFromIdbMessageGroup() {
+        // Create IdbMessageGroup and get Message from it
         val messageGroup = IdbMessageGroup.Builder()
             .addMessage("CAN", "654321")
             .build()
@@ -48,7 +49,7 @@ class IdbMessageJvmTest {
     }
 
     @Test
-    fun testIdbMessageValueAccess() {
+    fun testMessageValueAccess() {
         val messageGroup = IdbMessageGroup.Builder()
             .addMessage("CAN", "123456")
             .build()

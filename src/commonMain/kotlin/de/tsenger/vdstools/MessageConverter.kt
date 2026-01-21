@@ -2,7 +2,7 @@ package de.tsenger.vdstools
 
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.asn1.DerTlv
-import de.tsenger.vdstools.vds.MessageCoding
+import de.tsenger.vdstools.generic.MessageCoding
 import de.tsenger.vdstools.vds.dto.ExtendedMessageDefinitionDto
 import de.tsenger.vdstools.vds.dto.MessageDto
 import de.tsenger.vdstools.vds.dto.SealDto

@@ -1,7 +1,7 @@
 package de.tsenger.vdstools.vds.dto
 
 import kotlinx.serialization.Serializable
-import de.tsenger.vdstools.vds.MessageCoding
+import de.tsenger.vdstools.generic.MessageCoding
 
 @Serializable
 data class MessageDto(

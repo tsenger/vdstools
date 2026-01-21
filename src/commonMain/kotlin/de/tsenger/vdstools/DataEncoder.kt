@@ -4,9 +4,9 @@ package de.tsenger.vdstools
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generated.ResourceConstants
-import de.tsenger.vdstools.vds.MessageCoding
-import de.tsenger.vdstools.vds.MessageValue
-import de.tsenger.vdstools.vds.VdsMessage
+import de.tsenger.vdstools.generic.Message
+import de.tsenger.vdstools.generic.MessageCoding
+import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.vds.dto.ExtendedMessageDefinitionDto
 import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.DelicateCryptographyApi
@@ -371,13 +371,13 @@ object DataEncoder {
         return certSha1.sliceArray(15..19)
     }
 
-    fun encodeDerTlv(vdsType: String, derTlv: DerTlv): VdsMessage? {
+    fun encodeDerTlv(vdsType: String, derTlv: DerTlv): Message? {
         val bytes = derTlv.value
         val name = messageEncoder.getMessageName(vdsType, derTlv)
         val tag = derTlv.tag.toInt()
         val coding = messageEncoder.getMessageCoding(vdsType, derTlv)
         if (name == "" || coding == MessageCoding.UNKNOWN) return null
-        return VdsMessage(tag, name, coding, MessageValue.fromBytes(bytes, coding))
+        return Message(tag, name, coding, MessageValue.fromBytes(bytes, coding))
     }
 
     fun getVdsType(documentRef: Int): String? {
@@ -420,6 +420,7 @@ object DataEncoder {
                 is Byte -> byteArrayOf(value)
                 else -> throw IllegalArgumentException("BYTE coding expects Int or Byte, got ${value!!::class.simpleName}")
             }
+
             MessageCoding.MASKED_DATE -> encodeMaskedDate(value as String)
             MessageCoding.DATE -> encodeDate(value as String)
             MessageCoding.UNKNOWN -> if (tag != null) {
@@ -498,13 +499,13 @@ object DataEncoder {
      * @param derTlv The DerTlv to encode
      * @return The Message, or null if encoding fails
      */
-    fun encodeDerTlv(vdsType: String, extendedDefinition: ExtendedMessageDefinitionDto?, derTlv: DerTlv): VdsMessage? {
+    fun encodeDerTlv(vdsType: String, extendedDefinition: ExtendedMessageDefinitionDto?, derTlv: DerTlv): Message? {
         val bytes = derTlv.value
         val tag = derTlv.tag.toInt()
         val name = messageEncoder.getMessageName(vdsType, extendedDefinition, tag)
         val coding = messageEncoder.getMessageCoding(vdsType, extendedDefinition, tag)
         if (name == "" || coding == MessageCoding.UNKNOWN) return null
-        return VdsMessage(tag, name, coding, MessageValue.fromBytes(bytes, coding))
+        return Message(tag, name, coding, MessageValue.fromBytes(bytes, coding))
     }
 
     /**

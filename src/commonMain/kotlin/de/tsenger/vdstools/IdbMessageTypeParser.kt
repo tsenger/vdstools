@@ -2,7 +2,7 @@ package de.tsenger.vdstools
 
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.idb.dto.IdbMessageTypeDto
-import de.tsenger.vdstools.vds.MessageCoding
+import de.tsenger.vdstools.generic.MessageCoding
 import kotlinx.serialization.json.Json
 
 class IdbMessageTypeParser(jsonString: String) {

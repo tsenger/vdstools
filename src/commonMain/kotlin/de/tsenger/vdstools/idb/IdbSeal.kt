@@ -7,7 +7,7 @@ import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.Seal
 import de.tsenger.vdstools.generic.SignatureInfo
-import de.tsenger.vdstools.vds.MessageValue
+import de.tsenger.vdstools.generic.MessageValue
 import kotlinx.datetime.LocalDate
 
 class IdbSeal : Seal {
@@ -70,7 +70,7 @@ class IdbSeal : Seal {
             val docTypeId = (msg?.value as? MessageValue.ByteValue)?.value
             return if (docTypeId != null) {
                 DataEncoder.getIdbDocumentTypeName(docTypeId)
-            } else messageList.joinToString(", ") { it.messageTypeName }
+            } else messageList.joinToString(", ") { it.name }
         }
 
     override val messageList: List<Message>

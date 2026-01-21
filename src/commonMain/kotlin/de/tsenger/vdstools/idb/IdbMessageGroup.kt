@@ -2,7 +2,8 @@ package de.tsenger.vdstools.idb
 
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.asn1.DerTlv
-import de.tsenger.vdstools.vds.MessageValue
+import de.tsenger.vdstools.generic.Message
+import de.tsenger.vdstools.generic.MessageValue
 import okio.Buffer
 
 class IdbMessageGroup {
@@ -16,20 +17,20 @@ class IdbMessageGroup {
         this.derTlvList = builder.derTlvList
     }
 
-    val messageList: List<IdbMessage>
+    val messageList: List<Message>
         get() = derTlvList.map { derTlv ->
             val tag = derTlv.tag.toInt() and 0xFF
             val name = DataEncoder.getIdbMessageTypeName(tag)
             val coding = DataEncoder.getIdbMessageTypeCoding(name)
             val value = MessageValue.fromBytes(derTlv.value, coding)
-            IdbMessage(tag, name, coding, value)
+            Message(tag, name, coding, value)
         }
 
-    fun getMessage(messageTag: Int): IdbMessage? {
+    fun getMessage(messageTag: Int): Message? {
         return messageList.firstOrNull { it.tag == messageTag }
     }
 
-    fun getMessage(messageName: String): IdbMessage? {
+    fun getMessage(messageName: String): Message? {
         return messageList.firstOrNull { it.name == messageName }
     }
 

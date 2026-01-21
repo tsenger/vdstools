@@ -1,4 +1,4 @@
-package de.tsenger.vdstools.vds
+package de.tsenger.vdstools.generic
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException

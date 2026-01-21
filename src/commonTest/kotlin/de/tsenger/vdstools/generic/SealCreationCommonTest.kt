@@ -1,8 +1,6 @@
 package de.tsenger.vdstools.generic
 
 import de.tsenger.vdstools.idb.*
-import de.tsenger.vdstools.vds.MessageCoding
-import de.tsenger.vdstools.vds.MessageValue
 import de.tsenger.vdstools.vds.VdsHeader
 import de.tsenger.vdstools.vds.VdsMessageGroup
 import kotlin.test.Test
@@ -274,7 +272,7 @@ class SealCreationCommonTest {
         // Verify message can be retrieved
         val msg = seal.getMessage("PROOF_OF_VACCINATION")
         assertNotNull(msg)
-        assertEquals(0x04, msg.messageTypeTag)
+        assertEquals(0x04, msg.tag)
     }
 
     @Test

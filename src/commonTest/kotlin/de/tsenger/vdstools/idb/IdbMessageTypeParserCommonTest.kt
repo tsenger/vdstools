@@ -2,7 +2,7 @@ package de.tsenger.vdstools.idb
 
 import de.tsenger.vdstools.IdbMessageTypeParser
 import de.tsenger.vdstools.readTextResource
-import de.tsenger.vdstools.vds.MessageCoding
+import de.tsenger.vdstools.generic.MessageCoding
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
