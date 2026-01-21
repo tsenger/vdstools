@@ -7,25 +7,25 @@ import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert
 import org.junit.Test
 
-class MessageConverterJvmTest {
+class VdsSealCodingRegistryJvmTest {
 
     @Test
-    fun testMessageConverterString() {
+    fun testVdsSealCodingRegistryString() {
         val jsonString = readTextResource("SealCodings.json")
-        MessageConverter(jsonString)
+        VdsSealCodingRegistry(jsonString)
     }
 
     @Test(expected = FileNotFoundException::class)
-    fun testMessageConverterString_notFound() {
+    fun testVdsSealCodingRegistryString_notFound() {
         val jsonString = readTextResource("Codings.json")
-        MessageConverter(jsonString)
+        VdsSealCodingRegistry(jsonString)
     }
 
     @Test
     fun testGetMessage_String() {
         val jsonString = readTextResource("SealCodings.json")
-        val messageConverter = MessageConverter(jsonString)
-        val message = messageConverter.getMessageName(
+        val registry = VdsSealCodingRegistry(jsonString)
+        val message = registry.getMessageName(
             "FICTION_CERT",
             DerTlv.fromByteArray(Hex.decode("0306d79519a65306"))!!
         )
@@ -36,9 +36,9 @@ class MessageConverterJvmTest {
     @Test
     fun testEncodeMessage_String() {
         val jsonString = readTextResource("SealCodings.json")
-        val messageConverter = MessageConverter(jsonString)
+        val registry = VdsSealCodingRegistry(jsonString)
         val mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06"
-        val derTlv = messageConverter.encodeMessage("RESIDENCE_PERMIT", "MRZ", mrz)
+        val derTlv = registry.encodeMessage("RESIDENCE_PERMIT", "MRZ", mrz)
         Assert.assertEquals(
             "02305cba135875976ec066d417b59e8c6abc133c133c133c133c3fef3a2938ee43f1593d1ae52dbb26751fe64b7c133c136b",
             Hex.toHexString(derTlv.encoded)
@@ -48,17 +48,17 @@ class MessageConverterJvmTest {
     @Test
     fun testGetAvailableVdsTypes() {
         val jsonString = readTextResource("SealCodings.json")
-        val messageConverter = MessageConverter(jsonString)
-        println(messageConverter.availableVdsTypes)
-        Assert.assertTrue(messageConverter.availableVdsTypes.contains("ADDRESS_STICKER_ID"))
+        val registry = VdsSealCodingRegistry(jsonString)
+        println(registry.availableVdsTypes)
+        Assert.assertTrue(registry.availableVdsTypes.contains("ADDRESS_STICKER_ID"))
     }
 
     @Test
     fun testGetAvailableVdsMessages() {
         val jsonString = readTextResource("SealCodings.json")
-        val messageConverter = MessageConverter(jsonString)
-        println(messageConverter.availableVdsMessages)
-        Assert.assertTrue(messageConverter.availableVdsMessages.contains("MRZ"))
+        val registry = VdsSealCodingRegistry(jsonString)
+        println(registry.availableVdsMessages)
+        Assert.assertTrue(registry.availableVdsMessages.contains("MRZ"))
     }
 
     @Test

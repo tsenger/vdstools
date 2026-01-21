@@ -6,20 +6,16 @@ import okio.FileNotFoundException
 import kotlin.test.*
 
 @OptIn(ExperimentalStdlibApi::class)
-class MessageConverterCommonTest {
-//    @Test
-//    fun testMessageConverter() {
-//        MessageConverter()
-//    }
+class VdsSealCodingRegistryCommonTest {
 
     @Test
-    fun testMessageConverterString() {
+    fun testVdsSealCodingRegistryString() {
         val jsonString = readTextResource("SealCodings.json")
-        MessageConverter(jsonString)
+        VdsSealCodingRegistry(jsonString)
     }
 
     @Test
-    fun testMessageConverterString_notFound() {
+    fun testVdsSealCodingRegistryString_notFound() {
         assertFailsWith<FileNotFoundException> { readTextResource("Codings.json") }
 
     }
@@ -28,8 +24,8 @@ class MessageConverterCommonTest {
     @Test
     fun testGetMessage_String() {
         val jsonString = readTextResource("SealCodings.json")
-        val messageConverter = MessageConverter(jsonString)
-        val message = messageConverter.getMessageName(
+        val registry = VdsSealCodingRegistry(jsonString)
+        val message = registry.getMessageName(
             "FICTION_CERT",
             DerTlv.fromByteArray(
                 "0306d79519a65306".hexToByteArray()
@@ -42,9 +38,9 @@ class MessageConverterCommonTest {
     @Test
     fun testEncodeMessage_String() {
         val jsonString = readTextResource("SealCodings.json")
-        val messageConverter = MessageConverter(jsonString)
+        val registry = VdsSealCodingRegistry(jsonString)
         val mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06"
-        val derTlv = messageConverter.encodeMessage("RESIDENCE_PERMIT", "MRZ", mrz)
+        val derTlv = registry.encodeMessage("RESIDENCE_PERMIT", "MRZ", mrz)
         assertEquals(
             "02305cba135875976ec066d417b59e8c6abc133c133c133c133c3fef3a2938ee43f1593d1ae52dbb26751fe64b7c133c136b",
             derTlv.encoded.toHexString()
@@ -54,17 +50,17 @@ class MessageConverterCommonTest {
     @Test
     fun testGetAvailableVdsTypes() {
         val jsonString = readTextResource("SealCodings.json")
-        val messageConverter = MessageConverter(jsonString)
-        println(messageConverter.availableVdsTypes)
-        assertTrue(messageConverter.availableVdsTypes.contains("ADDRESS_STICKER_ID"))
+        val registry = VdsSealCodingRegistry(jsonString)
+        println(registry.availableVdsTypes)
+        assertTrue(registry.availableVdsTypes.contains("ADDRESS_STICKER_ID"))
     }
 
     @Test
     fun testGetAvailableVdsMessages() {
         val jsonString = readTextResource("SealCodings.json")
-        val messageConverter = MessageConverter(jsonString)
-        println(messageConverter.availableVdsMessages)
-        assertTrue(messageConverter.availableVdsMessages.contains("MRZ"))
+        val registry = VdsSealCodingRegistry(jsonString)
+        println(registry.availableVdsMessages)
+        assertTrue(registry.availableVdsMessages.contains("MRZ"))
     }
 
     @Test

@@ -4,19 +4,29 @@ import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generic.MessageCoding
 import de.tsenger.vdstools.vds.dto.ExtendedMessageDefinitionDto
-import de.tsenger.vdstools.vds.dto.MessageDto
 import de.tsenger.vdstools.vds.dto.SealDto
 import kotlinx.serialization.json.Json
 
 
-class MessageConverter(jsonString: String) {
+/**
+ * Central component for processing VDS (Visible Digital Seal) message definitions.
+ *
+ * This class loads seal definitions from a JSON configuration and provides functionality for:
+ * - Bidirectional mapping between VDS type names and their hexadecimal document references
+ * - Encoding values into DER-TLV format based on type and message specifications
+ * - Decoding messages by resolving tag numbers to message names and codings
+ * - Supporting extended message definitions with fallback to base types
+ * - UUID-based profile lookup for certain VDS types
+ *
+ * @param jsonString JSON string containing an array of [SealDto] definitions
+ */
+class VdsSealCodingRegistry(jsonString: String) {
     private val log = Logger.withTag(this::class.simpleName ?: "")
     private var sealDtoList: List<SealDto>
 
     private val vdsTypes: MutableMap<String, Int> = HashMap()
     private val vdsTypesReverse: MutableMap<Int, String> = HashMap()
     private val vdsMessages: MutableSet<String> = mutableSetOf()
-
 
     init {
         val json = Json { ignoreUnknownKeys = true }
@@ -34,13 +44,28 @@ class MessageConverter(jsonString: String) {
         }
     }
 
+    /**
+     * Returns a list of all available VDS type names.
+     */
     val availableVdsTypes: List<String>
         get() = vdsTypes.keys.toList()
 
+    /**
+     * Returns the document reference number for a given VDS type name.
+     *
+     * @param vdsType The VDS type name (e.g., "ARRIVAL_ATTESTATION")
+     * @return The document reference as integer, or null if the type is not found
+     */
     fun getDocumentRef(vdsType: String): Int? {
         return vdsTypes[vdsType]
     }
 
+    /**
+     * Returns the VDS type name for a given document reference number.
+     *
+     * @param docRef The document reference number
+     * @return The VDS type name, or null if the reference is not found
+     */
     fun getVdsType(docRef: Int): String? {
         return vdsTypesReverse[docRef]
     }
@@ -75,9 +100,20 @@ class MessageConverter(jsonString: String) {
         }
     }
 
+    /**
+     * Returns a set of all available message names across all VDS types.
+     */
     val availableVdsMessages: Set<String?>
         get() = vdsMessages
 
+    /**
+     * Returns the message name for a given VDS type and DER-TLV structure.
+     *
+     * @param vdsType The VDS type name
+     * @param derTlv The DER-TLV structure containing the tag to look up
+     * @return The message name corresponding to the tag
+     * @throws IllegalArgumentException if the VDS type or tag is not found
+     */
     @Throws(IllegalArgumentException::class)
     fun getMessageName(vdsType: String, derTlv: DerTlv): String {
         if (!vdsTypes.containsKey(vdsType)) {
@@ -88,6 +124,14 @@ class MessageConverter(jsonString: String) {
         return getMessageName(sealDto, derTlv.tag.toInt())
     }
 
+    /**
+     * Returns the message coding for a given VDS type and DER-TLV structure.
+     *
+     * @param vdsType The VDS type name
+     * @param derTlv The DER-TLV structure containing the tag to look up
+     * @return The [MessageCoding] for the specified tag
+     * @throws IllegalArgumentException if the VDS type or tag is not found
+     */
     @Throws(IllegalArgumentException::class)
     fun getMessageCoding(vdsType: String, derTlv: DerTlv): MessageCoding {
         if (!vdsTypes.containsKey(vdsType)) {
@@ -150,6 +194,19 @@ class MessageConverter(jsonString: String) {
     }
 
 
+    /**
+     * Encodes a value into a DER-TLV structure based on the VDS type and message name.
+     *
+     * The encoding format is determined by the [MessageCoding] defined for the given message
+     * in the seal configuration.
+     *
+     * @param T The type of the input value
+     * @param vdsType The VDS type name
+     * @param messageName The message name to encode
+     * @param inputValue The value to encode
+     * @return A [DerTlv] structure containing the encoded value with the appropriate tag
+     * @throws IllegalArgumentException if the VDS type or message name is not found
+     */
     @Throws(IllegalArgumentException::class)
     fun <T> encodeMessage(vdsType: String, messageName: String, inputValue: T): DerTlv {
         if (!vdsTypes.containsKey(vdsType)) {
@@ -176,13 +233,28 @@ class MessageConverter(jsonString: String) {
         return DerTlv(tag, value)
     }
 
-
+    /**
+     * Returns the tag number for a given VDS type and message name.
+     *
+     * @param vdsType The VDS type name
+     * @param messageName The message name
+     * @return The tag number as integer
+     * @throws IllegalArgumentException if the VDS type or message name is not found
+     */
     @Throws(IllegalArgumentException::class)
     fun getMessageTag(vdsType: String, messageName: String): Int {
         val sealDto = getSealDto(vdsType)
         return getMessageTag(sealDto, messageName).toInt()
     }
 
+    /**
+     * Returns the message coding for a given VDS type and tag number.
+     *
+     * @param vdsType The VDS type name
+     * @param tag The tag number
+     * @return The [MessageCoding] for the specified tag
+     * @throws IllegalArgumentException if the VDS type or tag is not found
+     */
     @Throws(IllegalArgumentException::class)
     fun getMessageCoding(vdsType: String, tag: Int): MessageCoding {
         val sealDto = getSealDto(vdsType)
@@ -224,16 +296,6 @@ class MessageConverter(jsonString: String) {
         for ((_, tag1, coding) in sealDto.messages) {
             if (tag1 == tag.toInt()) {
                 return coding
-            }
-        }
-        throw IllegalArgumentException("No Message with tag '" + tag + "' is specified for the given seal '" + sealDto.documentType + "'")
-    }
-
-    @Throws(IllegalArgumentException::class)
-    private fun getMessageDto(sealDto: SealDto, tag: Byte): MessageDto {
-        for (messageDto in sealDto.messages) {
-            if (messageDto.tag == tag.toInt()) {
-                return messageDto
             }
         }
         throw IllegalArgumentException("No Message with tag '" + tag + "' is specified for the given seal '" + sealDto.documentType + "'")

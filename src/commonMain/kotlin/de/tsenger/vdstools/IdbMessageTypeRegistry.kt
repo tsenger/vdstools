@@ -5,7 +5,15 @@ import de.tsenger.vdstools.idb.dto.IdbMessageTypeDto
 import de.tsenger.vdstools.generic.MessageCoding
 import kotlinx.serialization.json.Json
 
-class IdbMessageTypeParser(jsonString: String) {
+/**
+ * Registry for IDB (ICAO Datastructure for Barcode) message type definitions.
+ *
+ * This class loads message type definitions from a JSON configuration and provides
+ * lookup functionality for message type names, tags, and codings.
+ *
+ * @param jsonString JSON string containing an array of [IdbMessageTypeDto] definitions
+ */
+class IdbMessageTypeRegistry(jsonString: String) {
     private val log = Logger.withTag(this::class.simpleName ?: "")
     private var messageTypeDtoList: List<IdbMessageTypeDto> = emptyList()
     private val messageTypes: HashMap<Int, IdbMessageTypeDto> = HashMap()
