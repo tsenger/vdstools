@@ -1,11 +1,11 @@
 package de.tsenger.vdstools
 
 import co.touchlab.kermit.Logger
-import de.tsenger.vdstools.vds.dto.ExtendedFeatureDefinitionDto
+import de.tsenger.vdstools.vds.dto.ExtendedMessageDefinitionDto
 import kotlinx.serialization.json.Json
 
 /**
- * Registry for extended feature definitions based on UUID lookup.
+ * Registry for extended message definitions based on UUID lookup.
  *
  * This class enables a two-stage lookup process for seals with UUID-based definitions
  * as specified in TR-03171:
@@ -15,27 +15,27 @@ import kotlinx.serialization.json.Json
  * This extends the limited 256-value space of Document Feature Definition Reference in the header
  * by using UUIDs in the message zone for dynamic definition registration.
  *
- * @param jsonString JSON content containing extended feature definitions
+ * @param jsonString JSON content containing extended message definitions
  */
 @OptIn(ExperimentalStdlibApi::class)
-class ExtendedFeatureDefinitionRegistry(jsonString: String) {
+class ExtendedMessageDefinitionRegistry(jsonString: String) {
     private val log = Logger.withTag(this::class.simpleName ?: "")
-    private val definitionsByUuid: Map<String, ExtendedFeatureDefinitionDto>
+    private val definitionsByUuid: Map<String, ExtendedMessageDefinitionDto>
 
     init {
         val json = Json { ignoreUnknownKeys = true }
-        val definitionList: List<ExtendedFeatureDefinitionDto> = json.decodeFromString(jsonString)
+        val definitionList: List<ExtendedMessageDefinitionDto> = json.decodeFromString(jsonString)
         definitionsByUuid = definitionList.associateBy { it.definitionId.lowercase() }
-        log.d("Loaded ${definitionsByUuid.size} extended feature definitions")
+        log.d("Loaded ${definitionsByUuid.size} extended message definitions")
     }
 
     /**
-     * Resolves an extended feature definition based on the UUID bytes.
+     * Resolves an extended message definition based on the UUID bytes.
      *
      * @param uuidBytes 16-byte UUID from Tag 0
-     * @return The matching ExtendedFeatureDefinitionDto, or null if no definition matches
+     * @return The matching ExtendedMessageDefinitionDto, or null if no definition matches
      */
-    fun resolve(uuidBytes: ByteArray): ExtendedFeatureDefinitionDto? {
+    fun resolve(uuidBytes: ByteArray): ExtendedMessageDefinitionDto? {
         if (uuidBytes.size != 16) {
             log.w("Invalid UUID length: expected 16 bytes, got ${uuidBytes.size}")
             return null
@@ -51,12 +51,12 @@ class ExtendedFeatureDefinitionRegistry(jsonString: String) {
     }
 
     /**
-     * Resolves an extended feature definition based on the UUID hex string.
+     * Resolves an extended message definition based on the UUID hex string.
      *
      * @param uuidHex UUID as hex string (32 characters, without dashes)
-     * @return The matching ExtendedFeatureDefinitionDto, or null if no definition matches
+     * @return The matching ExtendedMessageDefinitionDto, or null if no definition matches
      */
-    fun resolve(uuidHex: String): ExtendedFeatureDefinitionDto? {
+    fun resolve(uuidHex: String): ExtendedMessageDefinitionDto? {
         val normalizedUuid = uuidHex.lowercase().replace("-", "")
         if (normalizedUuid.length != 32) {
             log.w("Invalid UUID hex length: expected 32 characters, got ${normalizedUuid.length}")

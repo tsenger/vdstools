@@ -1,0 +1,18 @@
+[
+  {
+    "documentType": "CUSTOM_SEAL_CODING1",
+    "documentRef": "1234",
+    "version": 3,
+    "messages": [
+      {
+        "name": "MRZ",
+        "tag": 2,
+        "coding": "MRZ",
+        "decodedLength": 72,
+        "required": true,
+        "minLength": 48,
+        "maxLength": 48
+      }
+    ]
+  }
+]

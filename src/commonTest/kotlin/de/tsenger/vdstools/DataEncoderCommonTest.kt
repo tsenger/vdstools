@@ -2,22 +2,31 @@ package de.tsenger.vdstools
 
 
 import kotlinx.datetime.LocalDateTime
-import kotlin.test.Test
-
-import kotlin.test.assertContentEquals
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import okio.FileNotFoundException
+import kotlin.test.*
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalStdlibApi::class)
 class DataEncoderCommonTest {
-    //	@Test
-    //	public void testEncodeDate_Now() {
-    //		LocalDate ldNow = LocalDate.now();
-    //		System.out.println("LocalDate.now(): " + ldNow);
-    //		byte[] encodedDate = DataEncoder.encodeDate(ldNow);
-    //		System.out.println("encodedDate: " + Hex.toHexString(encodedDate));
-    //		assertEquals(ldNow, DataParser.decodeDate(encodedDate));
-    //	}
+
+    @AfterTest
+    fun tearDown() {
+        // Reset DataEncoder to default state after each test
+        DataEncoder.resetToDefaults()
+    }
+
+    @OptIn(ExperimentalTime::class)
+    @Test
+    fun testEncodeDateNow() {
+        val ldNow = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+        println("LocalDate.now(): $ldNow")
+        val encodedDate = DataEncoder.encodeDate(ldNow)
+        println("encodedDate: ${encodedDate.toHexString()}")
+        assertEquals(ldNow, DataEncoder.decodeDate(encodedDate))
+    }
 
 
     @Test
@@ -144,5 +153,77 @@ class DataEncoderCommonTest {
         assertEquals("7b845cacef", certRef.toHexString())
     }
 
+    // Tests for loadCustom...FromFile functions
+
+    @Test
+    fun testLoadCustomSealCodingsFromFile_success() {
+        DataEncoder.loadCustomSealCodingsFromFile("CustomSealCodings.json")
+        // Verify that registry was loaded by checking a known VDS type
+        assertNotNull(DataEncoder.getDocumentRef("CUSTOM_SEAL_CODING1"))
+    }
+
+    @Test
+    fun testLoadCustomSealCodingsFromFile_fileNotFound() {
+        assertFailsWith<FileNotFoundException> {
+            DataEncoder.loadCustomSealCodingsFromFile("NonExistentFile.json")
+        }
+    }
+
+    @Test
+    fun testLoadCustomIdbMessageTypesFromFile_success() {
+        DataEncoder.loadCustomIdbMessageTypesFromFile("CustomIdbMessageTypes.json")
+        // Verify that registry was loaded by checking a known message type
+        assertEquals("MESSAGE_TYPE2", DataEncoder.getIdbMessageTypeName(2))
+    }
+
+    @Test
+    fun testLoadCustomIdbMessageTypesFromFile_fileNotFound() {
+        assertFailsWith<FileNotFoundException> {
+            DataEncoder.loadCustomIdbMessageTypesFromFile("NonExistentFile.json")
+        }
+    }
+
+    @Test
+    fun testLoadCustomIdbDocumentTypesFromFile_success() {
+        DataEncoder.loadCustomIdbDocumentTypesFromFile("CustomIdbNationalDocumentTypes.json")
+        // Verify that registry was loaded by checking a known document type
+        assertEquals("CUSTOM1_DOCUMENT", DataEncoder.getIdbDocumentTypeName(1))
+    }
+
+    @Test
+    fun testLoadCustomIdbDocumentTypesFromFile_fileNotFound() {
+        assertFailsWith<FileNotFoundException> {
+            DataEncoder.loadCustomIdbDocumentTypesFromFile("NonExistentFile.json")
+        }
+    }
+
+    @Test
+    fun testLoadCustomExtendedMessageDefinitionsFromFile_success() {
+        DataEncoder.loadCustomExtendedMessageDefinitionsFromFile("CustomExtendedMessageDefinitions.json")
+        // Verify that registry was loaded by checking a known definition
+        val definition = DataEncoder.resolveExtendedMessageDefinition("9a4223406d374ef99e2cf95e31a23846")
+        assertNotNull(definition)
+        assertEquals("MY_CUSTOM_DOCUMENT", definition.definitionName)
+    }
+
+    @Test
+    fun testLoadCustomExtendedMessageDefinitionsFromFile_fileNotFound() {
+        assertFailsWith<FileNotFoundException> {
+            DataEncoder.loadCustomExtendedMessageDefinitionsFromFile("NonExistentFile.json")
+        }
+    }
+
+    @Test
+    fun testResetToDefaults() {
+        // Load custom configurations
+        DataEncoder.loadCustomIdbMessageTypesFromFile("CustomIdbMessageTypes.json")
+        assertEquals("MESSAGE_TYPE2", DataEncoder.getIdbMessageTypeName(2))
+
+        // Reset to defaults
+        DataEncoder.resetToDefaults()
+
+        // Verify default values are restored
+        assertEquals("EMERGENCY_TRAVEL_DOCUMENT", DataEncoder.getIdbMessageTypeName(2))
+    }
 
 }

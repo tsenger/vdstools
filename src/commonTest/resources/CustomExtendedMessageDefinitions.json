@@ -1,10 +1,10 @@
 [
   {
     "definitionId": "9a4223406d374ef99e2cf95e31a23846",
-    "definitionName": "MELDEBESCHEINIGUNG",
+    "definitionName": "MY_CUSTOM_DOCUMENT",
     "baseDocumentType": "ADMINISTRATIVE_DOCUMENTS",
     "version": 1,
-    "features": [
+    "messages": [
       {
         "name": "SURNAME",
         "tag": 4,

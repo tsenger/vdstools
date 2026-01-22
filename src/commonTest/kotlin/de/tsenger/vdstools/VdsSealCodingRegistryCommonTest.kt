@@ -6,45 +6,41 @@ import okio.FileNotFoundException
 import kotlin.test.*
 
 @OptIn(ExperimentalStdlibApi::class)
-class FeatureConverterCommonTest {
-//    @Test
-//    fun testFeatureConverter() {
-//        FeatureConverter()
-//    }
+class VdsSealCodingRegistryCommonTest {
 
     @Test
-    fun testFeatureConverterString() {
+    fun testVdsSealCodingRegistryString() {
         val jsonString = readTextResource("SealCodings.json")
-        FeatureConverter(jsonString)
+        VdsSealCodingRegistry(jsonString)
     }
 
     @Test
-    fun testFeatureConverterString_notFound() {
+    fun testVdsSealCodingRegistryString_notFound() {
         assertFailsWith<FileNotFoundException> { readTextResource("Codings.json") }
 
     }
 
 
     @Test
-    fun testGetFeature_String() {
+    fun testGetMessage_String() {
         val jsonString = readTextResource("SealCodings.json")
-        val featureConverter = FeatureConverter(jsonString)
-        val feature = featureConverter.getFeatureName(
+        val registry = VdsSealCodingRegistry(jsonString)
+        val message = registry.getMessageName(
             "FICTION_CERT",
             DerTlv.fromByteArray(
                 "0306d79519a65306".hexToByteArray()
             )!!
         )
-        assertEquals("PASSPORT_NUMBER", feature)
+        assertEquals("PASSPORT_NUMBER", message)
     }
 
 
     @Test
-    fun testEncodeFeature_String() {
+    fun testEncodeMessage_String() {
         val jsonString = readTextResource("SealCodings.json")
-        val featureConverter = FeatureConverter(jsonString)
+        val registry = VdsSealCodingRegistry(jsonString)
         val mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06"
-        val derTlv = featureConverter.encodeFeature("RESIDENCE_PERMIT", "MRZ", mrz)
+        val derTlv = registry.encodeMessage("RESIDENCE_PERMIT", "MRZ", mrz)
         assertEquals(
             "02305cba135875976ec066d417b59e8c6abc133c133c133c133c3fef3a2938ee43f1593d1ae52dbb26751fe64b7c133c136b",
             derTlv.encoded.toHexString()
@@ -54,17 +50,17 @@ class FeatureConverterCommonTest {
     @Test
     fun testGetAvailableVdsTypes() {
         val jsonString = readTextResource("SealCodings.json")
-        val featureConverter = FeatureConverter(jsonString)
-        println(featureConverter.availableVdsTypes)
-        assertTrue(featureConverter.availableVdsTypes.contains("ADDRESS_STICKER_ID"))
+        val registry = VdsSealCodingRegistry(jsonString)
+        println(registry.availableVdsTypes)
+        assertTrue(registry.availableVdsTypes.contains("ADDRESS_STICKER_ID"))
     }
 
     @Test
-    fun testGetAvailableVdsFeatures() {
+    fun testGetAvailableVdsMessages() {
         val jsonString = readTextResource("SealCodings.json")
-        val featureConverter = FeatureConverter(jsonString)
-        println(featureConverter.availableVdsFeatures)
-        assertTrue(featureConverter.availableVdsFeatures.contains("MRZ"))
+        val registry = VdsSealCodingRegistry(jsonString)
+        println(registry.availableVdsMessages)
+        assertTrue(registry.availableVdsMessages.contains("MRZ"))
     }
 
     @Test

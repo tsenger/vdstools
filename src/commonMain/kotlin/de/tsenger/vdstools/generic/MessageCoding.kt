@@ -1,10 +1,10 @@
-package de.tsenger.vdstools.vds
+package de.tsenger.vdstools.generic
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 
 @Serializable
-enum class FeatureCoding {
+enum class MessageCoding {
     C40,
     UTF8_STRING,
     BYTES,
@@ -15,11 +15,11 @@ enum class FeatureCoding {
     UNKNOWN;
 
     companion object {
-        fun fromString(value: String): FeatureCoding {
+        fun fromString(value: String): MessageCoding {
             return try {
                 valueOf(value.uppercase())
             } catch (_: IllegalArgumentException) {
-                throw SerializationException("Invalid value for FeatureCoding: $value")
+                throw SerializationException("Invalid value for MessageCoding: $value")
             }
         }
     }

@@ -26,55 +26,79 @@ specifications.
 
 Here is a quick overview how to use the generic parser and verifier. The generic interface
 handles VDS and IDB barcode via common function calls.
-When you received the raw string from your favorite datamatrix decoder used the VDS Tools like this:
+When you received the raw string from your favorite datamatrix decoder use VdsTools like this:
 
 ```kotlin
 import de.tsenger.vdstools.Verifier
-import de.tsenger.vdstools.vds.DigitalSeal
-import de.tsenger.vdstools.vds.Feature
+import de.tsenger.vdstools.generic.Seal
+import de.tsenger.vdstools.generic.Message
+import de.tsenger.vdstools.generic.SignatureInfo
+import de.tsenger.vdstools.generic.MessageValue
 
-//Example for VDS / IDB barcode type
+// example raw string coming as result from your used barcode scanner library
+val rawString =
+    "RDB1BNK6ADJL2PECXOABAHIMWDAQEE6ATAXHCCNJVXVGK5TEHZJGMV22BGPATHQJTYEZ4CM6D73Z2FE4O4Q7RLE6RVZJNXMTHKH7GJN6BGPATNOAIEA7EAAAAADDKKAQCADIKQ4FAAAAACRTHI6LQNJYDEIAAAAAAA2TQGIQAAAAAI5VHAMTIAAAAAFTJNBSHEAAAACAQAAAAMQAACBYHAAAAAAAAB5RW63DSAEAAAAAAAAIQAAAADJZGK4ZAAAAAAETSMVZWGAJMAD7ACLAA7YCAIAAAAAAGU4BSMP7U772RAAUQAAAAAAAGIAAAACAQAAAAAAAAAAAAAAAAAZAAAAAICAAAAAAAAAAAAAAACBYBAH7VYAAXIJTTKZ2MM5GGOZCGGZDDMRVMHYED4CB5UP7VEAAMAAAAAAIAAMCAIAAA75SAADQAAFGFIX2KKAZF6MRSG37ZAAAKAAAAAAADB4AAD74TY7FX6HL6CBIU4OROHXUXWYFSZTVXFI47EE2NADZRJWKVIGHF7BZDEJUHKDBB2LVVJBUG6MCWD66UJDQPTNHAIKTKEB4THMTRBKM6ORXIEW5WWVQDEYMMIFHA43M5OEHWK62OQHQQKTBLBNONJTM3INJTFMRPXM6NUTBYIQWXPHK6EMENBL25ZRIW5FXG2PZO3CLJC6WCXCLFGNZKYPSKOQ7EULA7BVUAKBQ44Q6HCLT5RDUZM4D3TT55GA7H57NQ7G7LXSG4W4NNAT344KM5LE7EMSDFOE5OFQDYF6PQYZRXR3RQSBCDGV34YNJG3VUWGUJ3DL7TJAYWW7YVI5GVGPX4IKM25DFVEAGB6OM2VFHQAGMFNJFT56I7V5XIRMFOIFJDG2SRS5GFCKY6UUYUVPBL3TG2ULE6ULYNIICKTLUJK6ALUA2SNNU7TSPBXVQVRPEJ7R7UHJWBWI6XGNKWRRBXEFB27VLV3OEVKMVQBCLRFUWXFYXFVOWMF7I763YAUQXDNTP7E42DG26XKBB4HYG4UPR3NQONHCMQKS5FOZOP6JDW75G5EPKRLSGBURBIMMLAW72X4TTXLFH5ATDGB4VCA6US4G57CFEPCE6SB6JUZJGDLWTD2L7YLDXCTYPXZYSMPITJV5ABIDRACHAYDBJZXQXWIPCWWX6TVPXTIA6MQQJNAVSETK7IYNK6NXA66V2A6UELOCCMQDDEKQYNOCLDZ2NGWSIRQFODRERJXLTKFZ2PIUHF34VJDGYKAAFN67I2WUVWD2UY3FOBWKVU5YXMYV5FRRN6DWNJWA76JYR2ONQ72CZHBHYBTN7XNRGVNVRMMT7DZLUXZPOA2HA46H6ADOTMVJTNWAG6SENPRKH4SJQZWGSFXXFGP4P6Q3J5NSRFZZBLFGHVFGLQIYB5VGSHBBE2YEXIPMP4XGND45NCNSKOJIN6LIT4ZQO2QXRWLOX6BY7QNMEHHI4A5VUX54LSUSASKQRNZUREAU2IATUK5OYDB3XGQTZBHZC3SHGSQJPCRSBJVFG72WXX6RN2R34JFPYXVPUKMEM55ZTGXLR76AJR2TPT7HKGO6RTEIDE6RBFNRKJRR4NPILHJ5XLUEMZKB4A65NSF6T2YN3Y3T4EXDIQCQ3XQ2N7ERQQKZYWTTVPVCNFAJMMNE4JXNFCY4FRH27KA5P3LWZGCF4TIPXSWR2QZESM4AOSH74XRORBXWWCTS3VO4CW6Q773GBQQWPJEA4DG43NESDACDL7IABCBTZ3ZUTZWNPRAW35KVFV3NSTBLXPY7FHG3HEUY3XDT6KR37OK3J3LEJSGIENHILIYX5D2OZKBGMU7FCU7ZIXAPJORJA7MBTGAQEN"
+
 val seal: Seal = Seal.fromString(rawString)
-val mrz: String? = seal.getMessage("MRZ")?.valueStr
 
-
-// get all available Messages / Features in a List
-val messageList: List<Message> = seal.messageList
-
+//Get list with all messages in seal
+val messageList = seal.messageList
 for (message in messageList) {
-    println("${message.name}, ${message.coding},  ${message.valueStr}")
+    println("${message.name} (${message.coding}) -> ${message.value}")
+}
+
+// Access message data by name - value.toString() returns the decoded value
+val mrz: String? = seal.getMessage("MRZ_TD2")?.toString()
+
+// Or use type-safe access via sealed class
+val messageValue = seal.getMessage("MRZ_TD2")?.value
+if (messageValue is MessageValue.MrzValue) {
+    println("MRZ: ${messageValue.mrz}")
+} else {
+    // rawBytes is always an option
+    println(messageValue?.rawBytes?.toHexString())
 }
 
 // SignatureInfo contains all signature relevant data
-val signatureInfo: SignatureInfo = seal.signatureInfo
+val signatureInfo: SignatureInfo? = seal.signatureInfo
+println("Signing date: ${signatureInfo?.signingDate}")
 
-// Get the VDS signer certificate reference
-val signerCertRef: String = signatureInfo.signerCertificateReference
+// Get the signer certificate reference
+val signerCertRef: String? = signatureInfo?.signerCertificateReference
+println("Signer certificate reference: $signerCertRef")
 
-// Since X509 certificate handling is strongly platform-dependent, 
-// the Verfifier is given the plain publicKey (r|s) and the curve name.
-val publicKeyBytes: ByteArray = byteArrayOf()
-val verifier: Verifier =
-    Verifier(seal.signedBytes, signatureInfo.plainSignatureBytes, publicKeyBytes, "brainpoolP224r1")
+// Since X509 certificate handling is strongly platform-dependent,
+// the Verifier is given the plain publicKey (r|s) and the curve name.
+val publicKeyBytes: ByteArray = ... // load from your certificate store
+val verifier = Verifier(
+    seal.signedBytes,
+    signatureInfo!!.plainSignatureBytes,
+    publicKeyBytes,
+    "brainpoolP224r1"
+)
 val result: Verifier.Result = verifier.verify()
-
-
 ```
 
 ## Build a barcode
 
-Here is an example on how to use the DateEncoder and Signer classes to build a VDS barcode:
+Here is an example on how to use the DataEncoder and Signer classes to build a VDS barcode:
 
 ```kotlin
+import de.tsenger.vdstools.Signer
+import de.tsenger.vdstools.vds.VdsHeader
+import de.tsenger.vdstools.vds.VdsMessageGroup
+import de.tsenger.vdstools.vds.VdsSeal
+import kotlinx.datetime.LocalDate
+
 val keystore: KeyStore = ...
 
 // In this JVM example we use a BouncyCastle keystore to get the certificate (for the header information)
-// and the private key for signing the seals data
+// and the private key for signing the seal's data
 val cert: X509Certificate = keystore.getCertificate(keyAlias)
 val ecKey: ECPrivateKey = keystore.getKey(certAlias, keyStorePassword.toCharArray())
 
-// initialize the Signer
-val signer: Signer = Signer(ecKey.encoded, curveName)
+// Initialize the Signer with the private key bytes and curve name
+val signer = Signer(ecKey.encoded, curveName)
 
 // 1. Build a VdsHeader
 val header = VdsHeader.Builder("ARRIVAL_ATTESTATION")
@@ -85,58 +109,66 @@ val header = VdsHeader.Builder("ARRIVAL_ATTESTATION")
     .setSigDate(LocalDate.parse("2024-09-27"))
     .build()
 
-// 2. Build a VdsMessage
+// 2. Build a VdsMessageGroup with messages
 val mrz = "MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06"
 val azr = "ABC123456DEF"
-val vdsMessage = VdsMessage.Builder(header.vdsType)
-    .addDocumentFeature("MRZ", mrz)
-    .addDocumentFeature("AZR", azr)
+val messageGroup = VdsMessageGroup.Builder(header.vdsType)
+    .addMessage("MRZ", mrz)
+    .addMessage("AZR", azr)
     .build()
 
-// 3. Build a signed DigitalSeal
-val digitalSeal = DigitalSeal(header, vdsMessage, signer)
+// 3. Build a signed VdsSeal
+val vdsSeal = VdsSeal(header, messageGroup, signer)
 
-// The encoded bytes can now be used to build a datamatrix (or other) code - which is not part of this library
-val encodedSealBytes = digitalSeal.encoded
+// The encoded bytes can now be used to build a DataMatrix (or other) code
+val encodedSealBytes = vdsSeal.encoded
 
 ```
 
-Here is an example on how to use the DateEncoder and Signer classes to build a IDB barcode:
+Here is an example on how to use the DataEncoder and Signer classes to build an IDB barcode:
 
 ```kotlin
+import de.tsenger.vdstools.DataEncoder
+import de.tsenger.vdstools.Signer
+import de.tsenger.vdstools.idb.*
+
 val keystore: KeyStore = ...
 
 // In this JVM example we use a BouncyCastle keystore to get the certificate (for the header information)
-// and the private key for signing the seals data
+// and the private key for signing the seal's data
 val cert: X509Certificate = keystore.getCertificate(keyAlias)
 val ecKey: ECPrivateKey = keystore.getKey(certAlias, keyStorePassword.toCharArray())
 
-// initialize the Signer
+// Initialize the Signer with the private key bytes and curve name
 val signer: Signer = Signer(ecKey.encoded, curveName)
 
-// 1. Build a IdbHeader
+// 1. Build an IdbHeader
 val header = IdbHeader(
-    "D<<",
-    IdbSignatureAlgorithm.SHA256_WITH_ECDSA,
-    DataEncoder.buildCertificateReference(cert.encoded),
-    "2025-02-11"
+    countryIdentifier = "D<<",
+    signatureAlgorithm = IdbSignatureAlgorithm.SHA256_WITH_ECDSA,
+    certificateReference = DataEncoder.buildCertificateReference(cert.encoded),
+    signatureCreationDate = "2025-02-11"
 )
 
-// 2. Build a MessageGroup
+// 2. Build an IdbMessageGroup with messages
 val messageGroup = IdbMessageGroup.Builder()
-    .addMessage(0x02, vdsMessage.encoded)
-    .addMessage(0x80, readBinaryFromResource("face_image_gen.jp2"))
-    .addMessage(0x84, "2026-04-23")
-    .addMessage(0x86, 0x02)
+    .addMessage(0x80, faceImageBytes)           // FACE_IMAGE
+    .addMessage(0x81, mrzTd2String)             // MRZ_TD2
+    .addMessage(0x84, "2026-04-23")             // EXPIRY_DATE
+    .addMessage(0x86, 0x01)                     // NATIONAL_DOCUMENT_IDENTIFIER
     .build()
 
-// 3. Build a signed Icao Barcode
-val signature = buildSignature(header.encoded + messageGroup.encoded)
-val payload = IdbPayload(header, messageGroup, null, signature)
-val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
+// 3. Sign the header + messageGroup
+val dataToSign = header.encoded + messageGroup.encoded
+val signatureBytes = signer.sign(dataToSign)
+val signature = IdbSignature(signatureBytes)
 
-// The encoded raw string can now be used to build a datamatrix (or other) code - which is not part of this library
-val encodedRawString = icb.rawString
+// 4. Build the IdbSeal
+val payload = IdbPayload(header, messageGroup, null, signature)
+val idbSeal = IdbSeal(isSigned = true, isZipped = false, barcodePayload = payload)
+
+// The raw string can now be used to build a DataMatrix (or other) code
+val encodedRawString = idbSeal.rawString
 
 ```
 
@@ -145,7 +177,7 @@ You will also find an example on how to generate a datamatrix image with the Zxi
 
 ## Custom seal codings
 
-VdsTools uses a JSON-based configuration to define seal document types and their feature encodings which follows the
+VdsTools uses a JSON-based configuration to define seal document types and their message encodings which follows the
 encoding based on BSI TR-03137.
 Profile definitions according to BSI TR-03171 are currently not fully supported, as the profile definitions are not
 publicly available at this time.
@@ -160,7 +192,7 @@ val customJson = """[
     "documentType": "MY_CUSTOM_DOCUMENT",
     "documentRef": "ab01",
     "version": 1,
-    "features": [
+    "messages": [
       {
         "name": "OWNER_NAME",
         "tag": 1,
@@ -193,9 +225,9 @@ DataEncoder.loadCustomSealCodingsFromFile("path/to/MyCodings.json")
 Once loaded, custom document types work seamlessly with the existing API:
 
 ```kotlin
-val vdsMessage = VdsMessage.Builder("MY_CUSTOM_DOCUMENT")
-    .addDocumentFeature("OWNER_NAME", "MAX MUSTERMANN")
-    .addDocumentFeature("ISSUE_DATE", "2024-06-15")
+val messageGroup = VdsMessageGroup.Builder("MY_CUSTOM_DOCUMENT")
+    .addMessage("OWNER_NAME", "MAX MUSTERMANN")
+    .addMessage("ISSUE_DATE", "2024-06-15")
     .build()
 
 val header = VdsHeader.Builder("MY_CUSTOM_DOCUMENT")
@@ -206,7 +238,7 @@ val header = VdsHeader.Builder("MY_CUSTOM_DOCUMENT")
     .setSigDate(LocalDate.now())
     .build()
 
-val digitalSeal = DigitalSeal(header, vdsMessage, signer)
+val vdsSeal = VdsSeal(header, messageGroup, signer)
 ```
 
 ### Available Coding Types
@@ -243,7 +275,7 @@ To include this library to your Gradle build add this dependency:
 
 ```groovy
 dependencies {
-    implementation 'de.tsenger:vdstools:0.10.3'
+    implementation 'de.tsenger:vdstools:0.11.0'
 }
 ```
 
@@ -256,6 +288,6 @@ To include this library to your Maven build add this dependency:
 <dependency>
     <groupId>de.tsenger</groupId>
     <artifactId>vdstools</artifactId>
-    <version>0.10.3</version>
+    <version>0.11.0</version>
 </dependency>
 ```

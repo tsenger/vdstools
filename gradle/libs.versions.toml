@@ -21,7 +21,7 @@ junit = "4.13.2"
 zxing = "3.5.3"
 
 # Plugins
-maven-publish = "0.35.0"
+maven-publish = "0.36.0"
 
 [libraries]
 # Kotlinx

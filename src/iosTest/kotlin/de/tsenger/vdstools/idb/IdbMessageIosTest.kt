@@ -1,53 +1,65 @@
 package de.tsenger.vdstools.idb
 
+import de.tsenger.vdstools.generic.Message
+import de.tsenger.vdstools.generic.MessageCoding
+import de.tsenger.vdstools.generic.MessageValue
 import kotlin.test.Test
-import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
+
 
 @OptIn(ExperimentalStdlibApi::class)
-class IdbMessageIosTest {
-
-    var visa_content: ByteArray =
-        ("022cdd52134a74da1347c6fed95cb89f"
-                + "9fce133c133c133c133c203833734aaf"
-                + "47f0c32f1a1e20eb2625393afe310403"
-                + "a00000050633be1fed20c6").hexToByteArray()
-
-    var idbMessageBytes: ByteArray =
-        ("013b022cdd52134a74da1347c6fed95c"
-                + "b89f9fce133c133c133c133c20383373"
-                + "4aaf47f0c32f1a1e20eb2625393afe31"
-                + "0403a00000050633be1fed20c6").hexToByteArray()
-
+class MessageIosTest {
 
     @Test
-    fun testConstructor() {
-        val message = IdbMessage("VISA", visa_content)
+    fun testMessageConstructor() {
+        val bytes = "a0a1a2a3a4a5".hexToByteArray()
+        val message = Message(0x09, "CAN", MessageCoding.UTF8_STRING, MessageValue.BytesValue(bytes))
         assertNotNull(message)
+        assertEquals(0x09, message.tag)
+        assertEquals("CAN", message.name)
+        assertEquals(MessageCoding.UTF8_STRING, message.coding)
     }
 
     @Test
-    fun testFromByteArray() {
-        val message = IdbMessage.fromByteArray(idbMessageBytes)
+    fun testMessageToString() {
+        val bytes = "TestValue".encodeToByteArray()
+        val message = Message(0x09, "CAN", MessageCoding.UTF8_STRING, MessageValue.StringValue("TestValue", bytes))
+        assertEquals("TestValue", message.toString())
+    }
+
+    @Test
+    fun testMessageEncoded() {
+        val bytes = "a0a1a2a3".hexToByteArray()
+        val message = Message(0x09, "CAN", MessageCoding.BYTES, MessageValue.BytesValue(bytes))
+        // DerTlv encoding: tag (0x09) + length (0x04) + value
+        assertEquals("0904a0a1a2a3", message.encoded.toHexString())
+    }
+
+    @Test
+    fun testMessageFromIdbMessageGroup() {
+        // Create IdbMessageGroup and get Message from it
+        val messageGroup = IdbMessageGroup.Builder()
+            .addMessage("CAN", "654321")
+            .build()
+
+        val message = messageGroup.getMessage("CAN")
         assertNotNull(message)
+        assertEquals("CAN", message.name)
+        assertTrue(message.value is MessageValue.StringValue)
+        assertEquals("654321", message.value.toString())
     }
 
     @Test
-    fun testGetEncoded() {
-        val message = IdbMessage("VISA", visa_content)
-        assertContentEquals(idbMessageBytes, message.encoded)
-    }
+    fun testMessageValueAccess() {
+        val messageGroup = IdbMessageGroup.Builder()
+            .addMessage("CAN", "123456")
+            .build()
 
-    @Test
-    fun testGetMessageType() {
-        val message = IdbMessage.fromByteArray(idbMessageBytes)
-        assertEquals("VISA", message.messageTypeName)
-    }
-
-    @Test
-    fun testGetMessageContent() {
-        val message = IdbMessage.fromByteArray(idbMessageBytes)
-        assertContentEquals(visa_content, message.valueBytes)
+        val message = messageGroup.messageList[0]
+        assertNotNull(message)
+        assertEquals("CAN", message.name)
+        assertEquals(0x09, message.tag)
     }
 }

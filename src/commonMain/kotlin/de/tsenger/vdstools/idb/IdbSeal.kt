@@ -7,9 +7,10 @@ import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.Seal
 import de.tsenger.vdstools.generic.SignatureInfo
+import de.tsenger.vdstools.generic.MessageValue
 import kotlinx.datetime.LocalDate
 
-class IcaoBarcode : Seal {
+class IdbSeal : Seal {
     private var barcodeFlag: Char = 0x41.toChar()
     var payLoad: IdbPayload
 
@@ -49,13 +50,13 @@ class IcaoBarcode : Seal {
 
 
     override fun getMessage(name: String): Message? {
-        val idbMessage = payLoad.idbMessageGroup.getMessage(name)
-        return idbMessage?.let { Message(it.messageTypeTag, it.messageTypeName, it.valueBytes, it.coding) }
+        val idbMessage = payLoad.idbMessageGroup.getMessage(name) ?: return null
+        return Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value)
     }
 
     override fun getMessage(tag: Int): Message? {
-        val idbMessage = payLoad.idbMessageGroup.getMessage(tag)
-        return idbMessage?.let { Message(it.messageTypeTag, it.messageTypeName, it.valueBytes, it.coding) }
+        val idbMessage = payLoad.idbMessageGroup.getMessage(tag) ?: return null
+        return Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value)
     }
 
     /**
@@ -65,15 +66,16 @@ class IcaoBarcode : Seal {
      */
     override val documentType: String
         get() {
-            val docTypeId = getMessage(0x86)?.valueInt
+            val msg = getMessage(0x86)
+            val docTypeId = (msg?.value as? MessageValue.ByteValue)?.value
             return if (docTypeId != null) {
                 DataEncoder.getIdbDocumentTypeName(docTypeId)
-            } else messageList.joinToString(", ") { it.messageTypeName }
+            } else messageList.joinToString(", ") { it.name }
         }
 
     override val messageList: List<Message>
-        get() = payLoad.idbMessageGroup.messagesList.map { idbMessage ->
-            Message(idbMessage.messageTypeTag, idbMessage.messageTypeName, idbMessage.valueBytes, idbMessage.coding)
+        get() = payLoad.idbMessageGroup.messageList.map { idbMessage ->
+            Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value)
         }
 
     override val signatureInfo: SignatureInfo?
@@ -154,7 +156,7 @@ class IcaoBarcode : Seal {
             }
 
             val payload = IdbPayload.fromByteArray(payloadBytes, isSigned)
-            return IcaoBarcode(barcodeFlag, payload)
+            return IdbSeal(barcodeFlag, payload)
         }
     }
 }
