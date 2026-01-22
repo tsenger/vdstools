@@ -1,0 +1,26 @@
+# Definition der Phasen
+stages:
+  - build
+
+cache:
+  key: "gradle-${CI_COMMIT_REF_SLUG}"
+  paths:
+    - .gradle/
+    - .konan/
+
+
+.gradle_base:
+  stage: build
+  before_script:
+    - export GRADLE_USER_HOME=`pwd`/.gradle
+    - chmod +x gradlew
+
+jvm_test:
+  extends: .gradle_base
+  image: eclipse-temurin:17-jdk
+  script:
+    - ./gradlew build
+    - ./gradlew jvmTest
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
