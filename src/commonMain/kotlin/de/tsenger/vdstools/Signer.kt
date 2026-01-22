@@ -40,11 +40,7 @@ class Signer(privKeyBytes: ByteArray, curveName: String) {
             in 385..512 -> SHA512
             else -> throw IllegalArgumentException("Ungültige fieldSize: $fieldSize")
         }
-
         val ecdsaSign = this.ecPrivKey.signatureGenerator(digest = digest, ECDSA.SignatureFormat.RAW)
-
-        log.i("ECDSA algorithm: $ecdsaSign")
-
         return ecdsaSign.generateSignatureBlocking(dataToSign)
 
     }

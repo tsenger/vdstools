@@ -4,7 +4,15 @@ import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.idb.dto.IdbDocumentTypeDto
 import kotlinx.serialization.json.Json
 
-class IdbNationalDocumentTypeParser(jsonString: String) {
+/**
+ * Registry for IDB (ICAO Datastructure for Barcode) national document type definitions.
+ *
+ * This class loads document type definitions from a JSON configuration and provides
+ * lookup functionality for document type names and tags.
+ *
+ * @param jsonString JSON string containing an array of [IdbDocumentTypeDto] definitions
+ */
+class IdbNationalDocumentTypeRegistry(jsonString: String) {
     private val log = Logger.withTag(this::class.simpleName ?: "")
     private var documentTypeDtoList: List<IdbDocumentTypeDto> = emptyList()
     private val documentTypes: HashMap<Int, IdbDocumentTypeDto> = HashMap()

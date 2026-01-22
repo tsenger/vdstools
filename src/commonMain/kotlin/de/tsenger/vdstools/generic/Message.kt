@@ -1,39 +1,15 @@
 package de.tsenger.vdstools.generic
 
-import de.tsenger.vdstools.DataEncoder
-import de.tsenger.vdstools.vds.FeatureCoding
+import de.tsenger.vdstools.asn1.DerTlv
 
-@OptIn(ExperimentalStdlibApi::class)
-class Message(typeTag: Int, typeName: String, value: ByteArray, coding: FeatureCoding) {
-    val messageTypeTag = typeTag
-    val messageTypeName = typeName
-    private val messageContent: ByteArray = value
-    private val messageCoding = coding
+class Message(
+    val tag: Int,
+    val name: String,
+    val coding: MessageCoding,
+    val value: MessageValue
+) {
+    val encoded: ByteArray
+        get() = DerTlv(tag.toByte(), value.rawBytes).encoded
 
-    val valueBytes: ByteArray
-        get() = messageContent
-
-    val valueInt: Int
-        get() = messageContent[0].toInt() and 0xFF
-
-
-    val valueStr: String
-        get() =
-            when (messageCoding) {
-                FeatureCoding.BYTE -> valueInt.toString()
-                FeatureCoding.C40 -> DataEncoder.decodeC40(messageContent)
-                FeatureCoding.UTF8_STRING -> messageContent.decodeToString()
-                FeatureCoding.MASKED_DATE -> DataEncoder.decodeMaskedDate(messageContent)
-                FeatureCoding.DATE -> DataEncoder.decodeDate(messageContent).toString()
-                FeatureCoding.BYTES, FeatureCoding.UNKNOWN -> messageContent.toHexString()
-                FeatureCoding.MRZ -> {
-                    val unformattedMrz = DataEncoder.decodeC40(messageContent)
-                    val mrzLength = when (messageTypeName) {
-                        "MRZ_MRVA" -> 88
-                        "MRZ_MRVB" -> 72
-                        else -> unformattedMrz.length
-                    }
-                    DataEncoder.formatMRZ(unformattedMrz, mrzLength)
-                }
-            }
+    override fun toString(): String = value.toString()
 }

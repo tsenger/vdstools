@@ -1,7 +1,7 @@
 package de.tsenger.vdstools.generic
 
-import de.tsenger.vdstools.idb.IcaoBarcode
-import de.tsenger.vdstools.vds.DigitalSeal
+import de.tsenger.vdstools.idb.IdbSeal
+import de.tsenger.vdstools.vds.VdsSeal
 
 abstract class Seal {
     abstract fun getMessage(name: String): Message?
@@ -18,9 +18,9 @@ abstract class Seal {
     companion object {
         fun fromString(input: String): Seal {
             return when {
-                input.startsWith(IcaoBarcode.BARCODE_IDENTIFIER) -> IcaoBarcode.fromString(input)
-                input.startsWith(IcaoBarcode.BARCODE_IDENTIFIER_OLD) -> IcaoBarcode.fromString(input)
-                input.startsWith("Ü") -> DigitalSeal.fromRawString(input)
+                input.startsWith(IdbSeal.BARCODE_IDENTIFIER) -> IdbSeal.fromString(input)
+                input.startsWith(IdbSeal.BARCODE_IDENTIFIER_OLD) -> IdbSeal.fromString(input)
+                input.startsWith("Ü") -> VdsSeal.fromRawString(input)
                 else -> throw IllegalArgumentException("can't parse given input to a known seal type: $input")
             }
         }

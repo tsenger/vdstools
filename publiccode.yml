@@ -6,7 +6,7 @@ publiccodeYmlVersion: '0.2'
 name: VdsTools
 url: 'https://github.com/tsenger/vdstools'
 releaseDate: '2026-01-07'
-softwareVersion: 0.10.3
+softwareVersion: 0.11.0
 softwareType: library
 platforms:
   - ios
@@ -25,7 +25,7 @@ maintenance:
   type: internal
   contacts:
     - name: Tobias Senger
-      email: tobias@t-senger.de
+      email: info@tsenger.de
 legal:
   license: Apache-2.0
   mainCopyrightOwner: Tobias Senger

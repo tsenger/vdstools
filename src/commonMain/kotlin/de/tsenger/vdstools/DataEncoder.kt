@@ -4,9 +4,10 @@ package de.tsenger.vdstools
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generated.ResourceConstants
-import de.tsenger.vdstools.vds.Feature
-import de.tsenger.vdstools.vds.FeatureCoding
-import de.tsenger.vdstools.vds.dto.ExtendedFeatureDefinitionDto
+import de.tsenger.vdstools.generic.Message
+import de.tsenger.vdstools.generic.MessageCoding
+import de.tsenger.vdstools.generic.MessageValue
+import de.tsenger.vdstools.vds.dto.ExtendedMessageDefinitionDto
 import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.DelicateCryptographyApi
 import dev.whyoleg.cryptography.algorithms.SHA1
@@ -18,19 +19,31 @@ import okio.*
 
 
 object DataEncoder {
-    private lateinit var featureEncoder: FeatureConverter
-    private lateinit var idbMessageTypeParser: IdbMessageTypeParser
-    private lateinit var idbDocumentTypeParser: IdbNationalDocumentTypeParser
-    private lateinit var extendedFeatureDefinitionRegistry: ExtendedFeatureDefinitionRegistry
+    private lateinit var vdsSealCodingRegistry: VdsSealCodingRegistry
+    private lateinit var idbMessageTypeRegistry: IdbMessageTypeRegistry
+    private lateinit var idbDocumentTypeRegistry: IdbNationalDocumentTypeRegistry
+    private lateinit var extendedMessageDefinitionRegistry: ExtendedMessageDefinitionRegistry
     private val log = Logger.withTag(this::class.simpleName ?: "")
 
     init {
+        resetToDefaults()
+    }
+
+    /**
+     * Resets all registries to their default values using the embedded JSON resources.
+     *
+     * This is useful for testing scenarios where custom configurations have been loaded
+     * and need to be reverted to the original state.
+     */
+    fun resetToDefaults() {
         try {
             // Use generated constants (embedded at compile time)
-            featureEncoder = FeatureConverter(ResourceConstants.SEAL_CODINGS_JSON)
-            idbMessageTypeParser = IdbMessageTypeParser(ResourceConstants.IDB_MESSAGE_TYPES_JSON)
-            idbDocumentTypeParser = IdbNationalDocumentTypeParser(ResourceConstants.IDB_DOCUMENT_TYPES_JSON)
-            extendedFeatureDefinitionRegistry = ExtendedFeatureDefinitionRegistry(ResourceConstants.EXTENDED_FEATURE_DEFINITIONS_JSON)
+            vdsSealCodingRegistry = VdsSealCodingRegistry(ResourceConstants.SEAL_CODINGS_JSON)
+            idbMessageTypeRegistry = IdbMessageTypeRegistry(ResourceConstants.IDB_MESSAGE_TYPES_JSON)
+            idbDocumentTypeRegistry = IdbNationalDocumentTypeRegistry(ResourceConstants.IDB_DOCUMENT_TYPES_JSON)
+            extendedMessageDefinitionRegistry =
+                ExtendedMessageDefinitionRegistry(ResourceConstants.EXTENDED_MESSAGE_DEFINITIONS_JSON)
+            log.i("Reset all registries to defaults")
         } catch (e: Exception) {
             log.e("Failed to initialize from embedded resources: ${e.message}")
             println("Failed to initialize from embedded resources: ${e.message}")
@@ -44,7 +57,7 @@ object DataEncoder {
      * @throws Exception if JSON is invalid
      */
     fun loadCustomSealCodings(jsonString: String) {
-        featureEncoder = FeatureConverter(jsonString)
+        vdsSealCodingRegistry = VdsSealCodingRegistry(jsonString)
         log.i("Loaded custom SealCodings")
     }
 
@@ -55,7 +68,7 @@ object DataEncoder {
      * @throws Exception if JSON is invalid
      */
     fun loadCustomIdbMessageTypes(jsonString: String) {
-        idbMessageTypeParser = IdbMessageTypeParser(jsonString)
+        idbMessageTypeRegistry = IdbMessageTypeRegistry(jsonString)
         log.i("Loaded custom IdbMessageTypes")
     }
 
@@ -65,20 +78,20 @@ object DataEncoder {
      * @param jsonString Custom IdbNationalDocumentTypes JSON content
      * @throws Exception if JSON is invalid
      */
-    fun loadCustomIdbDocumentTypes(jsonString: String) {
-        idbDocumentTypeParser = IdbNationalDocumentTypeParser(jsonString)
+    fun loadCustomIdbNationalDocumentTypes(jsonString: String) {
+        idbDocumentTypeRegistry = IdbNationalDocumentTypeRegistry(jsonString)
         log.i("Loaded custom IdbDocumentTypes")
     }
 
     /**
-     * Allows users to override the default Extended Feature Definitions with custom JSON.
+     * Allows users to override the default Extended Message Definitions with custom JSON.
      *
-     * @param jsonString Custom ExtendedFeatureDefinitions JSON content
+     * @param jsonString Custom ExtendedMessageDefinitions JSON content
      * @throws Exception if JSON is invalid
      */
-    fun loadCustomExtendedFeatureDefinitions(jsonString: String) {
-        extendedFeatureDefinitionRegistry = ExtendedFeatureDefinitionRegistry(jsonString)
-        log.i("Loaded custom ExtendedFeatureDefinitions")
+    fun loadCustomExtendedMessageDefinitions(jsonString: String) {
+        extendedMessageDefinitionRegistry = ExtendedMessageDefinitionRegistry(jsonString)
+        log.i("Loaded custom ExtendedMessageDefinitions")
     }
 
     /**
@@ -107,52 +120,16 @@ object DataEncoder {
      */
     @Throws(FileNotFoundException::class)
     fun loadCustomIdbDocumentTypesFromFile(fileName: String) {
-        loadCustomIdbDocumentTypes(readTextResource(fileName))
+        loadCustomIdbNationalDocumentTypes(readTextResource(fileName))
     }
 
     /**
-     * Convenience method to load custom Extended Feature Definitions from file.
+     * Convenience method to load custom Extended Message Definitions from file.
      */
     @Throws(FileNotFoundException::class)
-    fun loadCustomExtendedFeatureDefinitionsFromFile(fileName: String) {
-        loadCustomExtendedFeatureDefinitions(readTextResource(fileName))
+    fun loadCustomExtendedMessageDefinitionsFromFile(fileName: String) {
+        loadCustomExtendedMessageDefinitions(readTextResource(fileName))
     }
-
-
-//    /**
-//     * Return the Signer Identifier and the Certificate Reference based on the
-//     * given X.509. Signer Identifier is C + CN Certificate Reference is the serial
-//     * number of the X509Certificate. It will be encoded as hex string
-//     *
-//     * @param cert X509 certificate to get the signer information from
-//     * @return String array that contains the signerIdentifier at index 0 and
-//     * CertRef at index 1
-//     * @throws InvalidNameException if a syntax violation is detected.
-//     */
-//    fun getSignerCertRef(cert: X509Certificate): Pair<String, String> {
-//    //TODO use new X509-Lib correct
-//        val ln = LdapName(cert.subjectX500Principal.name)
-//
-//        var c = ""
-//        var cn = ""
-//        for (rdn in ln.rdns) {
-//            if (rdn.type.equals("CN", ignoreCase = true)) {
-//                cn = rdn.value as String
-//                log.d("CN is: $cn")
-//            } else if (rdn.type.equals("C", ignoreCase = true)) {
-//                c = rdn.value as String
-//                Logger.d("C is: $c")
-//            }
-//        }
-//
-//        val ccn = String.format("%s%s", c, cn).uppercase()
-//        val serial = cert.serialNumber.toString(16) // Serial Number as Hex
-//        val signerCertRef = Pair(ccn, serial)
-//
-//        log.i("generated signerCertRef: " + signerCertRef.first + signerCertRef.second)
-//        return signerCertRef
-//
-//    }
 
     /**
      * @param dateString Date as String formated as yyyy-MM-dd
@@ -352,8 +329,8 @@ object DataEncoder {
         return compressedBytes
     }
 
-    fun setFeatureEncoder(featureEncoder: FeatureConverter) {
-        DataEncoder.featureEncoder = featureEncoder
+    fun setVdsSealCodingRegistry(vdsSealCodingRegistry: VdsSealCodingRegistry) {
+        DataEncoder.vdsSealCodingRegistry = vdsSealCodingRegistry
     }
 
 
@@ -369,46 +346,84 @@ object DataEncoder {
         return certSha1.sliceArray(15..19)
     }
 
-    fun encodeDerTlv(vdsType: String, derTlv: DerTlv): Feature? {
-        //val value = featureEncoder.decodeFeature<Any>(vdsType, derTlv)
-        val value = derTlv.value
-        val name = featureEncoder.getFeatureName(vdsType, derTlv)
+    fun encodeDerTlv(vdsType: String, derTlv: DerTlv): Message? {
+        val bytes = derTlv.value
+        val name = vdsSealCodingRegistry.getMessageName(vdsType, derTlv)
         val tag = derTlv.tag.toInt()
-        val coding = featureEncoder.getFeatureCoding(vdsType, derTlv)
-        if (name == "" || coding == FeatureCoding.UNKNOWN) return null
-        return Feature(tag, name, value, coding)
+        val coding = vdsSealCodingRegistry.getMessageCoding(vdsType, derTlv)
+        if (name == "" || coding == MessageCoding.UNKNOWN) return null
+        return Message(tag, name, coding, MessageValue.fromBytes(bytes, coding))
     }
 
     fun getVdsType(documentRef: Int): String? {
-        return featureEncoder.getVdsType(documentRef)
+        return vdsSealCodingRegistry.getVdsType(documentRef)
     }
 
     fun getDocumentRef(vdsType: String): Int? {
-        return featureEncoder.getDocumentRef(vdsType)
+        return vdsSealCodingRegistry.getDocumentRef(vdsType)
     }
 
-    fun <T> encodeFeature(vdsType: String, feature: String, value: T): DerTlv {
-        return featureEncoder.encodeFeature(vdsType, feature, value)
+    fun <T> encodeMessage(vdsType: String, messageName: String, value: T): DerTlv {
+        return vdsSealCodingRegistry.encodeMessage(vdsType, messageName, value)
+    }
+
+    fun getMessageTag(vdsType: String, messageName: String): Int {
+        return vdsSealCodingRegistry.getMessageTag(vdsType, messageName)
+    }
+
+    fun getMessageCoding(vdsType: String, tag: Int): MessageCoding {
+        return vdsSealCodingRegistry.getMessageCoding(vdsType, tag)
+    }
+
+    /**
+     * Encodes a value to ByteArray based on the given MessageCoding.
+     *
+     * @param coding The MessageCoding that determines how to encode the value
+     * @param value The value to encode (String, ByteArray, Int, or Byte)
+     * @param tag Optional tag number for error messages (used when coding is UNKNOWN)
+     * @return The encoded ByteArray
+     * @throws IllegalArgumentException if the coding is UNKNOWN and tag is provided,
+     *         or if the value type doesn't match the expected type for the coding
+     */
+    fun <T> encodeValueByCoding(coding: MessageCoding, value: T, tag: Int? = null): ByteArray {
+        return when (coding) {
+            MessageCoding.C40, MessageCoding.MRZ -> encodeC40(value as String)
+            MessageCoding.UTF8_STRING -> (value as String).encodeToByteArray()
+            MessageCoding.BYTES -> value as ByteArray
+            MessageCoding.BYTE -> when (value) {
+                is Int -> byteArrayOf((value and 0xFF).toByte())
+                is Byte -> byteArrayOf(value)
+                else -> throw IllegalArgumentException("BYTE coding expects Int or Byte, got ${value!!::class.simpleName}")
+            }
+
+            MessageCoding.MASKED_DATE -> encodeMaskedDate(value as String)
+            MessageCoding.DATE -> encodeDate(value as String)
+            MessageCoding.UNKNOWN -> if (tag != null) {
+                throw IllegalArgumentException("Unsupported tag: $tag")
+            } else {
+                value as ByteArray
+            }
+        }
     }
 
     fun getIdbMessageTypeName(tag: Int): String {
-        return idbMessageTypeParser.getMessageType(tag)
+        return idbMessageTypeRegistry.getMessageType(tag)
     }
 
     fun getIdbMessageTypeTag(messageTypeName: String): Int? {
-        return idbMessageTypeParser.getMessageType(messageTypeName)
+        return idbMessageTypeRegistry.getMessageType(messageTypeName)
     }
 
-    fun getIdbMessageTypeCoding(messageTypeName: String): FeatureCoding {
-        return idbMessageTypeParser.getMessageTypeCoding(messageTypeName)
+    fun getIdbMessageTypeCoding(messageTypeName: String): MessageCoding {
+        return idbMessageTypeRegistry.getMessageTypeCoding(messageTypeName)
     }
 
-    fun getIdbMessageTypeCoding(messageTypeTag: Int): FeatureCoding {
-        return idbMessageTypeParser.getMessageTypeCoding(messageTypeTag)
+    fun getIdbMessageTypeCoding(messageTypeTag: Int): MessageCoding {
+        return idbMessageTypeRegistry.getMessageTypeCoding(messageTypeTag)
     }
 
     fun getIdbDocumentTypeName(tag: Int): String {
-        return idbDocumentTypeParser.getDocumentType(tag)
+        return idbDocumentTypeRegistry.getDocumentType(tag)
     }
 
     /**
@@ -418,7 +433,7 @@ object DataEncoder {
      * @return true if this type requires UUID lookup, false otherwise
      */
     fun requiresUuidLookup(vdsType: String): Boolean {
-        return featureEncoder.requiresUuidLookup(vdsType)
+        return vdsSealCodingRegistry.requiresUuidLookup(vdsType)
     }
 
     /**
@@ -427,45 +442,45 @@ object DataEncoder {
      * @param vdsType The VDS type to check
      * @return The tag number (default 0 if not specified or type not found)
      */
-    fun getUuidFeatureTag(vdsType: String): Int {
-        return featureEncoder.getUuidFeatureTag(vdsType)
+    fun getUuidMessageTag(vdsType: String): Int {
+        return vdsSealCodingRegistry.getUuidMessageTag(vdsType)
     }
 
     /**
-     * Resolves an extended feature definition based on UUID bytes.
+     * Resolves an extended message definition based on UUID bytes.
      *
      * @param uuidBytes 16-byte UUID
-     * @return The matching ExtendedFeatureDefinitionDto, or null if no definition matches
+     * @return The matching ExtendedMessageDefinitionDto, or null if no definition matches
      */
-    fun resolveExtendedFeatureDefinition(uuidBytes: ByteArray): ExtendedFeatureDefinitionDto? {
-        return extendedFeatureDefinitionRegistry.resolve(uuidBytes)
+    fun resolveExtendedMessageDefinition(uuidBytes: ByteArray): ExtendedMessageDefinitionDto? {
+        return extendedMessageDefinitionRegistry.resolve(uuidBytes)
     }
 
     /**
-     * Resolves an extended feature definition based on UUID hex string.
+     * Resolves an extended message definition based on UUID hex string.
      *
      * @param uuidHex UUID as hex string (32 characters, without dashes)
-     * @return The matching ExtendedFeatureDefinitionDto, or null if no definition matches
+     * @return The matching ExtendedMessageDefinitionDto, or null if no definition matches
      */
-    fun resolveExtendedFeatureDefinition(uuidHex: String): ExtendedFeatureDefinitionDto? {
-        return extendedFeatureDefinitionRegistry.resolve(uuidHex)
+    fun resolveExtendedMessageDefinition(uuidHex: String): ExtendedMessageDefinitionDto? {
+        return extendedMessageDefinitionRegistry.resolve(uuidHex)
     }
 
     /**
-     * Encodes a DerTlv to a Feature with extended feature definition-aware lookup.
+     * Encodes a DerTlv to a Message with extended message definition-aware lookup.
      *
      * @param vdsType The base VDS type
-     * @param extendedDefinition The resolved extended feature definition (may be null)
+     * @param extendedDefinition The resolved extended message definition (may be null)
      * @param derTlv The DerTlv to encode
-     * @return The Feature, or null if encoding fails
+     * @return The Message, or null if encoding fails
      */
-    fun encodeDerTlv(vdsType: String, extendedDefinition: ExtendedFeatureDefinitionDto?, derTlv: DerTlv): Feature? {
-        val value = derTlv.value
+    fun encodeDerTlv(vdsType: String, extendedDefinition: ExtendedMessageDefinitionDto?, derTlv: DerTlv): Message? {
+        val bytes = derTlv.value
         val tag = derTlv.tag.toInt()
-        val name = featureEncoder.getFeatureName(vdsType, extendedDefinition, tag)
-        val coding = featureEncoder.getFeatureCoding(vdsType, extendedDefinition, tag)
-        if (name == "" || coding == FeatureCoding.UNKNOWN) return null
-        return Feature(tag, name, value, coding)
+        val name = vdsSealCodingRegistry.getMessageName(vdsType, extendedDefinition, tag)
+        val coding = vdsSealCodingRegistry.getMessageCoding(vdsType, extendedDefinition, tag)
+        if (name == "" || coding == MessageCoding.UNKNOWN) return null
+        return Message(tag, name, coding, MessageValue.fromBytes(bytes, coding))
     }
 
     /**

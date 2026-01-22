@@ -4,9 +4,9 @@ import co.touchlab.kermit.Logger
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.client.j2se.MatrixToImageWriter
 import com.google.zxing.datamatrix.DataMatrixWriter
-import de.tsenger.vdstools.vds.DigitalSeal
 import de.tsenger.vdstools.vds.VdsHeader
-import de.tsenger.vdstools.vds.VdsMessage
+import de.tsenger.vdstools.vds.VdsMessageGroup
+import de.tsenger.vdstools.vds.VdsSeal
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.util.encoders.Hex
 import org.junit.BeforeClass
@@ -33,8 +33,8 @@ class DataMatrixJvmTest {
     fun testSaveDataMatrixToFile() {
         val mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<" + "6525845096USA7008038M2201018<<<<<<06"
         val passportNumber = "UFO001979"
-        val vdsMessage = VdsMessage.Builder("RESIDENCE_PERMIT").addDocumentFeature("MRZ", mrz)
-            .addDocumentFeature("PASSPORT_NUMBER", passportNumber).build()
+        val vdsMessage = VdsMessageGroup.Builder("RESIDENCE_PERMIT").addMessage("MRZ", mrz)
+            .addMessage("PASSPORT_NUMBER", passportNumber).build()
 
         val ks = keystore
         val ecKey = ks!!.getKey("utts5b", keyStorePassword.toCharArray()) as ECPrivateKey
@@ -46,11 +46,11 @@ class DataMatrixJvmTest {
             .setCertificateReference("5B")
             .build()
         println("Header: " + Hex.toHexString(vdsHeader.encoded))
-        val digitalSeal = DigitalSeal(vdsHeader, vdsMessage, signer)
+        val vdsSeal = VdsSeal(vdsHeader, vdsMessage, signer)
 
         val dmw = DataMatrixWriter()
         val bitMatrix = dmw.encode(
-            DataEncoder.encodeBase256(digitalSeal.encoded), BarcodeFormat.DATA_MATRIX,
+            DataEncoder.encodeBase256(vdsSeal.encoded), BarcodeFormat.DATA_MATRIX,
             450, 450
         )
 

@@ -1,8 +1,8 @@
 package de.tsenger.vdstools
 
 
-import de.tsenger.vdstools.vds.DigitalSeal
 import de.tsenger.vdstools.vds.VdsRawBytesJvm
+import de.tsenger.vdstools.vds.VdsSeal
 import kotlinx.datetime.LocalDate
 import org.bouncycastle.asn1.x500.X500Name
 import org.bouncycastle.asn1.x500.style.BCStyle
@@ -20,9 +20,9 @@ import java.util.*
 class VerifierJvmTest {
     @Test
     fun testVerifyArrivalAttestationDETS00027() {
-        val digitalSeal: DigitalSeal =
-            checkNotNull(DigitalSeal.fromByteArray(VdsRawBytesJvm.arrivalAttestation)) as DigitalSeal
-        val signerCertRef: String = digitalSeal.signerCertRef
+        val vdsSeal: VdsSeal =
+            checkNotNull(VdsSeal.fromByteArray(VdsRawBytesJvm.arrivalAttestation)) as VdsSeal
+        val signerCertRef: String = vdsSeal.signerCertRef
         assertEquals("DETS27", signerCertRef) // input validation
 
         val cert = keystore.getCertificate(signerCertRef.lowercase(Locale.getDefault())) as X509Certificate
@@ -32,36 +32,36 @@ class VerifierJvmTest {
         val x509SignerCertRef = String.format("%s%x", signerIdentifier, serialNumber)
         assertEquals(signerCertRef, x509SignerCertRef)
 
-        val sigLocalDate = digitalSeal.sigDate
+        val sigLocalDate = vdsSeal.sigDate
 
         assertEquals(LocalDate.parse("2020-01-13"), sigLocalDate)
 
 
-        val verifier = Verifier(digitalSeal, cert.publicKey.encoded, "brainpoolP256r1")
+        val verifier = Verifier(vdsSeal, cert.publicKey.encoded, "brainpoolP256r1")
         assertEquals(Verifier.Result.SignatureValid, verifier.verify())
     }
 
     @Test
     fun testVerifyResidentPermit256BitSig() {
-        val digitalSeal = DigitalSeal.fromByteArray(VdsRawBytesJvm.residentPermit) as DigitalSeal
-        val signerCertRef = digitalSeal.signerCertRef
+        val vdsSeal = VdsSeal.fromByteArray(VdsRawBytesJvm.residentPermit) as VdsSeal
+        val signerCertRef = vdsSeal.signerCertRef
         assertEquals("UTTS5B", signerCertRef)
         val cert = keystore.getCertificate(signerCertRef.lowercase(Locale.getDefault())) as X509Certificate
 
 
-        val verifier = Verifier(digitalSeal, cert.publicKey.encoded, "brainpoolP256r1")
+        val verifier = Verifier(vdsSeal, cert.publicKey.encoded, "brainpoolP256r1")
         assertEquals(Verifier.Result.SignatureValid, verifier.verify())
     }
 
     @Test
     fun testVerifyVisa224BitSig() {
-        val digitalSeal = DigitalSeal.fromByteArray(VdsRawBytesJvm.visa_224bitSig) as DigitalSeal
-        val signerCertRef = digitalSeal.signerCertRef
+        val vdsSeal = VdsSeal.fromByteArray(VdsRawBytesJvm.visa_224bitSig) as VdsSeal
+        val signerCertRef = vdsSeal.signerCertRef
         assertEquals("DETS32", signerCertRef)
         val cert = keystore.getCertificate(signerCertRef.lowercase(Locale.getDefault())) as X509Certificate
 
 
-        val verifier = Verifier(digitalSeal, cert.publicKey.encoded, "brainpoolP224r1")
+        val verifier = Verifier(vdsSeal, cert.publicKey.encoded, "brainpoolP224r1")
         assertEquals(Verifier.Result.SignatureValid, verifier.verify())
     }
 
