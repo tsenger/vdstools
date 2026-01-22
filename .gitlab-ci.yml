@@ -1,26 +1,24 @@
-# Definition der Phasen
 stages:
   - build
 
+variables:
+  GRADLE_USER_HOME: "${CI_PROJECT_DIR}/.gradle"
+  KONAN_DATA_DIR: "${CI_PROJECT_DIR}/.konan"
+
 cache:
-  key: "gradle-${CI_COMMIT_REF_SLUG}"
+  key: "gradle-cache-$CI_COMMIT_REF_SLUG"
   paths:
-    - .gradle/
+    - .gradle/wrapper
+    - .gradle/caches
     - .konan/
-
-
-.gradle_base:
-  stage: build
-  before_script:
-    - export GRADLE_USER_HOME=`pwd`/.gradle
-    - chmod +x gradlew
+  policy: pull-push
 
 jvm_test:
-  extends: .gradle_base
+  stage: build
   image: eclipse-temurin:21-jdk
   script:
-    - ./gradlew build
-    - ./gradlew jvmTest
+    - chmod +x gradlew
+    - ./gradlew jvmTest --build-cache
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
