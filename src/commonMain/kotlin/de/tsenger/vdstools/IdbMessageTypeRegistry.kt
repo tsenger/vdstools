@@ -2,10 +2,18 @@ package de.tsenger.vdstools
 
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.idb.dto.IdbMessageTypeDto
-import de.tsenger.vdstools.vds.FeatureCoding
+import de.tsenger.vdstools.generic.MessageCoding
 import kotlinx.serialization.json.Json
 
-class IdbMessageTypeParser(jsonString: String) {
+/**
+ * Registry for IDB (ICAO Datastructure for Barcode) message type definitions.
+ *
+ * This class loads message type definitions from a JSON configuration and provides
+ * lookup functionality for message type names, tags, and codings.
+ *
+ * @param jsonString JSON string containing an array of [IdbMessageTypeDto] definitions
+ */
+class IdbMessageTypeRegistry(jsonString: String) {
     private val log = Logger.withTag(this::class.simpleName ?: "")
     private var messageTypeDtoList: List<IdbMessageTypeDto> = emptyList()
     private val messageTypes: HashMap<Int, IdbMessageTypeDto> = HashMap()
@@ -34,12 +42,12 @@ class IdbMessageTypeParser(jsonString: String) {
         return messageTypesInverse[messageTypeName]?.tag
     }
 
-    fun getMessageTypeCoding(messageTypeName: String): FeatureCoding {
-        return messageTypesInverse[messageTypeName]?.coding ?: FeatureCoding.UNKNOWN
+    fun getMessageTypeCoding(messageTypeName: String): MessageCoding {
+        return messageTypesInverse[messageTypeName]?.coding ?: MessageCoding.UNKNOWN
     }
 
-    fun getMessageTypeCoding(messageTypeTag: Int): FeatureCoding {
-        return messageTypes[messageTypeTag]?.coding ?: FeatureCoding.UNKNOWN
+    fun getMessageTypeCoding(messageTypeTag: Int): MessageCoding {
+        return messageTypes[messageTypeTag]?.coding ?: MessageCoding.UNKNOWN
     }
 
 }

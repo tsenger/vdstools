@@ -3,7 +3,7 @@
     "documentType": "ARRIVAL_ATTESTATION",
     "documentRef": "fd02",
     "version": 3,
-    "features": [
+    "messages": [
       {
         "name": "MRZ",
         "tag": 2,
@@ -28,7 +28,7 @@
     "documentType": "ADDRESS_STICKER_ID",
     "documentRef": "f908",
     "version": 4,
-    "features": [
+    "messages": [
       {
         "name": "DOCUMENT_NUMBER",
         "tag": 1,
@@ -61,7 +61,7 @@
     "documentType": "ADDRESS_STICKER_PASSPORT",
     "documentRef": "f80a",
     "version": 4,
-    "features": [
+    "messages": [
       {
         "name": "DOCUMENT_NUMBER",
         "tag": 1,
@@ -95,7 +95,7 @@
     "documentType": "ICAO_EMERGENCY_TRAVEL_DOCUMENT",
     "documentRef": "5e03",
     "version": 4,
-    "features": [
+    "messages": [
       {
         "name": "MRZ",
         "tag": 2,
@@ -111,7 +111,7 @@
     "documentType": "ICAO_VISA",
     "documentRef": "5d01",
     "version": 4,
-    "features": [
+    "messages": [
       {
         "name": "MRZ_MRVA",
         "tag": 1,
@@ -177,7 +177,7 @@
     "documentType": "RESIDENCE_PERMIT",
     "documentRef": "fb06",
     "version": 4,
-    "features": [
+    "messages": [
       {
         "name": "MRZ",
         "tag": 2,
@@ -202,7 +202,7 @@
     "documentType": "SOCIAL_INSURANCE_CARD",
     "documentRef": "fc04",
     "version": 4,
-    "features": [
+    "messages": [
       {
         "name": "SOCIAL_INSURANCE_NUMBER",
         "tag": 1,
@@ -242,7 +242,7 @@
     "documentType": "SUPPLEMENTARY_SHEET",
     "documentRef": "fa06",
     "version": 4,
-    "features": [
+    "messages": [
       {
         "name": "MRZ",
         "tag": 4,
@@ -267,9 +267,9 @@
     "documentType": "ADMINISTRATIVE_DOCUMENTS",
     "documentRef": "01c8",
     "version": 4,
-    "uuidFeatureLookup": true,
-    "uuidFeatureTag": 0,
-    "features": [
+    "uuidMessageLookup": true,
+    "uuidMessageTag": 0,
+    "messages": [
       {
         "name": "DOC_PROFILE_NUMBER",
         "tag": 0,

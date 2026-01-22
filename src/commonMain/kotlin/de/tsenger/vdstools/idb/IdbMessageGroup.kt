@@ -2,85 +2,60 @@ package de.tsenger.vdstools.idb
 
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.asn1.DerTlv
-import de.tsenger.vdstools.vds.FeatureCoding
+import de.tsenger.vdstools.generic.Message
+import de.tsenger.vdstools.generic.MessageValue
 import okio.Buffer
 
 class IdbMessageGroup {
-    var messagesList: List<IdbMessage> = emptyList()
-        private set
+    private var derTlvList: List<DerTlv>
 
-
-    constructor(messagesList: List<IdbMessage>) {
-        this.messagesList = messagesList
+    constructor(derTlvList: List<DerTlv>) {
+        this.derTlvList = derTlvList
     }
 
     private constructor(builder: Builder) {
-        this.messagesList = builder.messageList
+        this.derTlvList = builder.derTlvList
     }
 
+    val messageList: List<Message>
+        get() = derTlvList.map { derTlv ->
+            val tag = derTlv.tag.toInt() and 0xFF
+            val name = DataEncoder.getIdbMessageTypeName(tag)
+            val coding = DataEncoder.getIdbMessageTypeCoding(name)
+            val value = MessageValue.fromBytes(derTlv.value, coding)
+            Message(tag, name, coding, value)
+        }
 
-    fun getMessage(messageTag: Int): IdbMessage? {
-        return messagesList.firstOrNull { it.messageTypeTag == messageTag }
+    fun getMessage(messageTag: Int): Message? {
+        return messageList.firstOrNull { it.tag == messageTag }
     }
 
-    fun getMessage(messageName: String): IdbMessage? {
-        return messagesList.firstOrNull { it.messageTypeName == messageName }
+    fun getMessage(messageName: String): Message? {
+        return messageList.firstOrNull { it.name == messageName }
     }
 
     val encoded: ByteArray
         get() {
             val messages = Buffer()
-            for (message in messagesList) {
-                messages.write(message.encoded)
+            for (derTlv in derTlvList) {
+                messages.write(derTlv.encoded)
             }
             return DerTlv(TAG, messages.readByteArray()).encoded
         }
 
-    class Builder() {
-        val messageList: MutableList<IdbMessage> = ArrayList(5)
+    class Builder {
+        val derTlvList: MutableList<DerTlv> = ArrayList(5)
 
         @Throws(IllegalArgumentException::class)
-        inline fun <reified T> addMessage(tag: Int, value: T): Builder {
+        fun <T> addMessage(tag: Int, value: T): Builder {
             val coding = DataEncoder.getIdbMessageTypeCoding(tag)
-            when (value) {
-                is String, is ByteArray, is Int -> {
-                    when (coding) {
-                        FeatureCoding.C40 -> messageList.add(IdbMessage(tag, DataEncoder.encodeC40(value as String)))
-                        FeatureCoding.UTF8_STRING -> messageList.add(
-                            IdbMessage(
-                                tag,
-                                (value as String).encodeToByteArray()
-                            )
-                        )
-
-                        FeatureCoding.BYTES -> messageList.add(IdbMessage(tag, value as ByteArray))
-                        FeatureCoding.BYTE -> messageList.add(
-                            IdbMessage(
-                                tag,
-                                byteArrayOf(((value as Int) and 0xFF).toByte())
-                            )
-                        )
-
-                        FeatureCoding.MASKED_DATE -> messageList.add(
-                            IdbMessage(
-                                tag,
-                                DataEncoder.encodeMaskedDate(value as String)
-                            )
-                        )
-
-                        FeatureCoding.DATE -> messageList.add(IdbMessage(tag, DataEncoder.encodeDate(value as String)))
-                        FeatureCoding.MRZ -> messageList.add(IdbMessage(tag, DataEncoder.encodeC40(value as String)))
-                        FeatureCoding.UNKNOWN -> throw IllegalArgumentException("Unsupported tag: $tag")
-                    }
-                }
-
-                else -> throw IllegalArgumentException("Unsupported type: ${T::class.simpleName}")
-            }
+            val content = DataEncoder.encodeValueByCoding(coding, value, tag)
+            derTlvList.add(DerTlv(tag.toByte(), content))
             return this
         }
 
         @Throws(IllegalArgumentException::class)
-        inline fun <reified T> addMessage(name: String, value: T): Builder {
+        fun <T> addMessage(name: String, value: T): Builder {
             return addMessage(DataEncoder.getIdbMessageTypeTag(name) ?: 0, value)
         }
 
@@ -100,12 +75,8 @@ class IdbMessageGroup {
                 }, but tag ${rawBytes[0].toString(16).padStart(2, '0').uppercase()} was found instead."
             }
             val valueBytes = DerTlv.fromByteArray(rawBytes)?.value ?: ByteArray(0)
-            val derTlvMessagesList = DataEncoder.parseDerTLvs(valueBytes)
-
-            val messageList = derTlvMessagesList.map {
-                IdbMessage.fromDerTlv(it)
-            }
-            return IdbMessageGroup(messageList)
+            val derTlvList = DataEncoder.parseDerTLvs(valueBytes)
+            return IdbMessageGroup(derTlvList)
         }
     }
 }

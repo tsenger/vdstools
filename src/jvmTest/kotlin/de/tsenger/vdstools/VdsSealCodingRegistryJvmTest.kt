@@ -7,38 +7,38 @@ import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert
 import org.junit.Test
 
-class FeatureConverterJvmTest {
+class VdsSealCodingRegistryJvmTest {
 
     @Test
-    fun testFeatureConverterString() {
+    fun testVdsSealCodingRegistryString() {
         val jsonString = readTextResource("SealCodings.json")
-        FeatureConverter(jsonString)
+        VdsSealCodingRegistry(jsonString)
     }
 
     @Test(expected = FileNotFoundException::class)
-    fun testFeatureConverterString_notFound() {
+    fun testVdsSealCodingRegistryString_notFound() {
         val jsonString = readTextResource("Codings.json")
-        FeatureConverter(jsonString)
+        VdsSealCodingRegistry(jsonString)
     }
 
     @Test
-    fun testGetFeature_String() {
+    fun testGetMessage_String() {
         val jsonString = readTextResource("SealCodings.json")
-        val featureConverter = FeatureConverter(jsonString)
-        val feature = featureConverter.getFeatureName(
+        val registry = VdsSealCodingRegistry(jsonString)
+        val message = registry.getMessageName(
             "FICTION_CERT",
             DerTlv.fromByteArray(Hex.decode("0306d79519a65306"))!!
         )
-        Assert.assertEquals("PASSPORT_NUMBER", feature)
+        Assert.assertEquals("PASSPORT_NUMBER", message)
     }
 
 
     @Test
-    fun testEncodeFeature_String() {
+    fun testEncodeMessage_String() {
         val jsonString = readTextResource("SealCodings.json")
-        val featureConverter = FeatureConverter(jsonString)
+        val registry = VdsSealCodingRegistry(jsonString)
         val mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06"
-        val derTlv = featureConverter.encodeFeature("RESIDENCE_PERMIT", "MRZ", mrz)
+        val derTlv = registry.encodeMessage("RESIDENCE_PERMIT", "MRZ", mrz)
         Assert.assertEquals(
             "02305cba135875976ec066d417b59e8c6abc133c133c133c133c3fef3a2938ee43f1593d1ae52dbb26751fe64b7c133c136b",
             Hex.toHexString(derTlv.encoded)
@@ -48,17 +48,17 @@ class FeatureConverterJvmTest {
     @Test
     fun testGetAvailableVdsTypes() {
         val jsonString = readTextResource("SealCodings.json")
-        val featureConverter = FeatureConverter(jsonString)
-        println(featureConverter.availableVdsTypes)
-        Assert.assertTrue(featureConverter.availableVdsTypes.contains("ADDRESS_STICKER_ID"))
+        val registry = VdsSealCodingRegistry(jsonString)
+        println(registry.availableVdsTypes)
+        Assert.assertTrue(registry.availableVdsTypes.contains("ADDRESS_STICKER_ID"))
     }
 
     @Test
-    fun testGetAvailableVdsFeatures() {
+    fun testGetAvailableVdsMessages() {
         val jsonString = readTextResource("SealCodings.json")
-        val featureConverter = FeatureConverter(jsonString)
-        println(featureConverter.availableVdsFeatures)
-        Assert.assertTrue(featureConverter.availableVdsFeatures.contains("MRZ"))
+        val registry = VdsSealCodingRegistry(jsonString)
+        println(registry.availableVdsMessages)
+        Assert.assertTrue(registry.availableVdsMessages.contains("MRZ"))
     }
 
     @Test

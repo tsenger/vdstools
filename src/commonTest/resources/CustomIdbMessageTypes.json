@@ -1,0 +1,16 @@
+[
+  {
+    "name": "MESSAGE_TYPE1",
+    "tag": 1,
+    "coding": "BYTES",
+    "min_length": 61,
+    "max_length": 331
+  },
+  {
+    "name": "MESSAGE_TYPE2",
+    "tag": 2,
+    "coding": "BYTES",
+    "min_length": 52,
+    "max_length": 52
+  }
+]

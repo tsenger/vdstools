@@ -1,8 +1,8 @@
 package de.tsenger.vdstools
 
 
-import de.tsenger.vdstools.vds.DigitalSeal
 import de.tsenger.vdstools.vds.VdsRawBytesIos
+import de.tsenger.vdstools.vds.VdsSeal
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.readBytes
@@ -28,8 +28,8 @@ class VerifierIosTest {
     @OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
     @Test
     fun testVerifyResidentPermit256BitSig() {
-        val digitalSeal = DigitalSeal.fromByteArray(VdsRawBytesIos.residentPermit) as DigitalSeal
-        val signerCertRef = digitalSeal.signerCertRef
+        val vdsSeal = VdsSeal.fromByteArray(VdsRawBytesIos.residentPermit) as VdsSeal
+        val signerCertRef = vdsSeal.signerCertRef
         assertEquals("UTTS5B", signerCertRef)
 
         val certPath = NSBundle.mainBundle.pathForResource("sealgen_UTTS5B", "crt")?.toPath()
@@ -39,7 +39,7 @@ class VerifierIosTest {
         val pubKeyBytes = getPublicKeyAsByteArray(cert.reference)
 
         val verifier = Verifier(
-            digitalSeal,
+            vdsSeal,
             pubKeyBytes,
             curveName = "brainpoolP256r1"
         )
@@ -49,14 +49,14 @@ class VerifierIosTest {
     @OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
     @Test
     fun testVerifyVisa224BitSig() {
-        val digitalSeal = DigitalSeal.fromByteArray(VdsRawBytesIos.visa_224bitSig) as DigitalSeal
-        val signerCertRef = digitalSeal.signerCertRef
+        val vdsSeal = VdsSeal.fromByteArray(VdsRawBytesIos.visa_224bitSig) as VdsSeal
+        val signerCertRef = vdsSeal.signerCertRef
         assertEquals("DETS32", signerCertRef)
 
         val certPath = NSBundle.mainBundle.pathForResource("sealgen_DETS32", "crt")?.toPath()
         val cert = loadCertificateFromFile(certPath!!)
         val pubKeyBytes = getPublicKeyAsByteArray(cert.reference)
-        val verifier = Verifier(digitalSeal, pubKeyBytes, "brainpoolP224r1")
+        val verifier = Verifier(vdsSeal, pubKeyBytes, "brainpoolP224r1")
         assertEquals(Verifier.Result.SignatureValid, verifier.verify())
     }
 

@@ -5,7 +5,7 @@ import com.google.zxing.client.j2se.MatrixToImageWriter
 import com.google.zxing.datamatrix.DataMatrixWriter
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.Signer
-import de.tsenger.vdstools.vds.VdsMessage
+import de.tsenger.vdstools.vds.VdsMessageGroup
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.junit.BeforeClass
@@ -45,7 +45,7 @@ class IdbBuilder {
         val signature = buildSignature(header.encoded + messageGroup.encoded)
 
         val payload = IdbPayload(header, messageGroup, null, signature)
-        val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
+        val icb = IdbSeal(isSigned = true, isZipped = false, barcodePayload = payload)
 
         generateDmBarcode(icb.rawString, "SubstituteIdentityDocument.png")
         writeIcbDataFile(icb, "SubstituteIdentityDocument")
@@ -62,8 +62,8 @@ class IdbBuilder {
 
         //MessageGroup
         val mrz = "PUD<<KOEPPENIK<<JONATHAN<GERALD<<<<<\n2L1T3QPB04D<<8506210M2604239<<<<<<<8"
-        val vdsMessage = VdsMessage.Builder("ICAO_EMERGENCY_TRAVEL_DOCUMENT")
-            .addDocumentFeature("MRZ", mrz)
+        val vdsMessage = VdsMessageGroup.Builder("ICAO_EMERGENCY_TRAVEL_DOCUMENT")
+            .addMessage("MRZ", mrz)
             .build()
 
         val messageGroup = IdbMessageGroup.Builder()
@@ -79,7 +79,7 @@ class IdbBuilder {
         val signature = buildSignature(header.encoded + messageGroup.encoded)
 
         val payload = IdbPayload(header, messageGroup, null, signature)
-        val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
+        val icb = IdbSeal(isSigned = true, isZipped = false, barcodePayload = payload)
 
         generateDmBarcode(icb.rawString, "EmergencyTravelDocument.png")
         writeIcbDataFile(icb, "EmergencyTravelDocument")
@@ -110,7 +110,7 @@ class IdbBuilder {
         val signature = buildSignature(header.encoded + messageGroup.encoded)
 
         val payload = IdbPayload(header, messageGroup, null, signature)
-        val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
+        val icb = IdbSeal(isSigned = true, isZipped = false, barcodePayload = payload)
 
         generateDmBarcode(icb.rawString, "TemporaryPassport.png")
         writeIcbDataFile(icb, "TemporaryPassport")
@@ -141,7 +141,7 @@ class IdbBuilder {
         val signature = buildSignature(header.encoded + messageGroup.encoded)
 
         val payload = IdbPayload(header, messageGroup, null, signature)
-        val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
+        val icb = IdbSeal(isSigned = true, isZipped = false, barcodePayload = payload)
 
         generateDmBarcode(icb.rawString, "ArrivalAttestation.png")
         writeIcbDataFile(icb, "ArrivalAttestation")
@@ -172,7 +172,7 @@ class IdbBuilder {
         val signature = buildSignature(header.encoded + messageGroup.encoded)
 
         val payload = IdbPayload(header, messageGroup, null, signature)
-        val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
+        val icb = IdbSeal(isSigned = true, isZipped = false, barcodePayload = payload)
 
         generateDmBarcode(icb.rawString, "ProvisionalResidenceDocument.png")
         writeIcbDataFile(icb, "ProvisionalResidenceDocument")
@@ -200,7 +200,7 @@ class IdbBuilder {
         val signature = buildSignature(header.encoded + messageGroup.encoded)
 
         val payload = IdbPayload(header, messageGroup, null, signature)
-        val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
+        val icb = IdbSeal(isSigned = true, isZipped = false, barcodePayload = payload)
 
         generateDmBarcode(icb.rawString, "CertifyingPermanentResidence.png")
         writeIcbDataFile(icb, "CertifyingPermanentResidence")
@@ -226,7 +226,7 @@ class IdbBuilder {
         val signature = buildSignature(header.encoded + messageGroup.encoded)
 
         val payload = IdbPayload(header, messageGroup, null, signature)
-        val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
+        val icb = IdbSeal(isSigned = true, isZipped = false, barcodePayload = payload)
 
         generateDmBarcode(icb.rawString, "FrontierWorkerPermit.png")
         writeIcbDataFile(icb, "FrontierWorkerPermit")
@@ -256,7 +256,7 @@ class IdbBuilder {
         val signature = buildSignature(header.encoded + messageGroup.encoded)
 
         val payload = IdbPayload(header, messageGroup, null, signature)
-        val icb = IcaoBarcode(isSigned = true, isZipped = false, barcodePayload = payload)
+        val icb = IdbSeal(isSigned = true, isZipped = false, barcodePayload = payload)
 
         generateDmBarcode(icb.rawString, "SupplementarySheetResidencePermit.png")
         writeIcbDataFile(icb, "SupplementarySheetResidencePermit")
@@ -279,7 +279,7 @@ class IdbBuilder {
         MatrixToImageWriter.writeToPath(bitMatrix, "PNG", path)
     }
 
-    fun writeIcbDataFile(icb: IcaoBarcode, filename: String) {
+    fun writeIcbDataFile(icb: IdbSeal, filename: String) {
         val payloadFile = File("generated_barcodes/${filename}_payload.txt")
         payloadFile.writeText(icb.payLoad.encoded.toHexString())
         val base32File = File("generated_barcodes/${filename}_base32.txt")

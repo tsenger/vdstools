@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "de.tsenger"
-version = "0.10.4-SNAPSHOT"
+version = "0.11.0-SNAPSHOT"
 description = "Kotlin multiplatform library to encode/sign and decode/verify Visible Digital Seals"
 
 repositories {
@@ -210,7 +210,7 @@ tasks.register("generateResourceConstants") {
         val sealCodings = file("$inputDir/SealCodings.json").readText()
         val idbMessageTypes = file("$inputDir/IdbMessageTypes.json").readText()
         val idbDocumentTypes = file("$inputDir/IdbNationalDocumentTypes.json").readText()
-        val extendedFeatureDefinitions = file("$inputDir/ExtendedFeatureDefinitions.json").readText()
+        val extendedMessageDefinitions = file("$inputDir/ExtendedMessageDefinitions.json").readText()
 
         // Kotlin Code generieren
         val kotlinCode = """
@@ -229,7 +229,7 @@ internal object ResourceConstants {
 
     const val IDB_DOCUMENT_TYPES_JSON: String = ""${'"'}$idbDocumentTypes""${'"'}
 
-    const val EXTENDED_FEATURE_DEFINITIONS_JSON: String = ""${'"'}$extendedFeatureDefinitions""${'"'}
+    const val EXTENDED_MESSAGE_DEFINITIONS_JSON: String = ""${'"'}$extendedMessageDefinitions""${'"'}
 }
 """.trimIndent()
 
@@ -239,7 +239,7 @@ internal object ResourceConstants {
             writeText(kotlinCode)
         }
 
-        println("✅ Generated ResourceConstants.kt with ${sealCodings.length + idbMessageTypes.length + idbDocumentTypes.length + extendedFeatureDefinitions.length} bytes")
+        println("✅ Generated ResourceConstants.kt with ${sealCodings.length + idbMessageTypes.length + idbDocumentTypes.length + extendedMessageDefinitions.length} bytes")
     }
 }
 
