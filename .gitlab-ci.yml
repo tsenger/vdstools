@@ -17,7 +17,7 @@ cache:
 
 jvm_test:
   extends: .gradle_base
-  image: eclipse-temurin:17-jdk
+  image: eclipse-temurin:21-jdk
   script:
     - ./gradlew build
     - ./gradlew jvmTest
