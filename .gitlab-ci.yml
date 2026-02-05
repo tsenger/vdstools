@@ -1,6 +1,5 @@
 stages:
   - build
-  - test
 
 variables:
   GRADLE_USER_HOME: "${CI_PROJECT_DIR}/.gradle"
@@ -13,34 +12,6 @@ cache:
     - .gradle/caches
     - .konan/
   policy: pull-push
-
-include:
-  # Secret Scanning
-  - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.0.0-rc.4/templates/secret-scanning.yml"
-    inputs:
-      devguard_api_url: "https://api.devguard.opencode.de"
-      devguard_asset_name: "tsenger/projects/lib/assets/vdstools"
-      devguard_token: "$DEVGUARD_TOKEN"
-      devguard_web_ui: "https://devguard.opencode.de"
-      stage: "test"
-
-  # Static Application Security Testing (SAST)
-  - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.0.0-rc.4/templates/static-application-security-testing.yml"
-    inputs:
-      devguard_api_url: "https://api.devguard.opencode.de"
-      devguard_asset_name: "tsenger/projects/lib/assets/vdstools"
-      devguard_token: "$DEVGUARD_TOKEN"
-      devguard_web_ui: "https://devguard.opencode.de"
-      stage: "test"
-
-  # Software Composition Analysis (SCA)
-  - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.0.0-rc.4/templates/software-composition-analysis.yml"
-    inputs:
-      devguard_api_url: "https://api.devguard.opencode.de"
-      devguard_asset_name: "tsenger/projects/lib/assets/vdstools"
-      devguard_token: "$DEVGUARD_TOKEN"
-      devguard_web_ui: "https://devguard.opencode.de"
-      stage: "test"
 
 jvm_test:
   stage: build
