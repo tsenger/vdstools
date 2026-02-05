@@ -93,6 +93,35 @@ class VdsHeader {
             return buffer.readByteArray()
         }
 
+    /**
+     * Builds the encoded string for Signer Identifier and Certificate Reference
+     * which will be C40-encoded into the VDS header bytes.
+     *
+     * **Version 2 (rawVersion=0x02, ICAO Version 3):**
+     * Fixed format with 9 characters total: `SSSSRRRRR`
+     * - `SSSS`: 4-character Signer Identifier
+     * - `RRRRR`: 5-character Certificate Reference, left-padded with '0'
+     *
+     * Example: signerIdentifier="DETS", certificateReference="27" → "DETS00027"
+     *
+     * **Version 3 (rawVersion=0x03, ICAO Version 4):**
+     * Variable format: `SSSSLLRR...R`
+     * - `SSSS`: 4-character Signer Identifier
+     * - `LL`: 2-character length of Certificate Reference, **hexadecimal encoded**,
+     *         left-padded with '0'
+     * - `RR...R`: Certificate Reference with variable length
+     *
+     * Example: signerIdentifier="DETS", certificateReference="32" (length=2)
+     *          → length hex = "02" → "DETS0232"
+     *
+     * Example: signerIdentifier="DETS", certificateReference="5022026" (length=7)
+     *          → length hex = "07" → "DETS075022026"
+     *
+     * **Note:** When decoding, the special Signer Identifier "DEZV" uses **decimal**
+     * encoding for the length field instead of hexadecimal (see [fromBuffer]).
+     *
+     * @return The concatenated string ready for C40 encoding
+     */
     private val encodedSignerIdentifierAndCertificateReference: String
         get() {
             return if (rawVersion.toInt() == 2) {
