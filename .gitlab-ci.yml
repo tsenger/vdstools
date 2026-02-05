@@ -32,7 +32,6 @@ include:
       devguard_token: "$DEVGUARD_TOKEN"
       devguard_web_ui: "https://devguard.opencode.de"
       stage: "test"
-      allow_failure: true
 
   # Software Composition Analysis (SCA)
   - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.0.0-rc.4/templates/software-composition-analysis.yml"
