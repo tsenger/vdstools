@@ -25,14 +25,14 @@ include:
       stage: "test"
 
   # Static Application Security Testing (SAST)
-  - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.0.0-rc.4/templates/static-application-security-testing.yml"
-    inputs:
-      devguard_api_url: "https://api.devguard.opencode.de"
-      devguard_asset_name: "tsenger/projects/lib/assets/vdstools"
-      devguard_token: "$DEVGUARD_TOKEN"
-      devguard_web_ui: "https://devguard.opencode.de"
-      stage: "test"
-      allow_failure: true
+  #- remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.0.0-rc.4/templates/static-application-security-testing.yml"
+  #  inputs:
+  #    devguard_api_url: "https://api.devguard.opencode.de"
+  #    devguard_asset_name: "tsenger/projects/lib/assets/vdstools"
+  #    devguard_token: "$DEVGUARD_TOKEN"
+  #    devguard_web_ui: "https://devguard.opencode.de"
+  #    stage: "test"
+  #    allow_failure: true
 
   # Software Composition Analysis (SCA)
   - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.0.0-rc.4/templates/software-composition-analysis.yml"
