@@ -58,6 +58,39 @@
     ]
   },
   {
+    "documentType": "ADDRESS_STICKER_RP",
+    "documentRef": "f90c",
+    "version": 4,
+    "messages": [
+      {
+        "name": "DOCUMENT_NUMBER",
+        "tag": 1,
+        "coding": "C40",
+        "decodedLength": 9,
+        "required": true,
+        "minLength": 6,
+        "maxLength": 6
+      },
+      {
+        "name": "AGS",
+        "tag": 2,
+        "coding": "C40",
+        "decodedLength": 9,
+        "required": true,
+        "minLength": 6,
+        "maxLength": 6
+      },
+      {
+        "name": "ADDRESS",
+        "tag": 3,
+        "coding": "C40",
+        "required": true,
+        "minLength": 6,
+        "maxLength": 18
+      }
+    ]
+  },
+  {
     "documentType": "ADDRESS_STICKER_PASSPORT",
     "documentRef": "f80a",
     "version": 4,
