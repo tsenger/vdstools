@@ -125,6 +125,7 @@ class VdsSealCommonTest {
         val seal = VdsSeal.fromByteArray(rawBytes) as VdsSeal
         assertNotNull(seal)
         assertNotNull(seal.documentType)
+        assertEquals("UNKNOWN", seal.documentType)
     }
 
     @Test
@@ -167,6 +168,7 @@ class VdsSealCommonTest {
         assertNotNull(seal)
         println(seal.docTypeCat)
         assertEquals("MELDEBESCHEINIGUNG", seal.documentType)
+        assertEquals("ADMINISTRATIVE_DOCUMENTS", seal.baseDocumentType)
         assertEquals(LocalDate.parse("2025-05-14"), seal.sigDate)
         assertEquals(LocalDate.parse("2025-05-14"), seal.issuingDate)
         assertEquals("Mustermann", seal.getMessage("SURNAME")?.value.toString())

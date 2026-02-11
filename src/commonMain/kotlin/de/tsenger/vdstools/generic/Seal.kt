@@ -8,6 +8,9 @@ abstract class Seal {
     abstract fun getMessage(tag: Int): Message?
 
     abstract val documentType: String
+
+    open val baseDocumentType: String?
+        get() = null
     abstract val messageList: List<Message>
     abstract val issuingCountry: String
     abstract val signatureInfo: SignatureInfo?

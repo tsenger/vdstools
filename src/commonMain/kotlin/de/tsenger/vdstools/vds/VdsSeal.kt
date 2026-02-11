@@ -37,6 +37,9 @@ class VdsSeal : Seal {
 
     override val documentType: String
 
+    override val baseDocumentType: String?
+        get() = vdsMessageGroup.extendedMessageDefinition?.baseDocumentType
+
     override val issuingCountry: String
         get() = vdsHeader.issuingCountry
 

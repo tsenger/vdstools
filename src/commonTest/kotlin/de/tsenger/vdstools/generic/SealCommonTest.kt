@@ -233,4 +233,31 @@ class SealCommonTest {
     }
 
 
+    @Test
+    fun testBaseDokumentTypeNullVds() {
+        val rawString = DataEncoder.encodeBase256(VdsRawBytesCommon.addressStickerId)
+        val seal = Seal.fromString(rawString)
+        assertNotNull(seal)
+        assertEquals("ADDRESS_STICKER_ID", seal.documentType)
+        assertNull(seal.baseDocumentType)
+    }
+
+    @Test
+    fun testBaseDokumentTypeNotNull() {
+        val rawString = DataEncoder.encodeBase256(VdsRawBytesCommon.meldebescheinigung)
+        val seal = Seal.fromString(rawString)
+        assertNotNull(seal)
+        assertEquals("MELDEBESCHEINIGUNG", seal.documentType)
+        assertEquals("ADMINISTRATIVE_DOCUMENTS", seal.baseDocumentType)
+    }
+
+    @Test
+    fun testBaseDokumentTypeNullIdb() {
+        val seal = Seal.fromString(IcbRawStringsCommon.ProvisionalResidenceDocument)
+        assertNotNull(seal)
+        assertEquals("PROVISIONAL_RESIDENCE_DOCUMENT", seal.documentType)
+        assertNull(seal.baseDocumentType)
+    }
+
+
 }
