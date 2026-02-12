@@ -3,6 +3,8 @@ package de.tsenger.vdstools
 
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.asn1.DerTlv
+import de.tsenger.vdstools.vds.tr03171.ProfileConverter
+import de.tsenger.vdstools.vds.tr03171.ProfileXmlParser
 import de.tsenger.vdstools.generated.ResourceConstants
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.MessageCoding
@@ -129,6 +131,22 @@ object DataEncoder {
     @Throws(FileNotFoundException::class)
     fun loadCustomExtendedMessageDefinitionsFromFile(fileName: String) {
         loadCustomExtendedMessageDefinitions(readTextResource(fileName))
+    }
+
+    /**
+     * Loads an extended message definition from an XML document profile (BSI TR-03171).
+     *
+     * The XML profile is parsed and converted to an ExtendedMessageDefinitionDto,
+     * which is then added to the existing registry without replacing other definitions.
+     *
+     * @param xmlString XML content conforming to the DocProfileSchema TR-03171
+     * @throws IllegalArgumentException if the XML is invalid or fails validation
+     */
+    fun loadExtendedMessageDefinitionFromXml(xmlString: String) {
+        val profile = ProfileXmlParser.parse(xmlString)
+        val definition = ProfileConverter.toExtendedMessageDefinition(profile)
+        extendedMessageDefinitionRegistry.addDefinition(definition)
+        log.i("Loaded extended message definition from XML: ${definition.definitionName}")
     }
 
     /**

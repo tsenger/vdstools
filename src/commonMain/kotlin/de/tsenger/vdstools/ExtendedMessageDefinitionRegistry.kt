@@ -20,7 +20,7 @@ import kotlinx.serialization.json.Json
 @OptIn(ExperimentalStdlibApi::class)
 class ExtendedMessageDefinitionRegistry(jsonString: String) {
     private val log = Logger.withTag(this::class.simpleName ?: "")
-    private val definitionsByUuid: Map<String, ExtendedMessageDefinitionDto>
+    private var definitionsByUuid: Map<String, ExtendedMessageDefinitionDto>
 
     init {
         val json = Json { ignoreUnknownKeys = true }
@@ -76,6 +76,16 @@ class ExtendedMessageDefinitionRegistry(jsonString: String) {
      *
      * @return List of all registered definition names
      */
+    /**
+     * Adds or replaces an extended message definition in the registry.
+     *
+     * @param definition The definition to add
+     */
+    fun addDefinition(definition: ExtendedMessageDefinitionDto) {
+        definitionsByUuid = definitionsByUuid + (definition.definitionId.lowercase() to definition)
+        log.d("Added definition: ${definition.definitionName} (${definition.definitionId})")
+    }
+
     val availableDefinitions: List<String>
         get() = definitionsByUuid.values.map { it.definitionName }
 
