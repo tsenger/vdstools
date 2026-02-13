@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "de.tsenger"
-version = "0.11.0-SNAPSHOT"
+version = "0.12.0-SNAPSHOT"
 description = "Kotlin multiplatform library to encode/sign and decode/verify Visible Digital Seals"
 
 repositories {
@@ -20,6 +20,11 @@ publishing {
         maven {
             name = "githubPackages"
             url = uri("https://maven.pkg.github.com/tsenger/vdstools")
+            credentials(PasswordCredentials::class)
+        }
+        maven {
+            name = "giteaPackages"
+            url = uri("https://gitea.t-senger.de/api/packages/tsenger/maven")
             credentials(PasswordCredentials::class)
         }
     }
