@@ -178,5 +178,25 @@ class VdsSealCommonTest {
         assertEquals("20250504", seal.getMessage("DATE_OF_NOTIFICATION")?.value.toString())
     }
 
+    @Test
+    fun testMeldebescheinigung_tag0NotInMessageList() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.meldebescheinigung) as VdsSeal
+        // Tag 0 (DOC_PROFILE_NUMBER) should not appear in messageList
+        assertNull(seal.getMessage("DOC_PROFILE_NUMBER"))
+        assertNull(seal.getMessage(0))
+        // But documentProfileUuid should be set
+        assertNotNull(seal.documentProfileUuid)
+        assertEquals(16, seal.documentProfileUuid!!.size)
+    }
+
+    @Test
+    fun testMeldebescheinigung_documentProfileUuid() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.meldebescheinigung) as VdsSeal
+        val uuid = seal.documentProfileUuid
+        assertNotNull(uuid)
+        // UUID is the 16-byte DOC_PROFILE_NUMBER from the seal
+        assertEquals("9a4223406d374ef99e2cf95e31a23846", uuid.toHexString())
+    }
+
 
 }

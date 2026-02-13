@@ -2,6 +2,7 @@ package de.tsenger.vdstools.generic
 
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.idb.IdbMessageGroup
+import kotlinx.datetime.LocalDate
 import kotlin.test.*
 
 @OptIn(ExperimentalStdlibApi::class)
@@ -138,5 +139,139 @@ class MessageCommonTest {
         assertNotNull(message)
         assertEquals("CAN", message.name)
         assertEquals(0x09, message.tag)
+    }
+
+    @Test
+    fun testValidityDatesValue_bothDates() {
+        val bytes = "20250101\u000020261231".encodeToByteArray()
+        println("Raw value: ${bytes.toHexString()}")
+        val value = MessageValue.fromBytes(bytes, MessageCoding.VALIDITY_DATES)
+        assertTrue(value is MessageValue.ValidityDatesValue)
+        assertEquals(LocalDate(2025, 1, 1), value.validFrom)
+        assertEquals(LocalDate(2026, 12, 31), value.validTo)
+        assertEquals("2025-01-01 - 2026-12-31", value.toString())
+    }
+
+    @Test
+    fun testValidityDatesValue_onlyValidFrom() {
+        val bytes = "20250101\u0000".encodeToByteArray()
+        val value = MessageValue.fromBytes(bytes, MessageCoding.VALIDITY_DATES)
+        assertTrue(value is MessageValue.ValidityDatesValue)
+        assertEquals(LocalDate(2025, 1, 1), value.validFrom)
+        assertNull(value.validTo)
+        assertEquals("2025-01-01", value.toString())
+    }
+
+    @Test
+    fun testValidityDatesValue_onlyValidTo() {
+        val bytes = "\u000020261231".encodeToByteArray()
+        val value = MessageValue.fromBytes(bytes, MessageCoding.VALIDITY_DATES)
+        assertTrue(value is MessageValue.ValidityDatesValue)
+        assertNull(value.validFrom)
+        assertEquals(LocalDate(2026, 12, 31), value.validTo)
+        assertEquals("2026-12-31", value.toString())
+    }
+
+    @Test
+    fun testValidityDatesValue_noDates() {
+        val bytes = "\u0000".encodeToByteArray()
+        val value = MessageValue.fromBytes(bytes, MessageCoding.VALIDITY_DATES)
+        assertTrue(value is MessageValue.ValidityDatesValue)
+        assertNull(value.validFrom)
+        assertNull(value.validTo)
+        assertEquals("", value.toString())
+    }
+
+    @Test
+    fun testValidityDatesValue_bothDates_rawBytes() {
+        val bytes = "20250101\u000020261231".encodeToByteArray()
+        val value = MessageValue.fromBytes(bytes, MessageCoding.VALIDITY_DATES) as MessageValue.ValidityDatesValue
+        // 17 Bytes: 8 (validFrom) + 1 (NUL) + 8 (validTo)
+        assertEquals(17, value.rawBytes.size)
+        assertContentEquals(bytes, value.rawBytes)
+        assertEquals("3230323530313031003230323631323331", value.rawBytes.toHexString())
+    }
+
+    @Test
+    fun testValidityDatesValue_onlyValidFrom_rawBytes() {
+        val bytes = "20250101\u0000".encodeToByteArray()
+        val value = MessageValue.fromBytes(bytes, MessageCoding.VALIDITY_DATES) as MessageValue.ValidityDatesValue
+        // 9 Bytes: 8 (validFrom) + 1 (NUL)
+        assertEquals(9, value.rawBytes.size)
+        assertContentEquals(bytes, value.rawBytes)
+        assertEquals("323032353031303100", value.rawBytes.toHexString())
+    }
+
+    @Test
+    fun testValidityDatesValue_onlyValidTo_rawBytes() {
+        val bytes = "\u000020261231".encodeToByteArray()
+        val value = MessageValue.fromBytes(bytes, MessageCoding.VALIDITY_DATES) as MessageValue.ValidityDatesValue
+        // 9 Bytes: 1 (NUL) + 8 (validTo)
+        assertEquals(9, value.rawBytes.size)
+        assertContentEquals(bytes, value.rawBytes)
+        assertEquals("003230323631323331", value.rawBytes.toHexString())
+    }
+
+    @Test
+    fun testValidityDatesValue_noDates_rawBytes() {
+        val bytes = "\u0000".encodeToByteArray()
+        val value = MessageValue.fromBytes(bytes, MessageCoding.VALIDITY_DATES) as MessageValue.ValidityDatesValue
+        // 1 Byte: nur NUL
+        assertEquals(1, value.rawBytes.size)
+        assertContentEquals(bytes, value.rawBytes)
+        assertEquals("00", value.rawBytes.toHexString())
+    }
+
+    @Test
+    fun testValidityDatesValue_of_bothDates() {
+        val value = MessageValue.ValidityDatesValue.of(
+            LocalDate(2025, 1, 1), LocalDate(2026, 12, 31)
+        )
+        assertEquals(LocalDate(2025, 1, 1), value.validFrom)
+        assertEquals(LocalDate(2026, 12, 31), value.validTo)
+        assertEquals(17, value.rawBytes.size)
+        assertContentEquals("20250101\u000020261231".encodeToByteArray(), value.rawBytes)
+    }
+
+    @Test
+    fun testValidityDatesValue_of_onlyValidFrom() {
+        val value = MessageValue.ValidityDatesValue.of(
+            LocalDate(2025, 3, 15), null
+        )
+        assertEquals(LocalDate(2025, 3, 15), value.validFrom)
+        assertNull(value.validTo)
+        assertEquals(9, value.rawBytes.size)
+        assertContentEquals("20250315\u0000".encodeToByteArray(), value.rawBytes)
+    }
+
+    @Test
+    fun testValidityDatesValue_of_onlyValidTo() {
+        val value = MessageValue.ValidityDatesValue.of(
+            null, LocalDate(2026, 6, 30)
+        )
+        assertNull(value.validFrom)
+        assertEquals(LocalDate(2026, 6, 30), value.validTo)
+        assertEquals(9, value.rawBytes.size)
+        assertContentEquals("\u000020260630".encodeToByteArray(), value.rawBytes)
+    }
+
+    @Test
+    fun testValidityDatesValue_of_noDates() {
+        val value = MessageValue.ValidityDatesValue.of(null, null)
+        assertNull(value.validFrom)
+        assertNull(value.validTo)
+        assertEquals(1, value.rawBytes.size)
+        assertContentEquals("\u0000".encodeToByteArray(), value.rawBytes)
+    }
+
+    @Test
+    fun testValidityDatesValue_of_roundtrip() {
+        val original = MessageValue.ValidityDatesValue.of(
+            LocalDate(2025, 1, 1), LocalDate(2026, 12, 31)
+        )
+        val parsed = MessageValue.ValidityDatesValue.parse(original.rawBytes)
+        assertEquals(original.validFrom, parsed.validFrom)
+        assertEquals(original.validTo, parsed.validTo)
+        assertContentEquals(original.rawBytes, parsed.rawBytes)
     }
 }

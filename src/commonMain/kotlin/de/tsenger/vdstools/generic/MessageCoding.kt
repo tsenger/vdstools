@@ -12,6 +12,7 @@ enum class MessageCoding {
     MASKED_DATE,
     DATE,
     MRZ,
+    VALIDITY_DATES,
     UNKNOWN;
 
     companion object {

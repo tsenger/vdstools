@@ -416,6 +416,7 @@ object DataEncoder {
 
             MessageCoding.MASKED_DATE -> encodeMaskedDate(value as String)
             MessageCoding.DATE -> encodeDate(value as String)
+            MessageCoding.VALIDITY_DATES -> value as ByteArray
             MessageCoding.UNKNOWN -> if (tag != null) {
                 throw IllegalArgumentException("Unsupported tag: $tag")
             } else {

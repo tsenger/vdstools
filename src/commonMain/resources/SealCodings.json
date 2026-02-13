@@ -314,7 +314,7 @@
       {
         "name": "VALIDITY_DATES",
         "tag": 1,
-        "coding": "BYTES",
+        "coding": "VALIDITY_DATES",
         "required": false,
         "minLength": 1,
         "maxLength": 17
