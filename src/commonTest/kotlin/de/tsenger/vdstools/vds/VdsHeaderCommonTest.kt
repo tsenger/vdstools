@@ -171,6 +171,34 @@ class VdsHeaderCommonTest {
     }
 
     @Test
+    fun testGetEncoded_AddressStickerRP() {
+        // ADDRESS_STICKER_RP 0xf90c
+        val header = VdsHeader.Builder("ADDRESS_STICKER_RP")
+            .setIssuingCountry("D<<")
+            .setSignerIdentifier("DETS")
+            .setCertificateReference("5022026")
+            .setIssuingDate(LocalDate.parse("2026-02-05"))
+            .setSigDate(LocalDate.parse("2026-02-05"))
+            .build()
+        val headerBytes = header.encoded
+
+        assertEquals("dc036abc6d32c8ac38e72627fe371f4fba1f4fbaf90c", headerBytes.toHexString())
+    }
+
+    @Test
+    fun testParseByteArray_AddressStickerRP() {
+        val buffer = Buffer().write("dc036abc6d32c8ac38e72627fe371f4fba1f4fbaf90c".hexToByteArray())
+        val header = VdsHeader.fromBuffer(buffer)
+        assertEquals("ADDRESS_STICKER_RP", header.vdsType)
+        assertEquals("D  ", header.issuingCountry)
+        assertEquals("DETS", header.signerIdentifier)
+        assertEquals("5022026", header.certificateReference)
+        assertEquals("2026-02-05", header.issuingDate.toString())
+        assertEquals("2026-02-05", header.sigDate.toString())
+        assertEquals(0xf90c, header.documentRef)
+    }
+
+    @Test
     fun testCertRefLengthCalculation_DEZV() {
         // Test bytesToDecode calculation for DEZV with decimal certRefLength
         // This verifies the formula works correctly when radix=10

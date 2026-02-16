@@ -1,0 +1,24 @@
+stages:
+  - build
+
+variables:
+  GRADLE_USER_HOME: "${CI_PROJECT_DIR}/.gradle"
+  KONAN_DATA_DIR: "${CI_PROJECT_DIR}/.konan"
+
+cache:
+  key: "gradle-cache-$CI_COMMIT_REF_SLUG"
+  paths:
+    - .gradle/wrapper
+    - .gradle/caches
+    - .konan/
+  policy: pull-push
+
+jvm_test:
+  stage: build
+  image: eclipse-temurin:21-jdk
+  script:
+    - chmod +x gradlew
+    - ./gradlew jvmTest --build-cache
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"

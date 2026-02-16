@@ -20,6 +20,15 @@ class VdsMessageGroup {
         private set
 
     /**
+     * The document profile UUID (Tag 0) for UUID-based seals.
+     * Set during [resolveExtendedMessageDefinition] and excluded from [messageList].
+     */
+    var documentProfileUuid: ByteArray? = null
+        private set
+
+    private val metadataTags: MutableSet<Int> = mutableSetOf()
+
+    /**
      * The effective VDS type, considering extended message definition resolution.
      * Returns the definition name if resolved, otherwise the base vdsType.
      */
@@ -47,11 +56,13 @@ class VdsMessageGroup {
 
     val messageList: List<Message>
         /**
-         * @return a list of all decoded Messages, using extended message definition-aware lookup if available
+         * @return a list of all decoded Messages, using extended message definition-aware lookup if available.
+         * Metadata tags (e.g. UUID tag) are excluded.
          */
         get() {
             val messageList: MutableList<Message> = ArrayList()
             for (derTlv in derTlvList) {
+                if (derTlv.tag.toInt() in metadataTags) continue
                 DataEncoder.encodeDerTlv(vdsType, extendedMessageDefinition, derTlv)?.let { messageList.add(it) }
             }
             return messageList
@@ -75,6 +86,8 @@ class VdsMessageGroup {
     fun resolveExtendedMessageDefinition(uuidTag: Int): String {
         val uuidTlv = derTlvList.find { it.tag.toInt() == uuidTag }
         if (uuidTlv != null) {
+            documentProfileUuid = uuidTlv.value
+            metadataTags.add(uuidTag)
             extendedMessageDefinition = DataEncoder.resolveExtendedMessageDefinition(uuidTlv.value)
         }
         return effectiveVdsType

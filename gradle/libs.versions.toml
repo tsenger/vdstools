@@ -11,6 +11,9 @@ kotlinx-coroutines = "1.10.2"
 cryptography = "0.5.0"
 bouncycastle = "1.83"
 
+# XML
+xmlutil = "0.91.3"
+
 # Utilities
 okio = "3.16.4"
 kermit = "2.0.8"
@@ -33,6 +36,9 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 cryptography-core = { module = "dev.whyoleg.cryptography:cryptography-core", version.ref = "cryptography" }
 cryptography-provider-jdk = { module = "dev.whyoleg.cryptography:cryptography-provider-jdk", version.ref = "cryptography" }
 cryptography-provider-openssl3-prebuilt = { module = "dev.whyoleg.cryptography:cryptography-provider-openssl3-prebuilt", version.ref = "cryptography" }
+
+# XML
+xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version.ref = "xmlutil" }
 
 # Utilities
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }

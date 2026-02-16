@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<profile>
+    <profileNumber>9A4223406D374EF99E2CF95E31A23846</profileNumber>
+    <profileName>MELDEBESCHEINIGUNG</profileName>
+    <creator>BSI</creator>
+    <category>Meldewesen</category>
+    <leikaID>99123456789012</leikaID>
+    <statusIndicator>NONE</statusIndicator>
+    <entry tag="4" optional="false">
+        <name>SURNAME</name>
+        <description>Familienname</description>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="5" optional="true">
+        <name>ACADEMIC_DEGREE</name>
+        <description>Akademischer Grad</description>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="6">
+        <name>FIRST_NAME</name>
+        <description>Vorname</description>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="7" optional="true">
+        <name>COMMON_FIRST_NAME</name>
+        <description>Rufname</description>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="8" optional="true">
+        <name>DATE_OF_BIRTH</name>
+        <description>Geburtsdatum</description>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="9">
+        <name>STREET</name>
+        <description>Strasse</description>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="10">
+        <name>HOUSE_NUMBER</name>
+        <description>Hausnummer</description>
+        <length>10</length>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="11">
+        <name>POSTAL_CODE</name>
+        <description>Postleitzahl</description>
+        <length>5</length>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="12">
+        <name>CITY</name>
+        <description>Ort</description>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="13">
+        <name>MOVING_DATE</name>
+        <description>Datum des Einzugs</description>
+        <length>8</length>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="14">
+        <name>HOUSING_STATUS</name>
+        <description>Wohnungsstatus</description>
+        <length>1</length>
+        <type>INTEGER</type>
+    </entry>
+    <entry tag="15">
+        <name>DATE_OF_NOTIFICATION</name>
+        <description>Datum der Anmeldung</description>
+        <length>8</length>
+        <type>UTF8String</type>
+    </entry>
+</profile>

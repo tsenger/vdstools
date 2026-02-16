@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema
+        xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+    <!-- Definiert einen Typ für UUIDv4 ohne Bindestriche, ausschließlich in Großbuchstaben -->
+    <xs:simpleType name="UUIDv4Type">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9A-F]{32}"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <!-- Definiert einen Typ für Tags, beschränkt auf Werte von 4 bis 254 -->
+    <xs:simpleType name="tagType">
+        <xs:restriction base="xs:integer">
+            <xs:minInclusive value="4"/>
+            <xs:maxInclusive value="254"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <!-- Definiert eine leikaID, welche eine oder mehrere 14-stellige numerische Identifikationsnummern beschreibt, getrennt durch Semikolons. -->
+    <xs:simpleType name="LeikaIDType">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="\d{14}(;\d{14})*"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <!-- Definiert ASN.1-basierte Standarddatentypen für die Attribute jedes 'entry'-Elements -->
+    <xs:simpleType name="typeType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="BOOLEAN"/>
+            <xs:enumeration value="INTEGER"/>
+            <xs:enumeration value="OCTET_STRING"/>
+            <xs:enumeration value="UTF8String"/>
+            <xs:enumeration value="DATE"/>
+            <xs:enumeration value="DATE-TIME"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <!-- Definiert, ob und welche Art von Überprüfung gegen den Statusserver erforderlich ist -->
+    <xs:simpleType name="statusType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="NONE"/>
+            <xs:enumeration value="BLOCKLISTING"/>
+            <xs:enumeration value="ALLOWLISTING"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <!-- Definiert den komplexen Typ für Einträge, der verschiedene Felder umfasst -->
+    <xs:complexType name="entryType">
+        <xs:sequence>
+            <xs:element name="name" type="xs:string"/>
+            <xs:element name="description" type="xs:string"/>
+            <xs:element name="length" type="xs:positiveInteger" minOccurs="0"/>
+            <xs:element name="type" type="typeType"/>
+            <xs:element name="defaultValue" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute name="tag" type="tagType" use="required"/>
+        <xs:attribute name="optional" type="xs:boolean"/>
+    </xs:complexType>
+    <!-- Definiert das Hauptelement 'profile', das die Datenstruktur für Profile festlegt,  die zur Erstellung optischer Siegel verwendet werden -->
+    <xs:element name="profile">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="profileNumber" type="UUIDv4Type"/>
+                <xs:element name="profileName" type="xs:string"/>
+                <xs:element name="creator" type="xs:string"/>
+                <xs:element name="category" type="xs:string" minOccurs="0"/>
+                <xs:element name="leikaID" type="LeikaIDType" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="statusIndicator" type="statusType" minOccurs="0"/>
+                <xs:element name="entry" type="entryType" minOccurs="1" maxOccurs="251"/>
+            </xs:sequence>
+        </xs:complexType>
+        <xs:unique name="tagNo">
+            <xs:selector xpath="entry"/>
+            <xs:field xpath="@tag"/>
+        </xs:unique>
+    </xs:element>
+</xs:schema>
