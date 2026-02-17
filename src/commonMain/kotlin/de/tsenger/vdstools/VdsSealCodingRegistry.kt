@@ -248,6 +248,27 @@ class VdsSealCodingRegistry(jsonString: String) {
     }
 
     /**
+     * Gets the tag number for a given message name, considering extended message definitions.
+     * Lookup order: Extended definition first (if provided), then base type.
+     *
+     * @param baseVdsType The base VDS type (e.g., "ADMINISTRATIVE_DOCUMENTS")
+     * @param extendedDefinition The resolved extended message definition (can be null)
+     * @param messageName The message name to look up
+     * @return The tag number
+     */
+    @Throws(IllegalArgumentException::class)
+    fun getMessageTag(baseVdsType: String, extendedDefinition: ExtendedMessageDefinitionDto?, messageName: String): Int {
+        if (extendedDefinition != null) {
+            val definitionMessage = extendedDefinition.messages.find { it.name.equals(messageName, ignoreCase = true) }
+            if (definitionMessage != null) {
+                return definitionMessage.tag
+            }
+        }
+        val sealDto = getSealDto(baseVdsType)
+        return getMessageTag(sealDto, messageName).toInt()
+    }
+
+    /**
      * Returns the message coding for a given VDS type and tag number.
      *
      * @param vdsType The VDS type name

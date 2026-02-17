@@ -389,8 +389,26 @@ object DataEncoder {
         return vdsSealCodingRegistry.getMessageTag(vdsType, messageName)
     }
 
+    fun getMessageTag(baseVdsType: String, extendedDefinition: ExtendedMessageDefinitionDto?, messageName: String): Int {
+        return vdsSealCodingRegistry.getMessageTag(baseVdsType, extendedDefinition, messageName)
+    }
+
     fun getMessageCoding(vdsType: String, tag: Int): MessageCoding {
         return vdsSealCodingRegistry.getMessageCoding(vdsType, tag)
+    }
+
+    fun getMessageCoding(baseVdsType: String, extendedDefinition: ExtendedMessageDefinitionDto?, tag: Int): MessageCoding {
+        return vdsSealCodingRegistry.getMessageCoding(baseVdsType, extendedDefinition, tag)
+    }
+
+    /**
+     * Resolves an extended message definition by its definition name.
+     *
+     * @param name The definition name (e.g., "MELDEBESCHEINIGUNG")
+     * @return The matching ExtendedMessageDefinitionDto, or null if not found
+     */
+    fun resolveExtendedDefinitionByName(name: String): ExtendedMessageDefinitionDto? {
+        return extendedMessageDefinitionRegistry.resolveByName(name)
     }
 
     /**

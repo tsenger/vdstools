@@ -24,15 +24,14 @@ class VdsSeal : Seal {
         this.vdsHeader = vdsHeader
         this.vdsMessageGroup = vdsMessageGroup
         this.vdsSignature = vdsSignature
-        // Use effectiveVdsType which considers extended message definition resolution
-        this.documentType = vdsMessageGroup.effectiveVdsType
+        this.documentType = vdsMessageGroup.extendedMessageDefinition?.definitionName ?: vdsHeader.vdsType
     }
 
     constructor(vdsHeader: VdsHeader, vdsMessageGroup: VdsMessageGroup, signer: Signer) {
         this.vdsHeader = vdsHeader
         this.vdsMessageGroup = vdsMessageGroup
         this.vdsSignature = createVdsSignature(vdsHeader, vdsMessageGroup, signer)
-        this.documentType = vdsHeader.vdsType
+        this.documentType = vdsMessageGroup.extendedMessageDefinition?.definitionName ?: vdsHeader.vdsType
     }
 
     override val documentType: String
@@ -196,7 +195,7 @@ class VdsSeal : Seal {
             if (DataEncoder.requiresUuidLookup(vdsHeader.vdsType)) {
                 val uuidTag = DataEncoder.getUuidMessageTag(vdsHeader.vdsType)
                 vdsMessageGroup.resolveExtendedMessageDefinition(uuidTag)
-                log.d("Resolved effectiveVdsType: ${vdsMessageGroup.effectiveVdsType}")
+                log.d("Resolved extended definition: ${vdsMessageGroup.extendedMessageDefinition?.definitionName}")
             }
 
             return VdsSeal(vdsHeader, vdsMessageGroup, vdsSignature)

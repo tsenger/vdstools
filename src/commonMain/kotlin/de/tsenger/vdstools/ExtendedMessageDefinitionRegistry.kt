@@ -21,11 +21,13 @@ import kotlinx.serialization.json.Json
 class ExtendedMessageDefinitionRegistry(jsonString: String) {
     private val log = Logger.withTag(this::class.simpleName ?: "")
     private var definitionsByUuid: Map<String, ExtendedMessageDefinitionDto>
+    private var definitionsByName: Map<String, ExtendedMessageDefinitionDto>
 
     init {
         val json = Json { ignoreUnknownKeys = true }
         val definitionList: List<ExtendedMessageDefinitionDto> = json.decodeFromString(jsonString)
         definitionsByUuid = definitionList.associateBy { it.definitionId.lowercase() }
+        definitionsByName = definitionList.associateBy { it.definitionName }
         log.d("Loaded ${definitionsByUuid.size} extended message definitions")
     }
 
@@ -83,7 +85,18 @@ class ExtendedMessageDefinitionRegistry(jsonString: String) {
      */
     fun addDefinition(definition: ExtendedMessageDefinitionDto) {
         definitionsByUuid = definitionsByUuid + (definition.definitionId.lowercase() to definition)
+        definitionsByName = definitionsByName + (definition.definitionName to definition)
         log.d("Added definition: ${definition.definitionName} (${definition.definitionId})")
+    }
+
+    /**
+     * Resolves an extended message definition by its definition name.
+     *
+     * @param definitionName The definition name (e.g., "MELDEBESCHEINIGUNG")
+     * @return The matching ExtendedMessageDefinitionDto, or null if no definition matches
+     */
+    fun resolveByName(definitionName: String): ExtendedMessageDefinitionDto? {
+        return definitionsByName[definitionName]
     }
 
     val availableDefinitions: List<String>
