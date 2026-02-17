@@ -179,8 +179,8 @@ You will also find an example on how to generate a datamatrix image with the Zxi
 
 VdsTools uses a JSON-based configuration to define seal document types and their message encodings which follows the
 encoding based on BSI TR-03137.
-Profile definitions according to BSI TR-03171 are currently not fully supported, as the profile definitions are not
-publicly available at this time.
+VDS data according to BSI TR-03171 are also supported and can be parsed from document profiles.
+However, the official profile definitions and certificates are not yet publicly available.
 You can load your own custom codings at runtime to support additional document types beyond the standard ones.
 
 ### Loading Custom Codings
@@ -255,18 +255,10 @@ val vdsSeal = VdsSeal(header, messageGroup, signer)
 
 See `src/commonMain/resources/SealCodings.json` for the complete structure of the default codings.
 
-## Documentation
-
-[![javadoc](https://javadoc.io/badge2/de.tsenger/vdstools/javadoc.svg)](https://javadoc.io/doc/de.tsenger/vdstools)
-
-Online JavaDoc can be found here:
-[https://javadoc.io/doc/de.tsenger/vdstools](https://javadoc.io/doc/de.tsenger/vdstools)
-
 ## How to include
 
 The vdstools library is available on
-the [Maven Central Repository](https://central.sonatype.com/artifact/de.tsenger/vdstools)
-and [GitHub Packages](https://github.com/tsenger/vdstools/packages/2279382) to be
+the [Maven Central Repository](https://central.sonatype.com/artifact/de.tsenger/vdstools) to be
 easy to integrate in your projects.
 
 ### Gradle
@@ -275,7 +267,7 @@ To include this library to your Gradle build add this dependency:
 
 ```groovy
 dependencies {
-    implementation 'de.tsenger:vdstools:0.11.0'
+    implementation 'de.tsenger:vdstools:0.12.0'
 }
 ```
 
@@ -288,6 +280,6 @@ To include this library to your Maven build add this dependency:
 <dependency>
     <groupId>de.tsenger</groupId>
     <artifactId>vdstools</artifactId>
-    <version>0.11.0</version>
+    <version>0.12.0</version>
 </dependency>
 ```
