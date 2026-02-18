@@ -88,6 +88,7 @@ class VdsMessageGroup {
         val derTlvList: MutableList<DerTlv> = ArrayList(5)
         internal val baseVdsType: String
         internal val extendedDefinition: ExtendedMessageDefinitionDto?
+        private val compoundParts: MutableMap<Int, MutableList<Pair<Int, ByteArray>>> = mutableMapOf()
 
         init {
             val docRef = DataEncoder.getDocumentRef(vdsType)
@@ -117,11 +118,31 @@ class VdsMessageGroup {
 
         @Throws(IllegalArgumentException::class)
         fun <T> addMessage(name: String, value: T): Builder {
+            val compoundDto = DataEncoder.findCompoundMessage(baseVdsType, extendedDefinition, name)
+            if (compoundDto != null) {
+                val encoded = DataEncoder.encodeValueByCoding(compoundDto.coding, value)
+                val parts = compoundParts.getOrPut(compoundDto.compoundTag!!) { mutableListOf() }
+                parts.add(Pair(compoundDto.compoundOrder, encoded))
+                return this
+            }
             return addMessage(DataEncoder.getMessageTag(baseVdsType, extendedDefinition, name), value)
         }
 
         @OptIn(ExperimentalStdlibApi::class)
         fun build(): VdsMessageGroup {
+            // Merge compound parts into DerTlv entries
+            for ((compoundTag, parts) in compoundParts) {
+                val maxOrder = parts.maxOf { it.first }
+                val slots = Array(maxOrder + 1) { ByteArray(0) }
+                for ((order, bytes) in parts) {
+                    slots[order] = bytes
+                }
+                val merged = slots.flatMapIndexed { index, bytes ->
+                    if (index > 0) listOf(byteArrayOf(0x00), bytes) else listOf(bytes)
+                }.fold(ByteArray(0)) { acc, ba -> acc + ba }
+                derTlvList.add(DerTlv(compoundTag.toByte(), merged))
+            }
+
             val group = VdsMessageGroup(this)
             // If using an extended definition, inject UUID as Tag 0 and set definition on group
             if (extendedDefinition != null) {

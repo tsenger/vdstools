@@ -10,6 +10,7 @@ import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.MessageCoding
 import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.vds.dto.ExtendedMessageDefinitionDto
+import de.tsenger.vdstools.vds.dto.MessageDto
 import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.DelicateCryptographyApi
 import dev.whyoleg.cryptography.algorithms.SHA1
@@ -387,6 +388,10 @@ object DataEncoder {
 
     fun getMessageTag(vdsType: String, messageName: String): Int {
         return vdsSealCodingRegistry.getMessageTag(vdsType, messageName)
+    }
+
+    fun findCompoundMessage(baseVdsType: String, extendedDefinition: ExtendedMessageDefinitionDto?, messageName: String): MessageDto? {
+        return vdsSealCodingRegistry.findCompoundMessage(baseVdsType, extendedDefinition, messageName)
     }
 
     fun getMessageTag(baseVdsType: String, extendedDefinition: ExtendedMessageDefinitionDto?, messageName: String): Int {

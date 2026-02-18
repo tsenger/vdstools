@@ -322,6 +322,34 @@ class VdsSealCodingRegistry(jsonString: String) {
         throw IllegalArgumentException("No Message with tag '" + tag + "' is specified for the given seal '" + sealDto.documentType + "'")
     }
 
+    /**
+     * Finds a compound message definition by name.
+     * A compound message has [MessageDto.compoundTag] set (non-null).
+     *
+     * Lookup order: Extended definition first (if provided), then base type.
+     *
+     * @param baseVdsType The base VDS type (e.g., "ADMINISTRATIVE_DOCUMENTS")
+     * @param extendedDefinition The resolved extended message definition (can be null)
+     * @param messageName The message name to look up (e.g., "VALID_FROM")
+     * @return The matching [MessageDto] if it is a compound message, or null
+     */
+    fun findCompoundMessage(
+        baseVdsType: String,
+        extendedDefinition: ExtendedMessageDefinitionDto?,
+        messageName: String
+    ): de.tsenger.vdstools.vds.dto.MessageDto? {
+        if (extendedDefinition != null) {
+            val msg = extendedDefinition.messages.find {
+                it.name.equals(messageName, ignoreCase = true) && it.compoundTag != null
+            }
+            if (msg != null) return msg
+        }
+        val sealDto = try { getSealDto(baseVdsType) } catch (_: IllegalArgumentException) { return null }
+        return sealDto.messages.find {
+            it.name.equals(messageName, ignoreCase = true) && it.compoundTag != null
+        }
+    }
+
     @Throws(IllegalArgumentException::class)
     private fun getSealDto(vdsType: String): SealDto {
         for (sealDto in sealDtoList) {

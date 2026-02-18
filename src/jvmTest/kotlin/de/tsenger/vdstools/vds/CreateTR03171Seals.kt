@@ -9,8 +9,10 @@ import java.io.FileInputStream
 import java.security.KeyStore
 import java.security.Security
 import java.security.cert.X509Certificate
+import de.tsenger.vdstools.generic.MessageValue
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 class CreateTR03171Seals {
@@ -90,6 +92,42 @@ class CreateTR03171Seals {
         val encodedSealBytes = vdsSeal.encoded
         println("Encoded seal bytes: ${encodedSealBytes.toHexString()}")
 
+    }
+
+    @Test
+    fun buildMeldebescheinigungWithCompoundValidityDates() {
+        val messageGroup = VdsMessageGroup.Builder("MELDEBESCHEINIGUNG")
+            .addMessage("VALID_FROM", "20250101")
+            .addMessage("VALID_TO", "20251231")
+            .addMessage("SURNAME", "Leiermann")
+            .build()
+
+        // Verify VALIDITY_DATES tag (1) was created
+        val validityMessage = messageGroup.getMessage("VALIDITY_DATES")
+        assertNotNull(validityMessage, "VALIDITY_DATES message should be present")
+
+        // Verify decoding as ValidityDatesValue
+        val validityValue = validityMessage.value as MessageValue.ValidityDatesValue
+        assertEquals(LocalDate(2025, 1, 1), validityValue.validFrom)
+        assertEquals(LocalDate(2025, 12, 31), validityValue.validTo)
+
+        // Verify surname still works
+        assertEquals("Leiermann", messageGroup.getMessage("SURNAME").toString())
+    }
+
+    @Test
+    fun buildWithOnlyValidFrom() {
+        val messageGroup = VdsMessageGroup.Builder("MELDEBESCHEINIGUNG")
+            .addMessage("VALID_FROM", "20250601")
+            .addMessage("SURNAME", "Müller")
+            .build()
+
+        val validityMessage = messageGroup.getMessage("VALIDITY_DATES")
+        assertNotNull(validityMessage)
+
+        val validityValue = validityMessage.value as MessageValue.ValidityDatesValue
+        assertEquals(LocalDate(2025, 6, 1), validityValue.validFrom)
+        assertNull(validityValue.validTo)
     }
 
     companion object {
