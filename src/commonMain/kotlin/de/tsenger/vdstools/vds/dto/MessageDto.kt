@@ -12,6 +12,4 @@ data class MessageDto(
     var required: Boolean = false,
     var minLength: Int = 0,
     var maxLength: Int = 0,
-    val compoundTag: Int? = null,
-    val compoundOrder: Int = 0,
 )

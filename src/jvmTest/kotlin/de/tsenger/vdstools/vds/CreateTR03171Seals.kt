@@ -1,6 +1,7 @@
 package de.tsenger.vdstools.vds
 
 import de.tsenger.vdstools.Signer
+import de.tsenger.vdstools.generic.MessageValue
 import kotlinx.datetime.LocalDate
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey
 import org.bouncycastle.jce.provider.BouncyCastleProvider
@@ -8,8 +9,6 @@ import org.junit.BeforeClass
 import java.io.FileInputStream
 import java.security.KeyStore
 import java.security.Security
-import java.security.cert.X509Certificate
-import de.tsenger.vdstools.generic.MessageValue
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -81,7 +80,6 @@ class CreateTR03171Seals {
 
         val ecPrivKey = keystore.getKey("utts5b", keyStorePassword.toCharArray()) as BCECPrivateKey
         val signer = Signer(ecPrivKey.encoded, "brainpoolP256r1")
-        val cert: X509Certificate = keystore.getCertificate("utts5b") as X509Certificate
 
         val vdsSeal = VdsSeal(header, messageGroup, signer)
 
@@ -95,10 +93,12 @@ class CreateTR03171Seals {
     }
 
     @Test
-    fun buildMeldebescheinigungWithCompoundValidityDates() {
+    fun messageGroupBuilderWithValidityDates() {
         val messageGroup = VdsMessageGroup.Builder("MELDEBESCHEINIGUNG")
-            .addMessage("VALID_FROM", "20250101")
-            .addMessage("VALID_TO", "20251231")
+            .addMessage(
+                "VALIDITY_DATES",
+                MessageValue.ValidityDatesValue.of(LocalDate(2025, 1, 1), LocalDate(2025, 12, 31))
+            )
             .addMessage("SURNAME", "Leiermann")
             .build()
 
@@ -116,9 +116,9 @@ class CreateTR03171Seals {
     }
 
     @Test
-    fun buildWithOnlyValidFrom() {
+    fun messageGroupBuilderWithOnlyValidFrom() {
         val messageGroup = VdsMessageGroup.Builder("MELDEBESCHEINIGUNG")
-            .addMessage("VALID_FROM", "20250601")
+            .addMessage("VALIDITY_DATES", MessageValue.ValidityDatesValue.of(LocalDate(2025, 6, 1), null))
             .addMessage("SURNAME", "Müller")
             .build()
 

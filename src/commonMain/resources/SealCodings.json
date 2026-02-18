@@ -318,20 +318,6 @@
         "required": false,
         "minLength": 1,
         "maxLength": 17
-      },
-      {
-        "name": "VALID_FROM",
-        "tag": 0,
-        "compoundTag": 1,
-        "compoundOrder": 0,
-        "coding": "UTF8_STRING"
-      },
-      {
-        "name": "VALID_TO",
-        "tag": 0,
-        "compoundTag": 1,
-        "compoundOrder": 1,
-        "coding": "UTF8_STRING"
       }
     ]
   }
