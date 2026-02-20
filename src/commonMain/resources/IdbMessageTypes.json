@@ -3,14 +3,14 @@
     "name": "VISA",
     "tag": 1,
     "coding": "BYTES",
-    "min_length": 61,
-    "max_length": 331,
+    "minBytes": 62,
+    "maxBytes": 328,
     "messages": [
       {
         "name": "MRZ_MRVA",
         "tag": 1,
         "coding": "MRZ",
-        "required": true,
+        "required": false,
         "minBytes": 48,
         "maxBytes": 48
       },
@@ -18,7 +18,7 @@
         "name": "MRZ_MRVB",
         "tag": 2,
         "coding": "MRZ",
-        "required": true,
+        "required": false,
         "minBytes": 44,
         "maxBytes": 44
       },
@@ -68,8 +68,8 @@
     "name": "EMERGENCY_TRAVEL_DOCUMENT",
     "tag": 2,
     "coding": "BYTES",
-    "min_length": 52,
-    "max_length": 52,
+    "minBytes": 50,
+    "maxBytes": 50,
     "messages": [
       {
         "name": "MRZ",
@@ -85,8 +85,8 @@
     "name": "PROOF_OF_TESTING",
     "tag": 3,
     "coding": "BYTES",
-    "min_length": 0,
-    "max_length": 1024,
+    "minBytes": 68,
+    "maxBytes": 659,
     "messages": [
       {
         "name": "UTCI",
@@ -222,98 +222,98 @@
     "name": "PROOF_OF_VACCINATION",
     "tag": 4,
     "coding": "BYTES",
-    "min_length": 0,
-    "max_length": 1024
+    "minBytes": 0,
+    "maxBytes": 1024
   },
   {
     "name": "PROOF_OF_RECOVERY",
     "tag": 5,
     "coding": "BYTES",
-    "min_length": 0,
-    "max_length": 1024
+    "minBytes": 0,
+    "maxBytes": 1024
   },
   {
     "name": "DIGITAL_TRAVEL_AUTHORIZATION",
     "tag": 6,
     "coding": "BYTES",
-    "min_length": 32,
-    "max_length": 169
+    "minBytes": 32,
+    "maxBytes": 169
   },
   {
     "name": "MRZ_TD1",
     "tag": 7,
     "coding": "MRZ",
-    "min_length": 60,
-    "max_length": 60
+    "minBytes": 60,
+    "maxBytes": 60
   },
   {
     "name": "MRZ_TD3",
     "tag": 8,
     "coding": "MRZ",
-    "min_length": 60,
-    "max_length": 60
+    "minBytes": 60,
+    "maxBytes": 60
   },
   {
     "name": "CAN",
     "tag": 9,
     "coding": "C40",
-    "min_length": 4,
-    "max_length": 4
+    "minBytes": 4,
+    "maxBytes": 4
   },
   {
     "name": "EF_CARD_ACCESS",
     "tag": 10,
     "coding": "BYTES",
-    "min_length": 0,
-    "max_length": 1024
+    "minBytes": 0,
+    "maxBytes": 1024
   },
   {
     "name": "FACE_IMAGE",
     "tag": 128,
     "coding": "BYTES",
-    "min_length": 900,
-    "max_length": 1000
+    "minBytes": 900,
+    "maxBytes": 1000
   },
   {
     "name": "MRZ_TD2",
     "tag": 129,
     "coding": "MRZ",
-    "min_length": 48,
-    "max_length": 48
+    "minBytes": 48,
+    "maxBytes": 48
   },
   {
     "name": "DOCUMENT_REFERENCE",
     "tag": 130,
     "coding": "C40",
-    "min_length": 6,
-    "max_length": 6
+    "minBytes": 6,
+    "maxBytes": 6
   },
   {
     "name": "AZR",
     "tag": 131,
     "coding": "C40",
-    "min_length": 8,
-    "max_length": 8
+    "minBytes": 8,
+    "maxBytes": 8
   },
   {
     "name": "EXPIRY_DATE",
     "tag": 132,
     "coding": "MASKED_DATE",
-    "min_length": 4,
-    "max_length": 4
+    "minBytes": 4,
+    "maxBytes": 4
   },
   {
     "name": "DOCUMENT_NUMBER",
     "tag": 133,
     "coding": "C40",
-    "min_length": 6,
-    "max_length": 6
+    "minBytes": 6,
+    "maxBytes": 6
   },
   {
     "name": "NATIONAL_DOCUMENT_IDENTIFIER",
     "tag": 134,
     "coding": "BYTE",
-    "min_length": 1,
-    "max_length": 1
+    "minBytes": 1,
+    "maxBytes": 1
   }
 ]
