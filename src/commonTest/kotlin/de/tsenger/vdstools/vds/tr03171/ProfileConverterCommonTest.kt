@@ -64,7 +64,7 @@ class ProfileConverterCommonTest {
         val result = ProfileConverter.toExtendedMessageDefinition(profile)
         val msg = result.messages[0]
         assertEquals(MessageCoding.BYTE, msg.coding)
-        assertEquals(1, msg.maxLength)
+        assertEquals(1, msg.maxBytes)
     }
 
     @Test
@@ -73,7 +73,7 @@ class ProfileConverterCommonTest {
         val result = ProfileConverter.toExtendedMessageDefinition(profile)
         val msg = result.messages[0]
         assertEquals(MessageCoding.BYTE, msg.coding)
-        assertEquals(1, msg.maxLength)
+        assertEquals(1, msg.maxBytes)
     }
 
     @Test
@@ -82,7 +82,7 @@ class ProfileConverterCommonTest {
         val result = ProfileConverter.toExtendedMessageDefinition(profile)
         val msg = result.messages[0]
         assertEquals(MessageCoding.BYTES, msg.coding)
-        assertEquals(255, msg.maxLength)
+        assertEquals(255, msg.maxBytes)
     }
 
     @Test
@@ -91,7 +91,7 @@ class ProfileConverterCommonTest {
         val result = ProfileConverter.toExtendedMessageDefinition(profile)
         val msg = result.messages[0]
         assertEquals(MessageCoding.BYTES, msg.coding)
-        assertEquals(4, msg.maxLength)
+        assertEquals(4, msg.maxBytes)
     }
 
     @Test
@@ -100,7 +100,7 @@ class ProfileConverterCommonTest {
         val result = ProfileConverter.toExtendedMessageDefinition(profile)
         val msg = result.messages[0]
         assertEquals(MessageCoding.BYTES, msg.coding)
-        assertEquals(20, msg.maxLength)
+        assertEquals(20, msg.maxBytes)
     }
 
     @Test
@@ -109,7 +109,7 @@ class ProfileConverterCommonTest {
         val result = ProfileConverter.toExtendedMessageDefinition(profile)
         val msg = result.messages[0]
         assertEquals(MessageCoding.BYTES, msg.coding)
-        assertEquals(255, msg.maxLength)
+        assertEquals(255, msg.maxBytes)
     }
 
     @Test
@@ -118,7 +118,7 @@ class ProfileConverterCommonTest {
         val result = ProfileConverter.toExtendedMessageDefinition(profile)
         val msg = result.messages[0]
         assertEquals(MessageCoding.UTF8_STRING, msg.coding)
-        assertEquals(50, msg.maxLength)
+        assertEquals(50, msg.maxBytes)
     }
 
     @Test
@@ -127,7 +127,7 @@ class ProfileConverterCommonTest {
         val result = ProfileConverter.toExtendedMessageDefinition(profile)
         val msg = result.messages[0]
         assertEquals(MessageCoding.UTF8_STRING, msg.coding)
-        assertEquals(255, msg.maxLength)
+        assertEquals(255, msg.maxBytes)
     }
 
     @Test
@@ -136,7 +136,7 @@ class ProfileConverterCommonTest {
         val result = ProfileConverter.toExtendedMessageDefinition(profile)
         val msg = result.messages[0]
         assertEquals(MessageCoding.DATE, msg.coding)
-        assertEquals(3, msg.maxLength)
+        assertEquals(3, msg.maxBytes)
     }
 
     @Test
@@ -145,7 +145,7 @@ class ProfileConverterCommonTest {
         val result = ProfileConverter.toExtendedMessageDefinition(profile)
         val msg = result.messages[0]
         assertEquals(MessageCoding.BYTES, msg.coding)
-        assertEquals(6, msg.maxLength)
+        assertEquals(6, msg.maxBytes)
     }
 
     @Test
@@ -166,7 +166,7 @@ class ProfileConverterCommonTest {
     fun testMinLengthAlwaysOne() {
         val profile = createProfile(createEntry())
         val result = ProfileConverter.toExtendedMessageDefinition(profile)
-        assertEquals(1, result.messages[0].minLength)
+        assertEquals(1, result.messages[0].minBytes)
     }
 
     @Test
@@ -215,13 +215,13 @@ class ProfileConverterCommonTest {
         assertEquals(4, surname.tag)
         assertEquals(MessageCoding.UTF8_STRING, surname.coding)
         assertTrue(surname.required)
-        assertEquals(255, surname.maxLength)
+        assertEquals(255, surname.maxBytes)
 
         val academic = definition.messages.first { it.name == "ACADEMIC_DEGREE" }
         assertFalse(academic.required)
 
         val housing = definition.messages.first { it.name == "HOUSING_STATUS" }
         assertEquals(MessageCoding.BYTE, housing.coding)
-        assertEquals(1, housing.maxLength)
+        assertEquals(1, housing.maxBytes)
     }
 }

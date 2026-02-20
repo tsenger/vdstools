@@ -2,6 +2,7 @@ package de.tsenger.vdstools.generic
 
 import de.tsenger.vdstools.DataEncoder
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.number
 
 sealed class MessageValue {
@@ -50,6 +51,20 @@ sealed class MessageValue {
         }
 
         override fun hashCode(): Int = 31 * date.hashCode() + rawBytes.contentHashCode()
+    }
+
+    data class DateTimeValue(val dateTime: LocalDateTime, override val rawBytes: ByteArray) : MessageValue() {
+        override val decoded: LocalDateTime get() = dateTime
+
+        override fun toString(): String = decoded.toString()
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is DateTimeValue) return false
+            return dateTime == other.dateTime && rawBytes.contentEquals(other.rawBytes)
+        }
+
+        override fun hashCode(): Int = 31 * dateTime.hashCode() + rawBytes.contentHashCode()
     }
 
     data class MaskedDateValue(val value: String, override val rawBytes: ByteArray) : MessageValue() {
@@ -175,6 +190,7 @@ sealed class MessageValue {
                     MessageCoding.C40 -> StringValue(DataEncoder.decodeC40(bytes), bytes)
                     MessageCoding.UTF8_STRING -> StringValue(bytes.decodeToString(), bytes)
                     MessageCoding.DATE -> DateValue(DataEncoder.decodeDate(bytes), bytes)
+                    MessageCoding.DATE_TIME -> DateTimeValue(DataEncoder.decodeDateTime(bytes), bytes)
                     MessageCoding.MASKED_DATE -> MaskedDateValue(
                         DataEncoder.decodeMaskedDate(bytes),
                         bytes

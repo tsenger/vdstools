@@ -11,6 +11,7 @@ enum class MessageCoding {
     BYTE,
     MASKED_DATE,
     DATE,
+    DATE_TIME,
     MRZ,
     VALIDITY_DATES,
     UNKNOWN;

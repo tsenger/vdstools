@@ -8,10 +8,9 @@
         "name": "MRZ",
         "tag": 2,
         "coding": "MRZ",
-        "decodedLength": 72,
         "required": true,
-        "minLength": 48,
-        "maxLength": 48
+        "minBytes": 48,
+        "maxBytes": 48
       }
     ]
   }

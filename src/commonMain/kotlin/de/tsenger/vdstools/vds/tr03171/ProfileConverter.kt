@@ -24,8 +24,8 @@ object ProfileConverter {
             tag = entry.tag,
             coding = coding,
             required = !entry.optional,
-            minLength = 1,
-            maxLength = maxLength
+            minBytes = 1,
+            maxBytes = maxLength
         )
     }
 

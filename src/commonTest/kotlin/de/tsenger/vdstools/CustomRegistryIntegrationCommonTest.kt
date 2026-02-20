@@ -143,10 +143,10 @@ class CustomRegistryIntegrationCommonTest {
                 "documentRef": "fc04",
                 "version": 4,
                 "messages": [
-                    {"name": "SOCIAL_INSURANCE_NUMBER", "tag": 1, "coding": "C40", "decodedLength": 12, "required": true, "minLength": 8, "maxLength": 8},
-                    {"name": "SURNAME", "tag": 2, "coding": "UTF8_STRING", "required": true, "minLength": 1, "maxLength": 90},
-                    {"name": "FIRST_NAME", "tag": 3, "coding": "UTF8_STRING", "required": true, "minLength": 1, "maxLength": 90},
-                    {"name": "BIRTH_NAME", "tag": 4, "coding": "UTF8_STRING", "required": false, "minLength": 1, "maxLength": 90}
+                    {"name": "SOCIAL_INSURANCE_NUMBER", "tag": 1, "coding": "C40", "required": true, "minBytes": 8, "maxBytes": 8},
+                    {"name": "SURNAME", "tag": 2, "coding": "UTF8_STRING", "required": true, "minBytes": 1, "maxBytes": 90},
+                    {"name": "FIRST_NAME", "tag": 3, "coding": "UTF8_STRING", "required": true, "minBytes": 1, "maxBytes": 90},
+                    {"name": "BIRTH_NAME", "tag": 4, "coding": "UTF8_STRING", "required": false, "minBytes": 1, "maxBytes": 90}
                 ]
             }]
         """.trimIndent()
@@ -167,10 +167,10 @@ class CustomRegistryIntegrationCommonTest {
                 "documentRef": "fc04",
                 "version": 4,
                 "messages": [
-                    {"name": "VERSICHERUNGSNUMMER", "tag": 1, "coding": "C40", "decodedLength": 12, "required": true, "minLength": 8, "maxLength": 8},
-                    {"name": "NACHNAME", "tag": 2, "coding": "UTF8_STRING", "required": true, "minLength": 1, "maxLength": 90},
-                    {"name": "VORNAME", "tag": 3, "coding": "UTF8_STRING", "required": true, "minLength": 1, "maxLength": 90},
-                    {"name": "GEBURTSNAME", "tag": 4, "coding": "UTF8_STRING", "required": false, "minLength": 1, "maxLength": 90}
+                    {"name": "VERSICHERUNGSNUMMER", "tag": 1, "coding": "C40", "required": true, "minBytes": 8, "maxBytes": 8},
+                    {"name": "NACHNAME", "tag": 2, "coding": "UTF8_STRING", "required": true, "minBytes": 1, "maxBytes": 90},
+                    {"name": "VORNAME", "tag": 3, "coding": "UTF8_STRING", "required": true, "minBytes": 1, "maxBytes": 90},
+                    {"name": "GEBURTSNAME", "tag": 4, "coding": "UTF8_STRING", "required": false, "minBytes": 1, "maxBytes": 90}
                 ]
             }]
         """.trimIndent()

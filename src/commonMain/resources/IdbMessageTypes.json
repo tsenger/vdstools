@@ -4,21 +4,219 @@
     "tag": 1,
     "coding": "BYTES",
     "min_length": 61,
-    "max_length": 331
+    "max_length": 331,
+    "messages": [
+      {
+        "name": "MRZ_MRVA",
+        "tag": 1,
+        "coding": "MRZ",
+        "required": true,
+        "minBytes": 48,
+        "maxBytes": 48
+      },
+      {
+        "name": "MRZ_MRVB",
+        "tag": 2,
+        "coding": "MRZ",
+        "required": true,
+        "minBytes": 44,
+        "maxBytes": 44
+      },
+      {
+        "name": "NUMBER_OF_ENTRIES",
+        "tag": 3,
+        "coding": "BYTE",
+        "required": true,
+        "minBytes": 1,
+        "maxBytes": 1
+      },
+      {
+        "name": "DURATION_OF_STAY",
+        "tag": 4,
+        "coding": "BYTES",
+        "required": true,
+        "minBytes": 3,
+        "maxBytes": 3
+      },
+      {
+        "name": "PASSPORT_NUMBER",
+        "tag": 5,
+        "coding": "C40",
+        "required": true,
+        "minBytes": 6,
+        "maxBytes": 6
+      },
+      {
+        "name": "VISA_TYPE",
+        "tag": 6,
+        "coding": "BYTES",
+        "required": false,
+        "minBytes": 1,
+        "maxBytes": 4
+      },
+      {
+        "name": "ADDITIONAL_FEATURES",
+        "tag": 7,
+        "coding": "BYTES",
+        "required": false,
+        "minBytes": 0,
+        "maxBytes": 254
+      }
+    ]
   },
   {
     "name": "EMERGENCY_TRAVEL_DOCUMENT",
     "tag": 2,
     "coding": "BYTES",
     "min_length": 52,
-    "max_length": 52
+    "max_length": 52,
+    "messages": [
+      {
+        "name": "MRZ",
+        "tag": 2,
+        "coding": "MRZ",
+        "required": true,
+        "minBytes": 48,
+        "maxBytes": 48
+      }
+    ]
   },
   {
     "name": "PROOF_OF_TESTING",
     "tag": 3,
     "coding": "BYTES",
     "min_length": 0,
-    "max_length": 1024
+    "max_length": 1024,
+    "messages": [
+      {
+        "name": "UTCI",
+        "tag": 1,
+        "coding": "C40",
+        "required": false,
+        "minBytes": 2,
+        "maxBytes": 12
+      },
+      {
+        "name": "NAME",
+        "tag": 2,
+        "coding": "C40",
+        "required": true,
+        "minBytes": 2,
+        "maxBytes": 26
+      },
+      {
+        "name": "DATE_OF_BIRTH",
+        "tag": 3,
+        "coding": "MASKED_DATE",
+        "required": true,
+        "minBytes": 4,
+        "maxBytes": 4
+      },
+      {
+        "name": "DOCUMENT_TYPE",
+        "tag": 4,
+        "coding": "C40",
+        "required": true,
+        "minBytes": 2,
+        "maxBytes": 2
+      },
+      {
+        "name": "DOCUMENT_NUMBER",
+        "tag": 5,
+        "coding": "C40",
+        "required": true,
+        "minBytes": 2,
+        "maxBytes": 16
+      },
+      {
+        "name": "TESTING_FACILITY_NAME",
+        "tag": 6,
+        "coding": "C40",
+        "required": true,
+        "minBytes": 2,
+        "maxBytes": 14
+      },
+      {
+        "name": "COUNTRY_OF_TEST",
+        "tag": 7,
+        "coding": "C40",
+        "required": true,
+        "minBytes": 2,
+        "maxBytes": 2
+      },
+      {
+        "name": "TESTING_FACILITY_CONTACT_NUMBER",
+        "tag": 8,
+        "coding": "C40",
+        "required": true,
+        "minBytes": 12,
+        "maxBytes": 12
+      },
+      {
+        "name": "TESTING_FACILITY_EMAIL",
+        "tag": 9,
+        "coding": "UTF8_STRING",
+        "required": true,
+        "minBytes": 1,
+        "maxBytes": 255
+      },
+      {
+        "name": "TESTING_FACILITY_ADDRESS",
+        "tag": 10,
+        "coding": "UTF8_STRING",
+        "required": true,
+        "minBytes": 1,
+        "maxBytes": 255
+      },
+      {
+        "name": "SPECIMEN_COLLECTION_DATE_TIME",
+        "tag": 11,
+        "coding": "DATE_TIME",
+        "required": true,
+        "minBytes": 6,
+        "maxBytes": 6
+      },
+      {
+        "name": "REPORT_ISSUANCE_DATE_TIME",
+        "tag": 12,
+        "coding": "DATE_TIME",
+        "required": true,
+        "minBytes": 6,
+        "maxBytes": 6
+      },
+      {
+        "name": "TEST_CONDUCTED",
+        "tag": 13,
+        "coding": "BYTE",
+        "required": true,
+        "minBytes": 1,
+        "maxBytes": 1
+      },
+      {
+        "name": "TEST_RESULT",
+        "tag": 14,
+        "coding": "BYTE",
+        "required": true,
+        "minBytes": 1,
+        "maxBytes": 1
+      },
+      {
+        "name": "METHOD_USED",
+        "tag": 15,
+        "coding": "BYTE",
+        "required": false,
+        "minBytes": 1,
+        "maxBytes": 1
+      },
+      {
+        "name": "OPTIONAL_FIELD",
+        "tag": 16,
+        "coding": "C40",
+        "required": false,
+        "minBytes": 2,
+        "maxBytes": 14
+      }
+    ]
   },
   {
     "name": "PROOF_OF_VACCINATION",

@@ -172,7 +172,7 @@ class ProfileIntegrationCommonTest {
             assertEquals(jsonMsg.tag, xmlMsg.tag, "Tag mismatch for ${jsonMsg.name}")
             assertEquals(jsonMsg.coding, xmlMsg.coding, "Coding mismatch for ${jsonMsg.name}")
             assertEquals(jsonMsg.required, xmlMsg.required, "Required mismatch for ${jsonMsg.name}")
-            assertEquals(jsonMsg.maxLength, xmlMsg.maxLength, "MaxLength mismatch for ${jsonMsg.name}")
+            assertEquals(jsonMsg.maxBytes, xmlMsg.maxBytes, "MaxBytes mismatch for ${jsonMsg.name}")
         }
     }
 }

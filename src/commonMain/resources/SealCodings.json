@@ -8,19 +8,17 @@
         "name": "MRZ",
         "tag": 2,
         "coding": "MRZ",
-        "decodedLength": 72,
         "required": true,
-        "minLength": 48,
-        "maxLength": 48
+        "minBytes": 48,
+        "maxBytes": 48
       },
       {
         "name": "AZR",
         "tag": 3,
         "coding": "C40",
-        "decodedLength": 12,
         "required": true,
-        "minLength": 8,
-        "maxLength": 8
+        "minBytes": 8,
+        "maxBytes": 8
       }
     ]
   },
@@ -33,27 +31,25 @@
         "name": "DOCUMENT_NUMBER",
         "tag": 1,
         "coding": "C40",
-        "decodedLength": 9,
         "required": true,
-        "minLength": 6,
-        "maxLength": 6
+        "minBytes": 6,
+        "maxBytes": 6
       },
       {
         "name": "AGS",
         "tag": 2,
         "coding": "C40",
-        "decodedLength": 9,
         "required": true,
-        "minLength": 6,
-        "maxLength": 6
+        "minBytes": 6,
+        "maxBytes": 6
       },
       {
         "name": "ADDRESS",
         "tag": 3,
         "coding": "C40",
         "required": true,
-        "minLength": 6,
-        "maxLength": 18
+        "minBytes": 6,
+        "maxBytes": 18
       }
     ]
   },
@@ -66,27 +62,25 @@
         "name": "DOCUMENT_NUMBER",
         "tag": 1,
         "coding": "C40",
-        "decodedLength": 9,
         "required": true,
-        "minLength": 6,
-        "maxLength": 6
+        "minBytes": 6,
+        "maxBytes": 6
       },
       {
         "name": "AGS",
         "tag": 2,
         "coding": "C40",
-        "decodedLength": 9,
         "required": true,
-        "minLength": 6,
-        "maxLength": 6
+        "minBytes": 6,
+        "maxBytes": 6
       },
       {
         "name": "ADDRESS",
         "tag": 3,
         "coding": "C40",
         "required": true,
-        "minLength": 6,
-        "maxLength": 18
+        "minBytes": 6,
+        "maxBytes": 18
       }
     ]
   },
@@ -99,28 +93,25 @@
         "name": "DOCUMENT_NUMBER",
         "tag": 1,
         "coding": "C40",
-        "decodedLength": 9,
         "required": true,
-        "minLength": 6,
-        "maxLength": 6
+        "minBytes": 6,
+        "maxBytes": 6
       },
       {
         "name": "AGS",
         "tag": 2,
         "coding": "C40",
-        "decodedLength": 9,
         "required": true,
-        "minLength": 6,
-        "maxLength": 6
+        "minBytes": 6,
+        "maxBytes": 6
       },
       {
         "name": "POSTAL_CODE",
         "tag": 3,
         "coding": "C40",
-        "decodedLength": 5,
         "required": true,
-        "minLength": 4,
-        "maxLength": 4
+        "minBytes": 4,
+        "maxBytes": 4
       }
     ]
   },
@@ -133,10 +124,9 @@
         "name": "MRZ",
         "tag": 2,
         "coding": "MRZ",
-        "decodedLength": 72,
         "required": true,
-        "minLength": 48,
-        "maxLength": 48
+        "minBytes": 48,
+        "maxBytes": 48
       }
     ]
   },
@@ -149,60 +139,57 @@
         "name": "MRZ_MRVA",
         "tag": 1,
         "coding": "MRZ",
-        "decodedLength": 88,
         "required": true,
-        "minLength": 48,
-        "maxLength": 48
+        "minBytes": 48,
+        "maxBytes": 48
       },
       {
         "name": "MRZ_MRVB",
         "tag": 2,
         "coding": "MRZ",
         "required": true,
-        "decodedLength": 72,
-        "minLength": 44,
-        "maxLength": 44
+        "minBytes": 44,
+        "maxBytes": 44
       },
       {
         "name": "NUMBER_OF_ENTRIES",
         "tag": 3,
         "coding": "BYTE",
         "required": true,
-        "minLength": 1,
-        "maxLength": 1
+        "minBytes": 1,
+        "maxBytes": 1
       },
       {
         "name": "DURATION_OF_STAY",
         "tag": 4,
         "coding": "BYTES",
         "required": true,
-        "minLength": 3,
-        "maxLength": 3
+        "minBytes": 3,
+        "maxBytes": 3
       },
       {
         "name": "PASSPORT_NUMBER",
         "tag": 5,
         "coding": "C40",
-        "decodedLength": 9,
         "required": true,
-        "minLength": 6,
-        "maxLength": 6
+        "minBytes": 6,
+        "maxBytes": 6
       },
       {
         "name": "VISA_TYPE",
         "tag": 6,
         "coding": "BYTES",
         "required": false,
-        "minLength": 1,
-        "maxLength": 4
+        "minBytes": 1,
+        "maxBytes": 4
       },
       {
         "name": "ADDITIONAL_FEATURES",
         "tag": 7,
         "coding": "BYTES",
         "required": false,
-        "minLength": 0,
-        "maxLength": 254
+        "minBytes": 0,
+        "maxBytes": 254
       }
     ]
   },
@@ -215,19 +202,17 @@
         "name": "MRZ",
         "tag": 2,
         "coding": "MRZ",
-        "decodedLength": 72,
         "required": true,
-        "minLength": 48,
-        "maxLength": 48
+        "minBytes": 48,
+        "maxBytes": 48
       },
       {
         "name": "PASSPORT_NUMBER",
         "tag": 3,
         "coding": "C40",
-        "decodedLength": 9,
         "required": true,
-        "minLength": 6,
-        "maxLength": 6
+        "minBytes": 6,
+        "maxBytes": 6
       }
     ]
   },
@@ -240,34 +225,33 @@
         "name": "SOCIAL_INSURANCE_NUMBER",
         "tag": 1,
         "coding": "C40",
-        "decodedLength": 12,
         "required": true,
-        "minLength": 8,
-        "maxLength": 8
+        "minBytes": 8,
+        "maxBytes": 8
       },
       {
         "name": "SURNAME",
         "tag": 2,
         "coding": "UTF8_STRING",
         "required": true,
-        "minLength": 1,
-        "maxLength": 90
+        "minBytes": 1,
+        "maxBytes": 90
       },
       {
         "name": "FIRST_NAME",
         "tag": 3,
         "coding": "UTF8_STRING",
         "required": true,
-        "minLength": 1,
-        "maxLength": 90
+        "minBytes": 1,
+        "maxBytes": 90
       },
       {
         "name": "BIRTH_NAME",
         "tag": 4,
         "coding": "UTF8_STRING",
         "required": false,
-        "minLength": 1,
-        "maxLength": 90
+        "minBytes": 1,
+        "maxBytes": 90
       }
     ]
   },
@@ -280,19 +264,17 @@
         "name": "MRZ",
         "tag": 4,
         "coding": "MRZ",
-        "decodedLength": 72,
         "required": true,
-        "minLength": 48,
-        "maxLength": 48
+        "minBytes": 48,
+        "maxBytes": 48
       },
       {
         "name": "SHEET_NUMBER",
         "tag": 5,
         "coding": "C40",
-        "decodedLength": 9,
         "required": true,
-        "minLength": 6,
-        "maxLength": 6
+        "minBytes": 6,
+        "maxBytes": 6
       }
     ]
   },
@@ -308,16 +290,16 @@
         "tag": 0,
         "coding": "BYTES",
         "required": true,
-        "minLength": 16,
-        "maxLength": 16
+        "minBytes": 16,
+        "maxBytes": 16
       },
       {
         "name": "VALIDITY_DATES",
         "tag": 1,
         "coding": "VALIDITY_DATES",
         "required": false,
-        "minLength": 1,
-        "maxLength": 17
+        "minBytes": 1,
+        "maxBytes": 17
       },
       {
         "name": "VALID_FROM",

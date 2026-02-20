@@ -13,7 +13,7 @@ class ExtendedMessageDefinitionRegistryCommonTest {
             "baseDocumentType": "ADMINISTRATIVE_DOCUMENTS",
             "version": 1,
             "messages": [
-              {"name": "SURNAME", "tag": 4, "coding": "UTF8_STRING", "required": true, "minLength": 1, "maxLength": 255}
+              {"name": "SURNAME", "tag": 4, "coding": "UTF8_STRING", "required": true, "minBytes": 1, "maxBytes": 255}
             ]
           },
           {
