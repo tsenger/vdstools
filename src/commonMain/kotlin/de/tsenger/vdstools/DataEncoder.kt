@@ -390,10 +390,6 @@ object DataEncoder {
         return vdsSealCodingRegistry.getMessageTag(vdsType, messageName)
     }
 
-    fun findCompoundMessage(baseVdsType: String, extendedDefinition: ExtendedMessageDefinitionDto?, messageName: String): MessageDto? {
-        return vdsSealCodingRegistry.findCompoundMessage(baseVdsType, extendedDefinition, messageName)
-    }
-
     fun getMessageTag(baseVdsType: String, extendedDefinition: ExtendedMessageDefinitionDto?, messageName: String): Int {
         return vdsSealCodingRegistry.getMessageTag(baseVdsType, extendedDefinition, messageName)
     }
@@ -439,8 +435,12 @@ object DataEncoder {
 
             MessageCoding.MASKED_DATE -> encodeMaskedDate(value as String)
             MessageCoding.DATE -> encodeDate(value as String)
+            MessageCoding.VALIDITY_DATES -> when (value) {
+                is MessageValue.ValidityDatesValue -> value.rawBytes
+                is ByteArray -> value
+                else -> throw IllegalArgumentException("VALIDITY_DATES coding expects ValidityDatesValue or ByteArray, got ${value!!::class.simpleName}")
+            }
             MessageCoding.DATE_TIME -> encodeDateTime(value as LocalDateTime)
-            MessageCoding.VALIDITY_DATES -> value as ByteArray
             MessageCoding.UNKNOWN -> if (tag != null) {
                 throw IllegalArgumentException("Unsupported tag: $tag")
             } else {

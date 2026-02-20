@@ -1,6 +1,8 @@
 package de.tsenger.vdstools.vds
 
+import de.tsenger.vdstools.generic.MessageCoding
 import kotlinx.datetime.LocalDate
+import okio.Buffer
 import kotlin.test.*
 
 
@@ -176,6 +178,7 @@ class VdsSealCommonTest {
         assertEquals("Erika", seal.getMessage("FIRST_NAME")?.value.toString())
         assertEquals("20250414", seal.getMessage("MOVING_DATE")?.value.toString())
         assertEquals("20250504", seal.getMessage("DATE_OF_NOTIFICATION")?.value.toString())
+        assertEquals(MessageCoding.UTF8_STRING, seal.getMessage("MOVING_DATE")?.coding)
     }
 
     @Test
@@ -196,6 +199,40 @@ class VdsSealCommonTest {
         assertNotNull(uuid)
         // UUID is the 16-byte DOC_PROFILE_NUMBER from the seal
         assertEquals("9a4223406d374ef99e2cf95e31a23846", uuid.toHexString())
+    }
+
+    @Test
+    fun testParseMeldebescheinigungHeader() {
+        val buffer = Buffer().write(VdsRawBytesCommon.meldebescheinigung)
+        val header = VdsHeader.fromBuffer(buffer)
+        assertEquals("ADMINISTRATIVE_DOCUMENTS", header.vdsType)
+        assertEquals("D  ", header.issuingCountry)
+        assertEquals("DEZV", header.signerIdentifier)
+        assertEquals("A41E7E495F0B4DE58AA0FE7C01D7FEA8", header.certificateReference)
+        assertEquals("2025-05-14", header.issuingDate.toString())
+        assertEquals("2025-05-14", header.sigDate.toString())
+        assertEquals(LocalDate(2025, 5, 14), header.sigDate)
+        assertEquals(1, header.docFeatureRef)
+        assertEquals(0xc8.toByte(), header.docTypeCat)
+    }
+
+    @Test
+    fun testParseMeldebescheinigungByTags() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.meldebescheinigung) as VdsSeal
+        assertEquals("MELDEBESCHEINIGUNG", seal.documentType)
+        assertEquals("Mustermann", seal.getMessage(4)?.value.toString())
+        assertNull(seal.getMessage(0)?.value)
+        assertContentEquals("9a4223406d374ef99e2cf95e31a23846".hexToByteArray(), seal.documentProfileUuid)
+
+    }
+
+    @Test
+    fun testParseMeldebescheinigungByNames() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.meldebescheinigung) as VdsSeal
+        assertEquals("MELDEBESCHEINIGUNG", seal.documentType)
+        assertEquals("Mustermann", seal.getMessage("SURNAME")?.value.toString())
+        assertNull(seal.getMessage("DOC_PROFILE_NUMBER")?.value)
+        assertContentEquals("9a4223406d374ef99e2cf95e31a23846".hexToByteArray(), seal.documentProfileUuid)
     }
 
 

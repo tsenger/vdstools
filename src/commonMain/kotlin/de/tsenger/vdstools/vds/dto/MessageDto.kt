@@ -11,7 +11,5 @@ data class MessageDto(
     var required: Boolean = false,
     var minBytes: Int = 0,
     var maxBytes: Int = 0,
-    val compoundTag: Int? = null,
-    val compoundOrder: Int = 0,
     val messages: List<MessageDto> = emptyList(),
 )
