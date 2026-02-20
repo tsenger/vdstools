@@ -222,22 +222,309 @@
     "name": "PROOF_OF_VACCINATION",
     "tag": 4,
     "coding": "BYTES",
-    "minBytes": 0,
-    "maxBytes": 1024
+    "minBytes": 57,
+    "maxBytes": 951,
+    "messages": [
+      {
+        "name": "UVCI",
+        "tag": 1,
+        "coding": "C40",
+        "required": true,
+        "minBytes": 2,
+        "maxBytes": 12
+      },
+      {
+        "name": "CERTIFICATE_VALID_FROM",
+        "tag": 2,
+        "coding": "MASKED_DATE",
+        "required": false,
+        "minBytes": 4,
+        "maxBytes": 4
+      },
+      {
+        "name": "CERTIFICATE_VALID_UNTIL",
+        "tag": 3,
+        "coding": "MASKED_DATE",
+        "required": false,
+        "minBytes": 4,
+        "maxBytes": 4
+      },
+      {
+        "name": "NAME_OF_HOLDER",
+        "tag": 4,
+        "coding": "C40",
+        "required": true,
+        "minBytes": 2,
+        "maxBytes": 26
+      },
+      {
+        "name": "DATE_OF_BIRTH",
+        "tag": 5,
+        "coding": "MASKED_DATE",
+        "required": false,
+        "minBytes": 4,
+        "maxBytes": 4
+      },
+      {
+        "name": "SEX",
+        "tag": 6,
+        "coding": "UTF8_STRING",
+        "required": true,
+        "minBytes": 1,
+        "maxBytes": 1
+      },
+      {
+        "name": "UNIQUE_IDENTIFIER",
+        "tag": 7,
+        "coding": "C40",
+        "required": false,
+        "minBytes": 2,
+        "maxBytes": 8
+      },
+      {
+        "name": "ADDITIONAL_IDENTIFIER",
+        "tag": 8,
+        "coding": "C40",
+        "required": false,
+        "minBytes": 2,
+        "maxBytes": 16
+      },
+      {
+        "name": "VACCINATION_EVENT",
+        "tag": 9,
+        "coding": "BYTES",
+        "required": true,
+        "minBytes": 44,
+        "maxBytes": 842,
+        "messages": [
+          {
+            "name": "VACCINE_OR_PROPHYLAXIS",
+            "tag": 31,
+            "coding": "C40",
+            "required": true,
+            "minBytes": 6,
+            "maxBytes": 6
+          },
+          {
+            "name": "VACCINE_BRAND",
+            "tag": 32,
+            "coding": "C40",
+            "required": true,
+            "minBytes": 2,
+            "maxBytes": 254
+          },
+          {
+            "name": "VACCINE_MANUFACTURER",
+            "tag": 33,
+            "coding": "C40",
+            "required": false,
+            "minBytes": 2,
+            "maxBytes": 254
+          },
+          {
+            "name": "VACCINE_MAH",
+            "tag": 34,
+            "coding": "C40",
+            "required": false,
+            "minBytes": 2,
+            "maxBytes": 254
+          },
+          {
+            "name": "DISEASE_OR_AGENT",
+            "tag": 35,
+            "coding": "C40",
+            "required": true,
+            "minBytes": 6,
+            "maxBytes": 6
+          },
+          {
+            "name": "VACCINATION_DETAILS",
+            "tag": 36,
+            "coding": "BYTES",
+            "required": true,
+            "minBytes": 22,
+            "maxBytes": 56,
+            "messages": [
+              {
+                "name": "DATE_OF_VACCINATION",
+                "tag": 51,
+                "coding": "MASKED_DATE",
+                "required": true,
+                "minBytes": 4,
+                "maxBytes": 4
+              },
+              {
+                "name": "DOSE_NUMBER",
+                "tag": 52,
+                "coding": "C40",
+                "required": true,
+                "minBytes": 2,
+                "maxBytes": 2
+              },
+              {
+                "name": "TOTAL_DOSES",
+                "tag": 53,
+                "coding": "C40",
+                "required": false,
+                "minBytes": 2,
+                "maxBytes": 2
+              },
+              {
+                "name": "COUNTRY_OF_VACCINATION",
+                "tag": 54,
+                "coding": "C40",
+                "required": true,
+                "minBytes": 2,
+                "maxBytes": 2
+              },
+              {
+                "name": "ADMINISTERING_CENTRE",
+                "tag": 55,
+                "coding": "C40",
+                "required": true,
+                "minBytes": 2,
+                "maxBytes": 14
+              },
+              {
+                "name": "VACCINE_BATCH_NUMBER",
+                "tag": 56,
+                "coding": "C40",
+                "required": true,
+                "minBytes": 2,
+                "maxBytes": 14
+              },
+              {
+                "name": "DUE_DATE_NEXT_DOSE",
+                "tag": 57,
+                "coding": "MASKED_DATE",
+                "required": false,
+                "minBytes": 4,
+                "maxBytes": 4
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "OPTIONAL_FIELD",
+        "tag": 10,
+        "coding": "C40",
+        "required": false,
+        "minBytes": 2,
+        "maxBytes": 14
+      }
+    ]
   },
   {
     "name": "PROOF_OF_RECOVERY",
     "tag": 5,
     "coding": "BYTES",
-    "minBytes": 0,
-    "maxBytes": 1024
+    "minBytes": 46,
+    "maxBytes": 108,
+    "messages": [
+      {
+        "name": "URCI",
+        "tag": 1,
+        "coding": "C40",
+        "required": true,
+        "minBytes": 2,
+        "maxBytes": 12
+      },
+      {
+        "name": "CERTIFICATE_VALID_FROM",
+        "tag": 2,
+        "coding": "MASKED_DATE",
+        "required": false,
+        "minBytes": 4,
+        "maxBytes": 4
+      },
+      {
+        "name": "CERTIFICATE_VALID_UNTIL",
+        "tag": 3,
+        "coding": "MASKED_DATE",
+        "required": false,
+        "minBytes": 4,
+        "maxBytes": 4
+      },
+      {
+        "name": "NAME_OF_HOLDER",
+        "tag": 4,
+        "coding": "C40",
+        "required": true,
+        "minBytes": 2,
+        "maxBytes": 26
+      },
+      {
+        "name": "DATE_OF_BIRTH",
+        "tag": 5,
+        "coding": "MASKED_DATE",
+        "required": true,
+        "minBytes": 4,
+        "maxBytes": 4
+      },
+      {
+        "name": "DOCUMENT_TYPE",
+        "tag": 6,
+        "coding": "C40",
+        "required": true,
+        "minBytes": 2,
+        "maxBytes": 2
+      },
+      {
+        "name": "DOCUMENT_NUMBER",
+        "tag": 7,
+        "coding": "C40",
+        "required": true,
+        "minBytes": 2,
+        "maxBytes": 16
+      },
+      {
+        "name": "COUNTRY_OF_TEST",
+        "tag": 8,
+        "coding": "C40",
+        "required": true,
+        "minBytes": 2,
+        "maxBytes": 2
+      },
+      {
+        "name": "DATE_OF_FIRST_POSITIVE_TEST",
+        "tag": 9,
+        "coding": "MASKED_DATE",
+        "required": true,
+        "minBytes": 4,
+        "maxBytes": 4
+      },
+      {
+        "name": "OPTIONAL_FIELD",
+        "tag": 10,
+        "coding": "C40",
+        "required": false,
+        "minBytes": 2,
+        "maxBytes": 14
+      }
+    ]
   },
   {
     "name": "DIGITAL_TRAVEL_AUTHORIZATION",
     "tag": 6,
     "coding": "BYTES",
-    "minBytes": 32,
-    "maxBytes": 169
+    "minBytes": 58,
+    "maxBytes": 197,
+    "messages": [
+      { "name": "DTA_NUMBER",           "tag":  1, "coding": "C40",         "required": true,  "minBytes":  2, "maxBytes": 10 },
+      { "name": "NAME_OF_HOLDER",       "tag":  2, "coding": "C40",         "required": true,  "minBytes":  2, "maxBytes": 26 },
+      { "name": "PASSPORT_NUMBER",      "tag":  3, "coding": "C40",         "required": true,  "minBytes":  8, "maxBytes":  8 },
+      { "name": "DATE_OF_BIRTH",        "tag":  4, "coding": "MASKED_DATE", "required": true,  "minBytes":  4, "maxBytes":  4 },
+      { "name": "NATIONALITY",          "tag":  5, "coding": "C40",         "required": true,  "minBytes":  2, "maxBytes":  2 },
+      { "name": "SEX",                  "tag":  6, "coding": "UTF8_STRING",  "required": true,  "minBytes":  1, "maxBytes":  1 },
+      { "name": "PLACE_OF_ISSUE",       "tag":  7, "coding": "C40",         "required": true,  "minBytes":  2, "maxBytes": 10 },
+      { "name": "VALID_FROM",           "tag":  8, "coding": "MASKED_DATE", "required": true,  "minBytes":  4, "maxBytes":  4 },
+      { "name": "VALID_UNTIL",          "tag":  9, "coding": "MASKED_DATE", "required": true,  "minBytes":  4, "maxBytes":  4 },
+      { "name": "DURATION_OF_STAY",     "tag": 10, "coding": "C40",         "required": true,  "minBytes":  2, "maxBytes":  2 },
+      { "name": "NUMBER_OF_ENTRIES",    "tag": 11, "coding": "BYTE",        "required": true,  "minBytes":  1, "maxBytes":  1 },
+      { "name": "TYPE_CLASS_CATEGORY",  "tag": 12, "coding": "C40",         "required": true,  "minBytes":  2, "maxBytes": 32 },
+      { "name": "ADDITIONAL_INFORMATION","tag": 13, "coding": "C40",        "required": false, "minBytes":  2, "maxBytes": 67 }
+    ]
   },
   {
     "name": "MRZ_TD1",

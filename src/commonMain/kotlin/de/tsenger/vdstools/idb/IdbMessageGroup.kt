@@ -23,6 +23,11 @@ class IdbMessageGroup {
             val name = DataEncoder.getIdbMessageTypeName(tag)
             val coding = DataEncoder.getIdbMessageTypeCoding(name)
             val value = MessageValue.fromBytes(derTlv.value, coding)
+            // TODO: Sub-message parsing — for IDB message types that contain nested
+            // TLV sub-structures (e.g. VACCINATION_EVENT within PROOF_OF_VACCINATION,
+            // VACCINATION_DETAILS within VACCINATION_EVENT), the value bytes must be
+            // recursively parsed using DataEncoder.parseDerTLvs(). Sub-message
+            // definitions are available via IdbMessageTypeRegistry.getMessageTypeDto(tag).messages
             Message(tag, name, coding, value)
         }
 
