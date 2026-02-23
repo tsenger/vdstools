@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "de.tsenger"
-version = "0.12.0"
+version = "0.13.1-SNAPSHOT"
 description = "Kotlin multiplatform library to encode/sign and decode/verify Visible Digital Seals"
 
 repositories {
@@ -111,7 +111,6 @@ kotlin {
 
         jvmMain.dependencies {
             implementation(libs.bouncycastle.bcprov)
-            implementation(libs.jetbrains.annotations)
             implementation(libs.kotlin.stdlib.jdk8)
             implementation(libs.cryptography.provider.jdk)
         }
