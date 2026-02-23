@@ -26,7 +26,7 @@ fun IdbSeal.annotate(): SealAnnotation {
     val sigStart = certStart + certBytes.size
 
     return SealAnnotation(
-        header = buildIdbHeaderAnnotation(headerLen),
+        header = buildIdbHeaderAnnotation(),
         messageGroup = buildIdbMessageGroupAnnotation(msgGroupBytes, msgGroupStart),
         signerCertificate = if (certBytes.isNotEmpty())
             FieldAnnotation("Signer Certificate (0x7E)", ByteRange(certStart, certBytes.size))
@@ -37,15 +37,23 @@ fun IdbSeal.annotate(): SealAnnotation {
     )
 }
 
-private fun buildIdbHeaderAnnotation(headerLen: Int): FieldAnnotation {
+private fun IdbSeal.buildIdbHeaderAnnotation(): FieldAnnotation {
+    val header = payLoad.idbHeader
+    val headerLen = header.encoded.size
     var pos = 0
     val children = mutableListOf<FieldAnnotation>()
 
-    children += FieldAnnotation("Country Identifier", ByteRange(pos, 2)); pos += 2
+    children += FieldAnnotation("Country Identifier (${header.getCountryIdentifier()})", ByteRange(pos, 2)); pos += 2
     if (headerLen == 12) {
-        children += FieldAnnotation("Signature Algorithm", ByteRange(pos, 1)); pos += 1
-        children += FieldAnnotation("Certificate Reference", ByteRange(pos, 5)); pos += 5
-        children += FieldAnnotation("Signature Creation Date", ByteRange(pos, 4))
+        children += FieldAnnotation(
+            "Signature Algorithm (${header.getSignatureAlgorithm()?.name})",
+            ByteRange(pos, 1)
+        ); pos += 1
+        children += FieldAnnotation(
+            "Certificate Reference (${header.certificateReference?.toHex()})",
+            ByteRange(pos, 5)
+        ); pos += 5
+        children += FieldAnnotation("Signature Creation Date (${header.getSignatureCreationDate()})", ByteRange(pos, 4))
     }
 
     return FieldAnnotation("Header", ByteRange(0, headerLen), children)
@@ -69,14 +77,18 @@ private fun IdbSeal.buildIdbMessageGroupAnnotation(
         val label = payLoad.idbMessageGroup.messageList
             .firstOrNull { it.tag == inner.tag }?.name
             ?: "Unknown (0x${inner.tag.toHex()})"
-        FieldAnnotation(label, inner.range, listOf(
-            FieldAnnotation("Tag (0x${inner.tag.toHex()})", inner.tagRange),
-            FieldAnnotation("Length (${inner.valueLength} Bytes)", inner.lengthRange),
-            FieldAnnotation("Value", inner.valueRange)
-        ))
+        FieldAnnotation(
+            label, inner.range, listOf(
+                FieldAnnotation("Tag (0x${inner.tag.toHex()})", inner.tagRange),
+                FieldAnnotation("Length (${inner.valueLength} Bytes)", inner.lengthRange),
+                FieldAnnotation("Value", inner.valueRange)
+            )
+        )
     }
 
     return FieldAnnotation("Message Group (0x61)", ByteRange(baseOffset, msgGroupBytes.size), children)
 }
 
+private fun Byte.toHex() = (toInt() and 0xFF).toString(16).padStart(2, '0').uppercase()
 private fun Int.toHex() = toString(16).padStart(2, '0').uppercase()
+private fun ByteArray.toHex() = joinToString("") { it.toHex() }
