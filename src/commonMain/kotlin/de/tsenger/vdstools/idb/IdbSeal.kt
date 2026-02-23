@@ -31,6 +31,12 @@ class IdbSeal : Seal {
     val isZipped: Boolean
         get() = (((barcodeFlag.code.toByte()) - 0x41).toByte().toInt() and 0x02) == 0x02
 
+    override val encoded: ByteArray
+        get() = payLoad.idbHeader.encoded +
+                payLoad.idbMessageGroup.encoded +
+                (payLoad.idbSignerCertificate?.encoded ?: byteArrayOf()) +
+                (payLoad.idbSignature?.encoded ?: byteArrayOf())
+
     override val rawString: String
         get() {
             val strBuffer = StringBuilder(BARCODE_IDENTIFIER)

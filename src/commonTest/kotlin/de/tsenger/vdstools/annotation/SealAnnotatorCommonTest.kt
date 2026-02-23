@@ -1,5 +1,6 @@
 package de.tsenger.vdstools.annotation
 
+import de.tsenger.vdstools.generic.Seal
 import de.tsenger.vdstools.idb.IcbRawStringsCommon
 import de.tsenger.vdstools.idb.IdbSeal
 import de.tsenger.vdstools.vds.VdsRawBytesCommon
@@ -162,6 +163,24 @@ class SealAnnotatorCommonTest {
             assertTrue(field.range.offset >= 0, "negative offset: ${field.label}")
             assertTrue(field.range.offset + field.range.length <= totalLen, "out of bounds: ${field.label}")
         }
+    }
+
+    // --- Generic Seal.annotate() dispatcher ---
+
+    @Test
+    fun seal_annotate_vdsViaBaseType() {
+        val seal: Seal = VdsSeal.fromByteArray(VdsRawBytesCommon.residentPermit)
+        val a = seal.annotate()
+        assertEquals(0, a.header.range.offset)
+        assertNull(a.signerCertificate)
+    }
+
+    @Test
+    fun seal_annotate_idbViaBaseType() {
+        val seal: Seal = IdbSeal.fromString(IcbRawStringsCommon.SubstituteIdentityDocument)
+        val a = seal.annotate()
+        assertEquals(0, a.header.range.offset)
+        assertNotNull(a.signature)
     }
 
     // --- IDB signed (CertifyingPermanentResidence) ---
