@@ -69,6 +69,9 @@ class VdsSeal : Seal {
     override val signedBytes: ByteArray
         get() = vdsHeader.encoded + vdsMessageGroup.encoded
 
+    val headerBytes: ByteArray
+        get() = vdsHeader.encoded
+
     val encoded: ByteArray
         get() = vdsHeader.encoded + vdsMessageGroup.encoded + (vdsSignature?.encoded ?: byteArrayOf())
 
