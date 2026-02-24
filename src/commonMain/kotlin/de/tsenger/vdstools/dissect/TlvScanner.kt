@@ -1,4 +1,4 @@
-package de.tsenger.vdstools.annotation
+package de.tsenger.vdstools.dissect
 
 /**
  * Represents a single DER-encoded TLV (Tag-Length-Value) element,
