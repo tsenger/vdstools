@@ -2,6 +2,7 @@ package de.tsenger.vdstools.vds
 
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.DataEncoder
+import de.tsenger.vdstools.vds.VdsHeader.Companion.fromBuffer
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
@@ -245,6 +246,74 @@ class VdsHeader {
         const val DC: Byte = 0xDC.toByte()
         private val log = Logger.withTag(this::class.simpleName ?: "")
 
+        /**
+         * Strictly parses certificate reference and issuing/sig dates for ICAO version 4 headers.
+         *
+         * The cert ref length field is decoded with radix 16 only. No fallback, no tolerance for
+         * non-standard lengths. Throws immediately on any malformed input.
+         *
+         * @return Triple of (certificateReference, issuingDate, sigDate)
+         */
+        private fun parseV4CertRefAndDatesStrict(
+            buffer: Buffer,
+            lengthStr: String,
+        ): Triple<String, LocalDate, LocalDate> {
+            val certRefLength = lengthStr.toInt(16)
+            val bytesToDecode = ((certRefLength - 1) / 3) * 2 + 2
+            log.v("version 4: certRefLength=$certRefLength (radix 16), bytesToDecode=$bytesToDecode")
+            val certRef = DataEncoder.decodeC40(buffer.readByteArray(bytesToDecode.toLong()))
+            val issuingDate = DataEncoder.decodeDate(buffer.readByteArray(3))
+            val sigDate = DataEncoder.decodeDate(buffer.readByteArray(3))
+            return Triple(certRef, issuingDate, sigDate)
+        }
+
+        /**
+         * Leniently parses certificate reference and issuing/sig dates for ICAO version 4 headers.
+         *
+         * The cert ref length field is normally hex-encoded (radix 16) for all signer identifiers.
+         * DEZV seals are known to occasionally use decimal encoding (radix 10) instead; when the
+         * value is in the range 00–09, both encodings are equivalent anyway.
+         *
+         * DEZV seals are expected to carry a cert ref length of 0x20 (32); deviations are tolerated
+         * and logged as a warning.
+         *
+         * Strategy: try radix 16 first; for DEZV, fall back to radix 10 if parsing fails.
+         * Throws the last caught exception if all candidates fail.
+         *
+         * @return Triple of (certificateReference, issuingDate, sigDate)
+         */
+        private fun parseV4CertRefAndDatesLenient(
+            buffer: Buffer,
+            lengthStr: String,
+            signerIdentifier: String
+        ): Triple<String, LocalDate, LocalDate> {
+            val radixCandidates = if (signerIdentifier == "DEZV") listOf(16, 10) else listOf(16)
+            var lastException: Exception? = null
+            for (radix in radixCandidates) {
+                val snapshot = buffer.copy()
+                try {
+                    val certRefLength = lengthStr.toInt(radix)
+                    val bytesToDecode = ((certRefLength - 1) / 3) * 2 + 2
+                    log.v("version 4: certRefLength=$certRefLength (radix $radix), bytesToDecode=$bytesToDecode")
+                    val certRef = DataEncoder.decodeC40(buffer.readByteArray(bytesToDecode.toLong()))
+                    val issuingDate = DataEncoder.decodeDate(buffer.readByteArray(3))
+                    val sigDate = DataEncoder.decodeDate(buffer.readByteArray(3))
+                    if (signerIdentifier == "DEZV" && certRefLength != 32) {
+                        log.w("version 4 [DEZV]: non-standard certRefLength $certRefLength (expected 32)")
+                    }
+                    return Triple(certRef, issuingDate, sigDate)
+                } catch (e: Exception) {
+                    if (radix != radixCandidates.last()) {
+                        log.w("version 4 [$signerIdentifier]: parse failed with radix $radix, retrying: ${e.message}")
+                    }
+                    lastException = e
+                    buffer.skip(buffer.size)
+                    buffer.write(snapshot, snapshot.size)
+                }
+            }
+            throw lastException!!
+        }
+
         @Throws(IllegalArgumentException::class)
         fun fromBuffer(rawdataBuffer: Buffer): VdsHeader {
             // Store buffer state for capturing raw bytes
@@ -291,26 +360,28 @@ class VdsHeader {
                 val signerIdentifierAndCertRefLength = DataEncoder.decodeC40(rawdataBuffer.readByteArray(4))
                 vdsHeader.signerIdentifier = signerIdentifierAndCertRefLength.take(4)
 
-                // last two characters of signerIdentifierAndCertRefLength store
-                // the length of the following Certificate Reference
-                val radix = if (vdsHeader.signerIdentifier == "DEZV") 10 else 16
-                val certRefLength = signerIdentifierAndCertRefLength.substring(4).toInt(radix)
-                log.v("version 4: certRefLength: $certRefLength (radix $radix)")
-
-                val bytesToDecode = ((certRefLength - 1) / 3) * 2 + 2
-
-                log.v("version 4: bytesToDecode: $bytesToDecode")
-                vdsHeader.certificateReference =
-                    DataEncoder.decodeC40(rawdataBuffer.readByteArray(bytesToDecode.toLong()))
+                // Some real-world seals (notably from DEZV) deviate from the spec by using
+                // decimal instead of hex encoding for the cert ref length, or carry a
+                // non-standard length value. parseV4CertRefAndDatesLenient tolerates this by
+                // trying radix 16 first and falling back to radix 10 on failure.
+                // Use parseV4CertRefAndDatesStrict instead when spec-compliance must be enforced
+                // (e.g. during issuance/validation pipelines that should reject malformed seals).
+                val (certRef, issuingDate, sigDate) = parseV4CertRefAndDatesLenient(
+                    rawdataBuffer,
+                    signerIdentifierAndCertRefLength.substring(4),
+                    vdsHeader.signerIdentifier!!
+                )
+                vdsHeader.certificateReference = certRef
+                vdsHeader.issuingDate = issuingDate
+                vdsHeader.sigDate = sigDate
 
             } else { // rawVersion=0x02 -> ICAO version 3
                 val signerCertRef = DataEncoder.decodeC40(rawdataBuffer.readByteArray(6))
                 vdsHeader.signerIdentifier = signerCertRef.take(4)
                 vdsHeader.certificateReference = signerCertRef.substring(4)
+                vdsHeader.issuingDate = DataEncoder.decodeDate(rawdataBuffer.readByteArray(3))
+                vdsHeader.sigDate = DataEncoder.decodeDate(rawdataBuffer.readByteArray(3))
             }
-
-            vdsHeader.issuingDate = DataEncoder.decodeDate(rawdataBuffer.readByteArray(3))
-            vdsHeader.sigDate = DataEncoder.decodeDate(rawdataBuffer.readByteArray(3))
             vdsHeader.docFeatureRef = rawdataBuffer.readByte()
             vdsHeader.docTypeCat = rawdataBuffer.readByte()
 

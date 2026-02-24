@@ -92,11 +92,12 @@ class VdsSealCommonTest {
     }
 
     @Test
-    fun testParseUnknown() {
+    fun testWrongFormatedCertificateReferenceLengthCoding() {
         val rawBytes =
             "dc036abc6d38dbb519a620372ce13372401c46ad535759e866926d2379b98d7ad88d7ad801c800109a4223406d374ef99e2cf95e31a2384604094c656965726d616e6e06074c6f72656e7a6fff40191d2ab504d5b6f9cda382857aeab508db1178463225bda4efac6ea64e803bb23c65e11d3ffae6f469feaa540d63ea6f612d4a4ba7f016a64ec39c5caf936bc7".hexToByteArray()
         val seal = VdsSeal.fromByteArray(rawBytes) as VdsSeal
         assertNotNull(seal)
+        assertEquals("00112233445566778899AABBCCDDEEFF", seal.certificateReference)
     }
 
     @Test
