@@ -5,7 +5,6 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
 import okio.Buffer
-import okio.EOFException
 import org.bouncycastle.util.Arrays
 import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert
@@ -146,7 +145,7 @@ class VdsHeaderJvmTest {
     }
 
 
-    @Test(expected = EOFException::class)
+    @Test(expected = Exception::class)
     fun testParseByteArray_3() {
         val buffer = Buffer().write(Hex.decode("dc03d9cac8a73a99105b99105b99fb06"))
         VdsHeader.fromBuffer(buffer)

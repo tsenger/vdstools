@@ -285,9 +285,8 @@ class VdsHeader {
         private fun parseV4CertRefAndDatesLenient(
             buffer: Buffer,
             lengthStr: String,
-            signerIdentifier: String
         ): Triple<String, LocalDate, LocalDate> {
-            val radixCandidates = if (signerIdentifier == "DEZV") listOf(16, 10) else listOf(16)
+            val radixCandidates = listOf(16, 10)
             var lastException: Exception? = null
             for (radix in radixCandidates) {
                 val snapshot = buffer.copy()
@@ -298,13 +297,10 @@ class VdsHeader {
                     val certRef = DataEncoder.decodeC40(buffer.readByteArray(bytesToDecode.toLong()))
                     val issuingDate = DataEncoder.decodeDate(buffer.readByteArray(3))
                     val sigDate = DataEncoder.decodeDate(buffer.readByteArray(3))
-                    if (signerIdentifier == "DEZV" && certRefLength != 32) {
-                        log.w("version 4 [DEZV]: non-standard certRefLength $certRefLength (expected 32)")
-                    }
                     return Triple(certRef, issuingDate, sigDate)
                 } catch (e: Exception) {
                     if (radix != radixCandidates.last()) {
-                        log.w("version 4 [$signerIdentifier]: parse failed with radix $radix, retrying: ${e.message}")
+                        log.w("version 4: parse failed with radix $radix, retrying: ${e.message}")
                     }
                     lastException = e
                     buffer.skip(buffer.size)
@@ -369,7 +365,6 @@ class VdsHeader {
                 val (certRef, issuingDate, sigDate) = parseV4CertRefAndDatesLenient(
                     rawdataBuffer,
                     signerIdentifierAndCertRefLength.substring(4),
-                    vdsHeader.signerIdentifier!!
                 )
                 vdsHeader.certificateReference = certRef
                 vdsHeader.issuingDate = issuingDate
