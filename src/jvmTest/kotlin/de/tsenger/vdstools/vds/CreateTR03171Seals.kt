@@ -1,5 +1,9 @@
 package de.tsenger.vdstools.vds
 
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.MultiFormatWriter
+import com.google.zxing.client.j2se.MatrixToImageWriter
+import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.Signer
 import de.tsenger.vdstools.generic.MessageValue
 import kotlinx.datetime.LocalDate
@@ -7,6 +11,7 @@ import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.junit.BeforeClass
 import java.io.FileInputStream
+import java.nio.file.FileSystems
 import java.security.KeyStore
 import java.security.Security
 import kotlin.test.Test
@@ -89,7 +94,8 @@ class CreateTR03171Seals {
 
         val encodedSealBytes = vdsSeal.encoded
         println("Encoded seal bytes: ${encodedSealBytes.toHexString()}")
-
+        println("Raw String: ${DataEncoder.encodeBase256(encodedSealBytes)}")
+        generateVdsDataMatrix(encodedSealBytes, "/tmp/vds.png")
     }
 
     @Test
@@ -146,6 +152,31 @@ class CreateTR03171Seals {
             fis.close()
         }
 
+    }
+
+    fun generateVdsDataMatrix(vdsData: ByteArray, filePath: String) {
+        val width = 300
+        val height = 300
+
+        try {
+            // Da ZXings Writer primär Strings nimmt, wandeln wir das ByteArray
+            // in einen ISO-8859-1 String um, um die 8-Bit-Werte zu erhalten
+            val contents = DataEncoder.encodeBase256(vdsData)
+
+            val bitMatrix = MultiFormatWriter().encode(
+                contents,
+                BarcodeFormat.DATA_MATRIX,
+                width,
+                height
+            )
+
+            val path = FileSystems.getDefault().getPath(filePath)
+            MatrixToImageWriter.writeToPath(bitMatrix, "PNG", path)
+
+            println("DataMatrix erfolgreich erstellt: $filePath")
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
 }
