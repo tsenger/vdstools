@@ -9,6 +9,7 @@ import de.tsenger.vdstools.generated.ResourceConstants
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.MessageCoding
 import de.tsenger.vdstools.generic.MessageValue
+import de.tsenger.vdstools.idb.dto.IdbMessageTypeRef
 import de.tsenger.vdstools.vds.dto.ExtendedMessageDefinitionDto
 import de.tsenger.vdstools.vds.dto.MessageDto
 import dev.whyoleg.cryptography.CryptographyProvider
@@ -21,6 +22,62 @@ import kotlinx.datetime.number
 import okio.*
 
 
+/**
+ * Central façade for encoding and decoding VDS and IDB digital seals.
+ *
+ * VdsTools supports two standards for machine-readable travel documents:
+ *
+ * ## VDS – Visible Digital Seal (BSI TR-03137 / TR-03171)
+ * A VDS barcode encodes exactly one document type. The document type is identified by a
+ * one-byte `documentRef` in the seal header, which maps to a named profile in
+ * `SealCodings.json`. Each profile defines which messages (fields) the seal contains.
+ *
+ * For administrative documents, the 256-value space of `documentRef` is not sufficient.
+ * These types use a two-stage lookup: the header's `documentRef` points to the base type
+ * `ADMINISTRATIVE_DOCUMENTS`, and Tag 0 of the message zone carries a 16-byte UUID
+ * (Dokumentenprofilnummer) that identifies the actual profile in
+ * `ExtendedMessageDefinitions.json`.
+ *
+ * ## IDB – ICAO Datastructure for Barcode (ICAO TR-IDB)
+ * An IDB barcode can contain multiple message types simultaneously in its message group.
+ * Which message types are expected in a given seal is determined by the national document
+ * type, encoded as `NATIONAL_DOCUMENT_IDENTIFIER` (tag 0x86) within the message group.
+ * The available message types are defined in `IdbMessageTypes.json`; the national document
+ * types and their expected message combinations in `IdbNationalDocumentTypes.json`.
+ *
+ * ## Definition files and registries
+ *
+ * | File | Standard | Registry | Purpose |
+ * |---|---|---|---|
+ * | `SealCodings.json` | VDS | [VdsSealCodingRegistry] | Document type profiles: `documentRef` ↔ name ↔ messages |
+ * | `ExtendedMessageDefinitions.json` | VDS | [ExtendedMessageDefinitionRegistry] | UUID-based extended profiles for administrative documents |
+ * | `IdbMessageTypes.json` | IDB | [IdbMessageTypeRegistry] | IDB message type definitions: tag ↔ name ↔ coding |
+ * | `IdbNationalDocumentTypes.json` | IDB | [IdbNationalDocumentTypeRegistry] | National document types: tag ↔ name ↔ expected messages |
+ *
+ * All definitions are loaded from JSON resources embedded at compile time. Custom definitions
+ * can be provided at runtime to extend or replace the built-in ones.
+ *
+ * ## Loading custom definitions
+ *
+ * Each registry can be replaced by loading custom JSON:
+ * ```kotlin
+ * // Replace a registry entirely from a JSON string:
+ * DataEncoder.loadCustomSealCodings(myJsonString)
+ * DataEncoder.loadCustomIdbMessageTypes(myJsonString)
+ * DataEncoder.loadCustomIdbNationalDocumentTypes(myJsonString)
+ * DataEncoder.loadCustomExtendedMessageDefinitions(myJsonString)
+ *
+ * // Or from a file (resolved via readTextResource):
+ * DataEncoder.loadCustomSealCodingsFromFile("my_seal_codings.json")
+ *
+ * // For VDS extended definitions, individual profiles can also be added without
+ * // replacing the entire registry (supports JSON and TR-03171 XML format):
+ * DataEncoder.loadExtendedMessageDefinitionFromXml(xmlString)
+ *
+ * // Revert all registries to the embedded defaults:
+ * DataEncoder.resetToDefaults()
+ * ```
+ */
 object DataEncoder {
     private lateinit var vdsSealCodingRegistry: VdsSealCodingRegistry
     private lateinit var idbMessageTypeRegistry: IdbMessageTypeRegistry
@@ -467,6 +524,26 @@ object DataEncoder {
 
     fun getIdbDocumentTypeName(tag: Int): String {
         return idbDocumentTypeRegistry.getDocumentType(tag)
+    }
+
+    /**
+     * Returns the IDB message types expected in the message group for a given national document type tag.
+     *
+     * @param tag The numeric value of the `NATIONAL_DOCUMENT_IDENTIFIER` (tag 0x86)
+     * @return List of expected message type references, empty if the tag is unknown or has no messages defined
+     */
+    fun getIdbExpectedMessages(tag: Int): List<IdbMessageTypeRef> {
+        return idbDocumentTypeRegistry.getExpectedMessages(tag)
+    }
+
+    /**
+     * Returns the IDB message types expected in the message group for a given national document type name.
+     *
+     * @param name The document type name (e.g., `"SUBSTITUTE_IDENTITY_DOCUMENT"`)
+     * @return List of expected message type references, empty if the name is unknown or has no messages defined
+     */
+    fun getIdbExpectedMessages(name: String): List<IdbMessageTypeRef> {
+        return idbDocumentTypeRegistry.getExpectedMessages(name)
     }
 
     /**

@@ -214,6 +214,32 @@ class DataEncoderCommonTest {
     }
 
     @Test
+    fun testGetIdbExpectedMessagesByTag() {
+        val messages = DataEncoder.getIdbExpectedMessages(1) // SUBSTITUTE_IDENTITY_DOCUMENT
+        assertEquals(4, messages.size)
+        assertTrue(messages.any { it.name == "FACE_IMAGE" })
+        assertTrue(messages.any { it.name == "NATIONAL_DOCUMENT_IDENTIFIER" })
+    }
+
+    @Test
+    fun testGetIdbExpectedMessagesByName() {
+        val messages = DataEncoder.getIdbExpectedMessages("CERTIFYING_PERMANENT_RESIDENCE")
+        assertEquals(2, messages.size)
+        assertTrue(messages.any { it.name == "DOCUMENT_NUMBER" })
+        assertTrue(messages.any { it.name == "NATIONAL_DOCUMENT_IDENTIFIER" })
+    }
+
+    @Test
+    fun testGetIdbExpectedMessages_unknownTagReturnsEmpty() {
+        assertTrue(DataEncoder.getIdbExpectedMessages(99).isEmpty())
+    }
+
+    @Test
+    fun testGetIdbExpectedMessages_unknownNameReturnsEmpty() {
+        assertTrue(DataEncoder.getIdbExpectedMessages("NOT_A_REAL_TYPE").isEmpty())
+    }
+
+    @Test
     fun testResetToDefaults() {
         // Load custom configurations
         DataEncoder.loadCustomIdbMessageTypesFromFile("CustomIdbMessageTypes.json")
