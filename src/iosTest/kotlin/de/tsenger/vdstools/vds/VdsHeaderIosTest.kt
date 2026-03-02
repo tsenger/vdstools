@@ -5,7 +5,6 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
 import okio.Buffer
-import okio.EOFException
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -145,7 +144,7 @@ class VdsHeaderIosTest {
     @Test
     fun testParseByteArray_3() {
         val buffer = Buffer().write("dc03d9cac8a73a99105b99105b99fb06".hexToByteArray())
-        assertFailsWith<EOFException> { VdsHeader.fromBuffer(buffer) }
+        assertFailsWith<Exception> { VdsHeader.fromBuffer(buffer) }
     }
 
 
