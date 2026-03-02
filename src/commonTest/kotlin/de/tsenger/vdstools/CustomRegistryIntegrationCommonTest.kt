@@ -20,7 +20,7 @@ class CustomRegistryIntegrationCommonTest {
 
     @Test
     fun testCustomExtendedMessageDefinitionsUsedDuringSealParsing() {
-        DataEncoder.loadCustomExtendedMessageDefinitionsFromFile("CustomExtendedMessageDefinitions.json")
+        DataEncoder.replaceCustomExtendedMessageDefinitionsFromFile("CustomExtendedMessageDefinitions.json")
 
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.meldebescheinigung) as VdsSeal
 
@@ -129,7 +129,7 @@ class CustomRegistryIntegrationCommonTest {
     fun testCustomSealCodingsReplacesDefaults() {
         // CustomSealCodings.json only has documentRef "1234" -> CUSTOM_SEAL_CODING1
         // socialInsurance uses documentRef fc04, which won't be found
-        DataEncoder.loadCustomSealCodingsFromFile("CustomSealCodings.json")
+        DataEncoder.replaceCustomSealCodingsFromFile("CustomSealCodings.json")
 
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.socialInsurance) as VdsSeal
         assertEquals("UNKNOWN", seal.documentType)
@@ -151,7 +151,7 @@ class CustomRegistryIntegrationCommonTest {
             }]
         """.trimIndent()
 
-        DataEncoder.loadCustomSealCodings(customJson)
+        DataEncoder.replaceCustomSealCodings(customJson)
 
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.socialInsurance) as VdsSeal
         assertEquals("RENAMED_SOCIAL_CARD", seal.documentType)
@@ -175,7 +175,7 @@ class CustomRegistryIntegrationCommonTest {
             }]
         """.trimIndent()
 
-        DataEncoder.loadCustomSealCodings(customJson)
+        DataEncoder.replaceCustomSealCodings(customJson)
 
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.socialInsurance) as VdsSeal
         assertEquals("SOCIAL_INSURANCE_CARD", seal.documentType)
@@ -202,7 +202,7 @@ class CustomRegistryIntegrationCommonTest {
         assertEquals("CERTIFYING_PERMANENT_RESIDENCE", sealDefault.documentType)
 
         // Load custom types: only tag 1 -> CUSTOM1_DOCUMENT, tag 2 -> CUSTOM2_DOCUMENT
-        DataEncoder.loadCustomIdbDocumentTypesFromFile("CustomIdbNationalDocumentTypes.json")
+        DataEncoder.replaceCustomIdbNationalDocumentTypesFromFile("CustomIdbNationalDocumentTypes.json")
 
         val sealCustom = IdbSeal.fromString(certifyingPermanentResidence) as IdbSeal
         // Tag 16 is not in custom types -> "UNKNOWN"
@@ -225,7 +225,7 @@ class CustomRegistryIntegrationCommonTest {
         assertEquals("PROOF_OF_VACCINATION", seal.messageList[0].name)
 
         // Load custom types: only tag 1 -> MESSAGE_TYPE1, tag 2 -> MESSAGE_TYPE2
-        DataEncoder.loadCustomIdbMessageTypesFromFile("CustomIdbMessageTypes.json")
+        DataEncoder.replaceCustomIdbMessageTypesFromFile("CustomIdbMessageTypes.json")
 
         // Re-parse: messageList is computed on each access
         val messages = seal.messageList
@@ -233,5 +233,97 @@ class CustomRegistryIntegrationCommonTest {
         assertEquals(4, messages[0].tag)
         // Tag 4 is not in custom types -> "UNKNOWN"
         assertEquals("UNKNOWN", messages[0].name)
+    }
+
+    // --- addCustom*: merge tests ---
+
+    @Test
+    fun addCustomSealCodings_keepsExistingEntries() {
+        // CustomSealCodings.json only has documentRef "1234" -> CUSTOM_SEAL_CODING1
+        DataEncoder.addCustomSealCodingsFromFile("CustomSealCodings.json")
+
+        // Default entry still accessible
+        assertEquals("SOCIAL_INSURANCE_CARD", DataEncoder.getVdsType(0xfc04))
+        // New entry also accessible
+        assertEquals("CUSTOM_SEAL_CODING1", DataEncoder.getVdsType(0x1234))
+    }
+
+    @Test
+    fun addCustomSealCodings_overwritesOnConflict() {
+        val json = """[{
+            "documentType": "RENAMED_SOCIAL_CARD",
+            "documentRef": "fc04",
+            "version": 4,
+            "messages": [
+                {"name": "SOCIAL_INSURANCE_NUMBER", "tag": 1, "coding": "C40"}
+            ]
+        }]"""
+
+        DataEncoder.addCustomSealCodings(json)
+
+        // New entry wins for this documentRef
+        assertEquals("RENAMED_SOCIAL_CARD", DataEncoder.getVdsType(0xfc04))
+    }
+
+    @Test
+    fun addCustomIdbMessageTypes_keepsExistingEntries() {
+        // CustomIdbMessageTypes.json only has tags 1 and 2
+        DataEncoder.addCustomIdbMessageTypesFromFile("CustomIdbMessageTypes.json")
+
+        // Default entry still accessible
+        assertEquals("PROOF_OF_VACCINATION", DataEncoder.getIdbMessageTypeName(4))
+        // New entries also accessible
+        assertEquals("MESSAGE_TYPE1", DataEncoder.getIdbMessageTypeName(1))
+        assertEquals("MESSAGE_TYPE2", DataEncoder.getIdbMessageTypeName(2))
+    }
+
+    @Test
+    fun addCustomIdbMessageTypes_overwritesOnConflict() {
+        val json = """[{"name": "MY_VACCINATION", "tag": 4, "coding": "BYTES"}]"""
+
+        DataEncoder.addCustomIdbMessageTypes(json)
+
+        assertEquals("MY_VACCINATION", DataEncoder.getIdbMessageTypeName(4))
+    }
+
+    @Test
+    fun addCustomIdbNationalDocumentTypes_keepsExistingEntries() {
+        // CustomIdbNationalDocumentTypes.json only has tags 1 and 2
+        DataEncoder.addCustomIdbNationalDocumentTypesFromFile("CustomIdbNationalDocumentTypes.json")
+
+        // Default entry still accessible (tag 16)
+        assertEquals("CERTIFYING_PERMANENT_RESIDENCE", DataEncoder.getIdbDocumentTypeName(16))
+        // New entries also accessible
+        assertEquals("CUSTOM1_DOCUMENT", DataEncoder.getIdbDocumentTypeName(1))
+        assertEquals("CUSTOM2_DOCUMENT", DataEncoder.getIdbDocumentTypeName(2))
+    }
+
+    @Test
+    fun addCustomExtendedMessageDefinitions_keepsExistingEntries() {
+        val newUuid = "aaaabbbbccccddddaaaabbbbccccdddd"
+        val json = """[{
+            "definitionId": "$newUuid",
+            "definitionName": "NEW_DOCUMENT",
+            "baseDocumentType": "ADMINISTRATIVE_DOCUMENTS",
+            "version": 1,
+            "messages": []
+        }]"""
+
+        DataEncoder.addCustomExtendedMessageDefinitions(json)
+
+        // Default MELDEBESCHEINIGUNG is still there
+        val defaultDef = DataEncoder.resolveExtendedMessageDefinition("9a4223406d374ef99e2cf95e31a23846")
+        assertEquals("MELDEBESCHEINIGUNG", defaultDef?.definitionName)
+        // New definition also accessible
+        assertEquals("NEW_DOCUMENT", DataEncoder.resolveExtendedMessageDefinition(newUuid)?.definitionName)
+    }
+
+    @Test
+    fun addCustomExtendedMessageDefinitions_overwritesOnConflict() {
+        // CustomExtendedMessageDefinitions.json maps the same UUID as MELDEBESCHEINIGUNG to MY_CUSTOM_DOCUMENT
+        DataEncoder.addCustomExtendedMessageDefinitionsFromFile("CustomExtendedMessageDefinitions.json")
+
+        val def = DataEncoder.resolveExtendedMessageDefinition("9a4223406d374ef99e2cf95e31a23846")
+        assertEquals("MY_CUSTOM_DOCUMENT", def?.definitionName)
     }
 }

@@ -1,74 +1,386 @@
 [
   {
     "tag": 1,
-    "name": "SUBSTITUTE_IDENTITY_DOCUMENT"
+    "name": "SUBSTITUTE_IDENTITY_DOCUMENT",
+    "messages": [
+      {
+        "name": "FACE_IMAGE",
+        "required": true
+      },
+      {
+        "name": "MRZ_TD2",
+        "required": true
+      },
+      {
+        "name": "EXPIRY_DATE",
+        "required": true
+      },
+      {
+        "name": "NATIONAL_DOCUMENT_IDENTIFIER",
+        "required": true
+      }
+    ]
   },
   {
     "tag": 2,
-    "name": "SUBSTITUTE_PASSPORT_DOCUMENT"
+    "name": "SUBSTITUTE_PASSPORT_DOCUMENT",
+    "messages": [
+      {
+        "name": "EMERGENCY_TRAVEL_DOCUMENT",
+        "required": true
+      },
+      {
+        "name": "FACE_IMAGE",
+        "required": true
+      },
+      {
+        "name": "EXPIRY_DATE",
+        "required": true
+      },
+      {
+        "name": "NATIONAL_DOCUMENT_IDENTIFIER",
+        "required": true
+      }
+    ]
   },
   {
     "tag": 3,
-    "name": "EMERGENCY_TRAVEL_DOCUMENT"
+    "name": "EMERGENCY_TRAVEL_DOCUMENT",
+    "messages": [
+      {
+        "name": "EMERGENCY_TRAVEL_DOCUMENT",
+        "required": true
+      },
+      {
+        "name": "FACE_IMAGE",
+        "required": true
+      },
+      {
+        "name": "EXPIRY_DATE",
+        "required": true
+      },
+      {
+        "name": "NATIONAL_DOCUMENT_IDENTIFIER",
+        "required": true
+      }
+    ]
   },
   {
     "tag": 4,
-    "name": "TEMPORARY_IDENTITY_CARD"
+    "name": "TEMPORARY_IDENTITY_CARD",
+    "messages": [
+      {
+        "name": "EMERGENCY_TRAVEL_DOCUMENT",
+        "required": true
+      },
+      {
+        "name": "FACE_IMAGE",
+        "required": true
+      },
+      {
+        "name": "EXPIRY_DATE",
+        "required": true
+      },
+      {
+        "name": "NATIONAL_DOCUMENT_IDENTIFIER",
+        "required": true
+      }
+    ]
   },
   {
     "tag": 5,
-    "name": "TEMPORARY_OFFICIAL_PASSPORT"
+    "name": "TEMPORARY_OFFICIAL_PASSPORT",
+    "messages": [
+      {
+        "name": "MRZ_TD3",
+        "required": true
+      },
+      {
+        "name": "FACE_IMAGE",
+        "required": true
+      },
+      {
+        "name": "EXPIRY_DATE",
+        "required": true
+      },
+      {
+        "name": "NATIONAL_DOCUMENT_IDENTIFIER",
+        "required": true
+      }
+    ]
   },
   {
     "tag": 6,
-    "name": "TEMPORARY_PASSPORT"
+    "name": "TEMPORARY_PASSPORT",
+    "messages": [
+      {
+        "name": "MRZ_TD3",
+        "required": true
+      },
+      {
+        "name": "FACE_IMAGE",
+        "required": true
+      },
+      {
+        "name": "EXPIRY_DATE",
+        "required": true
+      },
+      {
+        "name": "NATIONAL_DOCUMENT_IDENTIFIER",
+        "required": true
+      }
+    ]
   },
   {
     "tag": 7,
-    "name": "TEMPORARY_DIPLOMATIC_PASSPORT"
+    "name": "TEMPORARY_DIPLOMATIC_PASSPORT",
+    "messages": [
+      {
+        "name": "MRZ_TD3",
+        "required": true
+      },
+      {
+        "name": "FACE_IMAGE",
+        "required": true
+      },
+      {
+        "name": "EXPIRY_DATE",
+        "required": true
+      },
+      {
+        "name": "NATIONAL_DOCUMENT_IDENTIFIER",
+        "required": true
+      }
+    ]
   },
   {
     "tag": 8,
-    "name": "TEMPORARY_TRAVEL_DOCUMENT_REFUGEES"
+    "name": "TEMPORARY_TRAVEL_DOCUMENT_REFUGEES",
+    "messages": [
+      {
+        "name": "MRZ_TD3",
+        "required": true
+      },
+      {
+        "name": "FACE_IMAGE",
+        "required": true
+      },
+      {
+        "name": "EXPIRY_DATE",
+        "required": true
+      },
+      {
+        "name": "NATIONAL_DOCUMENT_IDENTIFIER",
+        "required": true
+      }
+    ]
   },
   {
     "tag": 9,
-    "name": "TEMPORARY_TRAVEL_DOCUMENT_STATELESS_PERSONS"
+    "name": "TEMPORARY_TRAVEL_DOCUMENT_STATELESS_PERSONS",
+    "messages": [
+      {
+        "name": "MRZ_TD3",
+        "required": true
+      },
+      {
+        "name": "FACE_IMAGE",
+        "required": true
+      },
+      {
+        "name": "EXPIRY_DATE",
+        "required": true
+      },
+      {
+        "name": "NATIONAL_DOCUMENT_IDENTIFIER",
+        "required": true
+      }
+    ]
   },
   {
     "tag": 10,
-    "name": "TEMPORARY_TRAVEL_DOCUMENT_FOREIGNERS"
+    "name": "TEMPORARY_TRAVEL_DOCUMENT_FOREIGNERS",
+    "messages": [
+      {
+        "name": "MRZ_TD3",
+        "required": true
+      },
+      {
+        "name": "FACE_IMAGE",
+        "required": true
+      },
+      {
+        "name": "EXPIRY_DATE",
+        "required": true
+      },
+      {
+        "name": "NATIONAL_DOCUMENT_IDENTIFIER",
+        "required": true
+      }
+    ]
   },
   {
     "tag": 11,
-    "name": "PERMISSION_TO_RETAIN_PENDING_THE_ASYLUM_DECISION"
+    "name": "PERMISSION_TO_RETAIN_PENDING_THE_ASYLUM_DECISION",
+    "messages": [
+      {
+        "name": "FACE_IMAGE",
+        "required": true
+      },
+      {
+        "name": "MRZ_TD2",
+        "required": true
+      },
+      {
+        "name": "AZR",
+        "required": true
+      },
+      {
+        "name": "NATIONAL_DOCUMENT_IDENTIFIER",
+        "required": true
+      }
+    ]
   },
   {
     "tag": 12,
-    "name": "TEMPORARY_SUSPENSION_OF_DEPORTATION"
+    "name": "TEMPORARY_SUSPENSION_OF_DEPORTATION",
+    "messages": [
+      {
+        "name": "FACE_IMAGE",
+        "required": true
+      },
+      {
+        "name": "MRZ_TD2",
+        "required": true
+      },
+      {
+        "name": "AZR",
+        "required": true
+      },
+      {
+        "name": "NATIONAL_DOCUMENT_IDENTIFIER",
+        "required": true
+      }
+    ]
   },
   {
     "tag": 13,
-    "name": "ARRIVAL_ATTESTATION_IDB"
+    "name": "ARRIVAL_ATTESTATION_IDB",
+    "messages": [
+      {
+        "name": "FACE_IMAGE",
+        "required": true
+      },
+      {
+        "name": "MRZ_TD2",
+        "required": true
+      },
+      {
+        "name": "AZR",
+        "required": true
+      },
+      {
+        "name": "NATIONAL_DOCUMENT_IDENTIFIER",
+        "required": true
+      }
+    ]
   },
   {
     "tag": 14,
-    "name": "PROVISIONAL_RESIDENCE_DOCUMENT"
+    "name": "PROVISIONAL_RESIDENCE_DOCUMENT",
+    "messages": [
+      {
+        "name": "MRZ_TD1",
+        "required": true
+      },
+      {
+        "name": "DOCUMENT_REFERENCE",
+        "required": true
+      },
+      {
+        "name": "AZR",
+        "required": true
+      },
+      {
+        "name": "NATIONAL_DOCUMENT_IDENTIFIER",
+        "required": true
+      }
+    ]
   },
   {
     "tag": 15,
-    "name": "TEMPORARY_IDENTITY_DOCUMENT"
+    "name": "TEMPORARY_IDENTITY_DOCUMENT",
+    "messages": [
+      {
+        "name": "FACE_IMAGE",
+        "required": true
+      },
+      {
+        "name": "MRZ_TD2",
+        "required": true
+      },
+      {
+        "name": "EXPIRY_DATE",
+        "required": true
+      },
+      {
+        "name": "NATIONAL_DOCUMENT_IDENTIFIER",
+        "required": true
+      }
+    ]
   },
   {
     "tag": 16,
-    "name": "CERTIFYING_PERMANENT_RESIDENCE"
+    "name": "CERTIFYING_PERMANENT_RESIDENCE",
+    "messages": [
+      {
+        "name": "DOCUMENT_NUMBER",
+        "required": true
+      },
+      {
+        "name": "NATIONAL_DOCUMENT_IDENTIFIER",
+        "required": true
+      }
+    ]
   },
   {
     "tag": 17,
-    "name": "FRONTIER_WORKER_PERMIT"
+    "name": "FRONTIER_WORKER_PERMIT",
+    "messages": [
+      {
+        "name": "FACE_IMAGE",
+        "required": true
+      },
+      {
+        "name": "MRZ_TD2",
+        "required": true
+      },
+      {
+        "name": "NATIONAL_DOCUMENT_IDENTIFIER",
+        "required": true
+      }
+    ]
   },
   {
     "tag": 18,
-    "name": "SUPPLEMENTARY_SHEET_FOR_RESIDENCE_PERMIT_CARD"
+    "name": "SUPPLEMENTARY_SHEET_FOR_RESIDENCE_PERMIT_CARD",
+    "messages": [
+      {
+        "name": "MRZ_TD1",
+        "required": true
+      },
+      {
+        "name": "DOCUMENT_REFERENCE",
+        "required": true
+      },
+      {
+        "name": "DOCUMENT_NUMBER",
+        "required": true
+      },
+      {
+        "name": "NATIONAL_DOCUMENT_IDENTIFIER",
+        "required": true
+      }
+    ]
   }
 ]

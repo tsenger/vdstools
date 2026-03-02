@@ -185,8 +185,12 @@ You can load your own custom codings at runtime to support additional document t
 
 ### Loading Custom Codings
 
+There are two strategies for providing custom definitions:
+
+- **`replaceCustom*`** – replaces the entire registry with your JSON. The built-in defaults are no longer available.
+- **`addCustom*`** – merges your entries into the existing registry. Built-in defaults are preserved; entries with the same key (e.g. `documentRef`) are overwritten by your version.
+
 ```kotlin
-// Option 1: Load from JSON string
 val customJson = """[
   {
     "documentType": "MY_CUSTOM_DOCUMENT",
@@ -197,7 +201,6 @@ val customJson = """[
         "name": "OWNER_NAME",
         "tag": 1,
         "coding": "C40",
-        "decodedLength": 30,
         "required": true,
         "minLength": 1,
         "maxLength": 20
@@ -214,10 +217,32 @@ val customJson = """[
   }
 ]"""
 
-DataEncoder.loadCustomSealCodings(customJson)
+// Add to defaults – built-in types remain available:
+DataEncoder.addCustomSealCodings(customJson)
+DataEncoder.addCustomSealCodingsFromFile("path/to/MyCodings.json")  // JVM only
 
-// Option 2: Load from file (JVM only)
-DataEncoder.loadCustomSealCodingsFromFile("path/to/MyCodings.json")
+// Replace defaults entirely – only your types are available:
+DataEncoder.replaceCustomSealCodings(customJson)
+DataEncoder.replaceCustomSealCodingsFromFile("path/to/MyCodings.json")  // JVM only
+```
+
+The same pattern applies to the other registries:
+
+```kotlin
+// IDB message types
+DataEncoder.addCustomIdbMessageTypes(jsonString)
+DataEncoder.replaceCustomIdbMessageTypes(jsonString)
+
+// IDB national document types
+DataEncoder.addCustomIdbNationalDocumentTypes(jsonString)
+DataEncoder.replaceCustomIdbNationalDocumentTypes(jsonString)
+
+// Extended message definitions (VDS administrative documents)
+DataEncoder.addCustomExtendedMessageDefinitions(jsonString)
+DataEncoder.replaceCustomExtendedMessageDefinitions(jsonString)
+
+// Revert all registries to embedded defaults:
+DataEncoder.resetToDefaults()
 ```
 
 ### Using Custom Document Types
