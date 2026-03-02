@@ -280,6 +280,68 @@ val vdsSeal = VdsSeal(header, messageGroup, signer)
 
 See `src/commonMain/resources/SealCodings.json` for the complete structure of the default codings.
 
+## Byte-level structure inspection with the `dissect` package
+
+The `dissect` package is not part of the core VDS/IDB processing workflow. It is a utility for developers
+who need to inspect the raw byte layout of a parsed seal — for example to build a hex viewer, a debugging
+tool, or an educational visualisation of the barcode content.
+
+The entry point is an extension function on `Seal`:
+
+```kotlin
+import de.tsenger.vdstools.dissect.dissect
+
+val seal: Seal = Seal.fromString(rawString)
+val dissection: SealDissection = seal.dissect()
+```
+
+The result is a `SealDissection` with four fields:
+
+| Field              | Description                                                          |
+|--------------------|----------------------------------------------------------------------|
+| `header`           | Byte range of the header, including all sub-fields                   |
+| `messageGroup`     | Byte range of the message group, including individual TLV fields     |
+| `signerCertificate`| Byte range of the signer certificate (IDB only, otherwise `null`)   |
+| `signature`        | Byte range of the signature (`null` for unsigned seals)              |
+
+Each `FieldDissection` contains a `ByteRange(offset, length)` relative to the decoded payload bytes, and
+optionally a list of `children` for nested sub-fields.
+
+**Example: highlighting fields in a hex viewer**
+
+```kotlin
+val raw: ByteArray = seal.encoded  // VDS: complete encoded bytes; IDB: decoded payload bytes
+
+val d = seal.dissect()
+
+// Print header with sub-fields
+println("Header [${d.header.range.offset}..${d.header.range.offset + d.header.range.length - 1}]")
+for (child in d.header.children) {
+    val r = child.range
+    println("  ${child.label}: bytes[${r.offset}..${r.offset + r.length - 1}]")
+}
+
+// Print individual TLV fields of the message group
+for (field in d.messageGroup.children) {
+    val r = field.range
+    val tagRange   = field.children.getOrNull(0)?.range
+    val valueRange = field.children.getOrNull(2)?.range
+    println("  ${field.label}: offset=${r.offset}, length=${r.length}")
+    println("    Tag:   bytes[${tagRange?.offset}..${tagRange?.let { it.offset + it.length - 1 }}]")
+    println("    Value: bytes[${valueRange?.offset}..${valueRange?.let { it.offset + it.length - 1 }}]")
+}
+```
+
+**Note for IDB seals**: all offsets are relative to the concatenated decoded payload bytes in this order:
+
+```kotlin
+val payloadBytes =
+    seal.payLoad.idbHeader.encoded +
+    seal.payLoad.idbMessageGroup.encoded +
+    (seal.payLoad.idbSignerCertificate?.encoded ?: byteArrayOf()) +
+    (seal.payLoad.idbSignature?.encoded ?: byteArrayOf())
+```
+
 ## How to include
 
 The vdstools library is available on
