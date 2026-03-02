@@ -46,7 +46,6 @@ kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 
 # JVM Specific
 bouncycastle-bcprov = { module = "org.bouncycastle:bcprov-jdk15to18", version.ref = "bouncycastle" }
-jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "annotations" }
 kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
 
 # Testing

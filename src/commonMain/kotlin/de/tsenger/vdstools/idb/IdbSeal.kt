@@ -12,10 +12,12 @@ import kotlinx.datetime.LocalDate
 
 class IdbSeal : Seal {
     private var barcodeFlag: Char = 0x41.toChar()
+    private var _barcodeIdentifier: String = BARCODE_IDENTIFIER
     var payLoad: IdbPayload
 
-    constructor(barcodeFlag: Char, barcodePayload: IdbPayload) {
+    constructor(barcodeFlag: Char, barcodePayload: IdbPayload, identifier: String = BARCODE_IDENTIFIER) {
         this.barcodeFlag = barcodeFlag
+        this._barcodeIdentifier = identifier
         this.payLoad = barcodePayload
     }
 
@@ -25,11 +27,23 @@ class IdbSeal : Seal {
         this.payLoad = barcodePayload
     }
 
+    val barcodeIdentifier: String
+        get() = _barcodeIdentifier
+
+    val barcodeFlagByte: Byte
+        get() = barcodeFlag.code.toByte()
+
     val isSigned: Boolean
         get() = (((barcodeFlag.code.toByte()) - 0x41).toByte().toInt() and 0x01) == 0x01
 
     val isZipped: Boolean
         get() = (((barcodeFlag.code.toByte()) - 0x41).toByte().toInt() and 0x02) == 0x02
+
+    override val encoded: ByteArray
+        get() = payLoad.idbHeader.encoded +
+                payLoad.idbMessageGroup.encoded +
+                (payLoad.idbSignerCertificate?.encoded ?: byteArrayOf()) +
+                (payLoad.idbSignature?.encoded ?: byteArrayOf())
 
     override val rawString: String
         get() {
@@ -156,7 +170,7 @@ class IdbSeal : Seal {
             }
 
             val payload = IdbPayload.fromByteArray(payloadBytes, isSigned)
-            return IdbSeal(barcodeFlag, payload)
+            return IdbSeal(barcodeFlag, payload, barcodeIdentifier)
         }
     }
 }
