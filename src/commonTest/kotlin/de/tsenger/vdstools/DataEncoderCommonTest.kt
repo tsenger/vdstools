@@ -157,7 +157,7 @@ class DataEncoderCommonTest {
 
     @Test
     fun testLoadCustomSealCodingsFromFile_success() {
-        DataEncoder.loadCustomSealCodingsFromFile("CustomSealCodings.json")
+        DataEncoder.replaceCustomSealCodingsFromFile("CustomSealCodings.json")
         // Verify that registry was loaded by checking a known VDS type
         assertNotNull(DataEncoder.getDocumentRef("CUSTOM_SEAL_CODING1"))
     }
@@ -165,13 +165,13 @@ class DataEncoderCommonTest {
     @Test
     fun testLoadCustomSealCodingsFromFile_fileNotFound() {
         assertFailsWith<FileNotFoundException> {
-            DataEncoder.loadCustomSealCodingsFromFile("NonExistentFile.json")
+            DataEncoder.replaceCustomSealCodingsFromFile("NonExistentFile.json")
         }
     }
 
     @Test
     fun testLoadCustomIdbMessageTypesFromFile_success() {
-        DataEncoder.loadCustomIdbMessageTypesFromFile("CustomIdbMessageTypes.json")
+        DataEncoder.replaceCustomIdbMessageTypesFromFile("CustomIdbMessageTypes.json")
         // Verify that registry was loaded by checking a known message type
         assertEquals("MESSAGE_TYPE2", DataEncoder.getIdbMessageTypeName(2))
     }
@@ -179,13 +179,13 @@ class DataEncoderCommonTest {
     @Test
     fun testLoadCustomIdbMessageTypesFromFile_fileNotFound() {
         assertFailsWith<FileNotFoundException> {
-            DataEncoder.loadCustomIdbMessageTypesFromFile("NonExistentFile.json")
+            DataEncoder.replaceCustomIdbMessageTypesFromFile("NonExistentFile.json")
         }
     }
 
     @Test
     fun testLoadCustomIdbDocumentTypesFromFile_success() {
-        DataEncoder.loadCustomIdbDocumentTypesFromFile("CustomIdbNationalDocumentTypes.json")
+        DataEncoder.replaceCustomIdbNationalDocumentTypesFromFile("CustomIdbNationalDocumentTypes.json")
         // Verify that registry was loaded by checking a known document type
         assertEquals("CUSTOM1_DOCUMENT", DataEncoder.getIdbDocumentTypeName(1))
     }
@@ -193,13 +193,13 @@ class DataEncoderCommonTest {
     @Test
     fun testLoadCustomIdbDocumentTypesFromFile_fileNotFound() {
         assertFailsWith<FileNotFoundException> {
-            DataEncoder.loadCustomIdbDocumentTypesFromFile("NonExistentFile.json")
+            DataEncoder.replaceCustomIdbNationalDocumentTypesFromFile("NonExistentFile.json")
         }
     }
 
     @Test
     fun testLoadCustomExtendedMessageDefinitionsFromFile_success() {
-        DataEncoder.loadCustomExtendedMessageDefinitionsFromFile("CustomExtendedMessageDefinitions.json")
+        DataEncoder.replaceCustomExtendedMessageDefinitionsFromFile("CustomExtendedMessageDefinitions.json")
         // Verify that registry was loaded by checking a known definition
         val definition = DataEncoder.resolveExtendedMessageDefinition("9a4223406d374ef99e2cf95e31a23846")
         assertNotNull(definition)
@@ -209,7 +209,7 @@ class DataEncoderCommonTest {
     @Test
     fun testLoadCustomExtendedMessageDefinitionsFromFile_fileNotFound() {
         assertFailsWith<FileNotFoundException> {
-            DataEncoder.loadCustomExtendedMessageDefinitionsFromFile("NonExistentFile.json")
+            DataEncoder.replaceCustomExtendedMessageDefinitionsFromFile("NonExistentFile.json")
         }
     }
 
@@ -242,7 +242,7 @@ class DataEncoderCommonTest {
     @Test
     fun testResetToDefaults() {
         // Load custom configurations
-        DataEncoder.loadCustomIdbMessageTypesFromFile("CustomIdbMessageTypes.json")
+        DataEncoder.replaceCustomIdbMessageTypesFromFile("CustomIdbMessageTypes.json")
         assertEquals("MESSAGE_TYPE2", DataEncoder.getIdbMessageTypeName(2))
 
         // Reset to defaults

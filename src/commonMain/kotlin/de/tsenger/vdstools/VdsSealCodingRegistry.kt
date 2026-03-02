@@ -20,7 +20,7 @@ import kotlinx.serialization.json.Json
  *
  * @param jsonString JSON string containing an array of [SealDto] definitions
  */
-class VdsSealCodingRegistry(jsonString: String) {
+class VdsSealCodingRegistry(jsonString: String) : DefinitionRegistry {
     private val log = Logger.withTag(this::class.simpleName ?: "")
     private var sealDtoList: List<SealDto>
 
@@ -320,6 +320,18 @@ class VdsSealCodingRegistry(jsonString: String) {
             }
         }
         throw IllegalArgumentException("No Message with tag '" + tag + "' is specified for the given seal '" + sealDto.documentType + "'")
+    }
+
+    override fun addEntriesFromJson(jsonString: String) {
+        val newDtos = Json { ignoreUnknownKeys = true }.decodeFromString<List<SealDto>>(jsonString)
+        for (dto in newDtos) {
+            sealDtoList = sealDtoList.filter { it.documentRef != dto.documentRef } + dto
+            if (dto.documentType != "" && dto.documentRef != "") {
+                vdsTypes[dto.documentType] = dto.documentRef.toInt(16)
+                vdsTypesReverse[dto.documentRef.toInt(16)] = dto.documentType
+            }
+            dto.messages.forEach { vdsMessages.add(it.name) }
+        }
     }
 
     @Throws(IllegalArgumentException::class)

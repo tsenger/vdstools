@@ -20,7 +20,7 @@ import kotlinx.serialization.json.Json
  *
  * @param jsonString JSON string containing an array of [IdbMessageTypeDto] definitions
  */
-class IdbMessageTypeRegistry(jsonString: String) {
+class IdbMessageTypeRegistry(jsonString: String) : DefinitionRegistry {
     private val log = Logger.withTag(this::class.simpleName ?: "")
     private var messageTypeDtoList: List<IdbMessageTypeDto> = emptyList()
     private val messageTypes: HashMap<Int, IdbMessageTypeDto> = HashMap()
@@ -34,6 +34,14 @@ class IdbMessageTypeRegistry(jsonString: String) {
             messageTypes[messageTypeDto.tag] = messageTypeDto
             messageTypesInverse[messageTypeDto.name] = messageTypeDto
 
+        }
+    }
+
+    override fun addEntriesFromJson(jsonString: String) {
+        val newDtos = Json { ignoreUnknownKeys = true }.decodeFromString<List<IdbMessageTypeDto>>(jsonString)
+        for (dto in newDtos) {
+            messageTypes[dto.tag] = dto
+            messageTypesInverse[dto.name] = dto
         }
     }
 

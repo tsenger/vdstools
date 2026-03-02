@@ -18,7 +18,7 @@ import kotlinx.serialization.json.Json
  *
  * @param jsonString JSON string containing an array of [IdbDocumentTypeDto] definitions
  */
-class IdbNationalDocumentTypeRegistry(jsonString: String) {
+class IdbNationalDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
     private val log = Logger.withTag(this::class.simpleName ?: "")
     private var documentTypeDtoList: List<IdbDocumentTypeDto> = emptyList()
     private val documentTypes: HashMap<Int, IdbDocumentTypeDto> = HashMap()
@@ -32,6 +32,14 @@ class IdbNationalDocumentTypeRegistry(jsonString: String) {
             documentTypes[documentTypeDto.tag] = documentTypeDto
             documentTypesInverse[documentTypeDto.name] = documentTypeDto
 
+        }
+    }
+
+    override fun addEntriesFromJson(jsonString: String) {
+        val newDtos = Json { ignoreUnknownKeys = true }.decodeFromString<List<IdbDocumentTypeDto>>(jsonString)
+        for (dto in newDtos) {
+            documentTypes[dto.tag] = dto
+            documentTypesInverse[dto.name] = dto
         }
     }
 

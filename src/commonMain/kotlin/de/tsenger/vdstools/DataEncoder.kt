@@ -59,16 +59,22 @@ import okio.*
  *
  * ## Loading custom definitions
  *
- * Each registry can be replaced by loading custom JSON:
+ * Each registry can be replaced entirely or extended with additional entries:
  * ```kotlin
  * // Replace a registry entirely from a JSON string:
- * DataEncoder.loadCustomSealCodings(myJsonString)
- * DataEncoder.loadCustomIdbMessageTypes(myJsonString)
- * DataEncoder.loadCustomIdbNationalDocumentTypes(myJsonString)
- * DataEncoder.loadCustomExtendedMessageDefinitions(myJsonString)
+ * DataEncoder.replaceCustomSealCodings(myJsonString)
+ * DataEncoder.replaceCustomIdbMessageTypes(myJsonString)
+ * DataEncoder.replaceCustomIdbNationalDocumentTypes(myJsonString)
+ * DataEncoder.replaceCustomExtendedMessageDefinitions(myJsonString)
  *
  * // Or from a file (resolved via readTextResource):
- * DataEncoder.loadCustomSealCodingsFromFile("my_seal_codings.json")
+ * DataEncoder.replaceCustomSealCodingsFromFile("my_seal_codings.json")
+ *
+ * // Merge custom entries into the existing registry (defaults are preserved):
+ * DataEncoder.addCustomSealCodings(myJsonString)
+ * DataEncoder.addCustomIdbMessageTypes(myJsonString)
+ * DataEncoder.addCustomIdbNationalDocumentTypes(myJsonString)
+ * DataEncoder.addCustomExtendedMessageDefinitions(myJsonString)
  *
  * // For VDS extended definitions, individual profiles can also be added without
  * // replacing the entire registry (supports JSON and TR-03171 XML format):
@@ -111,84 +117,131 @@ object DataEncoder {
     }
 
     /**
-     * Allows users to override the default SealCodings with custom JSON.
+     * Replaces the SealCodings registry entirely with custom JSON.
      *
      * @param jsonString Custom SealCodings JSON content
      * @throws Exception if JSON is invalid
      */
-    fun loadCustomSealCodings(jsonString: String) {
+    fun replaceCustomSealCodings(jsonString: String) {
         vdsSealCodingRegistry = VdsSealCodingRegistry(jsonString)
-        log.i("Loaded custom SealCodings")
+        log.i("Replaced SealCodings registry")
     }
 
     /**
-     * Allows users to override the default IDB Message Types with custom JSON.
+     * Replaces the IDB Message Types registry entirely with custom JSON.
      *
      * @param jsonString Custom IdbMessageTypes JSON content
      * @throws Exception if JSON is invalid
      */
-    fun loadCustomIdbMessageTypes(jsonString: String) {
+    fun replaceCustomIdbMessageTypes(jsonString: String) {
         idbMessageTypeRegistry = IdbMessageTypeRegistry(jsonString)
-        log.i("Loaded custom IdbMessageTypes")
+        log.i("Replaced IdbMessageTypes registry")
     }
 
     /**
-     * Allows users to override the default IDB Document Types with custom JSON.
+     * Replaces the IDB National Document Types registry entirely with custom JSON.
      *
      * @param jsonString Custom IdbNationalDocumentTypes JSON content
      * @throws Exception if JSON is invalid
      */
-    fun loadCustomIdbNationalDocumentTypes(jsonString: String) {
+    fun replaceCustomIdbNationalDocumentTypes(jsonString: String) {
         idbDocumentTypeRegistry = IdbNationalDocumentTypeRegistry(jsonString)
-        log.i("Loaded custom IdbDocumentTypes")
+        log.i("Replaced IdbNationalDocumentTypes registry")
     }
 
     /**
-     * Allows users to override the default Extended Message Definitions with custom JSON.
+     * Replaces the Extended Message Definitions registry entirely with custom JSON.
      *
      * @param jsonString Custom ExtendedMessageDefinitions JSON content
      * @throws Exception if JSON is invalid
      */
-    fun loadCustomExtendedMessageDefinitions(jsonString: String) {
+    fun replaceCustomExtendedMessageDefinitions(jsonString: String) {
         extendedMessageDefinitionRegistry = ExtendedMessageDefinitionRegistry(jsonString)
-        log.i("Loaded custom ExtendedMessageDefinitions")
+        log.i("Replaced ExtendedMessageDefinitions registry")
+    }
+
+    @Throws(FileNotFoundException::class)
+    fun replaceCustomSealCodingsFromFile(fileName: String) {
+        replaceCustomSealCodings(readTextResource(fileName))
+    }
+
+    @Throws(FileNotFoundException::class)
+    fun replaceCustomIdbMessageTypesFromFile(fileName: String) {
+        replaceCustomIdbMessageTypes(readTextResource(fileName))
+    }
+
+    @Throws(FileNotFoundException::class)
+    fun replaceCustomIdbNationalDocumentTypesFromFile(fileName: String) {
+        replaceCustomIdbNationalDocumentTypes(readTextResource(fileName))
+    }
+
+    @Throws(FileNotFoundException::class)
+    fun replaceCustomExtendedMessageDefinitionsFromFile(fileName: String) {
+        replaceCustomExtendedMessageDefinitions(readTextResource(fileName))
     }
 
     /**
-     * Convenience method to load custom JSON from file using readTextResource.
+     * Merges custom SealCodings into the existing registry. Existing entries with the same
+     * documentRef are replaced; all other defaults are preserved.
      *
-     * Example usage:
-     * ```
-     * DataEncoder.loadCustomSealCodingsFromFile("custom_seals.json")
-     * ```
+     * @param jsonString Custom SealCodings JSON content
      */
+    fun addCustomSealCodings(jsonString: String) {
+        vdsSealCodingRegistry.addEntriesFromJson(jsonString)
+        log.i("Added custom SealCodings entries")
+    }
+
     @Throws(FileNotFoundException::class)
-    fun loadCustomSealCodingsFromFile(fileName: String) {
-        loadCustomSealCodings(readTextResource(fileName))
+    fun addCustomSealCodingsFromFile(fileName: String) {
+        addCustomSealCodings(readTextResource(fileName))
     }
 
     /**
-     * Convenience method to load custom IDB Message Types from file.
+     * Merges custom IDB Message Types into the existing registry. Existing entries with the
+     * same tag are replaced; all other defaults are preserved.
+     *
+     * @param jsonString Custom IdbMessageTypes JSON content
      */
+    fun addCustomIdbMessageTypes(jsonString: String) {
+        idbMessageTypeRegistry.addEntriesFromJson(jsonString)
+        log.i("Added custom IdbMessageTypes entries")
+    }
+
     @Throws(FileNotFoundException::class)
-    fun loadCustomIdbMessageTypesFromFile(fileName: String) {
-        loadCustomIdbMessageTypes(readTextResource(fileName))
+    fun addCustomIdbMessageTypesFromFile(fileName: String) {
+        addCustomIdbMessageTypes(readTextResource(fileName))
     }
 
     /**
-     * Convenience method to load custom IDB Document Types from file.
+     * Merges custom IDB National Document Types into the existing registry. Existing entries
+     * with the same tag are replaced; all other defaults are preserved.
+     *
+     * @param jsonString Custom IdbNationalDocumentTypes JSON content
      */
+    fun addCustomIdbNationalDocumentTypes(jsonString: String) {
+        idbDocumentTypeRegistry.addEntriesFromJson(jsonString)
+        log.i("Added custom IdbNationalDocumentTypes entries")
+    }
+
     @Throws(FileNotFoundException::class)
-    fun loadCustomIdbDocumentTypesFromFile(fileName: String) {
-        loadCustomIdbNationalDocumentTypes(readTextResource(fileName))
+    fun addCustomIdbNationalDocumentTypesFromFile(fileName: String) {
+        addCustomIdbNationalDocumentTypes(readTextResource(fileName))
     }
 
     /**
-     * Convenience method to load custom Extended Message Definitions from file.
+     * Merges custom Extended Message Definitions into the existing registry. Existing entries
+     * with the same definitionId are replaced; all other defaults are preserved.
+     *
+     * @param jsonString Custom ExtendedMessageDefinitions JSON content
      */
+    fun addCustomExtendedMessageDefinitions(jsonString: String) {
+        extendedMessageDefinitionRegistry.addEntriesFromJson(jsonString)
+        log.i("Added custom ExtendedMessageDefinitions entries")
+    }
+
     @Throws(FileNotFoundException::class)
-    fun loadCustomExtendedMessageDefinitionsFromFile(fileName: String) {
-        loadCustomExtendedMessageDefinitions(readTextResource(fileName))
+    fun addCustomExtendedMessageDefinitionsFromFile(fileName: String) {
+        addCustomExtendedMessageDefinitions(readTextResource(fileName))
     }
 
     /**
