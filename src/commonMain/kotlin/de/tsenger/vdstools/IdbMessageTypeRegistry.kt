@@ -26,9 +26,11 @@ class IdbMessageTypeRegistry(jsonString: String) : DefinitionRegistry {
     private val messageTypes: HashMap<Int, IdbMessageTypeDto> = HashMap()
     private val messageTypesInverse: HashMap<String, IdbMessageTypeDto> = HashMap()
 
+    companion object {
+        private val json = Json { ignoreUnknownKeys = true }
+    }
 
     init {
-        val json = Json { ignoreUnknownKeys = true }
         messageTypeDtoList = json.decodeFromString(jsonString)
         for (messageTypeDto in messageTypeDtoList) {
             messageTypes[messageTypeDto.tag] = messageTypeDto
@@ -38,7 +40,7 @@ class IdbMessageTypeRegistry(jsonString: String) : DefinitionRegistry {
     }
 
     override fun addEntriesFromJson(jsonString: String) {
-        val newDtos = Json { ignoreUnknownKeys = true }.decodeFromString<List<IdbMessageTypeDto>>(jsonString)
+        val newDtos = json.decodeFromString<List<IdbMessageTypeDto>>(jsonString)
         for (dto in newDtos) {
             messageTypes[dto.tag] = dto
             messageTypesInverse[dto.name] = dto

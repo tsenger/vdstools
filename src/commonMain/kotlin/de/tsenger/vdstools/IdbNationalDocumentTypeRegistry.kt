@@ -24,9 +24,11 @@ class IdbNationalDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
     private val documentTypes: HashMap<Int, IdbDocumentTypeDto> = HashMap()
     private val documentTypesInverse: HashMap<String, IdbDocumentTypeDto> = HashMap()
 
+    companion object {
+        private val json = Json { ignoreUnknownKeys = true }
+    }
 
     init {
-        val json = Json { ignoreUnknownKeys = true }
         documentTypeDtoList = json.decodeFromString(jsonString)
         for (documentTypeDto in documentTypeDtoList) {
             documentTypes[documentTypeDto.tag] = documentTypeDto
@@ -36,7 +38,7 @@ class IdbNationalDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
     }
 
     override fun addEntriesFromJson(jsonString: String) {
-        val newDtos = Json { ignoreUnknownKeys = true }.decodeFromString<List<IdbDocumentTypeDto>>(jsonString)
+        val newDtos = json.decodeFromString<List<IdbDocumentTypeDto>>(jsonString)
         for (dto in newDtos) {
             documentTypes[dto.tag] = dto
             documentTypesInverse[dto.name] = dto

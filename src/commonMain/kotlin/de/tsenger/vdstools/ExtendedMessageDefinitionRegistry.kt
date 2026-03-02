@@ -23,8 +23,11 @@ class ExtendedMessageDefinitionRegistry(jsonString: String) : DefinitionRegistry
     private var definitionsByUuid: Map<String, ExtendedMessageDefinitionDto>
     private var definitionsByName: Map<String, ExtendedMessageDefinitionDto>
 
+    companion object {
+        private val json = Json { ignoreUnknownKeys = true }
+    }
+
     init {
-        val json = Json { ignoreUnknownKeys = true }
         val definitionList: List<ExtendedMessageDefinitionDto> = json.decodeFromString(jsonString)
         definitionsByUuid = definitionList.associateBy { it.definitionId.lowercase() }
         definitionsByName = definitionList.associateBy { it.definitionName }
@@ -32,7 +35,7 @@ class ExtendedMessageDefinitionRegistry(jsonString: String) : DefinitionRegistry
     }
 
     override fun addEntriesFromJson(jsonString: String) {
-        val newDtos = Json { ignoreUnknownKeys = true }.decodeFromString<List<ExtendedMessageDefinitionDto>>(jsonString)
+        val newDtos = json.decodeFromString<List<ExtendedMessageDefinitionDto>>(jsonString)
         newDtos.forEach { addDefinition(it) }
     }
 

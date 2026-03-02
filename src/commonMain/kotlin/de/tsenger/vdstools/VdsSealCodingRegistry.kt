@@ -28,8 +28,11 @@ class VdsSealCodingRegistry(jsonString: String) : DefinitionRegistry {
     private val vdsTypesReverse: MutableMap<Int, String> = HashMap()
     private val vdsMessages: MutableSet<String> = mutableSetOf()
 
+    companion object {
+        private val json = Json { ignoreUnknownKeys = true }
+    }
+
     init {
-        val json = Json { ignoreUnknownKeys = true }
         this.sealDtoList = json.decodeFromString(jsonString)
         populateMappings()
     }
@@ -323,7 +326,7 @@ class VdsSealCodingRegistry(jsonString: String) : DefinitionRegistry {
     }
 
     override fun addEntriesFromJson(jsonString: String) {
-        val newDtos = Json { ignoreUnknownKeys = true }.decodeFromString<List<SealDto>>(jsonString)
+        val newDtos = json.decodeFromString<List<SealDto>>(jsonString)
         for (dto in newDtos) {
             sealDtoList = sealDtoList.filter { it.documentRef != dto.documentRef } + dto
             if (dto.documentType != "" && dto.documentRef != "") {
