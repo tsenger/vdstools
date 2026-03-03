@@ -79,6 +79,46 @@ val verifier = Verifier(
 val result: Verifier.Result = verifier.verify()
 ```
 
+## Metadata messages (administrative documents)
+
+Some seal types use a two-stage lookup: the header's `documentRef` points to a base type (e.g.
+`ADMINISTRATIVE_DOCUMENTS`), and the first tags of the message zone carry administrative metadata
+(e.g. the document profile UUID at tag 0, validity dates at tag 1) rather than user-visible content.
+
+These tags are declared as `metadataTagList` in `SealCodings.json` and are automatically separated
+from the regular `messageList` during parsing. They are only accessible via `metadataMessageList`.
+
+```kotlin
+val seal: Seal = Seal.fromString(rawString)
+
+// Regular user-visible messages (metadata tags are excluded)
+val messageList = seal.messageList
+
+// Metadata messages (e.g. DOC_PROFILE_NUMBER, VALIDITY_DATES)
+val metadataList = seal.metadataMessageList
+for (message in metadataList) {
+    println("${message.name} (tag ${message.tag}) -> ${message.value}")
+}
+
+// Check if the seal has any metadata at all
+if (seal.metadataMessageList.isNotEmpty()) {
+    // access a specific metadata message by name
+    val validity = seal.metadataMessageList.firstOrNull { it.name == "VALIDITY_DATES" }
+    val v = validity?.value as? MessageValue.ValidityDatesValue
+    println("valid from ${v?.validFrom} to ${v?.validTo}")
+}
+```
+
+To check at the type level which tags are configured as metadata (without a concrete seal instance):
+
+```kotlin
+DataEncoder.getMetadataTags("ADMINISTRATIVE_DOCUMENTS") // → {0, 1, 2, 3}
+DataEncoder.getMetadataTags("RESIDENT_PERMIT")          // → {} (no metadata tags)
+```
+
+Regular document types have no `metadataTagList` configured, so their `metadataMessageList` is
+always empty and all tags appear in `messageList` as usual.
+
 ## Build a barcode
 
 Here is an example on how to use the DataEncoder and Signer classes to build a VDS barcode:
