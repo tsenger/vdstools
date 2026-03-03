@@ -150,6 +150,15 @@ class VdsSeal : Seal {
             )
         }
 
+    override val metadataMessageList: List<Message>
+        get() = vdsMessageGroup.metadataMessageList.map { vdsMessage ->
+            val mrzLength = getMrzLength(vdsMessage.name)
+            Message(
+                vdsMessage.tag, vdsMessage.name, vdsMessage.coding,
+                MessageValue.fromBytes(vdsMessage.value.rawBytes, vdsMessage.coding, mrzLength)
+            )
+        }
+
     companion object {
         private val log = Logger.withTag(this::class.simpleName ?: "")
         fun fromRawString(rawString: String): Seal {
@@ -198,6 +207,9 @@ class VdsSeal : Seal {
             if (DataEncoder.requiresUuidLookup(vdsHeader.vdsType)) {
                 val uuidTag = DataEncoder.getUuidMessageTag(vdsHeader.vdsType)
                 vdsMessageGroup.resolveExtendedMessageDefinition(uuidTag)
+                DataEncoder.getMetadataTags(vdsHeader.vdsType).forEach {
+                    vdsMessageGroup.metadataTags.add(it)
+                }
                 log.d("Resolved extended definition: ${vdsMessageGroup.extendedMessageDefinition?.definitionName}")
             }
 

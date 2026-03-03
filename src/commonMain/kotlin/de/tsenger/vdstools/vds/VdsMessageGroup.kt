@@ -61,6 +61,17 @@ class VdsMessageGroup {
             return messageList
         }
 
+    val metadataMessageList: List<Message>
+        get() {
+            val result: MutableList<Message> = ArrayList()
+            for (derTlv in derTlvList) {
+                if (derTlv.tag.toInt() !in metadataTags) continue
+                DataEncoder.encodeDerTlv(vdsType, extendedMessageDefinition, derTlv)
+                    ?.let { result.add(it) }
+            }
+            return result
+        }
+
     fun getMessage(messageName: String): Message? {
         return messageList.firstOrNull { message: Message -> message.name == messageName }
     }
@@ -131,7 +142,8 @@ class VdsMessageGroup {
                 group.vdsType = baseVdsType
                 group.extendedMessageDefinition = extendedDefinition
                 group.documentProfileUuid = uuidBytes
-                group.metadataTags.add(0)
+                DataEncoder.getMetadataTags(baseVdsType).forEach { group.metadataTags.add(it) }
+                if (group.metadataTags.isEmpty()) group.metadataTags.add(0)
             }
             return group
         }

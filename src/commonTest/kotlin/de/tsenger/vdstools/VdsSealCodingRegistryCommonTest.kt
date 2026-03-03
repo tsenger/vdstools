@@ -67,4 +67,25 @@ class VdsSealCodingRegistryCommonTest {
     fun testGetDocumentRef_fakeSeal() {
         assertNull(DataEncoder.getDocumentRef("FAKE_SEAL"))
     }
+
+    @Test
+    fun testGetMetadataTags_administrativeDocuments() {
+        val jsonString = readTextResource("SealCodings.json")
+        val registry = VdsSealCodingRegistry(jsonString)
+        assertEquals(setOf(0, 1, 2, 3), registry.getMetadataTags("ADMINISTRATIVE_DOCUMENTS"))
+    }
+
+    @Test
+    fun testGetMetadataTags_unknownType_returnsEmpty() {
+        val jsonString = readTextResource("SealCodings.json")
+        val registry = VdsSealCodingRegistry(jsonString)
+        assertTrue(registry.getMetadataTags("UNKNOWN_TYPE").isEmpty())
+    }
+
+    @Test
+    fun testGetMetadataTags_regularType_returnsEmpty() {
+        val jsonString = readTextResource("SealCodings.json")
+        val registry = VdsSealCodingRegistry(jsonString)
+        assertTrue(registry.getMetadataTags("RESIDENT_PERMIT").isEmpty())
+    }
 }

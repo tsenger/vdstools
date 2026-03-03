@@ -620,6 +620,16 @@ object DataEncoder {
     }
 
     /**
+     * Returns the set of tag numbers that are treated as metadata for the given VDS type.
+     *
+     * @param vdsType The VDS type to check
+     * @return Set of metadata tag numbers, empty if not configured or type not found
+     */
+    fun getMetadataTags(vdsType: String): Set<Int> {
+        return vdsSealCodingRegistry.getMetadataTags(vdsType)
+    }
+
+    /**
      * Resolves an extended message definition based on UUID bytes.
      *
      * @param uuidBytes 16-byte UUID

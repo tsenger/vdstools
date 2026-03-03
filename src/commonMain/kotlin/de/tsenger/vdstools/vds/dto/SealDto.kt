@@ -20,4 +20,5 @@ data class SealDto(
     var messages: List<MessageDto> = emptyList(),
     var uuidMessageLookup: Boolean = false,
     var uuidMessageTag: Int = 0,
+    var metadataTagList: List<Int> = emptyList(),
 )

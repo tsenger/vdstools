@@ -104,6 +104,20 @@ class VdsSealCodingRegistry(jsonString: String) : DefinitionRegistry {
     }
 
     /**
+     * Returns the set of tag numbers that are treated as metadata for the given VDS type.
+     *
+     * @param vdsType The VDS type to check
+     * @return Set of metadata tag numbers, empty if not configured or type not found
+     */
+    fun getMetadataTags(vdsType: String): Set<Int> {
+        return try {
+            getSealDto(vdsType).metadataTagList.toSet()
+        } catch (_: IllegalArgumentException) {
+            emptySet()
+        }
+    }
+
+    /**
      * Returns a set of all available message names across all VDS types.
      */
     val availableVdsMessages: Set<String?>

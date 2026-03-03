@@ -14,6 +14,8 @@ abstract class Seal {
     open val documentProfileUuid: ByteArray?
         get() = null
     abstract val messageList: List<Message>
+    open val metadataMessageList: List<Message>
+        get() = emptyList()
     abstract val issuingCountry: String
     abstract val signatureInfo: SignatureInfo?
     abstract val signedBytes: ByteArray?

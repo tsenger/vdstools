@@ -108,9 +108,9 @@ class CreateTR03171Seals {
             .addMessage("SURNAME", "Leiermann")
             .build()
 
-        // Verify VALIDITY_DATES tag (1) was created
-        val validityMessage = messageGroup.getMessage("VALIDITY_DATES")
-        assertNotNull(validityMessage, "VALIDITY_DATES message should be present")
+        // VALIDITY_DATES (tag 1) is a base-type metadata tag → only in metadataMessageList
+        val validityMessage = messageGroup.metadataMessageList.firstOrNull { it.name == "VALIDITY_DATES" }
+        assertNotNull(validityMessage, "VALIDITY_DATES message should be present in metadataMessageList")
 
         // Verify decoding as ValidityDatesValue
         val validityValue = validityMessage.value as MessageValue.ValidityDatesValue
@@ -128,7 +128,8 @@ class CreateTR03171Seals {
             .addMessage("SURNAME", "Müller")
             .build()
 
-        val validityMessage = messageGroup.getMessage("VALIDITY_DATES")
+        // VALIDITY_DATES (tag 1) is a base-type metadata tag → only in metadataMessageList
+        val validityMessage = messageGroup.metadataMessageList.firstOrNull { it.name == "VALIDITY_DATES" }
         assertNotNull(validityMessage)
 
         val validityValue = validityMessage.value as MessageValue.ValidityDatesValue
