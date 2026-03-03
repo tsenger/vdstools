@@ -6,7 +6,7 @@ publiccodeYmlVersion: '0.2'
 name: VdsTools
 url: 'https://github.com/tsenger/vdstools'
 releaseDate: '2026-01-07'
-softwareVersion: 0.13.0
+softwareVersion: 0.14.0
 softwareType: library
 platforms:
   - ios

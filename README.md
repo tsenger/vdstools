@@ -228,7 +228,8 @@ You can load your own custom codings at runtime to support additional document t
 There are two strategies for providing custom definitions:
 
 - **`replaceCustom*`** – replaces the entire registry with your JSON. The built-in defaults are no longer available.
-- **`addCustom*`** – merges your entries into the existing registry. Built-in defaults are preserved; entries with the same key (e.g. `documentRef`) are overwritten by your version.
+- **`addCustom*`** – merges your entries into the existing registry. Built-in defaults are preserved; entries with the
+  same key (e.g. `documentRef`) are overwritten by your version.
 
 ```kotlin
 val customJson = """[
@@ -337,12 +338,12 @@ val dissection: SealDissection = seal.dissect()
 
 The result is a `SealDissection` with four fields:
 
-| Field              | Description                                                          |
-|--------------------|----------------------------------------------------------------------|
-| `header`           | Byte range of the header, including all sub-fields                   |
-| `messageGroup`     | Byte range of the message group, including individual TLV fields     |
-| `signerCertificate`| Byte range of the signer certificate (IDB only, otherwise `null`)   |
-| `signature`        | Byte range of the signature (`null` for unsigned seals)              |
+| Field               | Description                                                       |
+|---------------------|-------------------------------------------------------------------|
+| `header`            | Byte range of the header, including all sub-fields                |
+| `messageGroup`      | Byte range of the message group, including individual TLV fields  |
+| `signerCertificate` | Byte range of the signer certificate (IDB only, otherwise `null`) |
+| `signature`         | Byte range of the signature (`null` for unsigned seals)           |
 
 Each `FieldDissection` contains a `ByteRange(offset, length)` relative to the decoded payload bytes, and
 optionally a list of `children` for nested sub-fields.
@@ -364,7 +365,7 @@ for (child in d.header.children) {
 // Print individual TLV fields of the message group
 for (field in d.messageGroup.children) {
     val r = field.range
-    val tagRange   = field.children.getOrNull(0)?.range
+    val tagRange = field.children.getOrNull(0)?.range
     val valueRange = field.children.getOrNull(2)?.range
     println("  ${field.label}: offset=${r.offset}, length=${r.length}")
     println("    Tag:   bytes[${tagRange?.offset}..${tagRange?.let { it.offset + it.length - 1 }}]")
@@ -377,9 +378,9 @@ for (field in d.messageGroup.children) {
 ```kotlin
 val payloadBytes =
     seal.payLoad.idbHeader.encoded +
-    seal.payLoad.idbMessageGroup.encoded +
-    (seal.payLoad.idbSignerCertificate?.encoded ?: byteArrayOf()) +
-    (seal.payLoad.idbSignature?.encoded ?: byteArrayOf())
+            seal.payLoad.idbMessageGroup.encoded +
+            (seal.payLoad.idbSignerCertificate?.encoded ?: byteArrayOf()) +
+            (seal.payLoad.idbSignature?.encoded ?: byteArrayOf())
 ```
 
 ## How to include
@@ -394,7 +395,7 @@ To include this library to your Gradle build add this dependency:
 
 ```groovy
 dependencies {
-    implementation 'de.tsenger:vdstools:0.13.0'
+    implementation 'de.tsenger:vdstools:0.14.0'
 }
 ```
 
@@ -407,6 +408,6 @@ To include this library to your Maven build add this dependency:
 <dependency>
     <groupId>de.tsenger</groupId>
     <artifactId>vdstools</artifactId>
-    <version>0.13.0</version>
+    <version>0.14.0</version>
 </dependency>
 ```
