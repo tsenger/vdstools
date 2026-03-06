@@ -60,7 +60,7 @@ class Fr2ddocHeaderCommonTest {
         assertEquals("FR00", h.signerIdentifier)
         assertEquals("0001", h.certificateReference)
         assertEquals(LocalDate(2021, 12, 7), h.issuingDate)   // 0x1F4B = 8011 days
-        assertEquals(LocalDate(2021, 12, 17), h.sigDate)      // 0x1F54 = 8020 days
+        assertEquals(LocalDate(2021, 12, 16), h.sigDate)      // 0x1F54 = 8020 days
         assertEquals("C7", h.docType)
         assertEquals("01", h.perimeterId)
         assertEquals("FR", h.issuingCountry)
