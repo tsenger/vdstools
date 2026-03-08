@@ -89,7 +89,14 @@ class Fr2ddocSeal : Seal {
         private fun parseSeal(barcodeString: String): Seal {
             val strBuffer = BufferReader(barcodeString)
 
+
             val header = Fr2ddocHeader.fromStringBuffer(strBuffer)
+            val parts = barcodeString.substring(strBuffer.pointer).split("\u001F", limit = 2)
+            val dataString = parts[0]
+            val signatureString = parts[1]
+            log.v { "dataString: $dataString" }
+            log.v { "signatureString: $signatureString" }
+
             val messageGroup = Fr2ddocMessageGroup.fromStringBuffer(strBuffer)
             val signature = Fr2ddocSignature.fromStringBuffer(strBuffer)
             val annex = Fr2ddocAnnex.fromStringBuffer(strBuffer)
