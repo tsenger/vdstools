@@ -49,6 +49,20 @@ class MessageJvmTest {
     }
 
     @Test
+    fun testMessageFromIdbMessageGroup_newApi() {
+        // Create IdbMessageGroup and get Message from it
+        val messageGroup = IdbMessageGroup.Builder()
+            .addMessage("CAN", "654321")
+            .build()
+
+        val message = messageGroup.getMessageByName("CAN")
+        Assert.assertNotNull(message)
+        Assert.assertEquals("CAN", message!!.name)
+        Assert.assertTrue(message.value is MessageValue.StringValue)
+        Assert.assertEquals("654321", message.value.toString())
+    }
+
+    @Test
     fun testMessageValueAccess() {
         val messageGroup = IdbMessageGroup.Builder()
             .addMessage("CAN", "123456")

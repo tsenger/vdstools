@@ -26,6 +26,16 @@ class DigitalSeaIoslTest {
     }
 
     @Test
+    fun testParseSocialInsurranceCard_newApi() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesIos.socialInsurance) as VdsSeal
+        assertEquals("SOCIAL_INSURANCE_CARD", seal.documentType)
+        assertEquals("65170839J003", seal.getMessageByName("SOCIAL_INSURANCE_NUMBER")?.value.toString())
+        assertEquals("Perschweiß", seal.getMessageByName("SURNAME")?.value.toString())
+        assertEquals("Oscar", seal.getMessageByName("FIRST_NAME")?.value.toString())
+        assertEquals("Jâcobénidicturius", seal.getMessageByName("BIRTH_NAME")?.value.toString())
+    }
+
+    @Test
     fun testParseArrivalAttestationV02() {
         val seal = VdsSeal.fromByteArray(VdsRawBytesIos.arrivalAttestationV02) as VdsSeal
         assertEquals(
@@ -35,6 +45,18 @@ class DigitalSeaIoslTest {
         assertEquals("0004F", seal.certificateReference)
         assertEquals("ABC123456DEF", seal.getMessage("AZR")?.value.toString())
         assertNull(seal.getMessage("FIRST_NAME"))
+    }
+
+    @Test
+    fun testParseArrivalAttestationV02_newApi() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesIos.arrivalAttestationV02) as VdsSeal
+        assertEquals(
+            "MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
+            seal.getMessageByName("MRZ")?.value.toString()
+        )
+        assertEquals("0004F", seal.certificateReference)
+        assertEquals("ABC123456DEF", seal.getMessageByName("AZR")?.value.toString())
+        assertNull(seal.getMessageByName("FIRST_NAME"))
     }
 
     @Test
@@ -48,6 +70,16 @@ class DigitalSeaIoslTest {
     }
 
     @Test
+    fun testParseResidentPermit_newApi() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesIos.residentPermit) as VdsSeal
+        assertEquals(
+            "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
+            seal.getMessageByName("MRZ")?.value.toString()
+        )
+        assertEquals("UFO001979", seal.getMessageByName("PASSPORT_NUMBER")?.value.toString())
+    }
+
+    @Test
     fun testParseSupplementSheet() {
         val seal = VdsSeal.fromByteArray(VdsRawBytesIos.supplementSheet) as VdsSeal
         assertEquals(
@@ -55,6 +87,16 @@ class DigitalSeaIoslTest {
             seal.getMessage("MRZ")?.value.toString()
         )
         assertEquals("PA0000005", seal.getMessage("SHEET_NUMBER")?.value.toString())
+    }
+
+    @Test
+    fun testParseSupplementSheet_newApi() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesIos.supplementSheet) as VdsSeal
+        assertEquals(
+            "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
+            seal.getMessageByName("MRZ")?.value.toString()
+        )
+        assertEquals("PA0000005", seal.getMessageByName("SHEET_NUMBER")?.value.toString())
     }
 
     @Test
@@ -67,6 +109,15 @@ class DigitalSeaIoslTest {
     }
 
     @Test
+    fun testEmergencyTravelDoc_newApi() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesIos.emergenyTravelDoc) as VdsSeal
+        assertEquals(
+            "I<GBRSUPAMANN<<MARY<<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
+            seal.getMessageByName("MRZ")?.value.toString()
+        )
+    }
+
+    @Test
     fun testParseAddressStickerId() {
         val seal = VdsSeal.fromByteArray(VdsRawBytesIos.addressStickerId) as VdsSeal
         assertEquals("T2000AK47", seal.getMessage("DOCUMENT_NUMBER")?.value.toString())
@@ -75,11 +126,27 @@ class DigitalSeaIoslTest {
     }
 
     @Test
+    fun testParseAddressStickerId_newApi() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesIos.addressStickerId) as VdsSeal
+        assertEquals("T2000AK47", seal.getMessageByName("DOCUMENT_NUMBER")?.value.toString())
+        assertEquals("05314000", seal.getMessageByName("AGS")?.value.toString())
+        assertEquals("53175HEINEMANNSTR11", seal.getMessageByName("ADDRESS")?.value.toString())
+    }
+
+    @Test
     fun testParseAddressStickerPassport() {
         val seal = VdsSeal.fromByteArray(VdsRawBytesIos.addressStickerPassport) as VdsSeal
         assertEquals("PA5500K11", seal.getMessage("DOCUMENT_NUMBER")?.value.toString())
         assertEquals("03359010", seal.getMessage("AGS")?.value.toString())
         assertEquals("21614", seal.getMessage("POSTAL_CODE")?.value.toString())
+    }
+
+    @Test
+    fun testParseAddressStickerPassport_newApi() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesIos.addressStickerPassport) as VdsSeal
+        assertEquals("PA5500K11", seal.getMessageByName("DOCUMENT_NUMBER")?.value.toString())
+        assertEquals("03359010", seal.getMessageByName("AGS")?.value.toString())
+        assertEquals("21614", seal.getMessageByName("POSTAL_CODE")?.value.toString())
     }
 
     @Test
@@ -92,6 +159,18 @@ class DigitalSeaIoslTest {
         assertEquals("47110815P", seal.getMessage("PASSPORT_NUMBER")?.value.toString())
         assertEquals("a00000", seal.getMessage("DURATION_OF_STAY")?.value.toString())
         assertNull(seal.getMessage("NUMBER_OF_ENTRIES"))
+    }
+
+    @Test
+    fun testParseVisa_newApi() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesIos.visa_224bitSig) as VdsSeal
+        assertEquals(
+            "VCD<<DENT<<ARTHUR<PHILIP<<<<<<<<<<<<\n1234567XY7GBR5203116M2005250<<<<<<<<",
+            seal.getMessageByName("MRZ_MRVB")?.value.toString()
+        )
+        assertEquals("47110815P", seal.getMessageByName("PASSPORT_NUMBER")?.value.toString())
+        assertEquals("a00000", seal.getMessageByName("DURATION_OF_STAY")?.value.toString())
+        assertNull(seal.getMessageByName("NUMBER_OF_ENTRIES"))
     }
 
     @Test
