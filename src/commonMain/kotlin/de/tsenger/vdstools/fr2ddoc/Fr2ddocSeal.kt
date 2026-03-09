@@ -6,102 +6,87 @@ import de.tsenger.vdstools.generic.Seal
 import de.tsenger.vdstools.generic.SignatureInfo
 
 
-class Fr2ddocSeal : Seal {
-
-    private val header: Fr2ddocHeader
-    private val messageGroup: Fr2ddocMessageGroup
-    private val signature: Fr2ddocSignature
-    private val annex: Fr2ddocAnnex
-
-    private constructor(
-        header: Fr2ddocHeader,
-        messageGroup: Fr2ddocMessageGroup,
-        signature: Fr2ddocSignature,
-        annex: Fr2ddocAnnex
-    ) {
-        this.header = header
-        this.messageGroup = messageGroup
-        this.signature = signature
-        this.annex = annex
-    }
+class Fr2ddocSeal private constructor(
+    private val header: Fr2ddocHeader,
+    private val messageGroup: Fr2ddocMessageGroup,
+    private val signature: Fr2ddocSignature,
+    private val barcodeString: String,
+    private val signedData: ByteArray
+) : Seal() {
 
     override val documentType: String
-        get() {
-            TODO()
-        }
-
-    override val baseDocumentType: String?
-        get() {
-            TODO()
-        }
-
-
-    override val documentProfileUuid: ByteArray?
-        get() {
-            TODO()
-        }
-
+        get() = header.docType ?: ""
 
     override val issuingCountry: String
+        get() = header.issuingCountry ?: ""
+
+    override val messageList: List<Message>
+        get() = messageGroup.messages
+
+    override fun getMessage(name: String): Message? =
+        messageGroup.messages.find { it.name == name }
+
+    override fun getMessage(tag: Int): Message? =
+        messageGroup.messages.find { it.tag == tag }
+
+    override val signatureInfo: SignatureInfo?
         get() {
-            TODO()
+            val sigDate = header.sigDate ?: return null
+            return SignatureInfo(
+                signature.bytes,
+                (header.signerIdentifier ?: "") + (header.certificateReference ?: ""),
+                sigDate
+            )
         }
 
     override val signedBytes: ByteArray
-        get() = TODO()
-
+        get() = signedData
 
     override val encoded: ByteArray
-        get() = TODO()
-
+        get() = barcodeString.encodeToByteArray()
 
     override val rawString: String
-        get() = TODO()
-
-
-    override fun getMessage(name: String): Message? {
-        TODO("Not yet implemented")
-    }
-
-    override fun getMessage(tag: Int): Message? {
-        TODO("Not yet implemented")
-    }
-
-    override val messageList: List<Message>
-        get() = TODO("Not yet implemented")
-
-    override val signatureInfo: SignatureInfo
-        get() = TODO("Not yet implemented")
+        get() = barcodeString
 
     companion object {
         private val log = Logger.withTag(this::class.simpleName ?: "")
+
         fun fromRawString(rawString: String): Seal {
-            var seal: Seal? = null
             log.v("rawData: $rawString")
             try {
-                seal = parseSeal(rawString)
+                return parseSeal(rawString)
             } catch (e: Exception) {
                 log.e(e.message.toString())
+                throw e
             }
-            return seal!!
         }
 
         private fun parseSeal(barcodeString: String): Seal {
             val strBuffer = BufferReader(barcodeString)
 
-
             val header = Fr2ddocHeader.fromStringBuffer(strBuffer)
-            val parts = barcodeString.substring(strBuffer.pointer).split("\u001F", limit = 2)
-            val dataString = parts[0]
-            val signatureString = parts[1]
+            val headerLength = strBuffer.pointer
+
+            val remaining = barcodeString.substring(headerLength)
+            val usIndex = remaining.indexOf('\u001F')
+            if (usIndex < 0) {
+                throw IllegalArgumentException("No US separator (0x1F) found in 2D-DOC barcode")
+            }
+
+            val dataString = remaining.substring(0, usIndex)
+            val signatureString = remaining.substring(usIndex + 1)
+
             log.v { "dataString: $dataString" }
             log.v { "signatureString: $signatureString" }
 
-            val messageGroup = Fr2ddocMessageGroup.fromStringBuffer(strBuffer)
-            val signature = Fr2ddocSignature.fromStringBuffer(strBuffer)
-            val annex = Fr2ddocAnnex.fromStringBuffer(strBuffer)
+            val perimeterId = header.perimeterId ?: "1"
+            val messageGroup = Fr2ddocMessageGroup.parse(dataString, perimeterId)
+            val signature = Fr2ddocSignature.parse(signatureString)
 
-            return Fr2ddocSeal(header, messageGroup, signature, annex)
+            // signedBytes = header + dataString (everything before US)
+            val signedData = barcodeString.substring(0, headerLength + usIndex).encodeToByteArray()
+
+            return Fr2ddocSeal(header, messageGroup, signature, barcodeString, signedData)
         }
     }
 

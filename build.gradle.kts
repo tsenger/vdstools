@@ -216,6 +216,7 @@ tasks.register("generateResourceConstants") {
         val idbMessageTypes = file("$inputDir/IdbMessageTypes.json").readText()
         val idbDocumentTypes = file("$inputDir/IdbNationalDocumentTypes.json").readText()
         val extendedMessageDefinitions = file("$inputDir/ExtendedMessageDefinitions.json").readText()
+        val fr2ddocFieldDefinitions = file("$inputDir/Fr2ddocFieldDefinitions.json").readText()
 
         // Kotlin Code generieren
         val kotlinCode = """
@@ -235,6 +236,8 @@ internal object ResourceConstants {
     const val IDB_DOCUMENT_TYPES_JSON: String = ""${'"'}$idbDocumentTypes""${'"'}
 
     const val EXTENDED_MESSAGE_DEFINITIONS_JSON: String = ""${'"'}$extendedMessageDefinitions""${'"'}
+
+    const val FR2DDOC_FIELD_DEFINITIONS_JSON: String = ""${'"'}$fr2ddocFieldDefinitions""${'"'}
 }
 """.trimIndent()
 
@@ -244,7 +247,7 @@ internal object ResourceConstants {
             writeText(kotlinCode)
         }
 
-        println("✅ Generated ResourceConstants.kt with ${sealCodings.length + idbMessageTypes.length + idbDocumentTypes.length + extendedMessageDefinitions.length} bytes")
+        println("✅ Generated ResourceConstants.kt with ${sealCodings.length + idbMessageTypes.length + idbDocumentTypes.length + extendedMessageDefinitions.length + fr2ddocFieldDefinitions.length} bytes")
     }
 }
 
