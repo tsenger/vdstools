@@ -23,10 +23,13 @@ class Fr2ddocSeal private constructor(
     override val messageList: List<Message>
         get() = messageGroup.messages
 
-    override fun getMessage(name: String): Message? =
+    override fun getMessageByName(name: String): Message? =
         messageGroup.messages.find { it.name == name }
 
-    override fun getMessage(tag: Int): Message? =
+    override fun getMessageByTag(tag: Int): Message? =
+        getMessageByTag(tag.toString(16).uppercase().padStart(2, '0'))
+
+    override fun getMessageByTag(tag: String): Message? =
         messageGroup.messages.find { it.tag == tag }
 
     override val signatureInfo: SignatureInfo?

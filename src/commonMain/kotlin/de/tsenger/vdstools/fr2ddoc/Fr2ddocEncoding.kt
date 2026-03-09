@@ -22,7 +22,7 @@ enum class Fr2ddocEncoding {
     BASE32_STRING,
     BASE36;
 
-    fun decode(rawValue: String, tag: Int, name: String): Message {
+    fun decode(rawValue: String, tag: String, name: String): Message {
         val rawBytes = rawValue.encodeToByteArray()
         val value: MessageValue
         val coding: MessageCoding

@@ -230,7 +230,7 @@ class CustomRegistryIntegrationCommonTest {
         // Re-parse: messageList is computed on each access
         val messages = seal.messageList
         assertEquals(1, messages.size)
-        assertEquals(4, messages[0].tag)
+        assertEquals("04", messages[0].tag)
         // Tag 4 is not in custom types -> "UNKNOWN"
         assertEquals("UNKNOWN", messages[0].name)
     }

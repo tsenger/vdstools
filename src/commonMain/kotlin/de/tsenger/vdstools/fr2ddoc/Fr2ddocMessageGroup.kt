@@ -79,12 +79,6 @@ class Fr2ddocMessageGroup private constructor(
                     }
                 }
 
-                val tag = try {
-                    fieldId.toInt(16)
-                } catch (_: NumberFormatException) {
-                    // Non-hex field IDs (e.g. "BK") get unique tags above 0xFF
-                    fieldId[0].code shl 8 or fieldId[1].code
-                }
                 val encoding = try {
                     Fr2ddocEncoding.valueOf(definition.encoding)
                 } catch (_: IllegalArgumentException) {
@@ -94,17 +88,17 @@ class Fr2ddocMessageGroup private constructor(
 
                 val message = if (encoding != null && rawValue.isNotEmpty()) {
                     try {
-                        encoding.decode(rawValue, tag, definition.name)
+                        encoding.decode(rawValue, fieldId, definition.name)
                     } catch (e: Exception) {
                         log.w { "Failed to decode field '$fieldId': ${e.message}" }
                         Message(
-                            tag, definition.name, MessageCoding.UTF8_STRING,
+                            fieldId, definition.name, MessageCoding.UTF8_STRING,
                             MessageValue.StringValue(rawValue, rawValue.encodeToByteArray())
                         )
                     }
                 } else {
                     Message(
-                        tag, definition.name, MessageCoding.UTF8_STRING,
+                        fieldId, definition.name, MessageCoding.UTF8_STRING,
                         MessageValue.StringValue(rawValue, rawValue.encodeToByteArray())
                     )
                 }

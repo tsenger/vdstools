@@ -97,8 +97,8 @@ class VdsSeal : Seal {
         }
     }
 
-    override fun getMessage(name: String): Message? {
-        val vdsMessage = vdsMessageGroup.getMessage(name) ?: return null
+    override fun getMessageByName(name: String): Message? {
+        val vdsMessage = vdsMessageGroup.getMessageByName(name) ?: return null
         val mrzLength = getMrzLength(vdsMessage.name)
         return Message(
             vdsMessage.tag, vdsMessage.name, vdsMessage.coding,
@@ -106,8 +106,17 @@ class VdsSeal : Seal {
         )
     }
 
-    override fun getMessage(tag: Int): Message? {
-        val vdsMessage = vdsMessageGroup.getMessage(tag) ?: return null
+    override fun getMessageByTag(tag: Int): Message? {
+        val vdsMessage = vdsMessageGroup.getMessageByTag(tag) ?: return null
+        val mrzLength = getMrzLength(vdsMessage.name)
+        return Message(
+            vdsMessage.tag, vdsMessage.name, vdsMessage.coding,
+            MessageValue.fromBytes(vdsMessage.value.rawBytes, vdsMessage.coding, mrzLength)
+        )
+    }
+
+    override fun getMessageByTag(tag: String): Message? {
+        val vdsMessage = vdsMessageGroup.getMessageByTag(tag) ?: return null
         val mrzLength = getMrzLength(vdsMessage.name)
         return Message(
             vdsMessage.tag, vdsMessage.name, vdsMessage.coding,

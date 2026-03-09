@@ -19,8 +19,9 @@ class IdbMessageGroup {
 
     val messageList: List<Message>
         get() = derTlvList.map { derTlv ->
-            val tag = derTlv.tag.toInt() and 0xFF
-            val name = DataEncoder.getIdbMessageTypeName(tag)
+            val tagInt = derTlv.tag.toInt() and 0xFF
+            val tagHex = tagInt.toString(16).uppercase().padStart(2, '0')
+            val name = DataEncoder.getIdbMessageTypeName(tagInt)
             val coding = DataEncoder.getIdbMessageTypeCoding(name)
             val value = MessageValue.fromBytes(derTlv.value, coding)
             // TODO: Sub-message parsing — for IDB message types that contain nested
@@ -28,16 +29,27 @@ class IdbMessageGroup {
             // VACCINATION_DETAILS within VACCINATION_EVENT), the value bytes must be
             // recursively parsed using DataEncoder.parseDerTLvs(). Sub-message
             // definitions are available via IdbMessageTypeRegistry.getMessageTypeDto(tag).messages
-            Message(tag, name, coding, value)
+            Message(tagHex, name, coding, value)
         }
 
-    fun getMessage(messageTag: Int): Message? {
+    fun getMessageByTag(messageTag: Int): Message? {
+        val hexTag = (messageTag and 0xFF).toString(16).uppercase().padStart(2, '0')
+        return messageList.firstOrNull { it.tag == hexTag }
+    }
+
+    fun getMessageByTag(messageTag: String): Message? {
         return messageList.firstOrNull { it.tag == messageTag }
     }
 
-    fun getMessage(messageName: String): Message? {
+    fun getMessageByName(messageName: String): Message? {
         return messageList.firstOrNull { it.name == messageName }
     }
+
+    @Deprecated("Use getMessageByName(messageName) instead", ReplaceWith("getMessageByName(messageName)"))
+    fun getMessage(messageName: String): Message? = getMessageByName(messageName)
+
+    @Deprecated("Use getMessageByTag(messageTag) instead", ReplaceWith("getMessageByTag(messageTag)"))
+    fun getMessage(messageTag: Int): Message? = getMessageByTag(messageTag)
 
     val encoded: ByteArray
         get() {

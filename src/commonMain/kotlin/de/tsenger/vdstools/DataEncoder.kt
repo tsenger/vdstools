@@ -478,7 +478,7 @@ object DataEncoder {
     fun encodeDerTlv(vdsType: String, derTlv: DerTlv): Message? {
         val bytes = derTlv.value
         val name = vdsSealCodingRegistry.getMessageName(vdsType, derTlv)
-        val tag = derTlv.tag.toInt()
+        val tag = (derTlv.tag.toInt() and 0xFF).toString(16).uppercase().padStart(2, '0')
         val coding = vdsSealCodingRegistry.getMessageCoding(vdsType, derTlv)
         if (name == "" || coding == MessageCoding.UNKNOWN) return null
         return Message(tag, name, coding, MessageValue.fromBytes(bytes, coding))
@@ -659,11 +659,12 @@ object DataEncoder {
      */
     fun encodeDerTlv(vdsType: String, extendedDefinition: ExtendedMessageDefinitionDto?, derTlv: DerTlv): Message? {
         val bytes = derTlv.value
-        val tag = derTlv.tag.toInt()
-        val name = vdsSealCodingRegistry.getMessageName(vdsType, extendedDefinition, tag)
-        val coding = vdsSealCodingRegistry.getMessageCoding(vdsType, extendedDefinition, tag)
+        val tagInt = derTlv.tag.toInt()
+        val tagHex = (tagInt and 0xFF).toString(16).uppercase().padStart(2, '0')
+        val name = vdsSealCodingRegistry.getMessageName(vdsType, extendedDefinition, tagInt)
+        val coding = vdsSealCodingRegistry.getMessageCoding(vdsType, extendedDefinition, tagInt)
         if (name == "" || coding == MessageCoding.UNKNOWN) return null
-        return Message(tag, name, coding, MessageValue.fromBytes(bytes, coding))
+        return Message(tagHex, name, coding, MessageValue.fromBytes(bytes, coding))
     }
 
     /**

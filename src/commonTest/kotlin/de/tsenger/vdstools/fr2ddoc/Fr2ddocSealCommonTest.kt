@@ -22,22 +22,22 @@ class Fr2ddocSealCommonTest {
         assertEquals("FR", seal.issuingCountry)
         assertEquals(8, seal.messageList.size)
 
-        // field 90 (0x90 = 144): "MAITRE/SPECIMEN/NATACHA"
-        assertEquals("MAITRE/SPECIMEN/NATACHA", seal.getMessage(0x90)?.toString())
-        // field 92 (0x92 = 146): "RAISON SOCIALE DE TEST"
-        assertEquals("RAISON SOCIALE DE TEST", seal.getMessage(0x92)?.toString())
-        // field 94 (0x94 = 148): "SAISIE CONSERVATOIRE DE CREANCES"
-        assertEquals("SAISIE CONSERVATOIRE DE CREANCES", seal.getMessage(0x94)?.toString())
-        // field 96 (0x96 = 150): date 2017-11-21
-        assertEquals(LocalDate(2017, 11, 21).toString(), seal.getMessage(0x96)?.toString())
-        // field 91 (0x91 = 145): "MME/BERTHIER/CORINNE"
-        assertEquals("MME/BERTHIER/CORINNE", seal.getMessage(0x91)?.toString())
-        // field 93 (0x93 = 147): "RAISON SOCIALE DU TIERS CONCERNE"
-        assertEquals("RAISON SOCIALE DU TIERS CONCERNE", seal.getMessage(0x93)?.toString())
-        // field 95 (0x95 = 149): "1896547853AB"
-        assertEquals("1896547853AB", seal.getMessage(0x95)?.toString())
-        // field 0C (0x0C = 12): base32 decoded URL
-        assertEquals("huissier-justice.fr/1896547853AB", seal.getMessage(0x0C)?.toString())
+        // field 90: "MAITRE/SPECIMEN/NATACHA"
+        assertEquals("MAITRE/SPECIMEN/NATACHA", seal.getMessageByTag("90")?.toString())
+        // field 92: "RAISON SOCIALE DE TEST"
+        assertEquals("RAISON SOCIALE DE TEST", seal.getMessageByTag("92")?.toString())
+        // field 94: "SAISIE CONSERVATOIRE DE CREANCES"
+        assertEquals("SAISIE CONSERVATOIRE DE CREANCES", seal.getMessageByTag("94")?.toString())
+        // field 96: date 2017-11-21
+        assertEquals(LocalDate(2017, 11, 21).toString(), seal.getMessageByTag("96")?.toString())
+        // field 91: "MME/BERTHIER/CORINNE"
+        assertEquals("MME/BERTHIER/CORINNE", seal.getMessageByTag("91")?.toString())
+        // field 93: "RAISON SOCIALE DU TIERS CONCERNE"
+        assertEquals("RAISON SOCIALE DU TIERS CONCERNE", seal.getMessageByTag("93")?.toString())
+        // field 95: "1896547853AB"
+        assertEquals("1896547853AB", seal.getMessageByTag("95")?.toString())
+        // field 0C: base32 decoded URL
+        assertEquals("huissier-justice.fr/1896547853AB", seal.getMessageByTag("0C")?.toString())
 
         // Verify signature
         assertNotNull(seal.signatureInfo)
@@ -51,18 +51,12 @@ class Fr2ddocSealCommonTest {
         assertEquals("FR", seal.issuingCountry)
         assertEquals(6, seal.messageList.size)
 
-        // BK (0xBK? No, BK is not hex!) - field IDs like "BK" need to be parsed as hex
-        // BK = 11*16+20 = no, that's not valid hex... wait
-        // Actually the tag is fieldId.toInt(16). "BK" is not valid hex!
-        // Let me check: B=11, K is not a hex digit. So this will fail.
-        // The plan says "parse fieldId as hex int" but BK, BB etc are not valid hex.
-        // Let me verify by name instead.
-        assertEquals("18-ROSWFTHR-35", seal.getMessage("Numero de l'Attestation de versement de la CVE")?.toString())
-        assertEquals("CORINNE/NATACHA", seal.getMessage("Liste des prenoms")?.toString())
-        assertEquals("BERTHIER", seal.getMessage("Nom patronymique")?.toString())
-        assertEquals("", seal.getMessage("Nom d'usage")?.toString())
-        assertEquals(LocalDate(1973, 7, 12).toString(), seal.getMessage("Date de naissance")?.toString())
-        assertEquals("9654321785T", seal.getMessage("Numero ou code d'identification de l'etudiant")?.toString())
+        assertEquals("18-ROSWFTHR-35", seal.getMessageByTag("BK")?.toString())
+        assertEquals("CORINNE/NATACHA", seal.getMessageByName("Liste des prenoms")?.toString())
+        assertEquals("BERTHIER", seal.getMessageByName("Nom patronymique")?.toString())
+        assertEquals("", seal.getMessageByName("Nom d'usage")?.toString())
+        assertEquals(LocalDate(1973, 7, 12).toString(), seal.getMessageByName("Date de naissance")?.toString())
+        assertEquals("9654321785T", seal.getMessageByName("Numero ou code d'identification de l'etudiant")?.toString())
     }
 
     @Test
@@ -71,32 +65,32 @@ class Fr2ddocSealCommonTest {
         assertEquals("A8", seal.documentType)
         assertEquals("FR", seal.issuingCountry)
 
-        assertEquals("83CSG75", seal.getMessage("Immatriculation du vehicule")?.toString())
-        assertEquals("12345678901234567", seal.getMessage("Numero de serie du vehicule (VIN)")?.toString())
+        assertEquals("83CSG75", seal.getMessageByName("Immatriculation du vehicule")?.toString())
+        assertEquals("12345678901234567", seal.getMessageByName("Numero de serie du vehicule (VIN)")?.toString())
         assertEquals(
             LocalDate(1970, 1, 2).toString(),
-            seal.getMessage("Date de premiere immatriculation du vehicule")?.toString()
+            seal.getMessageByName("Date de premiere immatriculation du vehicule")?.toString()
         )
-        assertEquals("1337", seal.getMessage("Kilometrage")?.toString())
-        assertEquals("DU PONT", seal.getMessage("Nom patronymique du vendeur")?.toString())
-        assertEquals("JEAN FRANCOIS", seal.getMessage("Prenom du vendeur")?.toString())
+        assertEquals("1337", seal.getMessageByName("Kilometrage")?.toString())
+        assertEquals("DU PONT", seal.getMessageByName("Nom patronymique du vendeur")?.toString())
+        assertEquals("JEAN FRANCOIS", seal.getMessageByName("Prenom du vendeur")?.toString())
         assertEquals(
             LocalDateTime(2020, 3, 2, 14, 0).toString(),
-            seal.getMessage("Date et heure de la cession")?.toString()
+            seal.getMessageByName("Date et heure de la cession")?.toString()
         )
-        assertEquals(LocalDate(2020, 3, 2).toString(), seal.getMessage("Date de la signature du vendeur")?.toString())
-        assertEquals("DURAND", seal.getMessage("Nom patronymique de l'acheteur")?.toString())
-        assertEquals("FREDERIC", seal.getMessage("Prenom de l'acheteur")?.toString())
-        assertEquals("42 RUE DES TESTS", seal.getMessage("Ligne 4 adresse du domicile de l'acheteur")?.toString())
-        assertEquals("10430", seal.getMessage("Code postal du domicile de l'acheteur")?.toString())
-        assertEquals("SAINTE COMMUNE DES TESTS", seal.getMessage("Commune du domicile de l'acheteur")?.toString())
-        assertEquals("123456", seal.getMessage("N d'enregistrement")?.toString())
+        assertEquals(LocalDate(2020, 3, 2).toString(), seal.getMessageByName("Date de la signature du vendeur")?.toString())
+        assertEquals("DURAND", seal.getMessageByName("Nom patronymique de l'acheteur")?.toString())
+        assertEquals("FREDERIC", seal.getMessageByName("Prenom de l'acheteur")?.toString())
+        assertEquals("42 RUE DES TESTS", seal.getMessageByName("Ligne 4 adresse du domicile de l'acheteur")?.toString())
+        assertEquals("10430", seal.getMessageByName("Code postal du domicile de l'acheteur")?.toString())
+        assertEquals("SAINTE COMMUNE DES TESTS", seal.getMessageByName("Commune du domicile de l'acheteur")?.toString())
+        assertEquals("123456", seal.getMessageByName("N d'enregistrement")?.toString())
         assertEquals(
             LocalDateTime(2020, 3, 2, 14, 0).toString(),
-            seal.getMessage("Date et heure d'enregistrement dans le SIV")?.toString()
+            seal.getMessageByName("Date et heure d'enregistrement dans le SIV")?.toString()
         )
-        assertEquals("M", seal.getMessage("Genre du vendeur")?.toString())
-        assertEquals("M", seal.getMessage("Genre de l'acheteur")?.toString())
+        assertEquals("M", seal.getMessageByName("Genre du vendeur")?.toString())
+        assertEquals("M", seal.getMessageByName("Genre de l'acheteur")?.toString())
     }
 
     @Test
@@ -105,18 +99,18 @@ class Fr2ddocSealCommonTest {
         assertEquals("13", seal.documentType)
         assertEquals("FR", seal.issuingCountry)
 
-        assertEquals("2", seal.getMessage("Type de document etranger")?.toString())
-        assertEquals("9201202004012359123", seal.getMessage("Numero de la demande de document etranger")?.toString())
-        assertEquals(LocalDate(2020, 4, 1).toString(), seal.getMessage("Date de depot de la demande")?.toString())
-        assertEquals("AUTORISE A TRAVAILLER", seal.getMessage("Autorisation")?.toString())
-        assertEquals("7503120521", seal.getMessage("Numero d'etranger")?.toString())
-        assertEquals("SPECIMEN", seal.getMessage("Nom patronymique")?.toString())
-        assertEquals("NATACHA/CORINNE", seal.getMessage("Liste des prenoms")?.toString())
-        assertEquals("F", seal.getMessage("Genre")?.toString())
-        assertEquals(LocalDate(1973, 7, 12).toString(), seal.getMessage("Date de naissance")?.toString())
-        assertEquals("BUENOS AIRES", seal.getMessage("Lieu de naissance")?.toString())
-        assertEquals("AR", seal.getMessage("Pays de naissance")?.toString())
-        assertEquals("AR", seal.getMessage("Nationalite")?.toString())
+        assertEquals("2", seal.getMessageByName("Type de document etranger")?.toString())
+        assertEquals("9201202004012359123", seal.getMessageByName("Numero de la demande de document etranger")?.toString())
+        assertEquals(LocalDate(2020, 4, 1).toString(), seal.getMessageByName("Date de depot de la demande")?.toString())
+        assertEquals("AUTORISE A TRAVAILLER", seal.getMessageByName("Autorisation")?.toString())
+        assertEquals("7503120521", seal.getMessageByName("Numero d'etranger")?.toString())
+        assertEquals("SPECIMEN", seal.getMessageByName("Nom patronymique")?.toString())
+        assertEquals("NATACHA/CORINNE", seal.getMessageByName("Liste des prenoms")?.toString())
+        assertEquals("F", seal.getMessageByName("Genre")?.toString())
+        assertEquals(LocalDate(1973, 7, 12).toString(), seal.getMessageByName("Date de naissance")?.toString())
+        assertEquals("BUENOS AIRES", seal.getMessageByName("Lieu de naissance")?.toString())
+        assertEquals("AR", seal.getMessageByName("Pays de naissance")?.toString())
+        assertEquals("AR", seal.getMessageByName("Nationalite")?.toString())
     }
 
     @Test
@@ -125,17 +119,29 @@ class Fr2ddocSealCommonTest {
         assertEquals("14", seal.documentType)
         assertEquals("FR", seal.issuingCountry)
 
-        assertEquals("123456", seal.getMessage("Numero d'identification")?.toString())
+        assertEquals("123456", seal.getMessageByName("Numero d'identification")?.toString())
         assertEquals(
             "CYCLOMOTEUR MOTOCYCLETTE TRICYCLE A MOTEUR TOUT TERRAIN",
-            seal.getMessage("Type d'engin")?.toString()
+            seal.getMessageByName("Type d'engin")?.toString()
         )
-        assertEquals("12345678975123ABDC", seal.getMessage("Numero de serie")?.toString())
-        assertEquals("MARQUE VEHICULE", seal.getMessage("Marque du vehicule")?.toString())
-        assertEquals("ROUGE", seal.getMessage("Couleur dominante")?.toString())
-        assertEquals("1", seal.getMessage("Type de proprietaire")?.toString())
-        assertEquals("SPECIMEN", seal.getMessage("Nom patronymique")?.toString())
-        assertEquals("NATACHA/CORINNE", seal.getMessage("Liste des prenoms")?.toString())
+        assertEquals("12345678975123ABDC", seal.getMessageByName("Numero de serie")?.toString())
+        assertEquals("MARQUE VEHICULE", seal.getMessageByName("Marque du vehicule")?.toString())
+        assertEquals("ROUGE", seal.getMessageByName("Couleur dominante")?.toString())
+        assertEquals("1", seal.getMessageByName("Type de proprietaire")?.toString())
+        assertEquals("SPECIMEN", seal.getMessageByName("Nom patronymique")?.toString())
+        assertEquals("NATACHA/CORINNE", seal.getMessageByName("Liste des prenoms")?.toString())
+    }
+
+    @Test
+    fun testParseSample05_messageList() {
+        val seal = Fr2ddocSeal.fromRawString(rawString5)
+        assertEquals("14", seal.documentType)
+        assertEquals("FR", seal.issuingCountry)
+
+        assertEquals(15, seal.messageList.size)
+        for (message in seal.messageList) {
+            println("${message.tag}(${message.name}:${message.coding}): ${message.value}")
+        }
     }
 
     @Test

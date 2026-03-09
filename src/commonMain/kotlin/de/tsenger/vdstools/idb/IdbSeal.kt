@@ -63,13 +63,18 @@ class IdbSeal : Seal {
         }
 
 
-    override fun getMessage(name: String): Message? {
-        val idbMessage = payLoad.idbMessageGroup.getMessage(name) ?: return null
+    override fun getMessageByName(name: String): Message? {
+        val idbMessage = payLoad.idbMessageGroup.getMessageByName(name) ?: return null
         return Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value)
     }
 
-    override fun getMessage(tag: Int): Message? {
-        val idbMessage = payLoad.idbMessageGroup.getMessage(tag) ?: return null
+    override fun getMessageByTag(tag: Int): Message? {
+        val idbMessage = payLoad.idbMessageGroup.getMessageByTag(tag) ?: return null
+        return Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value)
+    }
+
+    override fun getMessageByTag(tag: String): Message? {
+        val idbMessage = payLoad.idbMessageGroup.getMessageByTag(tag) ?: return null
         return Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value)
     }
 
@@ -80,7 +85,7 @@ class IdbSeal : Seal {
      */
     override val documentType: String
         get() {
-            val msg = getMessage(0x86)
+            val msg = getMessageByTag(0x86)
             val docTypeId = (msg?.value as? MessageValue.ByteValue)?.value
             return if (docTypeId != null) {
                 DataEncoder.getIdbDocumentTypeName(docTypeId)

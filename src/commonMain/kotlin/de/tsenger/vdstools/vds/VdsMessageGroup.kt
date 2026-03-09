@@ -72,13 +72,24 @@ class VdsMessageGroup {
             return result
         }
 
-    fun getMessage(messageName: String): Message? {
+    fun getMessageByName(messageName: String): Message? {
         return messageList.firstOrNull { message: Message -> message.name == messageName }
     }
 
-    fun getMessage(messageTag: Int): Message? {
+    fun getMessageByTag(messageTag: Int): Message? {
+        val hexTag = (messageTag and 0xFF).toString(16).uppercase().padStart(2, '0')
+        return messageList.firstOrNull { message: Message -> message.tag == hexTag }
+    }
+
+    fun getMessageByTag(messageTag: String): Message? {
         return messageList.firstOrNull { message: Message -> message.tag == messageTag }
     }
+
+    @Deprecated("Use getMessageByName(messageName) instead", ReplaceWith("getMessageByName(messageName)"))
+    fun getMessage(messageName: String): Message? = getMessageByName(messageName)
+
+    @Deprecated("Use getMessageByTag(messageTag) instead", ReplaceWith("getMessageByTag(messageTag)"))
+    fun getMessage(messageTag: Int): Message? = getMessageByTag(messageTag)
 
     /**
      * Resolves the extended message definition based on the UUID in the specified tag.

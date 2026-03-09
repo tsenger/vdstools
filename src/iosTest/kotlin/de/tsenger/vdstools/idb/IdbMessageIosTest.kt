@@ -15,9 +15,9 @@ class MessageIosTest {
     @Test
     fun testMessageConstructor() {
         val bytes = "a0a1a2a3a4a5".hexToByteArray()
-        val message = Message(0x09, "CAN", MessageCoding.UTF8_STRING, MessageValue.BytesValue(bytes))
+        val message = Message("09", "CAN", MessageCoding.UTF8_STRING, MessageValue.BytesValue(bytes))
         assertNotNull(message)
-        assertEquals(0x09, message.tag)
+        assertEquals("09", message.tag)
         assertEquals("CAN", message.name)
         assertEquals(MessageCoding.UTF8_STRING, message.coding)
     }
@@ -25,14 +25,14 @@ class MessageIosTest {
     @Test
     fun testMessageToString() {
         val bytes = "TestValue".encodeToByteArray()
-        val message = Message(0x09, "CAN", MessageCoding.UTF8_STRING, MessageValue.StringValue("TestValue", bytes))
+        val message = Message("09", "CAN", MessageCoding.UTF8_STRING, MessageValue.StringValue("TestValue", bytes))
         assertEquals("TestValue", message.toString())
     }
 
     @Test
     fun testMessageEncoded() {
         val bytes = "a0a1a2a3".hexToByteArray()
-        val message = Message(0x09, "CAN", MessageCoding.BYTES, MessageValue.BytesValue(bytes))
+        val message = Message("09", "CAN", MessageCoding.BYTES, MessageValue.BytesValue(bytes))
         // DerTlv encoding: tag (0x09) + length (0x04) + value
         assertEquals("0904a0a1a2a3", message.encoded.toHexString())
     }
@@ -60,6 +60,6 @@ class MessageIosTest {
         val message = messageGroup.messageList[0]
         assertNotNull(message)
         assertEquals("CAN", message.name)
-        assertEquals(0x09, message.tag)
+        assertEquals("09", message.tag)
     }
 }
