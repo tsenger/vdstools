@@ -5,7 +5,7 @@ import de.tsenger.vdstools.asn1.DerTlv
 class Message(
     val tag: String,
     val name: String,
-    val coding: MessageCoding,
+    internal val coding: MessageCoding,
     val value: MessageValue
 ) {
     val encoded: ByteArray

@@ -3,10 +3,7 @@ package de.tsenger.vdstools.generic
 import de.tsenger.vdstools.idb.*
 import de.tsenger.vdstools.vds.VdsHeader
 import de.tsenger.vdstools.vds.VdsMessageGroup
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 /**
  * Generic test cases demonstrating the creation of IDB and VDS seals
@@ -58,7 +55,7 @@ class SealCreationCommonTest {
         val mrzFeature = messageGroup.getMessage("MRZ")
         assertNotNull(mrzFeature)
         assertEquals("MRZ", mrzFeature.name)
-        assertEquals(MessageCoding.MRZ, mrzFeature.coding)
+        assertTrue(mrzFeature.value is MessageValue.MrzValue)
 
         // Check PASSPORT_NUMBER message
         val passportFeature = messageGroup.getMessage("PASSPORT_NUMBER")
@@ -140,24 +137,24 @@ class SealCreationCommonTest {
         val faceFeature = messageGroup.getMessage(0x80)
         assertNotNull(faceFeature)
         assertEquals("FACE_IMAGE", faceFeature.name)
-        assertEquals(MessageCoding.BYTES, faceFeature.coding)
+        assertTrue(faceFeature.value is MessageValue.BytesValue)
 
         // Check by name
         val mrzFeature = messageGroup.getMessage("MRZ_TD2")
         assertNotNull(mrzFeature)
         assertEquals("81", mrzFeature.tag)
-        assertEquals(MessageCoding.MRZ, mrzFeature.coding)
+        assertTrue(mrzFeature.value is MessageValue.MrzValue)
 
         // Check date message
         val expiryFeature = messageGroup.getMessage("EXPIRY_DATE")
         assertNotNull(expiryFeature)
-        assertEquals(MessageCoding.MASKED_DATE, expiryFeature.coding)
+        assertTrue(expiryFeature.value is MessageValue.MaskedDateValue)
 
         // Check byte message (document type)
         val docTypeFeature = messageGroup.getMessage(0x86)
         assertNotNull(docTypeFeature)
         assertEquals("NATIONAL_DOCUMENT_IDENTIFIER", docTypeFeature.name)
-        assertEquals(MessageCoding.BYTE, docTypeFeature.coding)
+        assertTrue(docTypeFeature.value is MessageValue.ByteValue)
         assertTrue(docTypeFeature.value is MessageValue.ByteValue)
         assertEquals(0x01, (docTypeFeature.value).value)
     }
@@ -193,7 +190,7 @@ class SealCreationCommonTest {
         val feature = messageGroup.getMessage("PROOF_OF_VACCINATION")
         assertNotNull(feature)
         assertEquals("04", feature.tag)
-        assertEquals(MessageCoding.BYTES, feature.coding)
+        assertTrue(feature.value is MessageValue.BytesValue)
     }
 
     @Test
@@ -324,7 +321,6 @@ class SealCreationCommonTest {
         assertEquals("MRZ", vdsFeature.name)
         assertEquals("02", vdsFeature.tag)
         assertNotNull(vdsFeature.value)
-        assertNotNull(vdsFeature.coding)
 
         // IDB: Create message group and access messages (same pattern!)
         val idbMessageGroup = IdbMessageGroup.Builder()
@@ -336,7 +332,6 @@ class SealCreationCommonTest {
         assertEquals("MRZ_TD2", idbFeature.name)
         assertEquals("81", idbFeature.tag)
         assertNotNull(idbFeature.value)
-        assertNotNull(idbFeature.coding)
 
         // Both have consistent API:
         // - getMessage(name) / getMessage(tag)
@@ -364,14 +359,12 @@ class SealCreationCommonTest {
         vdsMessageGroup.messageList.forEach { feature ->
             assertNotNull(feature.tag)
             assertNotNull(feature.name)
-            assertNotNull(feature.coding)
             assertNotNull(feature.value)
         }
 
         idbMessageGroup.messageList.forEach { feature ->
             assertNotNull(feature.tag)
             assertNotNull(feature.name)
-            assertNotNull(feature.coding)
             assertNotNull(feature.value)
         }
     }

@@ -1,6 +1,6 @@
 package de.tsenger.vdstools.vds
 
-import de.tsenger.vdstools.generic.MessageCoding
+import de.tsenger.vdstools.generic.MessageValue
 import kotlinx.datetime.LocalDate
 import okio.Buffer
 import kotlin.test.*
@@ -187,7 +187,7 @@ class VdsSealCommonTest {
         assertEquals("Erika", seal.getMessage("FIRST_NAME")?.value.toString())
         assertEquals("20250414", seal.getMessage("MOVING_DATE")?.value.toString())
         assertEquals("20250504", seal.getMessage("DATE_OF_NOTIFICATION")?.value.toString())
-        assertEquals(MessageCoding.UTF8_STRING, seal.getMessage("MOVING_DATE")?.coding)
+        assertTrue(seal.getMessage("MOVING_DATE")?.value is MessageValue.StringValue)
     }
 
     @Test

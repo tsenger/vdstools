@@ -140,7 +140,7 @@ class Fr2ddocSealCommonTest {
 
         assertEquals(15, seal.messageList.size)
         for (message in seal.messageList) {
-            println("${message.tag}(${message.name}:${message.coding}): ${message.value}")
+            println("${message.tag}(${message.name}:${message.value::class.simpleName}): ${message.value}")
         }
     }
 

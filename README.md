@@ -44,7 +44,7 @@ val seal: Seal = Seal.fromString(rawString)
 //Get list with all messages in seal
 val messageList = seal.messageList
 for (message in messageList) {
-    println("${message.name} (${message.coding}) -> ${message.value}")
+    println("${message.name} -> ${message.value}")
 }
 
 // Access message data by name - value.toString() returns the decoded value

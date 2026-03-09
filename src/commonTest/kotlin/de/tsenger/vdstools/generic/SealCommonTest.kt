@@ -208,7 +208,7 @@ class SealCommonTest {
         //Get list with all message in seal
         val messageList = seal.messageList
         for (message in messageList) {
-            println("${message.name} (${message.coding}) -> ${message.value}")
+            println("${message.tag} ${message.name} -> ${message.value}")
         }
 
         // Access message data by name - value.toString() returns the decoded value
