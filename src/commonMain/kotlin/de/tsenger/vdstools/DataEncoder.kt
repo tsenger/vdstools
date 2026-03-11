@@ -9,6 +9,7 @@ import de.tsenger.vdstools.generated.ResourceConstants
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.MessageCoding
 import de.tsenger.vdstools.generic.MessageValue
+import de.tsenger.vdstools.idb.dto.IdbMessageTypeDto
 import de.tsenger.vdstools.idb.dto.IdbMessageTypeRef
 import de.tsenger.vdstools.vds.dto.ExtendedMessageDefinitionDto
 import de.tsenger.vdstools.vds.dto.MessageDto
@@ -573,6 +574,14 @@ object DataEncoder {
 
     fun getIdbMessageTypeCoding(messageTypeTag: Int): MessageCoding {
         return idbMessageTypeRegistry.getMessageTypeCoding(messageTypeTag)
+    }
+
+    fun getIdbMessageTypeDto(tag: Int): IdbMessageTypeDto? {
+        return idbMessageTypeRegistry.getMessageTypeDto(tag)
+    }
+
+    fun getIdbMessageTypeDto(name: String): IdbMessageTypeDto? {
+        return idbMessageTypeRegistry.getMessageTypeDto(name)
     }
 
     fun getIdbDocumentTypeName(tag: Int): String {

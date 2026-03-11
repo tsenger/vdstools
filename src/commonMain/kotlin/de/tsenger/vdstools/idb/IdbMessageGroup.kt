@@ -3,7 +3,9 @@ package de.tsenger.vdstools.idb
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generic.Message
+import de.tsenger.vdstools.generic.MessageCoding
 import de.tsenger.vdstools.generic.MessageValue
+import de.tsenger.vdstools.vds.dto.MessageDto
 import okio.Buffer
 
 class IdbMessageGroup {
@@ -19,16 +21,7 @@ class IdbMessageGroup {
 
     val messageList: List<Message>
         get() = derTlvList.map { derTlv ->
-            val tag = derTlv.tag.toInt() and 0xFF
-            val name = DataEncoder.getIdbMessageTypeName(tag)
-            val coding = DataEncoder.getIdbMessageTypeCoding(name)
-            val value = MessageValue.fromBytes(derTlv.value, coding)
-            // TODO: Sub-message parsing — for IDB message types that contain nested
-            // TLV sub-structures (e.g. VACCINATION_EVENT within PROOF_OF_VACCINATION,
-            // VACCINATION_DETAILS within VACCINATION_EVENT), the value bytes must be
-            // recursively parsed using DataEncoder.parseDerTLvs(). Sub-message
-            // definitions are available via IdbMessageTypeRegistry.getMessageTypeDto(tag).messages
-            Message(tag, name, coding, value)
+            parseMessage(derTlv, null)
         }
 
     fun getMessage(messageTag: Int): Message? {
@@ -48,12 +41,31 @@ class IdbMessageGroup {
             return DerTlv(TAG, messages.readByteArray()).encoded
         }
 
-    class Builder {
+    class Builder(private val subMessageDefs: List<MessageDto>? = null) {
         val derTlvList: MutableList<DerTlv> = ArrayList(5)
+
+        private fun resolveTag(name: String): Int {
+            val fromDefs = subMessageDefs?.firstOrNull { it.name == name }?.tag
+            if (fromDefs != null) return fromDefs
+            return DataEncoder.getIdbMessageTypeTag(name) ?: 0
+        }
+
+        private fun resolveCoding(name: String, tag: Int): MessageCoding {
+            val fromDefs = subMessageDefs?.firstOrNull { it.tag == tag }?.coding
+            if (fromDefs != null) return fromDefs
+            return DataEncoder.getIdbMessageTypeCoding(name)
+        }
+
+        private fun resolveChildDefs(name: String, tag: Int): List<MessageDto>? {
+            val fromDefs = subMessageDefs?.firstOrNull { it.tag == tag }?.messages
+            if (!fromDefs.isNullOrEmpty()) return fromDefs
+            return DataEncoder.getIdbMessageTypeDto(tag)?.messages
+        }
 
         @Throws(IllegalArgumentException::class)
         fun <T> addMessage(tag: Int, value: T): Builder {
-            val coding = DataEncoder.getIdbMessageTypeCoding(tag)
+            val coding = subMessageDefs?.firstOrNull { it.tag == tag }?.coding
+                ?: DataEncoder.getIdbMessageTypeCoding(tag)
             val content = DataEncoder.encodeValueByCoding(coding, value, tag)
             derTlvList.add(DerTlv(tag.toByte(), content))
             return this
@@ -61,7 +73,37 @@ class IdbMessageGroup {
 
         @Throws(IllegalArgumentException::class)
         fun <T> addMessage(name: String, value: T): Builder {
-            return addMessage(DataEncoder.getIdbMessageTypeTag(name) ?: 0, value)
+            val tag = resolveTag(name)
+            val coding = resolveCoding(name, tag)
+            val content = DataEncoder.encodeValueByCoding(coding, value, tag)
+            derTlvList.add(DerTlv(tag.toByte(), content))
+            return this
+        }
+
+        fun addMessage(name: String, block: Builder.() -> Unit): Builder {
+            val tag = resolveTag(name)
+            val childDefs = resolveChildDefs(name, tag)
+            val childBuilder = Builder(childDefs)
+            childBuilder.block()
+            val childBytes = Buffer()
+            for (childTlv in childBuilder.derTlvList) {
+                childBytes.write(childTlv.encoded)
+            }
+            derTlvList.add(DerTlv(tag.toByte(), childBytes.readByteArray()))
+            return this
+        }
+
+        fun addMessage(tag: Int, block: Builder.() -> Unit): Builder {
+            val childDefs = subMessageDefs?.firstOrNull { it.tag == tag }?.messages
+                ?: DataEncoder.getIdbMessageTypeDto(tag)?.messages
+            val childBuilder = Builder(childDefs)
+            childBuilder.block()
+            val childBytes = Buffer()
+            for (childTlv in childBuilder.derTlvList) {
+                childBytes.write(childTlv.encoded)
+            }
+            derTlvList.add(DerTlv(tag.toByte(), childBytes.readByteArray()))
+            return this
         }
 
         fun build(): IdbMessageGroup {
@@ -82,6 +124,30 @@ class IdbMessageGroup {
             val valueBytes = DerTlv.fromByteArray(rawBytes)?.value ?: ByteArray(0)
             val derTlvList = DataEncoder.parseDerTLvs(valueBytes)
             return IdbMessageGroup(derTlvList)
+        }
+
+        private fun parseMessage(derTlv: DerTlv, subMessageDefs: List<MessageDto>?): Message {
+            val tagInt = derTlv.tag.toInt() and 0xFF
+
+            val msgDef = subMessageDefs?.firstOrNull { it.tag == tagInt }
+            val name = msgDef?.name ?: DataEncoder.getIdbMessageTypeName(tagInt)
+            val coding = msgDef?.coding ?: DataEncoder.getIdbMessageTypeCoding(name)
+            val value = MessageValue.fromBytes(derTlv.value, coding)
+
+            val childDefs = msgDef?.messages
+                ?: DataEncoder.getIdbMessageTypeDto(tagInt)?.messages
+            val subMessages = if (!childDefs.isNullOrEmpty() && coding == MessageCoding.BYTES) {
+                try {
+                    val childTlvs = DataEncoder.parseDerTLvs(derTlv.value)
+                    childTlvs.map { childTlv -> parseMessage(childTlv, childDefs) }
+                } catch (_: Exception) {
+                    emptyList()
+                }
+            } else {
+                emptyList()
+            }
+
+            return Message(tagInt, name, coding, value, subMessages)
         }
     }
 }
