@@ -36,6 +36,17 @@ class VdsSealJvmTest {
 
     @Test
     @Throws(IOException::class)
+    fun testParseSocialInsurranceCard_newApi() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesJvm.socialInsurance) as VdsSeal
+        Assert.assertEquals("SOCIAL_INSURANCE_CARD", seal.documentType)
+        Assert.assertEquals("65170839J003", seal.getMessageByName("SOCIAL_INSURANCE_NUMBER")?.value.toString())
+        Assert.assertEquals("Perschweiß", seal.getMessageByName("SURNAME")?.value.toString())
+        Assert.assertEquals("Oscar", seal.getMessageByName("FIRST_NAME")?.value.toString())
+        Assert.assertEquals("Jâcobénidicturius", seal.getMessageByName("BIRTH_NAME")?.value.toString())
+    }
+
+    @Test
+    @Throws(IOException::class)
     fun testParseArrivalAttestationV02() {
         val seal = VdsSeal.fromByteArray(VdsRawBytesJvm.arrivalAttestationV02) as VdsSeal
         Assert.assertEquals(
@@ -45,6 +56,19 @@ class VdsSealJvmTest {
         Assert.assertEquals("0004F", seal.certificateReference)
         Assert.assertEquals("ABC123456DEF", seal.getMessage("AZR")!!.value.toString())
         Assert.assertNull(seal.getMessage("FIRST_NAME"))
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun testParseArrivalAttestationV02_newApi() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesJvm.arrivalAttestationV02) as VdsSeal
+        Assert.assertEquals(
+            "MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
+            seal.getMessageByName("MRZ")?.value.toString()
+        )
+        Assert.assertEquals("0004F", seal.certificateReference)
+        Assert.assertEquals("ABC123456DEF", seal.getMessageByName("AZR")!!.value.toString())
+        Assert.assertNull(seal.getMessageByName("FIRST_NAME"))
     }
 
     @Test
@@ -60,6 +84,17 @@ class VdsSealJvmTest {
 
     @Test
     @Throws(IOException::class)
+    fun testParseResidentPermit_newApi() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesJvm.residentPermit) as VdsSeal
+        Assert.assertEquals(
+            "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
+            seal.getMessageByName("MRZ")?.value.toString()
+        )
+        Assert.assertEquals("UFO001979", seal.getMessageByName("PASSPORT_NUMBER")?.value.toString())
+    }
+
+    @Test
+    @Throws(IOException::class)
     fun testParseSupplementSheet() {
         val seal = VdsSeal.fromByteArray(VdsRawBytesJvm.supplementSheet) as VdsSeal
         Assert.assertEquals(
@@ -67,6 +102,17 @@ class VdsSealJvmTest {
             seal.getMessage("MRZ")?.value.toString()
         )
         Assert.assertEquals("PA0000005", seal.getMessage("SHEET_NUMBER")?.value.toString())
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun testParseSupplementSheet_newApi() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesJvm.supplementSheet) as VdsSeal
+        Assert.assertEquals(
+            "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
+            seal.getMessageByName("MRZ")?.value.toString()
+        )
+        Assert.assertEquals("PA0000005", seal.getMessageByName("SHEET_NUMBER")?.value.toString())
     }
 
     @Test
@@ -81,6 +127,16 @@ class VdsSealJvmTest {
 
     @Test
     @Throws(IOException::class)
+    fun testEmergencyTravelDoc_newApi() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesJvm.emergenyTravelDoc) as VdsSeal
+        Assert.assertEquals(
+            "I<GBRSUPAMANN<<MARY<<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
+            seal.getMessageByName("MRZ")?.value.toString()
+        )
+    }
+
+    @Test
+    @Throws(IOException::class)
     fun testParseAddressStickerId() {
         val seal = VdsSeal.fromByteArray(VdsRawBytesJvm.addressStickerId) as VdsSeal
         Assert.assertEquals("T2000AK47", seal.getMessage("DOCUMENT_NUMBER")?.value.toString())
@@ -90,11 +146,29 @@ class VdsSealJvmTest {
 
     @Test
     @Throws(IOException::class)
+    fun testParseAddressStickerId_newApi() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesJvm.addressStickerId) as VdsSeal
+        Assert.assertEquals("T2000AK47", seal.getMessageByName("DOCUMENT_NUMBER")?.value.toString())
+        Assert.assertEquals("05314000", seal.getMessageByName("AGS")?.value.toString())
+        Assert.assertEquals("53175HEINEMANNSTR11", seal.getMessageByName("ADDRESS")?.value.toString())
+    }
+
+    @Test
+    @Throws(IOException::class)
     fun testParseAddressStickerPassport() {
         val seal = VdsSeal.fromByteArray(VdsRawBytesJvm.addressStickerPassport) as VdsSeal
         Assert.assertEquals("PA5500K11", seal.getMessage("DOCUMENT_NUMBER")?.value.toString())
         Assert.assertEquals("03359010", seal.getMessage("AGS")?.value.toString())
         Assert.assertEquals("21614", seal.getMessage("POSTAL_CODE")?.value.toString())
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun testParseAddressStickerPassport_newApi() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesJvm.addressStickerPassport) as VdsSeal
+        Assert.assertEquals("PA5500K11", seal.getMessageByName("DOCUMENT_NUMBER")?.value.toString())
+        Assert.assertEquals("03359010", seal.getMessageByName("AGS")?.value.toString())
+        Assert.assertEquals("21614", seal.getMessageByName("POSTAL_CODE")?.value.toString())
     }
 
     @Test
@@ -113,6 +187,24 @@ class VdsSealJvmTest {
             )
         )
         Assert.assertNull(seal.getMessage("NUMBER_OF_ENTRIES"))
+    }
+
+    @Test
+    @Throws(IOException::class)
+    fun testParseVisa_newApi() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesJvm.visa_224bitSig) as VdsSeal
+        Assert.assertEquals(
+            "VCD<<DENT<<ARTHUR<PHILIP<<<<<<<<<<<<\n1234567XY7GBR5203116M2005250<<<<<<<<", seal.getMessageByName(
+                "MRZ_MRVB"
+            )?.value.toString()
+        )
+        Assert.assertEquals("47110815P", seal.getMessageByName("PASSPORT_NUMBER")?.value.toString())
+        Assert.assertEquals(
+            "a00000", Hex.toHexString(
+                seal.getMessageByName("DURATION_OF_STAY")?.value?.rawBytes
+            )
+        )
+        Assert.assertNull(seal.getMessageByName("NUMBER_OF_ENTRIES"))
     }
 
     @Test

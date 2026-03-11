@@ -68,7 +68,7 @@ class VdsHeader {
 
     val vdsType: String
         get() {
-            val vdsType = DataEncoder.getVdsType(documentRef)
+            val vdsType = DataEncoder.vdsDocumentTypes.getVdsType(documentRef)
             return vdsType ?: "UNKNOWN"
         }
 
@@ -224,15 +224,15 @@ class VdsHeader {
 //        }
 
         private fun setDocumentType(vdsType: String) {
-            val docRef = DataEncoder.getDocumentRef(vdsType)
+            val docRef = DataEncoder.vdsDocumentTypes.getDocumentRef(vdsType)
             if (docRef != null) {
                 this.docFeatureRef = ((docRef shr 8) and 0xFF).toByte()
                 this.docTypeCat = (docRef and 0xFF).toByte()
             } else {
                 // Try resolving as an extended definition name
-                val extDef = DataEncoder.resolveExtendedDefinitionByName(vdsType)
-                if (extDef != null) {
-                    val baseDocRef = DataEncoder.getDocumentRef(extDef.baseDocumentType)
+                val profileDef = DataEncoder.vdsProfileDefinitions.resolveByName(vdsType)
+                if (profileDef != null) {
+                    val baseDocRef = DataEncoder.vdsDocumentTypes.getDocumentRef(profileDef.baseDocumentType)
                     if (baseDocRef != null) {
                         this.docFeatureRef = ((baseDocRef shr 8) and 0xFF).toByte()
                         this.docTypeCat = (baseDocRef and 0xFF).toByte()

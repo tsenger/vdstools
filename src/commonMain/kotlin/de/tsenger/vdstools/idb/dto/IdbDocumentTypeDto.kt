@@ -19,7 +19,7 @@ data class IdbMessageTypeRef(
 )
 
 /**
- * Data class representing a national document type definition from `IdbNationalDocumentTypes.json`.
+ * Data class representing a document type definition from `IdbGermanDocumentTypes.json`.
  *
  * In IDB (ICAO TR-IDB / BSI TR-03137), a message group can contain multiple message types
  * belonging to a single document. The national document type (identified by tag 0x86,

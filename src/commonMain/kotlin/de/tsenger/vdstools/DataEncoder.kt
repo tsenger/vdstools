@@ -6,12 +6,8 @@ import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.vds.tr03171.ProfileConverter
 import de.tsenger.vdstools.vds.tr03171.ProfileXmlParser
 import de.tsenger.vdstools.generated.ResourceConstants
-import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.MessageCoding
 import de.tsenger.vdstools.generic.MessageValue
-import de.tsenger.vdstools.idb.dto.IdbMessageTypeRef
-import de.tsenger.vdstools.vds.dto.ExtendedMessageDefinitionDto
-import de.tsenger.vdstools.vds.dto.MessageDto
 import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.DelicateCryptographyApi
 import dev.whyoleg.cryptography.algorithms.SHA1
@@ -30,29 +26,29 @@ import okio.*
  * ## VDS – Visible Digital Seal (BSI TR-03137 / TR-03171)
  * A VDS barcode encodes exactly one document type. The document type is identified by a
  * one-byte `documentRef` in the seal header, which maps to a named profile in
- * `SealCodings.json`. Each profile defines which messages (fields) the seal contains.
+ * `VdsDocumentTypes.json`. Each profile defines which messages (fields) the seal contains.
  *
  * For administrative documents, the 256-value space of `documentRef` is not sufficient.
  * These types use a two-stage lookup: the header's `documentRef` points to the base type
  * `ADMINISTRATIVE_DOCUMENTS`, and Tag 0 of the message zone carries a 16-byte UUID
  * (Dokumentenprofilnummer) that identifies the actual profile in
- * `ExtendedMessageDefinitions.json`.
+ * `VdsProfileDefinitions.json`.
  *
  * ## IDB – ICAO Datastructure for Barcode (ICAO TR-IDB)
  * An IDB barcode can contain multiple message types simultaneously in its message group.
  * Which message types are expected in a given seal is determined by the national document
  * type, encoded as `NATIONAL_DOCUMENT_IDENTIFIER` (tag 0x86) within the message group.
- * The available message types are defined in `IdbMessageTypes.json`; the national document
- * types and their expected message combinations in `IdbNationalDocumentTypes.json`.
+ * The available message types are defined in `IdbMessageTypes.json`; the document
+ * types and their expected message combinations in `IdbGermanDocumentTypes.json`.
  *
  * ## Definition files and registries
  *
  * | File | Standard | Registry | Purpose |
  * |---|---|---|---|
- * | `SealCodings.json` | VDS | [VdsSealCodingRegistry] | Document type profiles: `documentRef` ↔ name ↔ messages |
- * | `ExtendedMessageDefinitions.json` | VDS | [ExtendedMessageDefinitionRegistry] | UUID-based extended profiles for administrative documents |
- * | `IdbMessageTypes.json` | IDB | [IdbMessageTypeRegistry] | IDB message type definitions: tag ↔ name ↔ coding |
- * | `IdbNationalDocumentTypes.json` | IDB | [IdbNationalDocumentTypeRegistry] | National document types: tag ↔ name ↔ expected messages |
+ * | `VdsDocumentTypes.json` | VDS | [vdsDocumentTypes] | Document type profiles: `documentRef` ↔ name ↔ messages |
+ * | `VdsProfileDefinitions.json` | VDS | [vdsProfileDefinitions] | UUID-based profile definitions for administrative documents |
+ * | `IdbMessageTypes.json` | IDB | [idbMessageTypes] | IDB message type definitions: tag ↔ name ↔ coding |
+ * | `IdbGermanDocumentTypes.json` | IDB | [idbDocumentTypes] | Document types: tag ↔ name ↔ expected messages |
  *
  * All definitions are loaded from JSON resources embedded at compile time. Custom definitions
  * can be provided at runtime to extend or replace the built-in ones.
@@ -62,38 +58,46 @@ import okio.*
  * Each registry can be replaced entirely or extended with additional entries:
  * ```kotlin
  * // Replace a registry entirely from a JSON string:
- * DataEncoder.replaceCustomSealCodings(myJsonString)
+ * DataEncoder.replaceCustomVdsDocumentTypes(myJsonString)
  * DataEncoder.replaceCustomIdbMessageTypes(myJsonString)
- * DataEncoder.replaceCustomIdbNationalDocumentTypes(myJsonString)
- * DataEncoder.replaceCustomExtendedMessageDefinitions(myJsonString)
+ * DataEncoder.replaceCustomIdbDocumentTypes(myJsonString)
+ * DataEncoder.replaceCustomVdsProfileDefinitions(myJsonString)
  *
  * // Or from a file (resolved via readTextResource):
- * DataEncoder.replaceCustomSealCodingsFromFile("my_seal_codings.json")
+ * DataEncoder.replaceCustomVdsDocumentTypesFromFile("my_vds_document_types.json")
  *
  * // Merge custom entries into the existing registry (defaults are preserved):
- * DataEncoder.addCustomSealCodings(myJsonString)
+ * DataEncoder.addCustomVdsDocumentTypes(myJsonString)
  * DataEncoder.addCustomIdbMessageTypes(myJsonString)
- * DataEncoder.addCustomIdbNationalDocumentTypes(myJsonString)
- * DataEncoder.addCustomExtendedMessageDefinitions(myJsonString)
+ * DataEncoder.addCustomIdbDocumentTypes(myJsonString)
+ * DataEncoder.addCustomVdsProfileDefinitions(myJsonString)
  *
- * // For VDS extended definitions, individual profiles can also be added without
+ * // For VDS profile definitions, individual profiles can also be added without
  * // replacing the entire registry (supports JSON and TR-03171 XML format):
- * DataEncoder.loadExtendedMessageDefinitionFromXml(xmlString)
+ * DataEncoder.loadVdsProfileDefinitionFromXml(xmlString)
  *
  * // Revert all registries to the embedded defaults:
  * DataEncoder.resetToDefaults()
  * ```
  */
 object DataEncoder {
-    private lateinit var vdsSealCodingRegistry: VdsSealCodingRegistry
-    private lateinit var idbMessageTypeRegistry: IdbMessageTypeRegistry
-    private lateinit var idbDocumentTypeRegistry: IdbNationalDocumentTypeRegistry
-    private lateinit var extendedMessageDefinitionRegistry: ExtendedMessageDefinitionRegistry
     private val log = Logger.withTag(this::class.simpleName ?: "")
 
-    init {
-        resetToDefaults()
-    }
+    /** VDS document type profiles: `documentRef` ↔ name ↔ messages */
+    var vdsDocumentTypes: VdsDocumentTypeRegistry = VdsDocumentTypeRegistry(ResourceConstants.VDS_DOCUMENT_TYPES_JSON)
+        internal set
+
+    /** IDB message type definitions: tag ↔ name ↔ coding */
+    var idbMessageTypes: IdbMessageTypeRegistry = IdbMessageTypeRegistry(ResourceConstants.IDB_MESSAGE_TYPES_JSON)
+        internal set
+
+    /** IDB document types: tag ↔ name ↔ expected messages */
+    var idbDocumentTypes: IdbDocumentTypeRegistry = IdbDocumentTypeRegistry(ResourceConstants.IDB_DOCUMENT_TYPES_JSON)
+        internal set
+
+    /** UUID-based profile definitions for administrative documents */
+    var vdsProfileDefinitions: VdsProfileDefinitionRegistry = VdsProfileDefinitionRegistry(ResourceConstants.VDS_PROFILE_DEFINITIONS_JSON)
+        internal set
 
     /**
      * Resets all registries to their default values using the embedded JSON resources.
@@ -103,12 +107,10 @@ object DataEncoder {
      */
     fun resetToDefaults() {
         try {
-            // Use generated constants (embedded at compile time)
-            vdsSealCodingRegistry = VdsSealCodingRegistry(ResourceConstants.SEAL_CODINGS_JSON)
-            idbMessageTypeRegistry = IdbMessageTypeRegistry(ResourceConstants.IDB_MESSAGE_TYPES_JSON)
-            idbDocumentTypeRegistry = IdbNationalDocumentTypeRegistry(ResourceConstants.IDB_DOCUMENT_TYPES_JSON)
-            extendedMessageDefinitionRegistry =
-                ExtendedMessageDefinitionRegistry(ResourceConstants.EXTENDED_MESSAGE_DEFINITIONS_JSON)
+            vdsDocumentTypes = VdsDocumentTypeRegistry(ResourceConstants.VDS_DOCUMENT_TYPES_JSON)
+            idbMessageTypes = IdbMessageTypeRegistry(ResourceConstants.IDB_MESSAGE_TYPES_JSON)
+            idbDocumentTypes = IdbDocumentTypeRegistry(ResourceConstants.IDB_DOCUMENT_TYPES_JSON)
+            vdsProfileDefinitions = VdsProfileDefinitionRegistry(ResourceConstants.VDS_PROFILE_DEFINITIONS_JSON)
             log.i("Reset all registries to defaults")
         } catch (e: Exception) {
             log.e("Failed to initialize from embedded resources: ${e.message}")
@@ -117,14 +119,14 @@ object DataEncoder {
     }
 
     /**
-     * Replaces the SealCodings registry entirely with custom JSON.
+     * Replaces the VDS Document Types registry entirely with custom JSON.
      *
-     * @param jsonString Custom SealCodings JSON content
+     * @param jsonString Custom VdsDocumentTypes JSON content
      * @throws Exception if JSON is invalid
      */
-    fun replaceCustomSealCodings(jsonString: String) {
-        vdsSealCodingRegistry = VdsSealCodingRegistry(jsonString)
-        log.i("Replaced SealCodings registry")
+    fun replaceCustomVdsDocumentTypes(jsonString: String) {
+        vdsDocumentTypes = VdsDocumentTypeRegistry(jsonString)
+        log.i("Replaced VdsDocumentTypes registry")
     }
 
     /**
@@ -134,35 +136,35 @@ object DataEncoder {
      * @throws Exception if JSON is invalid
      */
     fun replaceCustomIdbMessageTypes(jsonString: String) {
-        idbMessageTypeRegistry = IdbMessageTypeRegistry(jsonString)
+        idbMessageTypes = IdbMessageTypeRegistry(jsonString)
         log.i("Replaced IdbMessageTypes registry")
     }
 
     /**
-     * Replaces the IDB National Document Types registry entirely with custom JSON.
+     * Replaces the IDB Document Types registry entirely with custom JSON.
      *
-     * @param jsonString Custom IdbNationalDocumentTypes JSON content
+     * @param jsonString Custom IdbDocumentTypes JSON content
      * @throws Exception if JSON is invalid
      */
-    fun replaceCustomIdbNationalDocumentTypes(jsonString: String) {
-        idbDocumentTypeRegistry = IdbNationalDocumentTypeRegistry(jsonString)
-        log.i("Replaced IdbNationalDocumentTypes registry")
+    fun replaceCustomIdbDocumentTypes(jsonString: String) {
+        idbDocumentTypes = IdbDocumentTypeRegistry(jsonString)
+        log.i("Replaced IdbDocumentTypes registry")
     }
 
     /**
-     * Replaces the Extended Message Definitions registry entirely with custom JSON.
+     * Replaces the VDS Profile Definitions registry entirely with custom JSON.
      *
-     * @param jsonString Custom ExtendedMessageDefinitions JSON content
+     * @param jsonString Custom VdsProfileDefinitions JSON content
      * @throws Exception if JSON is invalid
      */
-    fun replaceCustomExtendedMessageDefinitions(jsonString: String) {
-        extendedMessageDefinitionRegistry = ExtendedMessageDefinitionRegistry(jsonString)
-        log.i("Replaced ExtendedMessageDefinitions registry")
+    fun replaceCustomVdsProfileDefinitions(jsonString: String) {
+        vdsProfileDefinitions = VdsProfileDefinitionRegistry(jsonString)
+        log.i("Replaced VdsProfileDefinitions registry")
     }
 
     @Throws(FileNotFoundException::class)
-    fun replaceCustomSealCodingsFromFile(fileName: String) {
-        replaceCustomSealCodings(readTextResource(fileName))
+    fun replaceCustomVdsDocumentTypesFromFile(fileName: String) {
+        replaceCustomVdsDocumentTypes(readTextResource(fileName))
     }
 
     @Throws(FileNotFoundException::class)
@@ -171,29 +173,29 @@ object DataEncoder {
     }
 
     @Throws(FileNotFoundException::class)
-    fun replaceCustomIdbNationalDocumentTypesFromFile(fileName: String) {
-        replaceCustomIdbNationalDocumentTypes(readTextResource(fileName))
+    fun replaceCustomIdbDocumentTypesFromFile(fileName: String) {
+        replaceCustomIdbDocumentTypes(readTextResource(fileName))
     }
 
     @Throws(FileNotFoundException::class)
-    fun replaceCustomExtendedMessageDefinitionsFromFile(fileName: String) {
-        replaceCustomExtendedMessageDefinitions(readTextResource(fileName))
+    fun replaceCustomVdsProfileDefinitionsFromFile(fileName: String) {
+        replaceCustomVdsProfileDefinitions(readTextResource(fileName))
     }
 
     /**
-     * Merges custom SealCodings into the existing registry. Existing entries with the same
+     * Merges custom VDS Document Types into the existing registry. Existing entries with the same
      * documentRef are replaced; all other defaults are preserved.
      *
-     * @param jsonString Custom SealCodings JSON content
+     * @param jsonString Custom VdsDocumentTypes JSON content
      */
-    fun addCustomSealCodings(jsonString: String) {
-        vdsSealCodingRegistry.addEntriesFromJson(jsonString)
-        log.i("Added custom SealCodings entries")
+    fun addCustomVdsDocumentTypes(jsonString: String) {
+        vdsDocumentTypes.addEntriesFromJson(jsonString)
+        log.i("Added custom VdsDocumentTypes entries")
     }
 
     @Throws(FileNotFoundException::class)
-    fun addCustomSealCodingsFromFile(fileName: String) {
-        addCustomSealCodings(readTextResource(fileName))
+    fun addCustomVdsDocumentTypesFromFile(fileName: String) {
+        addCustomVdsDocumentTypes(readTextResource(fileName))
     }
 
     /**
@@ -203,7 +205,7 @@ object DataEncoder {
      * @param jsonString Custom IdbMessageTypes JSON content
      */
     fun addCustomIdbMessageTypes(jsonString: String) {
-        idbMessageTypeRegistry.addEntriesFromJson(jsonString)
+        idbMessageTypes.addEntriesFromJson(jsonString)
         log.i("Added custom IdbMessageTypes entries")
     }
 
@@ -213,51 +215,51 @@ object DataEncoder {
     }
 
     /**
-     * Merges custom IDB National Document Types into the existing registry. Existing entries
+     * Merges custom IDB Document Types into the existing registry. Existing entries
      * with the same tag are replaced; all other defaults are preserved.
      *
-     * @param jsonString Custom IdbNationalDocumentTypes JSON content
+     * @param jsonString Custom IdbDocumentTypes JSON content
      */
-    fun addCustomIdbNationalDocumentTypes(jsonString: String) {
-        idbDocumentTypeRegistry.addEntriesFromJson(jsonString)
-        log.i("Added custom IdbNationalDocumentTypes entries")
+    fun addCustomIdbDocumentTypes(jsonString: String) {
+        idbDocumentTypes.addEntriesFromJson(jsonString)
+        log.i("Added custom IdbDocumentTypes entries")
     }
 
     @Throws(FileNotFoundException::class)
-    fun addCustomIdbNationalDocumentTypesFromFile(fileName: String) {
-        addCustomIdbNationalDocumentTypes(readTextResource(fileName))
+    fun addCustomIdbDocumentTypesFromFile(fileName: String) {
+        addCustomIdbDocumentTypes(readTextResource(fileName))
     }
 
     /**
-     * Merges custom Extended Message Definitions into the existing registry. Existing entries
+     * Merges custom VDS Profile Definitions into the existing registry. Existing entries
      * with the same definitionId are replaced; all other defaults are preserved.
      *
-     * @param jsonString Custom ExtendedMessageDefinitions JSON content
+     * @param jsonString Custom VdsProfileDefinitions JSON content
      */
-    fun addCustomExtendedMessageDefinitions(jsonString: String) {
-        extendedMessageDefinitionRegistry.addEntriesFromJson(jsonString)
-        log.i("Added custom ExtendedMessageDefinitions entries")
+    fun addCustomVdsProfileDefinitions(jsonString: String) {
+        vdsProfileDefinitions.addEntriesFromJson(jsonString)
+        log.i("Added custom VdsProfileDefinitions entries")
     }
 
     @Throws(FileNotFoundException::class)
-    fun addCustomExtendedMessageDefinitionsFromFile(fileName: String) {
-        addCustomExtendedMessageDefinitions(readTextResource(fileName))
+    fun addCustomVdsProfileDefinitionsFromFile(fileName: String) {
+        addCustomVdsProfileDefinitions(readTextResource(fileName))
     }
 
     /**
-     * Loads an extended message definition from an XML document profile (BSI TR-03171).
+     * Loads a VDS profile definition from an XML document profile (BSI TR-03171).
      *
-     * The XML profile is parsed and converted to an ExtendedMessageDefinitionDto,
+     * The XML profile is parsed and converted to a VdsProfileDefinitionDto,
      * which is then added to the existing registry without replacing other definitions.
      *
      * @param xmlString XML content conforming to the DocProfileSchema TR-03171
      * @throws IllegalArgumentException if the XML is invalid or fails validation
      */
-    fun loadExtendedMessageDefinitionFromXml(xmlString: String) {
+    fun loadVdsProfileDefinitionFromXml(xmlString: String) {
         val profile = ProfileXmlParser.parse(xmlString)
-        val definition = ProfileConverter.toExtendedMessageDefinition(profile)
-        extendedMessageDefinitionRegistry.addDefinition(definition)
-        log.i("Loaded extended message definition from XML: ${definition.definitionName}")
+        val definition = ProfileConverter.toVdsProfileDefinition(profile)
+        vdsProfileDefinitions.addDefinition(definition)
+        log.i("Loaded VDS profile definition from XML: ${definition.definitionName}")
     }
 
     /**
@@ -458,11 +460,6 @@ object DataEncoder {
         return compressedBytes
     }
 
-    fun setVdsSealCodingRegistry(vdsSealCodingRegistry: VdsSealCodingRegistry) {
-        DataEncoder.vdsSealCodingRegistry = vdsSealCodingRegistry
-    }
-
-
     @OptIn(DelicateCryptographyApi::class)
     fun buildCertificateReference(certificateBytes: ByteArray): ByteArray {
         val hasher = CryptographyProvider.Default
@@ -473,53 +470,6 @@ object DataEncoder {
             hasher.hash(certificateBytes)
         }
         return certSha1.sliceArray(15..19)
-    }
-
-    fun encodeDerTlv(vdsType: String, derTlv: DerTlv): Message? {
-        val bytes = derTlv.value
-        val name = vdsSealCodingRegistry.getMessageName(vdsType, derTlv)
-        val tag = derTlv.tag.toInt()
-        val coding = vdsSealCodingRegistry.getMessageCoding(vdsType, derTlv)
-        if (name == "" || coding == MessageCoding.UNKNOWN) return null
-        return Message(tag, name, coding, MessageValue.fromBytes(bytes, coding))
-    }
-
-    fun getVdsType(documentRef: Int): String? {
-        return vdsSealCodingRegistry.getVdsType(documentRef)
-    }
-
-    fun getDocumentRef(vdsType: String): Int? {
-        return vdsSealCodingRegistry.getDocumentRef(vdsType)
-    }
-
-    fun <T> encodeMessage(vdsType: String, messageName: String, value: T): DerTlv {
-        return vdsSealCodingRegistry.encodeMessage(vdsType, messageName, value)
-    }
-
-    fun getMessageTag(vdsType: String, messageName: String): Int {
-        return vdsSealCodingRegistry.getMessageTag(vdsType, messageName)
-    }
-
-    fun getMessageTag(baseVdsType: String, extendedDefinition: ExtendedMessageDefinitionDto?, messageName: String): Int {
-        return vdsSealCodingRegistry.getMessageTag(baseVdsType, extendedDefinition, messageName)
-    }
-
-    fun getMessageCoding(vdsType: String, tag: Int): MessageCoding {
-        return vdsSealCodingRegistry.getMessageCoding(vdsType, tag)
-    }
-
-    fun getMessageCoding(baseVdsType: String, extendedDefinition: ExtendedMessageDefinitionDto?, tag: Int): MessageCoding {
-        return vdsSealCodingRegistry.getMessageCoding(baseVdsType, extendedDefinition, tag)
-    }
-
-    /**
-     * Resolves an extended message definition by its definition name.
-     *
-     * @param name The definition name (e.g., "MELDEBESCHEINIGUNG")
-     * @return The matching ExtendedMessageDefinitionDto, or null if not found
-     */
-    fun resolveExtendedDefinitionByName(name: String): ExtendedMessageDefinitionDto? {
-        return extendedMessageDefinitionRegistry.resolveByName(name)
     }
 
     /**
@@ -557,113 +507,6 @@ object DataEncoder {
                 value as ByteArray
             }
         }
-    }
-
-    fun getIdbMessageTypeName(tag: Int): String {
-        return idbMessageTypeRegistry.getMessageType(tag)
-    }
-
-    fun getIdbMessageTypeTag(messageTypeName: String): Int? {
-        return idbMessageTypeRegistry.getMessageType(messageTypeName)
-    }
-
-    fun getIdbMessageTypeCoding(messageTypeName: String): MessageCoding {
-        return idbMessageTypeRegistry.getMessageTypeCoding(messageTypeName)
-    }
-
-    fun getIdbMessageTypeCoding(messageTypeTag: Int): MessageCoding {
-        return idbMessageTypeRegistry.getMessageTypeCoding(messageTypeTag)
-    }
-
-    fun getIdbDocumentTypeName(tag: Int): String {
-        return idbDocumentTypeRegistry.getDocumentType(tag)
-    }
-
-    /**
-     * Returns the IDB message types expected in the message group for a given national document type tag.
-     *
-     * @param tag The numeric value of the `NATIONAL_DOCUMENT_IDENTIFIER` (tag 0x86)
-     * @return List of expected message type references, empty if the tag is unknown or has no messages defined
-     */
-    fun getIdbExpectedMessages(tag: Int): List<IdbMessageTypeRef> {
-        return idbDocumentTypeRegistry.getExpectedMessages(tag)
-    }
-
-    /**
-     * Returns the IDB message types expected in the message group for a given national document type name.
-     *
-     * @param name The document type name (e.g., `"SUBSTITUTE_IDENTITY_DOCUMENT"`)
-     * @return List of expected message type references, empty if the name is unknown or has no messages defined
-     */
-    fun getIdbExpectedMessages(name: String): List<IdbMessageTypeRef> {
-        return idbDocumentTypeRegistry.getExpectedMessages(name)
-    }
-
-    /**
-     * Checks if the given vdsType requires UUID-based profile lookup.
-     *
-     * @param vdsType The VDS type to check
-     * @return true if this type requires UUID lookup, false otherwise
-     */
-    fun requiresUuidLookup(vdsType: String): Boolean {
-        return vdsSealCodingRegistry.requiresUuidLookup(vdsType)
-    }
-
-    /**
-     * Gets the tag number containing the UUID for profile lookup.
-     *
-     * @param vdsType The VDS type to check
-     * @return The tag number (default 0 if not specified or type not found)
-     */
-    fun getUuidMessageTag(vdsType: String): Int {
-        return vdsSealCodingRegistry.getUuidMessageTag(vdsType)
-    }
-
-    /**
-     * Returns the set of tag numbers that are treated as metadata for the given VDS type.
-     *
-     * @param vdsType The VDS type to check
-     * @return Set of metadata tag numbers, empty if not configured or type not found
-     */
-    fun getMetadataTags(vdsType: String): Set<Int> {
-        return vdsSealCodingRegistry.getMetadataTags(vdsType)
-    }
-
-    /**
-     * Resolves an extended message definition based on UUID bytes.
-     *
-     * @param uuidBytes 16-byte UUID
-     * @return The matching ExtendedMessageDefinitionDto, or null if no definition matches
-     */
-    fun resolveExtendedMessageDefinition(uuidBytes: ByteArray): ExtendedMessageDefinitionDto? {
-        return extendedMessageDefinitionRegistry.resolve(uuidBytes)
-    }
-
-    /**
-     * Resolves an extended message definition based on UUID hex string.
-     *
-     * @param uuidHex UUID as hex string (32 characters, without dashes)
-     * @return The matching ExtendedMessageDefinitionDto, or null if no definition matches
-     */
-    fun resolveExtendedMessageDefinition(uuidHex: String): ExtendedMessageDefinitionDto? {
-        return extendedMessageDefinitionRegistry.resolve(uuidHex)
-    }
-
-    /**
-     * Encodes a DerTlv to a Message with extended message definition-aware lookup.
-     *
-     * @param vdsType The base VDS type
-     * @param extendedDefinition The resolved extended message definition (may be null)
-     * @param derTlv The DerTlv to encode
-     * @return The Message, or null if encoding fails
-     */
-    fun encodeDerTlv(vdsType: String, extendedDefinition: ExtendedMessageDefinitionDto?, derTlv: DerTlv): Message? {
-        val bytes = derTlv.value
-        val tag = derTlv.tag.toInt()
-        val name = vdsSealCodingRegistry.getMessageName(vdsType, extendedDefinition, tag)
-        val coding = vdsSealCodingRegistry.getMessageCoding(vdsType, extendedDefinition, tag)
-        if (name == "" || coding == MessageCoding.UNKNOWN) return null
-        return Message(tag, name, coding, MessageValue.fromBytes(bytes, coding))
     }
 
     /**

@@ -44,7 +44,7 @@ val seal: Seal = Seal.fromString(rawString)
 //Get list with all messages in seal
 val messageList = seal.messageList
 for (message in messageList) {
-    println("${message.name} (${message.coding}) -> ${message.value}")
+    println("${message.name} -> ${message.value}")
 }
 
 // Access message data by name - value.toString() returns the decoded value
@@ -85,7 +85,7 @@ Some seal types use a two-stage lookup: the header's `documentRef` points to a b
 `ADMINISTRATIVE_DOCUMENTS`), and the first tags of the message zone carry administrative metadata
 (e.g. the document profile UUID at tag 0, validity dates at tag 1) rather than user-visible content.
 
-These tags are declared as `metadataTagList` in `SealCodings.json` and are automatically separated
+These tags are declared as `metadataTagList` in `VdsDocumentTypes.json` and are automatically separated
 from the regular `messageList` during parsing. They are only accessible via `metadataMessageList`.
 
 ```kotlin
@@ -112,8 +112,8 @@ if (seal.metadataMessageList.isNotEmpty()) {
 To check at the type level which tags are configured as metadata (without a concrete seal instance):
 
 ```kotlin
-DataEncoder.getMetadataTags("ADMINISTRATIVE_DOCUMENTS") // → {0, 1, 2, 3}
-DataEncoder.getMetadataTags("RESIDENT_PERMIT")          // → {} (no metadata tags)
+DataEncoder.vdsDocumentTypes.getMetadataTags("ADMINISTRATIVE_DOCUMENTS") // → {0, 1, 2, 3}
+DataEncoder.vdsDocumentTypes.getMetadataTags("RESIDENT_PERMIT")          // → {} (no metadata tags)
 ```
 
 Regular document types have no `metadataTagList` configured, so their `metadataMessageList` is
@@ -259,12 +259,12 @@ val customJson = """[
 ]"""
 
 // Add to defaults – built-in types remain available:
-DataEncoder.addCustomSealCodings(customJson)
-DataEncoder.addCustomSealCodingsFromFile("path/to/MyCodings.json")  // JVM only
+DataEncoder.addCustomVdsDocumentTypes(customJson)
+DataEncoder.addCustomVdsDocumentTypesFromFile("path/to/MyDocumentTypes.json")  // JVM only
 
 // Replace defaults entirely – only your types are available:
-DataEncoder.replaceCustomSealCodings(customJson)
-DataEncoder.replaceCustomSealCodingsFromFile("path/to/MyCodings.json")  // JVM only
+DataEncoder.replaceCustomVdsDocumentTypes(customJson)
+DataEncoder.replaceCustomVdsDocumentTypesFromFile("path/to/MyDocumentTypes.json")  // JVM only
 ```
 
 The same pattern applies to the other registries:
@@ -274,13 +274,13 @@ The same pattern applies to the other registries:
 DataEncoder.addCustomIdbMessageTypes(jsonString)
 DataEncoder.replaceCustomIdbMessageTypes(jsonString)
 
-// IDB national document types
-DataEncoder.addCustomIdbNationalDocumentTypes(jsonString)
-DataEncoder.replaceCustomIdbNationalDocumentTypes(jsonString)
+// IDB document types
+DataEncoder.addCustomIdbDocumentTypes(jsonString)
+DataEncoder.replaceCustomIdbDocumentTypes(jsonString)
 
-// Extended message definitions (VDS administrative documents)
-DataEncoder.addCustomExtendedMessageDefinitions(jsonString)
-DataEncoder.replaceCustomExtendedMessageDefinitions(jsonString)
+// VDS profile definitions (VDS administrative documents)
+DataEncoder.addCustomVdsProfileDefinitions(jsonString)
+DataEncoder.replaceCustomVdsProfileDefinitions(jsonString)
 
 // Revert all registries to embedded defaults:
 DataEncoder.resetToDefaults()
@@ -319,7 +319,7 @@ val vdsSeal = VdsSeal(header, messageGroup, signer)
 | `DATE`        | 3-byte date (ICAO format, e.g. "2024-06-15")                |
 | `MASKED_DATE` | 4-byte date with uncertainty masks                          |
 
-See `src/commonMain/resources/SealCodings.json` for the complete structure of the default codings.
+See `src/commonMain/resources/VdsDocumentTypes.json` for the complete structure of the default document types.
 
 ## Byte-level structure inspection with the `dissect` package
 

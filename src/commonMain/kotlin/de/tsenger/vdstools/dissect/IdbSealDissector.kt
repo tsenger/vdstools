@@ -75,7 +75,7 @@ private fun IdbSeal.buildIdbMessageGroupDissection(
 
     val children = innerSpans.map { inner ->
         val label = payLoad.idbMessageGroup.messageList
-            .firstOrNull { it.tag == inner.tag }?.name
+            .firstOrNull { it.tag == (inner.tag and 0xFF).toString(16).uppercase().padStart(2, '0') }?.name
             ?: "Unknown (0x${inner.tag.toHex()})"
         FieldDissection(
             label, inner.range, listOf(

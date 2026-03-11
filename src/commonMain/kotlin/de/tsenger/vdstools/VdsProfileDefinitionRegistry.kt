@@ -1,7 +1,7 @@
 package de.tsenger.vdstools
 
 import co.touchlab.kermit.Logger
-import de.tsenger.vdstools.vds.dto.ExtendedMessageDefinitionDto
+import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
 import kotlinx.serialization.json.Json
 
 /**
@@ -18,24 +18,24 @@ import kotlinx.serialization.json.Json
  * @param jsonString JSON content containing extended message definitions
  */
 @OptIn(ExperimentalStdlibApi::class)
-class ExtendedMessageDefinitionRegistry(jsonString: String) : DefinitionRegistry {
+class VdsProfileDefinitionRegistry(jsonString: String) : DefinitionRegistry {
     private val log = Logger.withTag(this::class.simpleName ?: "")
-    private var definitionsByUuid: Map<String, ExtendedMessageDefinitionDto>
-    private var definitionsByName: Map<String, ExtendedMessageDefinitionDto>
+    private var definitionsByUuid: Map<String, VdsProfileDefinitionDto>
+    private var definitionsByName: Map<String, VdsProfileDefinitionDto>
 
     companion object {
         private val json = Json { ignoreUnknownKeys = true }
     }
 
     init {
-        val definitionList: List<ExtendedMessageDefinitionDto> = json.decodeFromString(jsonString)
+        val definitionList: List<VdsProfileDefinitionDto> = json.decodeFromString(jsonString)
         definitionsByUuid = definitionList.associateBy { it.definitionId.lowercase() }
         definitionsByName = definitionList.associateBy { it.definitionName }
-        log.d("Loaded ${definitionsByUuid.size} extended message definitions")
+        log.d("Loaded ${definitionsByUuid.size} VDS profile definitions")
     }
 
     override fun addEntriesFromJson(jsonString: String) {
-        val newDtos = json.decodeFromString<List<ExtendedMessageDefinitionDto>>(jsonString)
+        val newDtos = json.decodeFromString<List<VdsProfileDefinitionDto>>(jsonString)
         newDtos.forEach { addDefinition(it) }
     }
 
@@ -43,9 +43,9 @@ class ExtendedMessageDefinitionRegistry(jsonString: String) : DefinitionRegistry
      * Resolves an extended message definition based on the UUID bytes.
      *
      * @param uuidBytes 16-byte UUID from Tag 0
-     * @return The matching ExtendedMessageDefinitionDto, or null if no definition matches
+     * @return The matching VdsProfileDefinitionDto, or null if no definition matches
      */
-    fun resolve(uuidBytes: ByteArray): ExtendedMessageDefinitionDto? {
+    fun resolve(uuidBytes: ByteArray): VdsProfileDefinitionDto? {
         if (uuidBytes.size != 16) {
             log.w("Invalid UUID length: expected 16 bytes, got ${uuidBytes.size}")
             return null
@@ -64,9 +64,9 @@ class ExtendedMessageDefinitionRegistry(jsonString: String) : DefinitionRegistry
      * Resolves an extended message definition based on the UUID hex string.
      *
      * @param uuidHex UUID as hex string (32 characters, without dashes)
-     * @return The matching ExtendedMessageDefinitionDto, or null if no definition matches
+     * @return The matching VdsProfileDefinitionDto, or null if no definition matches
      */
-    fun resolve(uuidHex: String): ExtendedMessageDefinitionDto? {
+    fun resolve(uuidHex: String): VdsProfileDefinitionDto? {
         val normalizedUuid = uuidHex.lowercase().replace("-", "")
         if (normalizedUuid.length != 32) {
             log.w("Invalid UUID hex length: expected 32 characters, got ${normalizedUuid.length}")
@@ -91,7 +91,7 @@ class ExtendedMessageDefinitionRegistry(jsonString: String) : DefinitionRegistry
      *
      * @param definition The definition to add
      */
-    fun addDefinition(definition: ExtendedMessageDefinitionDto) {
+    fun addDefinition(definition: VdsProfileDefinitionDto) {
         definitionsByUuid = definitionsByUuid + (definition.definitionId.lowercase() to definition)
         definitionsByName = definitionsByName + (definition.definitionName to definition)
         log.d("Added definition: ${definition.definitionName} (${definition.definitionId})")
@@ -101,9 +101,9 @@ class ExtendedMessageDefinitionRegistry(jsonString: String) : DefinitionRegistry
      * Resolves an extended message definition by its definition name.
      *
      * @param definitionName The definition name (e.g., "MELDEBESCHEINIGUNG")
-     * @return The matching ExtendedMessageDefinitionDto, or null if no definition matches
+     * @return The matching VdsProfileDefinitionDto, or null if no definition matches
      */
-    fun resolveByName(definitionName: String): ExtendedMessageDefinitionDto? {
+    fun resolveByName(definitionName: String): VdsProfileDefinitionDto? {
         return definitionsByName[definitionName]
     }
 

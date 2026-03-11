@@ -9,8 +9,8 @@ import kotlin.test.assertTrue
 class ReadTextResourceIosTest {
 
     @Test
-    fun testReadSealCodings() {
-        val content = readTextResource(DEFAULT_SEAL_CODINGS)
+    fun testReadVdsDocumentTypes() {
+        val content = readTextResource(DEFAULT_VDS_DOCUMENT_TYPES)
         assertNotNull(content)
         assertTrue(content.isNotEmpty())
         assertTrue(content.contains("documentType") || content.contains("features"))

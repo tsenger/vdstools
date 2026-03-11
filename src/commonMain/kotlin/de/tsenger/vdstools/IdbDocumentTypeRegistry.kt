@@ -14,11 +14,11 @@ import kotlinx.serialization.json.Json
  * between the numeric tag and the document type name, and provides the list of expected
  * message types for each national document type.
  *
- * Definitions are loaded from `IdbNationalDocumentTypes.json`.
+ * Definitions are loaded from `IdbGermanDocumentTypes.json`.
  *
  * @param jsonString JSON string containing an array of [IdbDocumentTypeDto] definitions
  */
-class IdbNationalDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
+class IdbDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
     private val log = Logger.withTag(this::class.simpleName ?: "")
     private var documentTypeDtoList: List<IdbDocumentTypeDto> = emptyList()
     private val documentTypes: HashMap<Int, IdbDocumentTypeDto> = HashMap()
@@ -74,7 +74,7 @@ class IdbNationalDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
      * Returns the IDB message types expected in the message group for a given national document type.
      *
      * The returned list contains references to entries in `IdbMessageTypes.json`, identified by name.
-     * Use [DataEncoder.getIdbMessageTypeTag] or [DataEncoder.getIdbMessageTypeCoding] to resolve them.
+     * Use [IdbMessageTypeRegistry.getMessageType] or [IdbMessageTypeRegistry.getMessageTypeCoding] to resolve them.
      *
      * @param tag The numeric tag value of the `NATIONAL_DOCUMENT_IDENTIFIER` message
      * @return List of expected message type references, empty if the tag is not registered or has no messages defined

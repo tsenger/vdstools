@@ -3,7 +3,7 @@ package de.tsenger.vdstools
 import kotlin.test.*
 
 @OptIn(ExperimentalStdlibApi::class)
-class ExtendedMessageDefinitionRegistryCommonTest {
+class VdsProfileDefinitionRegistryCommonTest {
 
     private val testDefinitionsJson = """
         [
@@ -28,7 +28,7 @@ class ExtendedMessageDefinitionRegistryCommonTest {
 
     @Test
     fun testResolveByBytes() {
-        val registry = ExtendedMessageDefinitionRegistry(testDefinitionsJson)
+        val registry = VdsProfileDefinitionRegistry(testDefinitionsJson)
         val uuidBytes = "9a4223406d374ef99e2cf95e31a23846".hexToByteArray()
 
         val definition = registry.resolve(uuidBytes)
@@ -41,7 +41,7 @@ class ExtendedMessageDefinitionRegistryCommonTest {
 
     @Test
     fun testResolveByHexString() {
-        val registry = ExtendedMessageDefinitionRegistry(testDefinitionsJson)
+        val registry = VdsProfileDefinitionRegistry(testDefinitionsJson)
 
         val definition = registry.resolve("9a4223406d374ef99e2cf95e31a23846")
 
@@ -51,7 +51,7 @@ class ExtendedMessageDefinitionRegistryCommonTest {
 
     @Test
     fun testResolveByHexStringUppercase() {
-        val registry = ExtendedMessageDefinitionRegistry(testDefinitionsJson)
+        val registry = VdsProfileDefinitionRegistry(testDefinitionsJson)
 
         val definition = registry.resolve("9A4223406D374EF99E2CF95E31A23846")
 
@@ -61,7 +61,7 @@ class ExtendedMessageDefinitionRegistryCommonTest {
 
     @Test
     fun testResolveByHexStringWithDashes() {
-        val registry = ExtendedMessageDefinitionRegistry(testDefinitionsJson)
+        val registry = VdsProfileDefinitionRegistry(testDefinitionsJson)
 
         val definition = registry.resolve("9a422340-6d37-4ef9-9e2c-f95e31a23846")
 
@@ -71,7 +71,7 @@ class ExtendedMessageDefinitionRegistryCommonTest {
 
     @Test
     fun testResolveUnknownDefinition() {
-        val registry = ExtendedMessageDefinitionRegistry(testDefinitionsJson)
+        val registry = VdsProfileDefinitionRegistry(testDefinitionsJson)
         val unknownUuid = "00000000000000000000000000000000".hexToByteArray()
 
         val definition = registry.resolve(unknownUuid)
@@ -81,7 +81,7 @@ class ExtendedMessageDefinitionRegistryCommonTest {
 
     @Test
     fun testResolveInvalidUuidLength() {
-        val registry = ExtendedMessageDefinitionRegistry(testDefinitionsJson)
+        val registry = VdsProfileDefinitionRegistry(testDefinitionsJson)
         val shortUuid = "9a422340".hexToByteArray()
 
         val definition = registry.resolve(shortUuid)
@@ -91,7 +91,7 @@ class ExtendedMessageDefinitionRegistryCommonTest {
 
     @Test
     fun testAvailableDefinitions() {
-        val registry = ExtendedMessageDefinitionRegistry(testDefinitionsJson)
+        val registry = VdsProfileDefinitionRegistry(testDefinitionsJson)
 
         val definitions = registry.availableDefinitions
 
@@ -102,7 +102,7 @@ class ExtendedMessageDefinitionRegistryCommonTest {
 
     @Test
     fun testAvailableDefinitionUuids() {
-        val registry = ExtendedMessageDefinitionRegistry(testDefinitionsJson)
+        val registry = VdsProfileDefinitionRegistry(testDefinitionsJson)
 
         val uuids = registry.availableDefinitionUuids
 
@@ -113,7 +113,7 @@ class ExtendedMessageDefinitionRegistryCommonTest {
 
     @Test
     fun testResolveSecondDefinition() {
-        val registry = ExtendedMessageDefinitionRegistry(testDefinitionsJson)
+        val registry = VdsProfileDefinitionRegistry(testDefinitionsJson)
         val uuidBytes = "550e8400e29b41d4a716446655440002".hexToByteArray()
 
         val definition = registry.resolve(uuidBytes)
@@ -124,7 +124,7 @@ class ExtendedMessageDefinitionRegistryCommonTest {
 
     @Test
     fun testEmptyDefinitionsJson() {
-        val registry = ExtendedMessageDefinitionRegistry("[]")
+        val registry = VdsProfileDefinitionRegistry("[]")
 
         assertTrue(registry.availableDefinitions.isEmpty())
         assertTrue(registry.availableDefinitionUuids.isEmpty())
@@ -132,7 +132,7 @@ class ExtendedMessageDefinitionRegistryCommonTest {
 
     @Test
     fun testDefinitionMessages() {
-        val registry = ExtendedMessageDefinitionRegistry(testDefinitionsJson)
+        val registry = VdsProfileDefinitionRegistry(testDefinitionsJson)
         val uuidBytes = "9a4223406d374ef99e2cf95e31a23846".hexToByteArray()
 
         val definition = registry.resolve(uuidBytes)

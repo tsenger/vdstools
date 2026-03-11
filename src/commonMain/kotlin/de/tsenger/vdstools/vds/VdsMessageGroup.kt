@@ -3,7 +3,7 @@ package de.tsenger.vdstools.vds
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generic.Message
-import de.tsenger.vdstools.vds.dto.ExtendedMessageDefinitionDto
+import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
 import okio.Buffer
 
 
@@ -16,12 +16,12 @@ class VdsMessageGroup {
      * The resolved extended message definition for UUID-based seals.
      * Null if no definition lookup was performed or no matching definition was found.
      */
-    var extendedMessageDefinition: ExtendedMessageDefinitionDto? = null
+    var profileDefinition: VdsProfileDefinitionDto? = null
         internal set
 
     /**
      * The document profile UUID (Tag 0) for UUID-based seals.
-     * Set during [resolveExtendedMessageDefinition] and excluded from [messageList].
+     * Set during [resolveProfileDefinition] and excluded from [messageList].
      */
     var documentProfileUuid: ByteArray? = null
         internal set
@@ -56,7 +56,7 @@ class VdsMessageGroup {
             val messageList: MutableList<Message> = ArrayList()
             for (derTlv in derTlvList) {
                 if (derTlv.tag.toInt() in metadataTags) continue
-                DataEncoder.encodeDerTlv(vdsType, extendedMessageDefinition, derTlv)?.let { messageList.add(it) }
+                DataEncoder.vdsDocumentTypes.encodeDerTlv(vdsType, profileDefinition, derTlv)?.let { messageList.add(it) }
             }
             return messageList
         }
@@ -66,19 +66,30 @@ class VdsMessageGroup {
             val result: MutableList<Message> = ArrayList()
             for (derTlv in derTlvList) {
                 if (derTlv.tag.toInt() !in metadataTags) continue
-                DataEncoder.encodeDerTlv(vdsType, extendedMessageDefinition, derTlv)
+                DataEncoder.vdsDocumentTypes.encodeDerTlv(vdsType, profileDefinition, derTlv)
                     ?.let { result.add(it) }
             }
             return result
         }
 
-    fun getMessage(messageName: String): Message? {
+    fun getMessageByName(messageName: String): Message? {
         return messageList.firstOrNull { message: Message -> message.name == messageName }
     }
 
-    fun getMessage(messageTag: Int): Message? {
+    fun getMessageByTag(messageTag: Int): Message? {
+        val hexTag = (messageTag and 0xFF).toString(16).uppercase().padStart(2, '0')
+        return messageList.firstOrNull { message: Message -> message.tag == hexTag }
+    }
+
+    fun getMessageByTag(messageTag: String): Message? {
         return messageList.firstOrNull { message: Message -> message.tag == messageTag }
     }
+
+    @Deprecated("Use getMessageByName(messageName) instead", ReplaceWith("getMessageByName(messageName)"))
+    fun getMessage(messageName: String): Message? = getMessageByName(messageName)
+
+    @Deprecated("Use getMessageByTag(messageTag) instead", ReplaceWith("getMessageByTag(messageTag)"))
+    fun getMessage(messageTag: Int): Message? = getMessageByTag(messageTag)
 
     /**
      * Resolves the extended message definition based on the UUID in the specified tag.
@@ -86,41 +97,41 @@ class VdsMessageGroup {
      *
      * @param uuidTag The tag number containing the UUID (typically 0)
      */
-    fun resolveExtendedMessageDefinition(uuidTag: Int) {
+    fun resolveProfileDefinition(uuidTag: Int) {
         val uuidTlv = derTlvList.find { it.tag.toInt() == uuidTag }
         if (uuidTlv != null) {
             documentProfileUuid = uuidTlv.value
             metadataTags.add(uuidTag)
-            extendedMessageDefinition = DataEncoder.resolveExtendedMessageDefinition(uuidTlv.value)
+            profileDefinition = DataEncoder.vdsProfileDefinitions.resolve(uuidTlv.value)
         }
     }
 
     class Builder(val vdsType: String) {
         val derTlvList: MutableList<DerTlv> = ArrayList(5)
         internal val baseVdsType: String
-        internal val extendedDefinition: ExtendedMessageDefinitionDto?
+        internal val profileDefinition: VdsProfileDefinitionDto?
 
         init {
-            val docRef = DataEncoder.getDocumentRef(vdsType)
+            val docRef = DataEncoder.vdsDocumentTypes.getDocumentRef(vdsType)
             if (docRef == null) {
                 // Not a base type — try resolving as extended definition
-                val extDef = DataEncoder.resolveExtendedDefinitionByName(vdsType)
+                val extDef = DataEncoder.vdsProfileDefinitions.resolveByName(vdsType)
                 if (extDef != null) {
-                    extendedDefinition = extDef
+                    profileDefinition = extDef
                     baseVdsType = extDef.baseDocumentType
                 } else {
-                    extendedDefinition = null
+                    profileDefinition = null
                     baseVdsType = vdsType
                 }
             } else {
-                extendedDefinition = null
+                profileDefinition = null
                 baseVdsType = vdsType
             }
         }
 
         @Throws(IllegalArgumentException::class)
         fun <T> addMessage(tag: Int, value: T): Builder {
-            val coding = DataEncoder.getMessageCoding(baseVdsType, extendedDefinition, tag)
+            val coding = DataEncoder.vdsDocumentTypes.getMessageCoding(baseVdsType, profileDefinition, tag)
             val content = DataEncoder.encodeValueByCoding(coding, value, tag)
             derTlvList.add(DerTlv(tag.toByte(), content))
             return this
@@ -128,21 +139,21 @@ class VdsMessageGroup {
 
         @Throws(IllegalArgumentException::class)
         fun <T> addMessage(name: String, value: T): Builder {
-            return addMessage(DataEncoder.getMessageTag(baseVdsType, extendedDefinition, name), value)
+            return addMessage(DataEncoder.vdsDocumentTypes.getMessageTag(baseVdsType, profileDefinition, name), value)
         }
 
         @OptIn(ExperimentalStdlibApi::class)
         fun build(): VdsMessageGroup {
             val group = VdsMessageGroup(this)
             // If using an extended definition, inject UUID as Tag 0 and set definition on group
-            if (extendedDefinition != null) {
-                val uuidBytes = extendedDefinition.definitionId.hexToByteArray()
+            if (profileDefinition != null) {
+                val uuidBytes = profileDefinition.definitionId.hexToByteArray()
                 val uuidTlv = DerTlv(0.toByte(), uuidBytes)
                 group.derTlvList = listOf(uuidTlv) + group.derTlvList
                 group.vdsType = baseVdsType
-                group.extendedMessageDefinition = extendedDefinition
+                group.profileDefinition = profileDefinition
                 group.documentProfileUuid = uuidBytes
-                DataEncoder.getMetadataTags(baseVdsType).forEach { group.metadataTags.add(it) }
+                DataEncoder.vdsDocumentTypes.getMetadataTags(baseVdsType).forEach { group.metadataTags.add(it) }
                 if (group.metadataTags.isEmpty()) group.metadataTags.add(0)
             }
             return group

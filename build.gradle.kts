@@ -212,10 +212,11 @@ tasks.register("generateResourceConstants") {
         outputDir.mkdirs()
 
         // JSON-Dateien einlesen
-        val sealCodings = file("$inputDir/SealCodings.json").readText()
+        val vdsDocumentTypes = file("$inputDir/VdsDocumentTypes.json").readText()
         val idbMessageTypes = file("$inputDir/IdbMessageTypes.json").readText()
-        val idbDocumentTypes = file("$inputDir/IdbNationalDocumentTypes.json").readText()
-        val extendedMessageDefinitions = file("$inputDir/ExtendedMessageDefinitions.json").readText()
+        val idbDocumentTypes = file("$inputDir/IdbGermanDocumentTypes.json").readText()
+        val vdsProfileDefinitions = file("$inputDir/VdsProfileDefinitions.json").readText()
+        val fr2ddocFieldDefinitions = file("$inputDir/Fr2ddocFieldDefinitions.json").readText()
 
         // Kotlin Code generieren
         val kotlinCode = """
@@ -228,13 +229,15 @@ package de.tsenger.vdstools.generated
  * Source: src/commonMain/resources/
  */
 internal object ResourceConstants {
-    const val SEAL_CODINGS_JSON: String = ""${'"'}$sealCodings""${'"'}
+    const val VDS_DOCUMENT_TYPES_JSON: String = ""${'"'}$vdsDocumentTypes""${'"'}
 
     const val IDB_MESSAGE_TYPES_JSON: String = ""${'"'}$idbMessageTypes""${'"'}
 
     const val IDB_DOCUMENT_TYPES_JSON: String = ""${'"'}$idbDocumentTypes""${'"'}
 
-    const val EXTENDED_MESSAGE_DEFINITIONS_JSON: String = ""${'"'}$extendedMessageDefinitions""${'"'}
+    const val VDS_PROFILE_DEFINITIONS_JSON: String = ""${'"'}$vdsProfileDefinitions""${'"'}
+
+    const val FR2DDOC_FIELD_DEFINITIONS_JSON: String = ""${'"'}$fr2ddocFieldDefinitions""${'"'}
 }
 """.trimIndent()
 
@@ -244,7 +247,7 @@ internal object ResourceConstants {
             writeText(kotlinCode)
         }
 
-        println("✅ Generated ResourceConstants.kt with ${sealCodings.length + idbMessageTypes.length + idbDocumentTypes.length + extendedMessageDefinitions.length} bytes")
+        println("✅ Generated ResourceConstants.kt with ${vdsDocumentTypes.length + idbMessageTypes.length + idbDocumentTypes.length + vdsProfileDefinitions.length + fr2ddocFieldDefinitions.length} bytes")
     }
 }
 

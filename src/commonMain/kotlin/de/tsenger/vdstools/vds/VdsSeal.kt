@@ -24,20 +24,20 @@ class VdsSeal : Seal {
         this.vdsHeader = vdsHeader
         this.vdsMessageGroup = vdsMessageGroup
         this.vdsSignature = vdsSignature
-        this.documentType = vdsMessageGroup.extendedMessageDefinition?.definitionName ?: vdsHeader.vdsType
+        this.documentType = vdsMessageGroup.profileDefinition?.definitionName ?: vdsHeader.vdsType
     }
 
     constructor(vdsHeader: VdsHeader, vdsMessageGroup: VdsMessageGroup, signer: Signer) {
         this.vdsHeader = vdsHeader
         this.vdsMessageGroup = vdsMessageGroup
         this.vdsSignature = createVdsSignature(vdsHeader, vdsMessageGroup, signer)
-        this.documentType = vdsMessageGroup.extendedMessageDefinition?.definitionName ?: vdsHeader.vdsType
+        this.documentType = vdsMessageGroup.profileDefinition?.definitionName ?: vdsHeader.vdsType
     }
 
     override val documentType: String
 
     override val baseDocumentType: String?
-        get() = vdsMessageGroup.extendedMessageDefinition?.baseDocumentType
+        get() = vdsMessageGroup.profileDefinition?.baseDocumentType
 
     override val documentProfileUuid: ByteArray?
         get() = vdsMessageGroup.documentProfileUuid
@@ -97,8 +97,8 @@ class VdsSeal : Seal {
         }
     }
 
-    override fun getMessage(name: String): Message? {
-        val vdsMessage = vdsMessageGroup.getMessage(name) ?: return null
+    override fun getMessageByName(name: String): Message? {
+        val vdsMessage = vdsMessageGroup.getMessageByName(name) ?: return null
         val mrzLength = getMrzLength(vdsMessage.name)
         return Message(
             vdsMessage.tag, vdsMessage.name, vdsMessage.coding,
@@ -106,8 +106,17 @@ class VdsSeal : Seal {
         )
     }
 
-    override fun getMessage(tag: Int): Message? {
-        val vdsMessage = vdsMessageGroup.getMessage(tag) ?: return null
+    override fun getMessageByTag(tag: Int): Message? {
+        val vdsMessage = vdsMessageGroup.getMessageByTag(tag) ?: return null
+        val mrzLength = getMrzLength(vdsMessage.name)
+        return Message(
+            vdsMessage.tag, vdsMessage.name, vdsMessage.coding,
+            MessageValue.fromBytes(vdsMessage.value.rawBytes, vdsMessage.coding, mrzLength)
+        )
+    }
+
+    override fun getMessageByTag(tag: String): Message? {
+        val vdsMessage = vdsMessageGroup.getMessageByTag(tag) ?: return null
         val mrzLength = getMrzLength(vdsMessage.name)
         return Message(
             vdsMessage.tag, vdsMessage.name, vdsMessage.coding,
@@ -204,13 +213,13 @@ class VdsSeal : Seal {
             val vdsMessageGroup = VdsMessageGroup(vdsHeader.vdsType, messageList)
 
             // Resolve extended message definition if this seal type requires UUID lookup
-            if (DataEncoder.requiresUuidLookup(vdsHeader.vdsType)) {
-                val uuidTag = DataEncoder.getUuidMessageTag(vdsHeader.vdsType)
-                vdsMessageGroup.resolveExtendedMessageDefinition(uuidTag)
-                DataEncoder.getMetadataTags(vdsHeader.vdsType).forEach {
+            if (DataEncoder.vdsDocumentTypes.requiresProfileLookup(vdsHeader.vdsType)) {
+                val uuidTag = DataEncoder.vdsDocumentTypes.getUuidMessageTag(vdsHeader.vdsType)
+                vdsMessageGroup.resolveProfileDefinition(uuidTag)
+                DataEncoder.vdsDocumentTypes.getMetadataTags(vdsHeader.vdsType).forEach {
                     vdsMessageGroup.metadataTags.add(it)
                 }
-                log.d("Resolved extended definition: ${vdsMessageGroup.extendedMessageDefinition?.definitionName}")
+                log.d("Resolved extended definition: ${vdsMessageGroup.profileDefinition?.definitionName}")
             }
 
             return VdsSeal(vdsHeader, vdsMessageGroup, vdsSignature)

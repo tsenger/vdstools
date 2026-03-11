@@ -6,16 +6,16 @@ import okio.FileNotFoundException
 import kotlin.test.*
 
 @OptIn(ExperimentalStdlibApi::class)
-class VdsSealCodingRegistryCommonTest {
+class VdsDocumentTypeRegistryCommonTest {
 
     @Test
-    fun testVdsSealCodingRegistryString() {
-        val jsonString = readTextResource("SealCodings.json")
-        VdsSealCodingRegistry(jsonString)
+    fun testVdsDocumentTypeRegistryString() {
+        val jsonString = readTextResource("VdsDocumentTypes.json")
+        VdsDocumentTypeRegistry(jsonString)
     }
 
     @Test
-    fun testVdsSealCodingRegistryString_notFound() {
+    fun testVdsDocumentTypeRegistryString_notFound() {
         assertFailsWith<FileNotFoundException> { readTextResource("Codings.json") }
 
     }
@@ -23,8 +23,8 @@ class VdsSealCodingRegistryCommonTest {
 
     @Test
     fun testGetMessage_String() {
-        val jsonString = readTextResource("SealCodings.json")
-        val registry = VdsSealCodingRegistry(jsonString)
+        val jsonString = readTextResource("VdsDocumentTypes.json")
+        val registry = VdsDocumentTypeRegistry(jsonString)
         val message = registry.getMessageName(
             "FICTION_CERT",
             DerTlv.fromByteArray(
@@ -37,8 +37,8 @@ class VdsSealCodingRegistryCommonTest {
 
     @Test
     fun testEncodeMessage_String() {
-        val jsonString = readTextResource("SealCodings.json")
-        val registry = VdsSealCodingRegistry(jsonString)
+        val jsonString = readTextResource("VdsDocumentTypes.json")
+        val registry = VdsDocumentTypeRegistry(jsonString)
         val mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06"
         val derTlv = registry.encodeMessage("RESIDENCE_PERMIT", "MRZ", mrz)
         assertEquals(
@@ -49,43 +49,43 @@ class VdsSealCodingRegistryCommonTest {
 
     @Test
     fun testGetAvailableVdsTypes() {
-        val jsonString = readTextResource("SealCodings.json")
-        val registry = VdsSealCodingRegistry(jsonString)
+        val jsonString = readTextResource("VdsDocumentTypes.json")
+        val registry = VdsDocumentTypeRegistry(jsonString)
         println(registry.availableVdsTypes)
         assertTrue(registry.availableVdsTypes.contains("ADDRESS_STICKER_ID"))
     }
 
     @Test
     fun testGetAvailableVdsMessages() {
-        val jsonString = readTextResource("SealCodings.json")
-        val registry = VdsSealCodingRegistry(jsonString)
+        val jsonString = readTextResource("VdsDocumentTypes.json")
+        val registry = VdsDocumentTypeRegistry(jsonString)
         println(registry.availableVdsMessages)
         assertTrue(registry.availableVdsMessages.contains("MRZ"))
     }
 
     @Test
     fun testGetDocumentRef_fakeSeal() {
-        assertNull(DataEncoder.getDocumentRef("FAKE_SEAL"))
+        assertNull(DataEncoder.vdsDocumentTypes.getDocumentRef("FAKE_SEAL"))
     }
 
     @Test
     fun testGetMetadataTags_administrativeDocuments() {
-        val jsonString = readTextResource("SealCodings.json")
-        val registry = VdsSealCodingRegistry(jsonString)
+        val jsonString = readTextResource("VdsDocumentTypes.json")
+        val registry = VdsDocumentTypeRegistry(jsonString)
         assertEquals(setOf(0, 1, 2, 3), registry.getMetadataTags("ADMINISTRATIVE_DOCUMENTS"))
     }
 
     @Test
     fun testGetMetadataTags_unknownType_returnsEmpty() {
-        val jsonString = readTextResource("SealCodings.json")
-        val registry = VdsSealCodingRegistry(jsonString)
+        val jsonString = readTextResource("VdsDocumentTypes.json")
+        val registry = VdsDocumentTypeRegistry(jsonString)
         assertTrue(registry.getMetadataTags("UNKNOWN_TYPE").isEmpty())
     }
 
     @Test
     fun testGetMetadataTags_regularType_returnsEmpty() {
-        val jsonString = readTextResource("SealCodings.json")
-        val registry = VdsSealCodingRegistry(jsonString)
+        val jsonString = readTextResource("VdsDocumentTypes.json")
+        val registry = VdsDocumentTypeRegistry(jsonString)
         assertTrue(registry.getMetadataTags("RESIDENT_PERMIT").isEmpty())
     }
 }
