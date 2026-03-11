@@ -29,7 +29,7 @@ class ProfileIntegrationCommonTest {
 
         DataEncoder.loadExtendedMessageDefinitionFromXml(xml)
 
-        val definition = DataEncoder.resolveExtendedMessageDefinition("aabbccdd11223344aabbccdd11223344")
+        val definition = DataEncoder.extendedDefinitions.resolve("aabbccdd11223344aabbccdd11223344")
 
         assertNotNull(definition)
         assertEquals("TEST_XML_PROFILE", definition.definitionName)
@@ -56,7 +56,7 @@ class ProfileIntegrationCommonTest {
         """.trimIndent()
 
         // Existing JSON definition should be present
-        val existingDef = DataEncoder.resolveExtendedMessageDefinition("9a4223406d374ef99e2cf95e31a23846")
+        val existingDef = DataEncoder.extendedDefinitions.resolve("9a4223406d374ef99e2cf95e31a23846")
         assertNotNull(existingDef)
         assertEquals("MELDEBESCHEINIGUNG", existingDef.definitionName)
 
@@ -64,12 +64,12 @@ class ProfileIntegrationCommonTest {
         DataEncoder.loadExtendedMessageDefinitionFromXml(xml)
 
         // Existing definition should still be there
-        val stillExisting = DataEncoder.resolveExtendedMessageDefinition("9a4223406d374ef99e2cf95e31a23846")
+        val stillExisting = DataEncoder.extendedDefinitions.resolve("9a4223406d374ef99e2cf95e31a23846")
         assertNotNull(stillExisting)
         assertEquals("MELDEBESCHEINIGUNG", stillExisting.definitionName)
 
         // New definition should also be resolvable
-        val newDef = DataEncoder.resolveExtendedMessageDefinition("aabbccdd11223344aabbccdd11223344")
+        val newDef = DataEncoder.extendedDefinitions.resolve("aabbccdd11223344aabbccdd11223344")
         assertNotNull(newDef)
         assertEquals("NEW_PROFILE", newDef.definitionName)
     }
@@ -151,12 +151,12 @@ class ProfileIntegrationCommonTest {
         """.trimIndent()
 
         // Get existing JSON-based definition
-        val jsonDef = DataEncoder.resolveExtendedMessageDefinition("9a4223406d374ef99e2cf95e31a23846")
+        val jsonDef = DataEncoder.extendedDefinitions.resolve("9a4223406d374ef99e2cf95e31a23846")
         assertNotNull(jsonDef)
 
         // Load XML and overwrite
         DataEncoder.loadExtendedMessageDefinitionFromXml(xml)
-        val xmlDef = DataEncoder.resolveExtendedMessageDefinition("9a4223406d374ef99e2cf95e31a23846")
+        val xmlDef = DataEncoder.extendedDefinitions.resolve("9a4223406d374ef99e2cf95e31a23846")
         assertNotNull(xmlDef)
 
         // Compare

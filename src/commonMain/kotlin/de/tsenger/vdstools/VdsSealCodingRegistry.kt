@@ -2,7 +2,9 @@ package de.tsenger.vdstools
 
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.asn1.DerTlv
+import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.MessageCoding
+import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.vds.dto.ExtendedMessageDefinitionDto
 import de.tsenger.vdstools.vds.dto.SealDto
 import kotlinx.serialization.json.Json
@@ -337,6 +339,39 @@ class VdsSealCodingRegistry(jsonString: String) : DefinitionRegistry {
             }
         }
         throw IllegalArgumentException("No Message with tag '" + tag + "' is specified for the given seal '" + sealDto.documentType + "'")
+    }
+
+    /**
+     * Encodes a DerTlv to a Message based on the given VDS type.
+     *
+     * @param vdsType The VDS type name
+     * @param derTlv The DerTlv to encode
+     * @return The Message, or null if encoding fails
+     */
+    fun encodeDerTlv(vdsType: String, derTlv: DerTlv): Message? {
+        val bytes = derTlv.value
+        val name = getMessageName(vdsType, derTlv)
+        val tag = derTlv.tag.toInt()
+        val coding = getMessageCoding(vdsType, derTlv)
+        if (name == "" || coding == MessageCoding.UNKNOWN) return null
+        return Message(tag, name, coding, MessageValue.fromBytes(bytes, coding))
+    }
+
+    /**
+     * Encodes a DerTlv to a Message with extended message definition-aware lookup.
+     *
+     * @param vdsType The base VDS type
+     * @param extendedDefinition The resolved extended message definition (may be null)
+     * @param derTlv The DerTlv to encode
+     * @return The Message, or null if encoding fails
+     */
+    fun encodeDerTlv(vdsType: String, extendedDefinition: ExtendedMessageDefinitionDto?, derTlv: DerTlv): Message? {
+        val bytes = derTlv.value
+        val tag = derTlv.tag.toInt()
+        val name = getMessageName(vdsType, extendedDefinition, tag)
+        val coding = getMessageCoding(vdsType, extendedDefinition, tag)
+        if (name == "" || coding == MessageCoding.UNKNOWN) return null
+        return Message(tag, name, coding, MessageValue.fromBytes(bytes, coding))
     }
 
     override fun addEntriesFromJson(jsonString: String) {

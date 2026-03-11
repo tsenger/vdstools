@@ -63,6 +63,6 @@ class VdsSealCodingRegistryJvmTest {
 
     @Test
     fun testGetDocumentRef_fakeSeal() {
-        Assert.assertNull(DataEncoder.getDocumentRef("FAKE_SEAL"))
+        Assert.assertNull(DataEncoder.sealCodings.getDocumentRef("FAKE_SEAL"))
     }
 }

@@ -112,8 +112,8 @@ if (seal.metadataMessageList.isNotEmpty()) {
 To check at the type level which tags are configured as metadata (without a concrete seal instance):
 
 ```kotlin
-DataEncoder.getMetadataTags("ADMINISTRATIVE_DOCUMENTS") // → {0, 1, 2, 3}
-DataEncoder.getMetadataTags("RESIDENT_PERMIT")          // → {} (no metadata tags)
+DataEncoder.sealCodings.getMetadataTags("ADMINISTRATIVE_DOCUMENTS") // → {0, 1, 2, 3}
+DataEncoder.sealCodings.getMetadataTags("RESIDENT_PERMIT")          // → {} (no metadata tags)
 ```
 
 Regular document types have no `metadataTagList` configured, so their `metadataMessageList` is

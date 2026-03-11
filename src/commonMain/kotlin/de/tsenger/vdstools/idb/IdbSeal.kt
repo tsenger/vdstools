@@ -83,7 +83,7 @@ class IdbSeal : Seal {
             val msg = getMessage(0x86)
             val docTypeId = (msg?.value as? MessageValue.ByteValue)?.value
             return if (docTypeId != null) {
-                DataEncoder.getIdbDocumentTypeName(docTypeId)
+                DataEncoder.idbDocumentTypes.getDocumentType(docTypeId)
             } else messageList.joinToString(", ") { it.name }
         }
 

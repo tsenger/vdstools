@@ -243,9 +243,9 @@ class CustomRegistryIntegrationCommonTest {
         DataEncoder.addCustomSealCodingsFromFile("CustomSealCodings.json")
 
         // Default entry still accessible
-        assertEquals("SOCIAL_INSURANCE_CARD", DataEncoder.getVdsType(0xfc04))
+        assertEquals("SOCIAL_INSURANCE_CARD", DataEncoder.sealCodings.getVdsType(0xfc04))
         // New entry also accessible
-        assertEquals("CUSTOM_SEAL_CODING1", DataEncoder.getVdsType(0x1234))
+        assertEquals("CUSTOM_SEAL_CODING1", DataEncoder.sealCodings.getVdsType(0x1234))
     }
 
     @Test
@@ -262,7 +262,7 @@ class CustomRegistryIntegrationCommonTest {
         DataEncoder.addCustomSealCodings(json)
 
         // New entry wins for this documentRef
-        assertEquals("RENAMED_SOCIAL_CARD", DataEncoder.getVdsType(0xfc04))
+        assertEquals("RENAMED_SOCIAL_CARD", DataEncoder.sealCodings.getVdsType(0xfc04))
     }
 
     @Test
@@ -271,10 +271,10 @@ class CustomRegistryIntegrationCommonTest {
         DataEncoder.addCustomIdbMessageTypesFromFile("CustomIdbMessageTypes.json")
 
         // Default entry still accessible
-        assertEquals("PROOF_OF_VACCINATION", DataEncoder.getIdbMessageTypeName(4))
+        assertEquals("PROOF_OF_VACCINATION", DataEncoder.idbMessageTypes.getMessageType(4))
         // New entries also accessible
-        assertEquals("MESSAGE_TYPE1", DataEncoder.getIdbMessageTypeName(1))
-        assertEquals("MESSAGE_TYPE2", DataEncoder.getIdbMessageTypeName(2))
+        assertEquals("MESSAGE_TYPE1", DataEncoder.idbMessageTypes.getMessageType(1))
+        assertEquals("MESSAGE_TYPE2", DataEncoder.idbMessageTypes.getMessageType(2))
     }
 
     @Test
@@ -283,7 +283,7 @@ class CustomRegistryIntegrationCommonTest {
 
         DataEncoder.addCustomIdbMessageTypes(json)
 
-        assertEquals("MY_VACCINATION", DataEncoder.getIdbMessageTypeName(4))
+        assertEquals("MY_VACCINATION", DataEncoder.idbMessageTypes.getMessageType(4))
     }
 
     @Test
@@ -292,10 +292,10 @@ class CustomRegistryIntegrationCommonTest {
         DataEncoder.addCustomIdbNationalDocumentTypesFromFile("CustomIdbNationalDocumentTypes.json")
 
         // Default entry still accessible (tag 16)
-        assertEquals("CERTIFYING_PERMANENT_RESIDENCE", DataEncoder.getIdbDocumentTypeName(16))
+        assertEquals("CERTIFYING_PERMANENT_RESIDENCE", DataEncoder.idbDocumentTypes.getDocumentType(16))
         // New entries also accessible
-        assertEquals("CUSTOM1_DOCUMENT", DataEncoder.getIdbDocumentTypeName(1))
-        assertEquals("CUSTOM2_DOCUMENT", DataEncoder.getIdbDocumentTypeName(2))
+        assertEquals("CUSTOM1_DOCUMENT", DataEncoder.idbDocumentTypes.getDocumentType(1))
+        assertEquals("CUSTOM2_DOCUMENT", DataEncoder.idbDocumentTypes.getDocumentType(2))
     }
 
     @Test
@@ -312,10 +312,10 @@ class CustomRegistryIntegrationCommonTest {
         DataEncoder.addCustomExtendedMessageDefinitions(json)
 
         // Default MELDEBESCHEINIGUNG is still there
-        val defaultDef = DataEncoder.resolveExtendedMessageDefinition("9a4223406d374ef99e2cf95e31a23846")
+        val defaultDef = DataEncoder.extendedDefinitions.resolve("9a4223406d374ef99e2cf95e31a23846")
         assertEquals("MELDEBESCHEINIGUNG", defaultDef?.definitionName)
         // New definition also accessible
-        assertEquals("NEW_DOCUMENT", DataEncoder.resolveExtendedMessageDefinition(newUuid)?.definitionName)
+        assertEquals("NEW_DOCUMENT", DataEncoder.extendedDefinitions.resolve(newUuid)?.definitionName)
     }
 
     @Test
@@ -323,7 +323,7 @@ class CustomRegistryIntegrationCommonTest {
         // CustomExtendedMessageDefinitions.json maps the same UUID as MELDEBESCHEINIGUNG to MY_CUSTOM_DOCUMENT
         DataEncoder.addCustomExtendedMessageDefinitionsFromFile("CustomExtendedMessageDefinitions.json")
 
-        val def = DataEncoder.resolveExtendedMessageDefinition("9a4223406d374ef99e2cf95e31a23846")
+        val def = DataEncoder.extendedDefinitions.resolve("9a4223406d374ef99e2cf95e31a23846")
         assertEquals("MY_CUSTOM_DOCUMENT", def?.definitionName)
     }
 }

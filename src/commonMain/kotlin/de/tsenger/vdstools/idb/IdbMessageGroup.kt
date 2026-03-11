@@ -47,25 +47,25 @@ class IdbMessageGroup {
         private fun resolveTag(name: String): Int {
             val fromDefs = subMessageDefs?.firstOrNull { it.name == name }?.tag
             if (fromDefs != null) return fromDefs
-            return DataEncoder.getIdbMessageTypeTag(name) ?: 0
+            return DataEncoder.idbMessageTypes.getMessageType(name) ?: 0
         }
 
         private fun resolveCoding(name: String, tag: Int): MessageCoding {
             val fromDefs = subMessageDefs?.firstOrNull { it.tag == tag }?.coding
             if (fromDefs != null) return fromDefs
-            return DataEncoder.getIdbMessageTypeCoding(name)
+            return DataEncoder.idbMessageTypes.getMessageTypeCoding(name)
         }
 
         private fun resolveChildDefs(name: String, tag: Int): List<MessageDto>? {
             val fromDefs = subMessageDefs?.firstOrNull { it.tag == tag }?.messages
             if (!fromDefs.isNullOrEmpty()) return fromDefs
-            return DataEncoder.getIdbMessageTypeDto(tag)?.messages
+            return DataEncoder.idbMessageTypes.getMessageTypeDto(tag)?.messages
         }
 
         @Throws(IllegalArgumentException::class)
         fun <T> addMessage(tag: Int, value: T): Builder {
             val coding = subMessageDefs?.firstOrNull { it.tag == tag }?.coding
-                ?: DataEncoder.getIdbMessageTypeCoding(tag)
+                ?: DataEncoder.idbMessageTypes.getMessageTypeCoding(tag)
             val content = DataEncoder.encodeValueByCoding(coding, value, tag)
             derTlvList.add(DerTlv(tag.toByte(), content))
             return this
@@ -95,7 +95,7 @@ class IdbMessageGroup {
 
         fun addMessage(tag: Int, block: Builder.() -> Unit): Builder {
             val childDefs = subMessageDefs?.firstOrNull { it.tag == tag }?.messages
-                ?: DataEncoder.getIdbMessageTypeDto(tag)?.messages
+                ?: DataEncoder.idbMessageTypes.getMessageTypeDto(tag)?.messages
             val childBuilder = Builder(childDefs)
             childBuilder.block()
             val childBytes = Buffer()
@@ -130,12 +130,12 @@ class IdbMessageGroup {
             val tagInt = derTlv.tag.toInt() and 0xFF
 
             val msgDef = subMessageDefs?.firstOrNull { it.tag == tagInt }
-            val name = msgDef?.name ?: DataEncoder.getIdbMessageTypeName(tagInt)
-            val coding = msgDef?.coding ?: DataEncoder.getIdbMessageTypeCoding(name)
+            val name = msgDef?.name ?: DataEncoder.idbMessageTypes.getMessageType(tagInt)
+            val coding = msgDef?.coding ?: DataEncoder.idbMessageTypes.getMessageTypeCoding(name)
             val value = MessageValue.fromBytes(derTlv.value, coding)
 
             val childDefs = msgDef?.messages
-                ?: DataEncoder.getIdbMessageTypeDto(tagInt)?.messages
+                ?: DataEncoder.idbMessageTypes.getMessageTypeDto(tagInt)?.messages
             val subMessages = if (!childDefs.isNullOrEmpty() && coding == MessageCoding.BYTES) {
                 try {
                     val childTlvs = DataEncoder.parseDerTLvs(derTlv.value)

@@ -159,7 +159,7 @@ class DataEncoderCommonTest {
     fun testLoadCustomSealCodingsFromFile_success() {
         DataEncoder.replaceCustomSealCodingsFromFile("CustomSealCodings.json")
         // Verify that registry was loaded by checking a known VDS type
-        assertNotNull(DataEncoder.getDocumentRef("CUSTOM_SEAL_CODING1"))
+        assertNotNull(DataEncoder.sealCodings.getDocumentRef("CUSTOM_SEAL_CODING1"))
     }
 
     @Test
@@ -173,7 +173,7 @@ class DataEncoderCommonTest {
     fun testLoadCustomIdbMessageTypesFromFile_success() {
         DataEncoder.replaceCustomIdbMessageTypesFromFile("CustomIdbMessageTypes.json")
         // Verify that registry was loaded by checking a known message type
-        assertEquals("MESSAGE_TYPE2", DataEncoder.getIdbMessageTypeName(2))
+        assertEquals("MESSAGE_TYPE2", DataEncoder.idbMessageTypes.getMessageType(2))
     }
 
     @Test
@@ -187,7 +187,7 @@ class DataEncoderCommonTest {
     fun testLoadCustomIdbDocumentTypesFromFile_success() {
         DataEncoder.replaceCustomIdbNationalDocumentTypesFromFile("CustomIdbNationalDocumentTypes.json")
         // Verify that registry was loaded by checking a known document type
-        assertEquals("CUSTOM1_DOCUMENT", DataEncoder.getIdbDocumentTypeName(1))
+        assertEquals("CUSTOM1_DOCUMENT", DataEncoder.idbDocumentTypes.getDocumentType(1))
     }
 
     @Test
@@ -201,7 +201,7 @@ class DataEncoderCommonTest {
     fun testLoadCustomExtendedMessageDefinitionsFromFile_success() {
         DataEncoder.replaceCustomExtendedMessageDefinitionsFromFile("CustomExtendedMessageDefinitions.json")
         // Verify that registry was loaded by checking a known definition
-        val definition = DataEncoder.resolveExtendedMessageDefinition("9a4223406d374ef99e2cf95e31a23846")
+        val definition = DataEncoder.extendedDefinitions.resolve("9a4223406d374ef99e2cf95e31a23846")
         assertNotNull(definition)
         assertEquals("MY_CUSTOM_DOCUMENT", definition.definitionName)
     }
@@ -215,7 +215,7 @@ class DataEncoderCommonTest {
 
     @Test
     fun testGetIdbExpectedMessagesByTag() {
-        val messages = DataEncoder.getIdbExpectedMessages(1) // SUBSTITUTE_IDENTITY_DOCUMENT
+        val messages = DataEncoder.idbDocumentTypes.getExpectedMessages(1) // SUBSTITUTE_IDENTITY_DOCUMENT
         assertEquals(4, messages.size)
         assertTrue(messages.any { it.name == "FACE_IMAGE" })
         assertTrue(messages.any { it.name == "NATIONAL_DOCUMENT_IDENTIFIER" })
@@ -223,7 +223,7 @@ class DataEncoderCommonTest {
 
     @Test
     fun testGetIdbExpectedMessagesByName() {
-        val messages = DataEncoder.getIdbExpectedMessages("CERTIFYING_PERMANENT_RESIDENCE")
+        val messages = DataEncoder.idbDocumentTypes.getExpectedMessages("CERTIFYING_PERMANENT_RESIDENCE")
         assertEquals(2, messages.size)
         assertTrue(messages.any { it.name == "DOCUMENT_NUMBER" })
         assertTrue(messages.any { it.name == "NATIONAL_DOCUMENT_IDENTIFIER" })
@@ -231,25 +231,25 @@ class DataEncoderCommonTest {
 
     @Test
     fun testGetIdbExpectedMessages_unknownTagReturnsEmpty() {
-        assertTrue(DataEncoder.getIdbExpectedMessages(99).isEmpty())
+        assertTrue(DataEncoder.idbDocumentTypes.getExpectedMessages(99).isEmpty())
     }
 
     @Test
     fun testGetIdbExpectedMessages_unknownNameReturnsEmpty() {
-        assertTrue(DataEncoder.getIdbExpectedMessages("NOT_A_REAL_TYPE").isEmpty())
+        assertTrue(DataEncoder.idbDocumentTypes.getExpectedMessages("NOT_A_REAL_TYPE").isEmpty())
     }
 
     @Test
     fun testResetToDefaults() {
         // Load custom configurations
         DataEncoder.replaceCustomIdbMessageTypesFromFile("CustomIdbMessageTypes.json")
-        assertEquals("MESSAGE_TYPE2", DataEncoder.getIdbMessageTypeName(2))
+        assertEquals("MESSAGE_TYPE2", DataEncoder.idbMessageTypes.getMessageType(2))
 
         // Reset to defaults
         DataEncoder.resetToDefaults()
 
         // Verify default values are restored
-        assertEquals("EMERGENCY_TRAVEL_DOCUMENT", DataEncoder.getIdbMessageTypeName(2))
+        assertEquals("EMERGENCY_TRAVEL_DOCUMENT", DataEncoder.idbMessageTypes.getMessageType(2))
     }
 
 }
