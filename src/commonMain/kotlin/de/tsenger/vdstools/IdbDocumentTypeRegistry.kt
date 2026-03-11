@@ -14,11 +14,11 @@ import kotlinx.serialization.json.Json
  * between the numeric tag and the document type name, and provides the list of expected
  * message types for each national document type.
  *
- * Definitions are loaded from `IdbNationalDocumentTypes.json`.
+ * Definitions are loaded from `IdbGermanDocumentTypes.json`.
  *
  * @param jsonString JSON string containing an array of [IdbDocumentTypeDto] definitions
  */
-class IdbNationalDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
+class IdbDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
     private val log = Logger.withTag(this::class.simpleName ?: "")
     private var documentTypeDtoList: List<IdbDocumentTypeDto> = emptyList()
     private val documentTypes: HashMap<Int, IdbDocumentTypeDto> = HashMap()

@@ -24,20 +24,20 @@ class VdsSeal : Seal {
         this.vdsHeader = vdsHeader
         this.vdsMessageGroup = vdsMessageGroup
         this.vdsSignature = vdsSignature
-        this.documentType = vdsMessageGroup.extendedMessageDefinition?.definitionName ?: vdsHeader.vdsType
+        this.documentType = vdsMessageGroup.profileDefinition?.definitionName ?: vdsHeader.vdsType
     }
 
     constructor(vdsHeader: VdsHeader, vdsMessageGroup: VdsMessageGroup, signer: Signer) {
         this.vdsHeader = vdsHeader
         this.vdsMessageGroup = vdsMessageGroup
         this.vdsSignature = createVdsSignature(vdsHeader, vdsMessageGroup, signer)
-        this.documentType = vdsMessageGroup.extendedMessageDefinition?.definitionName ?: vdsHeader.vdsType
+        this.documentType = vdsMessageGroup.profileDefinition?.definitionName ?: vdsHeader.vdsType
     }
 
     override val documentType: String
 
     override val baseDocumentType: String?
-        get() = vdsMessageGroup.extendedMessageDefinition?.baseDocumentType
+        get() = vdsMessageGroup.profileDefinition?.baseDocumentType
 
     override val documentProfileUuid: ByteArray?
         get() = vdsMessageGroup.documentProfileUuid
@@ -213,13 +213,13 @@ class VdsSeal : Seal {
             val vdsMessageGroup = VdsMessageGroup(vdsHeader.vdsType, messageList)
 
             // Resolve extended message definition if this seal type requires UUID lookup
-            if (DataEncoder.sealCodings.requiresUuidLookup(vdsHeader.vdsType)) {
-                val uuidTag = DataEncoder.sealCodings.getUuidMessageTag(vdsHeader.vdsType)
-                vdsMessageGroup.resolveExtendedMessageDefinition(uuidTag)
-                DataEncoder.sealCodings.getMetadataTags(vdsHeader.vdsType).forEach {
+            if (DataEncoder.vdsDocumentTypes.requiresProfileLookup(vdsHeader.vdsType)) {
+                val uuidTag = DataEncoder.vdsDocumentTypes.getUuidMessageTag(vdsHeader.vdsType)
+                vdsMessageGroup.resolveProfileDefinition(uuidTag)
+                DataEncoder.vdsDocumentTypes.getMetadataTags(vdsHeader.vdsType).forEach {
                     vdsMessageGroup.metadataTags.add(it)
                 }
-                log.d("Resolved extended definition: ${vdsMessageGroup.extendedMessageDefinition?.definitionName}")
+                log.d("Resolved extended definition: ${vdsMessageGroup.profileDefinition?.definitionName}")
             }
 
             return VdsSeal(vdsHeader, vdsMessageGroup, vdsSignature)

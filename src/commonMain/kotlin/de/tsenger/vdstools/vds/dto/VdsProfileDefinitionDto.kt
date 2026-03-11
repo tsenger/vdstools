@@ -14,12 +14,12 @@ import kotlinx.serialization.Serializable
  *
  * @property definitionId UUID as hex string without dashes (32 characters)
  * @property definitionName The effective vdsType name (e.g., "MELDEBESCHEINIGUNG")
- * @property baseDocumentType Link to the base type in SealCodings.json
+ * @property baseDocumentType Link to the base type in VdsDocumentTypes.json
  * @property version Definition version
  * @property messages Definition-specific messages (base type messages are inherited)
  */
 @Serializable
-data class ExtendedMessageDefinitionDto(
+data class VdsProfileDefinitionDto(
     val definitionId: String = "",
     val definitionName: String = "",
     val baseDocumentType: String = "",

@@ -156,16 +156,16 @@ class DataEncoderCommonTest {
     // Tests for loadCustom...FromFile functions
 
     @Test
-    fun testLoadCustomSealCodingsFromFile_success() {
-        DataEncoder.replaceCustomSealCodingsFromFile("CustomSealCodings.json")
+    fun testLoadCustomVdsDocumentTypesFromFile_success() {
+        DataEncoder.replaceCustomVdsDocumentTypesFromFile("CustomVdsDocumentTypes.json")
         // Verify that registry was loaded by checking a known VDS type
-        assertNotNull(DataEncoder.sealCodings.getDocumentRef("CUSTOM_SEAL_CODING1"))
+        assertNotNull(DataEncoder.vdsDocumentTypes.getDocumentRef("CUSTOM_SEAL_CODING1"))
     }
 
     @Test
-    fun testLoadCustomSealCodingsFromFile_fileNotFound() {
+    fun testLoadCustomVdsDocumentTypesFromFile_fileNotFound() {
         assertFailsWith<FileNotFoundException> {
-            DataEncoder.replaceCustomSealCodingsFromFile("NonExistentFile.json")
+            DataEncoder.replaceCustomVdsDocumentTypesFromFile("NonExistentFile.json")
         }
     }
 
@@ -185,7 +185,7 @@ class DataEncoderCommonTest {
 
     @Test
     fun testLoadCustomIdbDocumentTypesFromFile_success() {
-        DataEncoder.replaceCustomIdbNationalDocumentTypesFromFile("CustomIdbNationalDocumentTypes.json")
+        DataEncoder.replaceCustomIdbDocumentTypesFromFile("CustomIdbDocumentTypes.json")
         // Verify that registry was loaded by checking a known document type
         assertEquals("CUSTOM1_DOCUMENT", DataEncoder.idbDocumentTypes.getDocumentType(1))
     }
@@ -193,23 +193,23 @@ class DataEncoderCommonTest {
     @Test
     fun testLoadCustomIdbDocumentTypesFromFile_fileNotFound() {
         assertFailsWith<FileNotFoundException> {
-            DataEncoder.replaceCustomIdbNationalDocumentTypesFromFile("NonExistentFile.json")
+            DataEncoder.replaceCustomIdbDocumentTypesFromFile("NonExistentFile.json")
         }
     }
 
     @Test
-    fun testLoadCustomExtendedMessageDefinitionsFromFile_success() {
-        DataEncoder.replaceCustomExtendedMessageDefinitionsFromFile("CustomExtendedMessageDefinitions.json")
+    fun testLoadCustomVdsProfileDefinitionsFromFile_success() {
+        DataEncoder.replaceCustomVdsProfileDefinitionsFromFile("CustomVdsProfileDefinitions.json")
         // Verify that registry was loaded by checking a known definition
-        val definition = DataEncoder.extendedDefinitions.resolve("9a4223406d374ef99e2cf95e31a23846")
+        val definition = DataEncoder.vdsProfileDefinitions.resolve("9a4223406d374ef99e2cf95e31a23846")
         assertNotNull(definition)
         assertEquals("MY_CUSTOM_DOCUMENT", definition.definitionName)
     }
 
     @Test
-    fun testLoadCustomExtendedMessageDefinitionsFromFile_fileNotFound() {
+    fun testLoadCustomVdsProfileDefinitionsFromFile_fileNotFound() {
         assertFailsWith<FileNotFoundException> {
-            DataEncoder.replaceCustomExtendedMessageDefinitionsFromFile("NonExistentFile.json")
+            DataEncoder.replaceCustomVdsProfileDefinitionsFromFile("NonExistentFile.json")
         }
     }
 

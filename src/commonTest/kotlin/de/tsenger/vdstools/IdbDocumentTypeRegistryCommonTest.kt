@@ -6,10 +6,10 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class IdbNationalDocumentTypeRegistryCommonTest {
+class IdbDocumentTypeRegistryCommonTest {
 
-    private val registry = IdbNationalDocumentTypeRegistry(
-        readTextResource("IdbNationalDocumentTypes.json")
+    private val registry = IdbDocumentTypeRegistry(
+        readTextResource("IdbGermanDocumentTypes.json")
     )
 
     @Test

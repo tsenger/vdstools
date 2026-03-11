@@ -5,8 +5,8 @@ import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.MessageCoding
 import de.tsenger.vdstools.generic.MessageValue
-import de.tsenger.vdstools.vds.dto.ExtendedMessageDefinitionDto
-import de.tsenger.vdstools.vds.dto.SealDto
+import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
+import de.tsenger.vdstools.vds.dto.VdsDocumentTypeDto
 import kotlinx.serialization.json.Json
 
 
@@ -17,14 +17,14 @@ import kotlinx.serialization.json.Json
  * - Bidirectional mapping between VDS type names and their hexadecimal document references
  * - Encoding values into DER-TLV format based on type and message specifications
  * - Decoding messages by resolving tag numbers to message names and codings
- * - Supporting extended message definitions with fallback to base types
+ * - Supporting profile definitions with fallback to base types
  * - UUID-based profile lookup for certain VDS types
  *
- * @param jsonString JSON string containing an array of [SealDto] definitions
+ * @param jsonString JSON string containing an array of [VdsDocumentTypeDto] definitions
  */
-class VdsSealCodingRegistry(jsonString: String) : DefinitionRegistry {
+class VdsDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
     private val log = Logger.withTag(this::class.simpleName ?: "")
-    private var sealDtoList: List<SealDto>
+    private var documentTypeDtoList: List<VdsDocumentTypeDto>
 
     private val vdsTypes: MutableMap<String, Int> = HashMap()
     private val vdsTypesReverse: MutableMap<Int, String> = HashMap()
@@ -35,12 +35,12 @@ class VdsSealCodingRegistry(jsonString: String) : DefinitionRegistry {
     }
 
     init {
-        this.sealDtoList = json.decodeFromString(jsonString)
+        this.documentTypeDtoList = json.decodeFromString(jsonString)
         populateMappings()
     }
 
     private fun populateMappings() {
-        for ((documentType, documentRef, _, messages) in sealDtoList) {
+        for ((documentType, documentRef, _, messages) in documentTypeDtoList) {
             if (documentType != "" && documentRef != "") {
                 vdsTypes[documentType] = documentRef.toInt(16)
                 vdsTypesReverse[documentRef.toInt(16)] = documentType
@@ -81,10 +81,10 @@ class VdsSealCodingRegistry(jsonString: String) : DefinitionRegistry {
      * @param vdsType The VDS type to check
      * @return true if this type requires UUID lookup, false otherwise
      */
-    fun requiresUuidLookup(vdsType: String): Boolean {
+    fun requiresProfileLookup(vdsType: String): Boolean {
         return try {
-            val sealDto = getSealDto(vdsType)
-            sealDto.uuidMessageLookup
+            val docTypeDto = getVdsDocumentTypeDto(vdsType)
+            docTypeDto.uuidMessageLookup
         } catch (_: IllegalArgumentException) {
             false
         }
@@ -98,8 +98,8 @@ class VdsSealCodingRegistry(jsonString: String) : DefinitionRegistry {
      */
     fun getUuidMessageTag(vdsType: String): Int {
         return try {
-            val sealDto = getSealDto(vdsType)
-            sealDto.uuidMessageTag
+            val docTypeDto = getVdsDocumentTypeDto(vdsType)
+            docTypeDto.uuidMessageTag
         } catch (_: IllegalArgumentException) {
             0
         }
@@ -113,7 +113,7 @@ class VdsSealCodingRegistry(jsonString: String) : DefinitionRegistry {
      */
     fun getMetadataTags(vdsType: String): Set<Int> {
         return try {
-            getSealDto(vdsType).metadataTagList.toSet()
+            getVdsDocumentTypeDto(vdsType).metadataTagList.toSet()
         } catch (_: IllegalArgumentException) {
             emptySet()
         }
@@ -139,8 +139,8 @@ class VdsSealCodingRegistry(jsonString: String) : DefinitionRegistry {
             log.w("No seal type with name '$vdsType' was found.")
             throw IllegalArgumentException("No seal type with name '$vdsType' was found.")
         }
-        val sealDto = getSealDto(vdsType)
-        return getMessageName(sealDto, derTlv.tag.toInt())
+        val docTypeDto = getVdsDocumentTypeDto(vdsType)
+        return getMessageName(docTypeDto, derTlv.tag.toInt())
     }
 
     /**
@@ -157,59 +157,59 @@ class VdsSealCodingRegistry(jsonString: String) : DefinitionRegistry {
             log.w("No seal type with name '$vdsType' was found.")
             throw IllegalArgumentException("No seal type with name '$vdsType' was found.")
         }
-        val sealDto = getSealDto(vdsType)
+        val docTypeDto = getVdsDocumentTypeDto(vdsType)
         val tag = derTlv.tag
-        return getCoding(sealDto, tag)
+        return getCoding(docTypeDto, tag)
     }
 
     /**
-     * Gets the message name for a given tag, considering extended message definitions.
+     * Gets the message name for a given tag, considering profile definitions.
      * Lookup order: Extended definition first (if provided), then base type.
      *
      * @param baseVdsType The base VDS type (e.g., "ADMINISTRATIVE_DOCUMENTS")
-     * @param extendedDefinition The resolved extended message definition (can be null)
+     * @param profileDefinition The resolved profile definition (can be null)
      * @param tag The tag number to look up
      * @return The message name
      */
     @Throws(IllegalArgumentException::class)
-    fun getMessageName(baseVdsType: String, extendedDefinition: ExtendedMessageDefinitionDto?, tag: Int): String {
+    fun getMessageName(baseVdsType: String, profileDefinition: VdsProfileDefinitionDto?, tag: Int): String {
         // Try extended definition first if available
-        if (extendedDefinition != null) {
-            val definitionMessage = extendedDefinition.messages.find { it.tag == tag }
+        if (profileDefinition != null) {
+            val definitionMessage = profileDefinition.messages.find { it.tag == tag }
             if (definitionMessage != null) {
                 return definitionMessage.name
             }
         }
         // Fall back to base type
-        val sealDto = getSealDto(baseVdsType)
-        return getMessageName(sealDto, tag)
+        val docTypeDto = getVdsDocumentTypeDto(baseVdsType)
+        return getMessageName(docTypeDto, tag)
     }
 
     /**
-     * Gets the message coding for a given tag, considering extended message definitions.
+     * Gets the message coding for a given tag, considering profile definitions.
      * Lookup order: Extended definition first (if provided), then base type.
      *
      * @param baseVdsType The base VDS type (e.g., "ADMINISTRATIVE_DOCUMENTS")
-     * @param extendedDefinition The resolved extended message definition (can be null)
+     * @param profileDefinition The resolved profile definition (can be null)
      * @param tag The tag number to look up
      * @return The message coding
      */
     @Throws(IllegalArgumentException::class)
     fun getMessageCoding(
         baseVdsType: String,
-        extendedDefinition: ExtendedMessageDefinitionDto?,
+        profileDefinition: VdsProfileDefinitionDto?,
         tag: Int
     ): MessageCoding {
         // Try extended definition first if available
-        if (extendedDefinition != null) {
-            val definitionMessage = extendedDefinition.messages.find { it.tag == tag }
+        if (profileDefinition != null) {
+            val definitionMessage = profileDefinition.messages.find { it.tag == tag }
             if (definitionMessage != null) {
                 return definitionMessage.coding
             }
         }
         // Fall back to base type
-        val sealDto = getSealDto(baseVdsType)
-        return getCoding(sealDto, tag.toByte())
+        val docTypeDto = getVdsDocumentTypeDto(baseVdsType)
+        return getCoding(docTypeDto, tag.toByte())
     }
 
 
@@ -236,18 +236,18 @@ class VdsSealCodingRegistry(jsonString: String) : DefinitionRegistry {
             log.w("No VdsSeal message with name '$messageName' was found.")
             throw IllegalArgumentException("No VdsSeal message with name '$messageName' was found.")
         }
-        val sealDto = getSealDto(vdsType)
-        return encodeMessage(sealDto, messageName, inputValue)
+        val docTypeDto = getVdsDocumentTypeDto(vdsType)
+        return encodeMessage(docTypeDto, messageName, inputValue)
     }
 
     @Throws(IllegalArgumentException::class)
-    private fun <T> encodeMessage(sealDto: SealDto, messageName: String, inputValue: T): DerTlv {
-        val tag = getMessageTag(sealDto, messageName)
+    private fun <T> encodeMessage(docTypeDto: VdsDocumentTypeDto, messageName: String, inputValue: T): DerTlv {
+        val tag = getMessageTag(docTypeDto, messageName)
         if (tag.toInt() == 0) {
-            log.w("VdsType: " + sealDto.documentType + " has no Message " + messageName)
-            throw IllegalArgumentException("VdsType: " + sealDto.documentType + " has no Message " + messageName)
+            log.w("VdsType: " + docTypeDto.documentType + " has no Message " + messageName)
+            throw IllegalArgumentException("VdsType: " + docTypeDto.documentType + " has no Message " + messageName)
         }
-        val coding = getCoding(sealDto, messageName)
+        val coding = getCoding(docTypeDto, messageName)
         val value = DataEncoder.encodeValueByCoding(coding, inputValue)
         return DerTlv(tag, value)
     }
@@ -262,29 +262,29 @@ class VdsSealCodingRegistry(jsonString: String) : DefinitionRegistry {
      */
     @Throws(IllegalArgumentException::class)
     fun getMessageTag(vdsType: String, messageName: String): Int {
-        val sealDto = getSealDto(vdsType)
-        return getMessageTag(sealDto, messageName).toInt()
+        val docTypeDto = getVdsDocumentTypeDto(vdsType)
+        return getMessageTag(docTypeDto, messageName).toInt()
     }
 
     /**
-     * Gets the tag number for a given message name, considering extended message definitions.
+     * Gets the tag number for a given message name, considering profile definitions.
      * Lookup order: Extended definition first (if provided), then base type.
      *
      * @param baseVdsType The base VDS type (e.g., "ADMINISTRATIVE_DOCUMENTS")
-     * @param extendedDefinition The resolved extended message definition (can be null)
+     * @param profileDefinition The resolved profile definition (can be null)
      * @param messageName The message name to look up
      * @return The tag number
      */
     @Throws(IllegalArgumentException::class)
-    fun getMessageTag(baseVdsType: String, extendedDefinition: ExtendedMessageDefinitionDto?, messageName: String): Int {
-        if (extendedDefinition != null) {
-            val definitionMessage = extendedDefinition.messages.find { it.name.equals(messageName, ignoreCase = true) }
+    fun getMessageTag(baseVdsType: String, profileDefinition: VdsProfileDefinitionDto?, messageName: String): Int {
+        if (profileDefinition != null) {
+            val definitionMessage = profileDefinition.messages.find { it.name.equals(messageName, ignoreCase = true) }
             if (definitionMessage != null) {
                 return definitionMessage.tag
             }
         }
-        val sealDto = getSealDto(baseVdsType)
-        return getMessageTag(sealDto, messageName).toInt()
+        val docTypeDto = getVdsDocumentTypeDto(baseVdsType)
+        return getMessageTag(docTypeDto, messageName).toInt()
     }
 
     /**
@@ -297,48 +297,48 @@ class VdsSealCodingRegistry(jsonString: String) : DefinitionRegistry {
      */
     @Throws(IllegalArgumentException::class)
     fun getMessageCoding(vdsType: String, tag: Int): MessageCoding {
-        val sealDto = getSealDto(vdsType)
-        return getCoding(sealDto, tag.toByte())
+        val docTypeDto = getVdsDocumentTypeDto(vdsType)
+        return getCoding(docTypeDto, tag.toByte())
     }
 
     @Throws(IllegalArgumentException::class)
-    private fun getMessageTag(sealDto: SealDto, message: String): Byte {
-        for ((name, tag) in sealDto.messages) {
+    private fun getMessageTag(docTypeDto: VdsDocumentTypeDto, message: String): Byte {
+        for ((name, tag) in docTypeDto.messages) {
             if (name.equals(message, ignoreCase = true)) {
                 return tag.toByte()
             }
         }
-        throw IllegalArgumentException("Message '" + message + "' is unspecified for the given seal '" + sealDto.documentType + "'")
+        throw IllegalArgumentException("Message '" + message + "' is unspecified for the given seal '" + docTypeDto.documentType + "'")
     }
 
     @Throws(IllegalArgumentException::class)
-    private fun getMessageName(sealDto: SealDto, tag: Int): String {
-        for ((name, tag1) in sealDto.messages) {
+    private fun getMessageName(docTypeDto: VdsDocumentTypeDto, tag: Int): String {
+        for ((name, tag1) in docTypeDto.messages) {
             if (tag1 == tag) {
                 return name
             }
         }
-        throw IllegalArgumentException("No Message with tag '" + tag + "' is specified for the given seal '" + sealDto.documentType + "'")
+        throw IllegalArgumentException("No Message with tag '" + tag + "' is specified for the given seal '" + docTypeDto.documentType + "'")
     }
 
     @Throws(IllegalArgumentException::class)
-    private fun getCoding(sealDto: SealDto, message: String): MessageCoding {
-        for ((name, _, coding) in sealDto.messages) {
+    private fun getCoding(docTypeDto: VdsDocumentTypeDto, message: String): MessageCoding {
+        for ((name, _, coding) in docTypeDto.messages) {
             if (name.equals(message, ignoreCase = true)) {
                 return coding
             }
         }
-        throw IllegalArgumentException("Message '" + message + "' is unspecified for the given seal '" + sealDto.documentType + "'")
+        throw IllegalArgumentException("Message '" + message + "' is unspecified for the given seal '" + docTypeDto.documentType + "'")
     }
 
     @Throws(IllegalArgumentException::class)
-    private fun getCoding(sealDto: SealDto, tag: Byte): MessageCoding {
-        for ((_, tag1, coding) in sealDto.messages) {
+    private fun getCoding(docTypeDto: VdsDocumentTypeDto, tag: Byte): MessageCoding {
+        for ((_, tag1, coding) in docTypeDto.messages) {
             if (tag1 == tag.toInt()) {
                 return coding
             }
         }
-        throw IllegalArgumentException("No Message with tag '" + tag + "' is specified for the given seal '" + sealDto.documentType + "'")
+        throw IllegalArgumentException("No Message with tag '" + tag + "' is specified for the given seal '" + docTypeDto.documentType + "'")
     }
 
     /**
@@ -359,27 +359,27 @@ class VdsSealCodingRegistry(jsonString: String) : DefinitionRegistry {
     }
 
     /**
-     * Encodes a DerTlv to a Message with extended message definition-aware lookup.
+     * Encodes a DerTlv to a Message with profile definition-aware lookup.
      *
      * @param vdsType The base VDS type
-     * @param extendedDefinition The resolved extended message definition (may be null)
+     * @param profileDefinition The resolved profile definition (may be null)
      * @param derTlv The DerTlv to encode
      * @return The Message, or null if encoding fails
      */
-    fun encodeDerTlv(vdsType: String, extendedDefinition: ExtendedMessageDefinitionDto?, derTlv: DerTlv): Message? {
+    fun encodeDerTlv(vdsType: String, profileDefinition: VdsProfileDefinitionDto?, derTlv: DerTlv): Message? {
         val bytes = derTlv.value
         val tagInt = derTlv.tag.toInt()
         val tagHex = (tagInt and 0xFF).toString(16).uppercase().padStart(2, '0')
-        val name = getMessageName(vdsType, extendedDefinition, tagInt)
-        val coding = getMessageCoding(vdsType, extendedDefinition, tagInt)
+        val name = getMessageName(vdsType, profileDefinition, tagInt)
+        val coding = getMessageCoding(vdsType, profileDefinition, tagInt)
         if (name == "" || coding == MessageCoding.UNKNOWN) return null
         return Message(tagHex, name, coding, MessageValue.fromBytes(bytes, coding))
     }
 
     override fun addEntriesFromJson(jsonString: String) {
-        val newDtos = json.decodeFromString<List<SealDto>>(jsonString)
+        val newDtos = json.decodeFromString<List<VdsDocumentTypeDto>>(jsonString)
         for (dto in newDtos) {
-            sealDtoList = sealDtoList.filter { it.documentRef != dto.documentRef } + dto
+            documentTypeDtoList = documentTypeDtoList.filter { it.documentRef != dto.documentRef } + dto
             if (dto.documentType != "" && dto.documentRef != "") {
                 vdsTypes[dto.documentType] = dto.documentRef.toInt(16)
                 vdsTypesReverse[dto.documentRef.toInt(16)] = dto.documentType
@@ -389,13 +389,13 @@ class VdsSealCodingRegistry(jsonString: String) : DefinitionRegistry {
     }
 
     @Throws(IllegalArgumentException::class)
-    private fun getSealDto(vdsType: String): SealDto {
-        for (sealDto in sealDtoList) {
-            if (sealDto.documentType == vdsType) {
-                return sealDto
+    private fun getVdsDocumentTypeDto(vdsType: String): VdsDocumentTypeDto {
+        for (docTypeDto in documentTypeDtoList) {
+            if (docTypeDto.documentType == vdsType) {
+                return docTypeDto
             }
         }
-        throw IllegalArgumentException("VdsType '$vdsType' is unspecified in SealCodings.")
+        throw IllegalArgumentException("VdsType '$vdsType' is unspecified in VdsDocumentTypes.")
     }
 
 

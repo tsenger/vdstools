@@ -6,23 +6,23 @@ import okio.FileNotFoundException
 import kotlin.test.*
 
 @OptIn(ExperimentalStdlibApi::class)
-class VdsSealCodingRegistryIosTest {
+class VdsDocumentTypeRegistryIosTest {
 
     @Test
-    fun testVdsSealCodingRegistryString() {
-        val jsonString = readTextResource("SealCodings.json")
-        VdsSealCodingRegistry(jsonString)
+    fun testVdsDocumentTypeRegistryString() {
+        val jsonString = readTextResource("VdsDocumentTypes.json")
+        VdsDocumentTypeRegistry(jsonString)
     }
 
     @Test
-    fun testVdsSealCodingRegistryString_notFound() {
+    fun testVdsDocumentTypeRegistryString_notFound() {
         assertFailsWith<FileNotFoundException> { readTextResource("Codings.json") }
     }
 
     @Test
     fun testGetMessage_String() {
-        val jsonString = readTextResource("SealCodings.json")
-        val registry = VdsSealCodingRegistry(jsonString)
+        val jsonString = readTextResource("VdsDocumentTypes.json")
+        val registry = VdsDocumentTypeRegistry(jsonString)
         val message = registry.getMessageName(
             "FICTION_CERT",
             DerTlv.fromByteArray("0306d79519a65306".hexToByteArray())!!
@@ -33,8 +33,8 @@ class VdsSealCodingRegistryIosTest {
 
     @Test
     fun testEncodeMessage_String() {
-        val jsonString = readTextResource("SealCodings.json")
-        val registry = VdsSealCodingRegistry(jsonString)
+        val jsonString = readTextResource("VdsDocumentTypes.json")
+        val registry = VdsDocumentTypeRegistry(jsonString)
         val mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06"
         val derTlv = registry.encodeMessage("RESIDENCE_PERMIT", "MRZ", mrz)
         assertEquals(
@@ -45,22 +45,22 @@ class VdsSealCodingRegistryIosTest {
 
     @Test
     fun testGetAvailableVdsTypes() {
-        val jsonString = readTextResource("SealCodings.json")
-        val registry = VdsSealCodingRegistry(jsonString)
+        val jsonString = readTextResource("VdsDocumentTypes.json")
+        val registry = VdsDocumentTypeRegistry(jsonString)
         println(registry.availableVdsTypes)
         assertTrue(registry.availableVdsTypes.contains("ADDRESS_STICKER_ID"))
     }
 
     @Test
     fun testGetAvailableVdsMessages() {
-        val jsonString = readTextResource("SealCodings.json")
-        val registry = VdsSealCodingRegistry(jsonString)
+        val jsonString = readTextResource("VdsDocumentTypes.json")
+        val registry = VdsDocumentTypeRegistry(jsonString)
         println(registry.availableVdsMessages)
         assertTrue(registry.availableVdsMessages.contains("MRZ"))
     }
 
     @Test
     fun testGetDocumentRef_fakeSeal() {
-        assertNull(DataEncoder.sealCodings.getDocumentRef("FAKE_SEAL"))
+        assertNull(DataEncoder.vdsDocumentTypes.getDocumentRef("FAKE_SEAL"))
     }
 }

@@ -1,13 +1,13 @@
 package de.tsenger.vdstools.vds.tr03171
 
 import de.tsenger.vdstools.generic.MessageCoding
-import de.tsenger.vdstools.vds.dto.ExtendedMessageDefinitionDto
+import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
 import de.tsenger.vdstools.vds.dto.MessageDto
 
 object ProfileConverter {
 
-    fun toExtendedMessageDefinition(profile: ProfileDto): ExtendedMessageDefinitionDto {
-        return ExtendedMessageDefinitionDto(
+    fun toVdsProfileDefinition(profile: ProfileDto): VdsProfileDefinitionDto {
+        return VdsProfileDefinitionDto(
             definitionId = profile.profileNumber.lowercase(),
             definitionName = profile.profileName,
             baseDocumentType = "ADMINISTRATIVE_DOCUMENTS",

@@ -14,7 +14,7 @@ import kotlinx.serialization.json.Json
  *
  * Multiple message types can appear together in a message group. Which combination is
  * expected for a given document is determined by the national document type; see
- * [IdbNationalDocumentTypeRegistry].
+ * [IdbDocumentTypeRegistry].
  *
  * Definitions are loaded from `IdbMessageTypes.json`.
  *

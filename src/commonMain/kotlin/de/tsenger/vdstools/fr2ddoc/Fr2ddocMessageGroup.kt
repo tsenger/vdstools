@@ -23,7 +23,7 @@ class Fr2ddocMessageGroup private constructor(
                 val fieldId = dataString.substring(pos, pos + 2)
                 pos += 2
 
-                val definition = Fr2ddocFieldRegistry.getDefinition(perimeterId, fieldId)
+                val definition = Fr2ddocFieldDefinitionRegistry.getDefinition(perimeterId, fieldId)
                 if (definition == null) {
                     log.w { "Unknown field ID '$fieldId' for perimeter $perimeterId at position $pos" }
                     break

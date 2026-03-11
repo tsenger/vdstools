@@ -3,7 +3,7 @@ package de.tsenger.vdstools.fr2ddoc
 import de.tsenger.vdstools.generated.ResourceConstants
 import kotlinx.serialization.json.Json
 
-object Fr2ddocFieldRegistry {
+object Fr2ddocFieldDefinitionRegistry {
 
     private val definitions: Map<String, Fr2ddocFieldDefinition>
 
