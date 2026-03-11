@@ -56,7 +56,7 @@ class VdsMessageGroup {
             val messageList: MutableList<Message> = ArrayList()
             for (derTlv in derTlvList) {
                 if (derTlv.tag.toInt() in metadataTags) continue
-                DataEncoder.encodeDerTlv(vdsType, extendedMessageDefinition, derTlv)?.let { messageList.add(it) }
+                DataEncoder.sealCodings.encodeDerTlv(vdsType, extendedMessageDefinition, derTlv)?.let { messageList.add(it) }
             }
             return messageList
         }
@@ -66,7 +66,7 @@ class VdsMessageGroup {
             val result: MutableList<Message> = ArrayList()
             for (derTlv in derTlvList) {
                 if (derTlv.tag.toInt() !in metadataTags) continue
-                DataEncoder.encodeDerTlv(vdsType, extendedMessageDefinition, derTlv)
+                DataEncoder.sealCodings.encodeDerTlv(vdsType, extendedMessageDefinition, derTlv)
                     ?.let { result.add(it) }
             }
             return result
@@ -102,7 +102,7 @@ class VdsMessageGroup {
         if (uuidTlv != null) {
             documentProfileUuid = uuidTlv.value
             metadataTags.add(uuidTag)
-            extendedMessageDefinition = DataEncoder.resolveExtendedMessageDefinition(uuidTlv.value)
+            extendedMessageDefinition = DataEncoder.extendedDefinitions.resolve(uuidTlv.value)
         }
     }
 
@@ -112,10 +112,10 @@ class VdsMessageGroup {
         internal val extendedDefinition: ExtendedMessageDefinitionDto?
 
         init {
-            val docRef = DataEncoder.getDocumentRef(vdsType)
+            val docRef = DataEncoder.sealCodings.getDocumentRef(vdsType)
             if (docRef == null) {
                 // Not a base type — try resolving as extended definition
-                val extDef = DataEncoder.resolveExtendedDefinitionByName(vdsType)
+                val extDef = DataEncoder.extendedDefinitions.resolveByName(vdsType)
                 if (extDef != null) {
                     extendedDefinition = extDef
                     baseVdsType = extDef.baseDocumentType
@@ -131,7 +131,7 @@ class VdsMessageGroup {
 
         @Throws(IllegalArgumentException::class)
         fun <T> addMessage(tag: Int, value: T): Builder {
-            val coding = DataEncoder.getMessageCoding(baseVdsType, extendedDefinition, tag)
+            val coding = DataEncoder.sealCodings.getMessageCoding(baseVdsType, extendedDefinition, tag)
             val content = DataEncoder.encodeValueByCoding(coding, value, tag)
             derTlvList.add(DerTlv(tag.toByte(), content))
             return this
@@ -139,7 +139,7 @@ class VdsMessageGroup {
 
         @Throws(IllegalArgumentException::class)
         fun <T> addMessage(name: String, value: T): Builder {
-            return addMessage(DataEncoder.getMessageTag(baseVdsType, extendedDefinition, name), value)
+            return addMessage(DataEncoder.sealCodings.getMessageTag(baseVdsType, extendedDefinition, name), value)
         }
 
         @OptIn(ExperimentalStdlibApi::class)
@@ -153,7 +153,7 @@ class VdsMessageGroup {
                 group.vdsType = baseVdsType
                 group.extendedMessageDefinition = extendedDefinition
                 group.documentProfileUuid = uuidBytes
-                DataEncoder.getMetadataTags(baseVdsType).forEach { group.metadataTags.add(it) }
+                DataEncoder.sealCodings.getMetadataTags(baseVdsType).forEach { group.metadataTags.add(it) }
                 if (group.metadataTags.isEmpty()) group.metadataTags.add(0)
             }
             return group

@@ -92,4 +92,24 @@ class IdbMessageTypeRegistry(jsonString: String) : DefinitionRegistry {
         return messageTypes[messageTypeTag]?.coding ?: MessageCoding.UNKNOWN
     }
 
+    /**
+     * Returns the full DTO for a given message type tag.
+     *
+     * @param tag The numeric tag of the message type
+     * @return The [IdbMessageTypeDto], or `null` if the tag is not registered
+     */
+    fun getMessageTypeDto(tag: Int): IdbMessageTypeDto? {
+        return messageTypes[tag]
+    }
+
+    /**
+     * Returns the full DTO for a given message type name.
+     *
+     * @param name The message type name (e.g., `"PROOF_OF_VACCINATION"`)
+     * @return The [IdbMessageTypeDto], or `null` if the name is not registered
+     */
+    fun getMessageTypeDto(name: String): IdbMessageTypeDto? {
+        return messageTypesInverse[name]
+    }
+
 }

@@ -213,10 +213,10 @@ class VdsSeal : Seal {
             val vdsMessageGroup = VdsMessageGroup(vdsHeader.vdsType, messageList)
 
             // Resolve extended message definition if this seal type requires UUID lookup
-            if (DataEncoder.requiresUuidLookup(vdsHeader.vdsType)) {
-                val uuidTag = DataEncoder.getUuidMessageTag(vdsHeader.vdsType)
+            if (DataEncoder.sealCodings.requiresUuidLookup(vdsHeader.vdsType)) {
+                val uuidTag = DataEncoder.sealCodings.getUuidMessageTag(vdsHeader.vdsType)
                 vdsMessageGroup.resolveExtendedMessageDefinition(uuidTag)
-                DataEncoder.getMetadataTags(vdsHeader.vdsType).forEach {
+                DataEncoder.sealCodings.getMetadataTags(vdsHeader.vdsType).forEach {
                     vdsMessageGroup.metadataTags.add(it)
                 }
                 log.d("Resolved extended definition: ${vdsMessageGroup.extendedMessageDefinition?.definitionName}")

@@ -74,7 +74,7 @@ class IdbNationalDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
      * Returns the IDB message types expected in the message group for a given national document type.
      *
      * The returned list contains references to entries in `IdbMessageTypes.json`, identified by name.
-     * Use [DataEncoder.getIdbMessageTypeTag] or [DataEncoder.getIdbMessageTypeCoding] to resolve them.
+     * Use [IdbMessageTypeRegistry.getMessageType] or [IdbMessageTypeRegistry.getMessageTypeCoding] to resolve them.
      *
      * @param tag The numeric tag value of the `NATIONAL_DOCUMENT_IDENTIFIER` message
      * @return List of expected message type references, empty if the tag is not registered or has no messages defined

@@ -61,6 +61,6 @@ class VdsSealCodingRegistryIosTest {
 
     @Test
     fun testGetDocumentRef_fakeSeal() {
-        assertNull(DataEncoder.getDocumentRef("FAKE_SEAL"))
+        assertNull(DataEncoder.sealCodings.getDocumentRef("FAKE_SEAL"))
     }
 }
