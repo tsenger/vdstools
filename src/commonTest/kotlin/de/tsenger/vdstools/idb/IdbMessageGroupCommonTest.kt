@@ -4,6 +4,7 @@ import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.idb.IdbMessageGroup.Companion.fromByteArray
 import kotlinx.io.IOException
+import de.tsenger.vdstools.generic.MessageCoding
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -212,6 +213,37 @@ class IdbMessageGroupCommonTest {
         val country = details.getMessageByName("COUNTRY_OF_VACCINATION")
         assertNotNull(country)
         assertEquals("DE", country.value.toString())
+    }
+
+    @Test
+    fun testPlainBytesNotParsedAsSubMessages() {
+        // EF_CARD_ACCESS (tag 10) has coding BYTES — even if the content happens to look like DER-TLV,
+        // it must NOT be parsed as sub-messages
+        val fakeContent = byteArrayOf(0x01, 0x04, 0xAA.toByte(), 0xBB.toByte(), 0xCC.toByte(), 0xDD.toByte())
+        val derTlv = DerTlv(0x0A, fakeContent)
+        val messageGroup = IdbMessageGroup(listOf(derTlv))
+
+        val msg = messageGroup.getMessageByTag(0x0A)
+        assertNotNull(msg)
+        assertEquals("EF_CARD_ACCESS", msg.name)
+        assertEquals(MessageCoding.BYTES, msg.coding)
+        assertTrue(msg.messages.isEmpty(), "BYTES-coded message must not have sub-messages")
+    }
+
+    @Test
+    fun testCorruptedSubMessageDataGracefullyFails() {
+        // Build a container message (EMERGENCY_TRAVEL_DOCUMENT, tag 2) with corrupted data
+        // that cannot be parsed as valid DER-TLV sub-messages
+        val corruptedData = byteArrayOf(0x02, 0xFF.toByte(), 0x00, 0x01)
+        val derTlv = DerTlv(0x02, corruptedData)
+        val messageGroup = IdbMessageGroup(listOf(derTlv))
+
+        val msg = messageGroup.getMessageByTag(0x02)
+        assertNotNull(msg)
+        assertEquals("EMERGENCY_TRAVEL_DOCUMENT", msg.name)
+        assertEquals(MessageCoding.SUB_MESSAGES, msg.coding)
+        // Corrupted data should result in empty sub-messages, not an exception
+        assertTrue(msg.messages.isEmpty(), "Corrupted sub-message data should result in empty messages list")
     }
 
     @Test

@@ -65,17 +65,17 @@ class IdbSeal : Seal {
 
     override fun getMessageByName(name: String): Message? {
         val idbMessage = payLoad.idbMessageGroup.getMessageByName(name) ?: return null
-        return Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value)
+        return Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value, idbMessage.messages)
     }
 
     override fun getMessageByTag(tag: Int): Message? {
         val idbMessage = payLoad.idbMessageGroup.getMessageByTag(tag) ?: return null
-        return Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value)
+        return Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value, idbMessage.messages)
     }
 
     override fun getMessageByTag(tag: String): Message? {
         val idbMessage = payLoad.idbMessageGroup.getMessageByTag(tag) ?: return null
-        return Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value)
+        return Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value, idbMessage.messages)
     }
 
     /**
@@ -94,7 +94,7 @@ class IdbSeal : Seal {
 
     override val messageList: List<Message>
         get() = payLoad.idbMessageGroup.messageList.map { idbMessage ->
-            Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value)
+            Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value, idbMessage.messages)
         }
 
     override val signatureInfo: SignatureInfo?

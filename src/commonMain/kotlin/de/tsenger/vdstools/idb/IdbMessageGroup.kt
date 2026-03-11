@@ -147,11 +147,17 @@ class IdbMessageGroup {
 
             val childDefs = msgDef?.messages
                 ?: DataEncoder.idbMessageTypes.getMessageTypeDto(tagInt)?.messages
-            val subMessages = if (!childDefs.isNullOrEmpty() && coding == MessageCoding.BYTES) {
-                try {
-                    val childTlvs = DataEncoder.parseDerTLvs(derTlv.value)
-                    childTlvs.map { childTlv -> parseMessage(childTlv, childDefs) }
-                } catch (_: Exception) {
+            val subMessages = if (!childDefs.isNullOrEmpty() && coding == MessageCoding.SUB_MESSAGES) {
+                val expectedTags = childDefs.map { it.tag.toByte() }.toSet()
+                val firstByte = derTlv.value.firstOrNull()
+                if (firstByte != null && firstByte in expectedTags) {
+                    try {
+                        val childTlvs = DataEncoder.parseDerTLvs(derTlv.value)
+                        childTlvs.map { childTlv -> parseMessage(childTlv, childDefs) }
+                    } catch (_: Exception) {
+                        emptyList()
+                    }
+                } else {
                     emptyList()
                 }
             } else {

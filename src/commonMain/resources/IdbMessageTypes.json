@@ -2,7 +2,7 @@
   {
     "name": "VISA",
     "tag": 1,
-    "coding": "BYTES",
+    "coding": "SUB_MESSAGES",
     "minBytes": 62,
     "maxBytes": 328,
     "messages": [
@@ -67,7 +67,7 @@
   {
     "name": "EMERGENCY_TRAVEL_DOCUMENT",
     "tag": 2,
-    "coding": "BYTES",
+    "coding": "SUB_MESSAGES",
     "minBytes": 50,
     "maxBytes": 50,
     "messages": [
@@ -84,7 +84,7 @@
   {
     "name": "PROOF_OF_TESTING",
     "tag": 3,
-    "coding": "BYTES",
+    "coding": "SUB_MESSAGES",
     "minBytes": 68,
     "maxBytes": 659,
     "messages": [
@@ -221,7 +221,7 @@
   {
     "name": "PROOF_OF_VACCINATION",
     "tag": 4,
-    "coding": "BYTES",
+    "coding": "SUB_MESSAGES",
     "minBytes": 57,
     "maxBytes": 951,
     "messages": [
@@ -292,7 +292,7 @@
       {
         "name": "VACCINATION_EVENT",
         "tag": 9,
-        "coding": "BYTES",
+        "coding": "SUB_MESSAGES",
         "required": true,
         "minBytes": 44,
         "maxBytes": 842,
@@ -340,7 +340,7 @@
           {
             "name": "VACCINATION_DETAILS",
             "tag": 36,
-            "coding": "BYTES",
+            "coding": "SUB_MESSAGES",
             "required": true,
             "minBytes": 22,
             "maxBytes": 56,
@@ -418,7 +418,7 @@
   {
     "name": "PROOF_OF_RECOVERY",
     "tag": 5,
-    "coding": "BYTES",
+    "coding": "SUB_MESSAGES",
     "minBytes": 46,
     "maxBytes": 108,
     "messages": [
@@ -507,7 +507,7 @@
   {
     "name": "DIGITAL_TRAVEL_AUTHORIZATION",
     "tag": 6,
-    "coding": "BYTES",
+    "coding": "SUB_MESSAGES",
     "minBytes": 58,
     "maxBytes": 197,
     "messages": [

@@ -203,7 +203,7 @@ sealed class MessageValue {
                     }
 
                     MessageCoding.VALIDITY_DATES -> ValidityDatesValue.parse(bytes)
-                    MessageCoding.BYTES, MessageCoding.UNKNOWN -> BytesValue(bytes)
+                    MessageCoding.BYTES, MessageCoding.SUB_MESSAGES, MessageCoding.UNKNOWN -> BytesValue(bytes)
                 }
             } catch (e: Exception) {
                 // If decoding fails, fall back to raw bytes

@@ -8,6 +8,7 @@ enum class MessageCoding {
     C40,
     UTF8_STRING,
     BYTES,
+    SUB_MESSAGES,
     BYTE,
     MASKED_DATE,
     DATE,

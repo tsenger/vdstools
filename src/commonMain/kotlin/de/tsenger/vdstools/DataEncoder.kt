@@ -486,7 +486,7 @@ object DataEncoder {
         return when (coding) {
             MessageCoding.C40, MessageCoding.MRZ -> encodeC40(value as String)
             MessageCoding.UTF8_STRING -> (value as String).encodeToByteArray()
-            MessageCoding.BYTES -> value as ByteArray
+            MessageCoding.BYTES, MessageCoding.SUB_MESSAGES -> value as ByteArray
             MessageCoding.BYTE -> when (value) {
                 is Int -> byteArrayOf((value and 0xFF).toByte())
                 is Byte -> byteArrayOf(value)
