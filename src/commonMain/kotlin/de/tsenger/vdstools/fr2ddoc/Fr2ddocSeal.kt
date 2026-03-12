@@ -9,7 +9,7 @@ import de.tsenger.vdstools.generic.SignatureInfo
 class Fr2ddocSeal private constructor(
     private val header: Fr2ddocHeader,
     private val messageGroup: Fr2ddocMessageGroup,
-    private val signature: Fr2ddocSignature,
+    private val fr2ddocSignature: Fr2ddocSignature,
     private val barcodeString: String,
     private val signedData: ByteArray
 ) : Seal() {
@@ -36,14 +36,12 @@ class Fr2ddocSeal private constructor(
         get() {
             val sigDate = header.sigDate ?: return null
             return SignatureInfo(
-                signature.bytes,
-                (header.signerIdentifier ?: "") + (header.certificateReference ?: ""),
-                sigDate
+                plainSignatureBytes = fr2ddocSignature.plainSignatureBytes,
+                signerCertificateReference = (header.signerIdentifier ?: "") + (header.certificateReference ?: ""),
+                signingDate = sigDate,
+                signedBytes = signedData
             )
         }
-
-    override val signedBytes: ByteArray
-        get() = signedData
 
     override val encoded: ByteArray
         get() = barcodeString.encodeToByteArray()
@@ -84,7 +82,7 @@ class Fr2ddocSeal private constructor(
 
             val perimeterId = header.perimeterId ?: "1"
             val messageGroup = Fr2ddocMessageGroup.parse(dataString, perimeterId)
-            val signature = Fr2ddocSignature.parse(signatureString)
+            val signature = Fr2ddocSignature.fromString(signatureString)
 
             // signedBytes = header + dataString (everything before US)
             val signedData = barcodeString.substring(0, headerLength + usIndex).encodeToByteArray()

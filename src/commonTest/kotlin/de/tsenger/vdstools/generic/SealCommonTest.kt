@@ -267,10 +267,10 @@ class SealCommonTest {
         }
 
         // Access message data by name - value.toString() returns the decoded value
-        val mrz: String? = seal.getMessage("MRZ_TD2")?.toString()
+        val mrz: String? = seal.getMessageByName("MRZ_TD2")?.toString()
 
         // Or use type-safe access via sealed class
-        val messageValue = seal.getMessage("MRZ_TD2")?.value
+        val messageValue = seal.getMessageByName("MRZ_TD2")?.value
         if (messageValue is MessageValue.MrzValue) {
             println("MRZ: ${messageValue.mrz}")
         } else {

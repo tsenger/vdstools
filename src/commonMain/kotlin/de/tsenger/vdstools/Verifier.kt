@@ -1,6 +1,8 @@
 package de.tsenger.vdstools
 
 import co.touchlab.kermit.Logger
+import de.tsenger.vdstools.generic.Seal
+import de.tsenger.vdstools.generic.SignatureInfo
 import de.tsenger.vdstools.idb.IdbSeal
 import de.tsenger.vdstools.vds.VdsSeal
 import dev.whyoleg.cryptography.algorithms.*
@@ -16,16 +18,31 @@ class Verifier(
     curveName: String
 ) {
 
+    constructor(signatureInfo: SignatureInfo, publicKeyBytes: ByteArray, curveName: String) : this(
+        signatureInfo.signedBytes,
+        signatureInfo.plainSignatureBytes,
+        publicKeyBytes,
+        curveName
+    )
+
+    constructor(seal: Seal, publicKeyBytes: ByteArray, curveName: String) : this(
+        seal.signatureInfo ?: throw IllegalArgumentException("Seal has no signature"),
+        publicKeyBytes,
+        curveName
+    )
+
+    @Deprecated("Use Verifier(seal, publicKeyBytes, curveName) instead")
     constructor(icb: IdbSeal, publicKeyBytes: ByteArray, curveName: String) : this(
         icb.payLoad.idbHeader.encoded + icb.payLoad.idbMessageGroup.encoded,
         icb.payLoad.idbSignature?.plainSignatureBytes ?: byteArrayOf(), publicKeyBytes, curveName
     )
 
+    @Deprecated("Use Verifier(seal, publicKeyBytes, curveName) instead")
     constructor(
         vdsSeal: VdsSeal,
         publicKeyBytes: ByteArray,
         curveName: String
-    ) : this(vdsSeal.signedBytes, vdsSeal.signatureBytes, publicKeyBytes, curveName)
+    ) : this(vdsSeal.signedBytes ?: byteArrayOf(), vdsSeal.signatureBytes, publicKeyBytes, curveName)
 
 
     private val log = Logger.withTag(this::class.simpleName ?: "")

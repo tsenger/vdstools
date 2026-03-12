@@ -5,9 +5,9 @@ import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.Base32
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.generic.Message
+import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.generic.Seal
 import de.tsenger.vdstools.generic.SignatureInfo
-import de.tsenger.vdstools.generic.MessageValue
 import kotlinx.datetime.LocalDate
 
 class IdbSeal : Seal {
@@ -65,17 +65,17 @@ class IdbSeal : Seal {
 
     override fun getMessageByName(name: String): Message? {
         val idbMessage = payLoad.idbMessageGroup.getMessageByName(name) ?: return null
-        return Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value, idbMessage.messages)
+        return Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value, idbMessage.messageList)
     }
 
     override fun getMessageByTag(tag: Int): Message? {
         val idbMessage = payLoad.idbMessageGroup.getMessageByTag(tag) ?: return null
-        return Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value, idbMessage.messages)
+        return Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value, idbMessage.messageList)
     }
 
     override fun getMessageByTag(tag: String): Message? {
         val idbMessage = payLoad.idbMessageGroup.getMessageByTag(tag) ?: return null
-        return Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value, idbMessage.messages)
+        return Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value, idbMessage.messageList)
     }
 
     /**
@@ -94,34 +94,27 @@ class IdbSeal : Seal {
 
     override val messageList: List<Message>
         get() = payLoad.idbMessageGroup.messageList.map { idbMessage ->
-            Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value, idbMessage.messages)
+            Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value, idbMessage.messageList)
         }
 
+    @OptIn(ExperimentalStdlibApi::class)
     override val signatureInfo: SignatureInfo?
         get() {
-            val idbSignature = payLoad.idbSignature
-            if (!isSigned || idbSignature == null) return null
+            val idbSig = payLoad.idbSignature
+            if (!isSigned || idbSig == null) return null
             var sigDate = LocalDate(1970, 1, 1)
             try {
                 sigDate = LocalDate.parse(payLoad.idbHeader.getSignatureCreationDate() ?: "1970-01-01")
             } catch (_: IllegalArgumentException) {
             }
             return SignatureInfo(
-                plainSignatureBytes = idbSignature.plainSignatureBytes,
+                plainSignatureBytes = idbSig.plainSignatureBytes,
                 signerCertificateReference = payLoad.idbHeader.certificateReference?.toHexString() ?: "",
                 signingDate = sigDate,
+                signedBytes = payLoad.idbHeader.encoded + payLoad.idbMessageGroup.encoded,
                 signerCertificateBytes = null,
                 signatureAlgorithm = payLoad.idbHeader.getSignatureAlgorithm()?.name
             )
-        }
-
-    override val signedBytes: ByteArray
-        get() = payLoad.idbHeader.encoded + payLoad.idbMessageGroup.encoded
-
-
-    val signature: IdbSignature?
-        get() {
-            return payLoad.idbSignature
         }
 
     override val issuingCountry: String

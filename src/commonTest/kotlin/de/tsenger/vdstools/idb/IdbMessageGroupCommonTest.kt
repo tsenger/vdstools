@@ -1,10 +1,9 @@
 package de.tsenger.vdstools.idb
 
-import de.tsenger.vdstools.DataEncoder
+
 import de.tsenger.vdstools.asn1.DerTlv
-import de.tsenger.vdstools.idb.IdbMessageGroup.Companion.fromByteArray
-import kotlinx.io.IOException
 import de.tsenger.vdstools.generic.MessageCoding
+import kotlinx.io.IOException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -57,7 +56,7 @@ class IdbMessageGroupCommonTest {
     @Throws(IOException::class)
     fun testFromByteArray() {
         val messageGroup =
-            fromByteArray("611f090ba0a1a2a3a4a5a6a7a8a9aa0710b0b1b2b3b4b5b6b7b8b9babbbcbdbebf".hexToByteArray())
+            IdbMessageGroup.fromByteArray("611f090ba0a1a2a3a4a5a6a7a8a9aa0710b0b1b2b3b4b5b6b7b8b9babbbcbdbebf".hexToByteArray())
         val messageList = messageGroup.messageList
         assertEquals("CAN", messageList[0].name)
         assertEquals("MRZ_TD1", messageList[1].name)
@@ -86,7 +85,7 @@ class IdbMessageGroupCommonTest {
             }
             .build()
 
-        val pov = messageGroup.getMessage("PROOF_OF_VACCINATION")
+        val pov = messageGroup.getMessageByName("PROOF_OF_VACCINATION")
         assertNotNull(pov)
 
         // Navigate into sub-messages
@@ -123,7 +122,7 @@ class IdbMessageGroupCommonTest {
             }
             .build()
 
-        val pov = messageGroup.getMessage("PROOF_OF_VACCINATION")
+        val pov = messageGroup.getMessageByName("PROOF_OF_VACCINATION")
         assertNotNull(pov)
 
         // Tag-based access: VACCINATION_EVENT has tag 9
@@ -159,14 +158,14 @@ class IdbMessageGroupCommonTest {
             }
             .build()
 
-        val event = messageGroup.getMessage("PROOF_OF_VACCINATION")
+        val event = messageGroup.getMessageByName("PROOF_OF_VACCINATION")
             ?.getMessageByName("VACCINATION_EVENT")
         assertNotNull(event)
 
         // VACCINATION_EVENT should have sub-messages
-        assertTrue(event.messages.isNotEmpty(), "VACCINATION_EVENT should have sub-messages")
+        assertTrue(event.messageList.isNotEmpty(), "VACCINATION_EVENT should have sub-messages")
 
-        val subNames = event.messages.map { it.name }
+        val subNames = event.messageList.map { it.name }
         assertTrue("VACCINE_OR_PROPHYLAXIS" in subNames)
         assertTrue("VACCINATION_DETAILS" in subNames)
     }
@@ -195,9 +194,9 @@ class IdbMessageGroupCommonTest {
             .build()
 
         val encoded = original.encoded
-        val decoded = fromByteArray(encoded)
+        val decoded = IdbMessageGroup.fromByteArray(encoded)
 
-        val pov = decoded.getMessage("PROOF_OF_VACCINATION")
+        val pov = decoded.getMessageByName("PROOF_OF_VACCINATION")
         assertNotNull(pov)
 
         val event = pov.getMessageByName("VACCINATION_EVENT")
@@ -227,7 +226,7 @@ class IdbMessageGroupCommonTest {
         assertNotNull(msg)
         assertEquals("EF_CARD_ACCESS", msg.name)
         assertEquals(MessageCoding.BYTES, msg.coding)
-        assertTrue(msg.messages.isEmpty(), "BYTES-coded message must not have sub-messages")
+        assertTrue(msg.messageList.isEmpty(), "BYTES-coded message must not have sub-messages")
     }
 
     @Test
@@ -243,7 +242,7 @@ class IdbMessageGroupCommonTest {
         assertEquals("EMERGENCY_TRAVEL_DOCUMENT", msg.name)
         assertEquals(MessageCoding.SUB_MESSAGES, msg.coding)
         // Corrupted data should result in empty sub-messages, not an exception
-        assertTrue(msg.messages.isEmpty(), "Corrupted sub-message data should result in empty messages list")
+        assertTrue(msg.messageList.isEmpty(), "Corrupted sub-message data should result in empty messages list")
     }
 
     @Test
@@ -253,8 +252,8 @@ class IdbMessageGroupCommonTest {
             .addMessage("CAN", "654321")
             .build()
 
-        val can = messageGroup.getMessage("CAN")
+        val can = messageGroup.getMessageByName("CAN")
         assertNotNull(can)
-        assertTrue(can.messages.isEmpty(), "Non-container messages should have empty messages list")
+        assertTrue(can.messageList.isEmpty(), "Non-container messages should have empty messages list")
     }
 }

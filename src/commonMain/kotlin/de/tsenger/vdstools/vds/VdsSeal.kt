@@ -66,9 +66,6 @@ class VdsSeal : Seal {
     val docTypeCat: Byte
         get() = vdsHeader.docTypeCat
 
-    override val signedBytes: ByteArray
-        get() = vdsHeader.encoded + vdsMessageGroup.encoded
-
     val headerBytes: ByteArray
         get() = vdsHeader.encoded
 
@@ -145,6 +142,7 @@ class VdsSeal : Seal {
                 plainSignatureBytes = signatureBytes,
                 signerCertificateReference = signerCertRef,
                 signingDate = sigDate ?: LocalDate(1970, 1, 1),
+                signedBytes = vdsHeader.encoded + vdsMessageGroup.encoded,
                 signerCertificateBytes = null,
                 signatureAlgorithm = signatureAlgorithm,
             )

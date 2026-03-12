@@ -4,11 +4,12 @@ import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.asn1.ASN1Encoder
 import kotlinx.datetime.LocalDate
 
-@OptIn(ExperimentalStdlibApi::class)
+
 data class SignatureInfo(
     val plainSignatureBytes: ByteArray,
     val signerCertificateReference: String,
     val signingDate: LocalDate,
+    val signedBytes: ByteArray,
     var signerCertificateBytes: ByteArray? = null,
     var signatureAlgorithm: String? = null
 ) {
@@ -37,6 +38,7 @@ data class SignatureInfo(
         if (!plainSignatureBytes.contentEquals(other.plainSignatureBytes)) return false
         if (signerCertificateReference != other.signerCertificateReference) return false
         if (signingDate != other.signingDate) return false
+        if (!signedBytes.contentEquals(other.signedBytes)) return false
         if (!signerCertificateBytes.contentEquals(other.signerCertificateBytes)) return false
         if (signatureAlgorithm != other.signatureAlgorithm) return false
 
@@ -47,9 +49,9 @@ data class SignatureInfo(
         var result = plainSignatureBytes.contentHashCode()
         result = 31 * result + signerCertificateReference.hashCode()
         result = 31 * result + signingDate.hashCode()
+        result = 31 * result + signedBytes.contentHashCode()
         result = 31 * result + (signerCertificateBytes?.contentHashCode() ?: 0)
         result = 31 * result + (signatureAlgorithm?.hashCode() ?: 0)
         return result
     }
 }
-

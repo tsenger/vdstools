@@ -1,7 +1,6 @@
 package de.tsenger.vdstools.vds
 
 
-import de.tsenger.vdstools.asn1.ASN1Encoder
 import de.tsenger.vdstools.asn1.DerTlv
 
 class VdsSignature
@@ -15,24 +14,6 @@ class VdsSignature
      */
     val plainSignatureBytes: ByteArray
 ) {
-    val derSignatureBytes: ByteArray
-        /**
-         * Returns signature in format ECDSASignature ::= SEQUENCE { r INTEGER, s
-         * INTEGER }
-         *
-         * @return ASN1 DER encoded signature as byte array
-         */
-        get() {
-            val r = plainSignatureBytes.copyOfRange(0, plainSignatureBytes.size / 2)
-            val s = plainSignatureBytes.copyOfRange(plainSignatureBytes.size / 2, plainSignatureBytes.size)
-
-
-            val rEncoded = ASN1Encoder.getDerInteger(r)
-            val sEncoded = ASN1Encoder.getDerInteger(s)
-            val derSignatureBytes = ASN1Encoder.getDerSequence(rEncoded, sEncoded)
-
-            return derSignatureBytes
-        }
 
     val encoded: ByteArray
         get() {

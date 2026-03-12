@@ -26,7 +26,9 @@ abstract class Seal {
         get() = emptyList()
     abstract val issuingCountry: String
     abstract val signatureInfo: SignatureInfo?
-    abstract val signedBytes: ByteArray?
+
+    open val signedBytes: ByteArray?
+        get() = signatureInfo?.signedBytes
     abstract val encoded: ByteArray
     abstract val rawString: String
 

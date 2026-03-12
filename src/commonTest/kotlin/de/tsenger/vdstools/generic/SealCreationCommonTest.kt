@@ -233,6 +233,7 @@ class SealCreationCommonTest {
         val seal = IdbSeal(isSigned = false, isZipped = false, barcodePayload = payload)
 
         assertNotNull(seal)
+        assertEquals(0x41, seal.barcodeFlagByte)
         assertEquals(false, seal.isSigned)
         assertEquals(false, seal.isZipped)
         assertEquals("D", seal.issuingCountry)  // trim() removes fill characters
@@ -263,10 +264,11 @@ class SealCreationCommonTest {
         val seal = IdbSeal(isSigned = true, isZipped = false, barcodePayload = payload)
 
         assertNotNull(seal)
+        assertEquals(0x42, seal.barcodeFlagByte)
         assertEquals(true, seal.isSigned)
         assertEquals(false, seal.isZipped)
         assertEquals("D", seal.issuingCountry)
-        assertNotNull(seal.signature)
+        assertNotNull(seal.signatureInfo?.signedBytes)
 
         // Verify message can be retrieved
         val msg = seal.getMessageByName("PROOF_OF_VACCINATION")
@@ -301,6 +303,7 @@ class SealCreationCommonTest {
 
         // Verify
         assertEquals(originalSeal.issuingCountry, parsedSeal.issuingCountry)
+        assertEquals(0x42, parsedSeal.barcodeFlagByte)
         assertEquals(originalSeal.isSigned, parsedSeal.isSigned)
         assertEquals(originalSeal.isZipped, parsedSeal.isZipped)
         assertEquals(

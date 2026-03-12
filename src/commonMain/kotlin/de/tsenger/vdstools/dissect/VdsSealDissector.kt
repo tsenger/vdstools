@@ -11,7 +11,7 @@ import de.tsenger.vdstools.vds.VdsSeal
 fun VdsSeal.dissect(): SealDissection {
     val raw = encoded
     val headerLen = headerBytes.size
-    val signedEnd = signedBytes.size  // header + message group
+    val signedEnd = signedBytes?.size ?: 0  // header + message group
 
     return SealDissection(
         header = buildHeaderDissection(raw, headerLen),

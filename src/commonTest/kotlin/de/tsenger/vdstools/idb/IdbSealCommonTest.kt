@@ -160,8 +160,8 @@ class IdbSealCommonTest {
         val icb = IdbSeal.fromString(certifyingPermanentResidence) as IdbSeal
         assertNotNull(icb)
         assertEquals(
-            "7f408ca7c847cb09c3546da8c9b2e8b927514a575055f896c6bdf690acf79bebaf33460b79aa5a648079d7f05cbfd2aed91aac2dd406bbc346f39173c229de3e1c7f",
-            icb.signature?.encoded?.toHexString()
+            "8ca7c847cb09c3546da8c9b2e8b927514a575055f896c6bdf690acf79bebaf33460b79aa5a648079d7f05cbfd2aed91aac2dd406bbc346f39173c229de3e1c7f",
+            icb.signatureInfo?.plainSignatureBytes?.toHexString()
         )
     }
 

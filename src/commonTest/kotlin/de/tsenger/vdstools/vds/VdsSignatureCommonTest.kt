@@ -17,14 +17,6 @@ class VdsSignatureCommonTest {
         )
     }
 
-    @Test
-    fun testGetDerSignatureBytes() {
-        val signature = VdsSignature(plainSignature)
-        assertEquals(
-            "304502203c8b104fd4a8ad11157f87dadd05407f0cefa3ad0155c1179765933089896357022100e1b6fdbb3b2b003d6ee34875d6db833e05fffe9d99378eb01ae988c638c2eb27",
-            signature.derSignatureBytes.toHexString()
-        )
-    }
 
     @Test
     fun testFromByteArray() {
@@ -32,7 +24,6 @@ class VdsSignatureCommonTest {
         val signature = VdsSignature.fromByteArray(vdsSigBytes)
         assertNotNull(signature)
         assertEquals("010203040506", signature.plainSignatureBytes.toHexString())
-        assertEquals("300a02030102030203040506", signature.derSignatureBytes.toHexString())
     }
 
     @Test
