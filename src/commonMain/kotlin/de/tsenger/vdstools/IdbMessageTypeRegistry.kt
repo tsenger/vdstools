@@ -1,8 +1,10 @@
 package de.tsenger.vdstools
 
 import co.touchlab.kermit.Logger
-import de.tsenger.vdstools.idb.dto.IdbMessageTypeDto
 import de.tsenger.vdstools.generic.MessageCoding
+import de.tsenger.vdstools.generic.MessageDefinition
+import de.tsenger.vdstools.generic.MessageDefinitionResolver
+import de.tsenger.vdstools.idb.dto.IdbMessageTypeDto
 import kotlinx.serialization.json.Json
 
 /**
@@ -110,6 +112,20 @@ class IdbMessageTypeRegistry(jsonString: String) : DefinitionRegistry {
      */
     fun getMessageTypeDto(name: String): IdbMessageTypeDto? {
         return messageTypesInverse[name]
+    }
+
+    fun asResolver(): MessageDefinitionResolver = object : MessageDefinitionResolver {
+        override fun resolveByTag(tag: String): MessageDefinition? {
+            val tagInt = tag.toIntOrNull(16) ?: return null
+            val dto = getMessageTypeDto(tagInt) ?: return null
+            return MessageDefinition(tag.uppercase().padStart(2, '0'), dto.name, dto.coding)
+        }
+
+        override fun resolveByName(name: String): MessageDefinition? {
+            val dto = getMessageTypeDto(name) ?: return null
+            val tagHex = (dto.tag and 0xFF).toString(16).uppercase().padStart(2, '0')
+            return MessageDefinition(tagHex, dto.name, dto.coding)
+        }
     }
 
 }

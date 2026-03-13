@@ -27,6 +27,16 @@ class IdbSeal : Seal {
         this.payLoad = barcodePayload
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
+    override val signerCertReference get() = payLoad.idbHeader.certificateReference?.toHexString()
+
+    override val signingDate: LocalDate?
+        get() = try {
+            payLoad.idbHeader.getSignatureCreationDate()?.let { LocalDate.parse(it) }
+        } catch (_: Exception) {
+            null
+        }
+
     val barcodeIdentifier: String
         get() = _barcodeIdentifier
 

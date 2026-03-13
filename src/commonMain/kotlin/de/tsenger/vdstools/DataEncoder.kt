@@ -585,34 +585,9 @@ object DataEncoder {
         return LocalDateTime(year, month, day, hour, minute, second)
     }
 
+    @Deprecated("Use DerTlv.parseAll()", ReplaceWith("DerTlv.parseAll(rawBytes)", "de.tsenger.vdstools.asn1.DerTlv"))
     @Throws(IllegalArgumentException::class)
-    fun parseDerTLvs(rawBytes: ByteArray): List<DerTlv> {
-        val dataBuffer = Buffer().write(rawBytes)
-        val derTlvList: MutableList<DerTlv> = ArrayList()
-        while (!dataBuffer.exhausted()) {
-            val tag = dataBuffer.readByte()
-
-            var le = dataBuffer.readByte().toInt() and 0xff
-            if (le == 0x81) {
-                le = dataBuffer.readByte().toInt() and 0xff
-            } else if (le == 0x82) {
-                le = ((dataBuffer.readByte().toInt() and 0xff) * 0x100) + (dataBuffer.readByte().toInt() and 0xff)
-            } else if (le == 0x83) {
-                le = ((dataBuffer.readByte().toInt() and 0xff) * 0x1000) + ((dataBuffer.readByte()
-                    .toInt() and 0xff) * 0x100) + (dataBuffer.readByte().toInt() and 0xff)
-            } else if (le > 0x7F) {
-                log.e(
-                    "Can't decode length: ${le.toString(16).padStart(2, '0').uppercase()}"
-                )
-                throw IllegalArgumentException(
-                    "Can't decode length: ${le.toString(16).padStart(2, '0').uppercase()}"
-                )
-            }
-            val value = dataBuffer.readByteArray(le.toLong())
-            derTlvList.add(DerTlv(tag, value))
-        }
-        return derTlvList
-    }
+    fun parseDerTLvs(rawBytes: ByteArray): List<DerTlv> = DerTlv.parseAll(rawBytes)
 
     private fun toUnsignedInt(value: Byte): Int {
         return (value.toInt() and 0x7F) + (if (value < 0) 128 else 0)

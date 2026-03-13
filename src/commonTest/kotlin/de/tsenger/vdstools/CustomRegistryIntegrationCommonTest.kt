@@ -1,12 +1,13 @@
 package de.tsenger.vdstools
 
-import de.tsenger.vdstools.idb.IdbMessageGroup
 import de.tsenger.vdstools.idb.IdbPayload
 import de.tsenger.vdstools.idb.IdbSeal
-import de.tsenger.vdstools.idb.IdbHeader
 import de.tsenger.vdstools.vds.VdsRawBytesCommon
 import de.tsenger.vdstools.vds.VdsSeal
-import kotlin.test.*
+import kotlin.test.AfterTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 @OptIn(ExperimentalStdlibApi::class)
 class CustomRegistryIntegrationCommonTest {
@@ -29,10 +30,10 @@ class CustomRegistryIntegrationCommonTest {
         assertEquals("ADMINISTRATIVE_DOCUMENTS", seal.baseDocumentType)
 
         // Messages should still decode correctly (same structure)
-        assertEquals("Mustermann", seal.getMessage("SURNAME")?.value.toString())
-        assertEquals("Dr.", seal.getMessage("ACADEMIC_DEGREE")?.value.toString())
-        assertEquals("Erika", seal.getMessage("FIRST_NAME")?.value.toString())
-        assertEquals("20250414", seal.getMessage("MOVING_DATE")?.value.toString())
+        assertEquals("Mustermann", seal.getMessageByName("SURNAME")?.value.toString())
+        assertEquals("Dr.", seal.getMessageByName("ACADEMIC_DEGREE")?.value.toString())
+        assertEquals("Erika", seal.getMessageByName("FIRST_NAME")?.value.toString())
+        assertEquals("20250414", seal.getMessageByName("MOVING_DATE")?.value.toString())
     }
 
     // --- VdsProfileDefinitions (XML / TR-03171) ---
@@ -119,8 +120,8 @@ class CustomRegistryIntegrationCommonTest {
 
         assertEquals("XML_MELDEBESCHEINIGUNG", seal.documentType)
         assertEquals("ADMINISTRATIVE_DOCUMENTS", seal.baseDocumentType)
-        assertEquals("Mustermann", seal.getMessage("SURNAME")?.value.toString())
-        assertEquals("Berlin", seal.getMessage("CITY")?.value.toString())
+        assertEquals("Mustermann", seal.getMessageByName("SURNAME")?.value.toString())
+        assertEquals("Berlin", seal.getMessageByName("CITY")?.value.toString())
     }
 
     // --- VdsDocumentTypes ---
@@ -155,8 +156,8 @@ class CustomRegistryIntegrationCommonTest {
 
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.socialInsurance) as VdsSeal
         assertEquals("RENAMED_SOCIAL_CARD", seal.documentType)
-        assertEquals("65170839J003", seal.getMessage("SOCIAL_INSURANCE_NUMBER")?.value.toString())
-        assertEquals("Perschweiß", seal.getMessage("SURNAME")?.value.toString())
+        assertEquals("65170839J003", seal.getMessageByName("SOCIAL_INSURANCE_NUMBER")?.value.toString())
+        assertEquals("Perschweiß", seal.getMessageByName("SURNAME")?.value.toString())
     }
 
     @Test
@@ -180,12 +181,12 @@ class CustomRegistryIntegrationCommonTest {
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.socialInsurance) as VdsSeal
         assertEquals("SOCIAL_INSURANCE_CARD", seal.documentType)
         // Messages should now use German names
-        assertEquals("65170839J003", seal.getMessage("VERSICHERUNGSNUMMER")?.value.toString())
-        assertEquals("Perschweiß", seal.getMessage("NACHNAME")?.value.toString())
-        assertEquals("Oscar", seal.getMessage("VORNAME")?.value.toString())
+        assertEquals("65170839J003", seal.getMessageByName("VERSICHERUNGSNUMMER")?.value.toString())
+        assertEquals("Perschweiß", seal.getMessageByName("NACHNAME")?.value.toString())
+        assertEquals("Oscar", seal.getMessageByName("VORNAME")?.value.toString())
         // Original English names should no longer resolve
-        assertNull(seal.getMessage("SOCIAL_INSURANCE_NUMBER"))
-        assertNull(seal.getMessage("SURNAME"))
+        assertNull(seal.getMessageByName("SOCIAL_INSURANCE_NUMBER"))
+        assertNull(seal.getMessageByName("SURNAME"))
     }
 
     // --- IDB National Document Types ---

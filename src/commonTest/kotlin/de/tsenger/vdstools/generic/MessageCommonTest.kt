@@ -122,7 +122,7 @@ class MessageCommonTest {
             .addMessage("CAN", "654321")
             .build()
 
-        val message = messageGroup.getMessage("CAN")
+        val message = messageGroup.getMessageByName("CAN")
         assertNotNull(message)
         assertEquals("CAN", message.name)
         assertTrue(message.value is MessageValue.StringValue)

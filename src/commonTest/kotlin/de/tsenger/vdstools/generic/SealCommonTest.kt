@@ -24,7 +24,7 @@ class SealCommonTest {
     @Test
     fun testIdbGetMessageTag() {
         val seal = Seal.fromString(IcbRawStringsCommon.TemporaryPassport)
-        val mrz = seal.getMessage(8)?.value.toString()
+        val mrz = seal.getMessageByTag(8)?.value.toString()
         assertEquals(
             "PPD<<FOLKS<<TALLULAH<<<<<<<<<<<<<<<<<<<<<<<<\n3113883489D<<9709155F1601013<<<<<<<<<<<<<<04", mrz
         )
@@ -42,7 +42,7 @@ class SealCommonTest {
     @Test
     fun testIdbGetMessageName() {
         val seal = Seal.fromString(IcbRawStringsCommon.TemporaryPassport)
-        val mrz = seal.getMessage("MRZ_TD3")?.value.toString()
+        val mrz = seal.getMessageByName("MRZ_TD3")?.value.toString()
         assertEquals(
             "PPD<<FOLKS<<TALLULAH<<<<<<<<<<<<<<<<<<<<<<<<\n3113883489D<<9709155F1601013<<<<<<<<<<<<<<04", mrz
         )
@@ -122,7 +122,7 @@ class SealCommonTest {
     fun testVdsGetMessageTag() {
         val rawString = DataEncoder.encodeBase256(VdsRawBytesCommon.emergenyTravelDoc)
         val seal = Seal.fromString(rawString)
-        val mrz = seal.getMessage(2)?.value.toString()
+        val mrz = seal.getMessageByTag(2)?.value.toString()
         assertEquals(
             "I<GBRSUPAMANN<<MARY<<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06", mrz
         )
@@ -142,7 +142,7 @@ class SealCommonTest {
     fun testVdsGetMessageName() {
         val rawString = DataEncoder.encodeBase256(VdsRawBytesCommon.emergenyTravelDoc)
         val seal = Seal.fromString(rawString)
-        val mrz = seal.getMessage("MRZ")?.value.toString()
+        val mrz = seal.getMessageByName("MRZ")?.value.toString()
         assertEquals(
             "I<GBRSUPAMANN<<MARY<<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06", mrz
         )
@@ -228,11 +228,11 @@ class SealCommonTest {
         assertEquals("ARRIVAL_ATTESTATION_IDB", seal.documentType)
         println(seal.messageList.joinToString("\n") { message -> "${message.name}: ${message.value}" })
         assertEquals(4, seal.messageList.size)
-        assertEquals("ABC123456DEF", seal.getMessage("AZR").toString())
-        assertEquals(13, seal.getMessage("NATIONAL_DOCUMENT_IDENTIFIER")?.value?.decoded)
+        assertEquals("ABC123456DEF", seal.getMessageByName("AZR").toString())
+        assertEquals(13, seal.getMessageByName("NATIONAL_DOCUMENT_IDENTIFIER")?.value?.decoded)
         assertEquals(
             "AUD<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
-            seal.getMessage(0x81).toString()
+            seal.getMessageByTag(0x81).toString()
         )
     }
 

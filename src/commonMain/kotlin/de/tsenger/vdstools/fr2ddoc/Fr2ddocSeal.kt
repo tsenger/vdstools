@@ -7,37 +7,43 @@ import de.tsenger.vdstools.generic.SignatureInfo
 
 
 class Fr2ddocSeal private constructor(
-    private val header: Fr2ddocHeader,
-    private val messageGroup: Fr2ddocMessageGroup,
+    private val fr2ddocHeader: Fr2ddocHeader,
+    private val fr2ddocMessageGroup: Fr2ddocMessageGroup,
     private val fr2ddocSignature: Fr2ddocSignature,
     private val barcodeString: String,
     private val signedData: ByteArray
 ) : Seal() {
 
+    override val signerCertReference: String
+        get() = (fr2ddocHeader.signerIdentifier ?: "") + (fr2ddocHeader.certificateReference ?: "")
+
+    override val signingDate get() = fr2ddocHeader.sigDate
+
     override val documentType: String
-        get() = header.docType ?: ""
+        get() = fr2ddocHeader.docType ?: ""
 
     override val issuingCountry: String
-        get() = header.issuingCountry ?: ""
+        get() = fr2ddocHeader.issuingCountry ?: ""
 
     override val messageList: List<Message>
-        get() = messageGroup.messages
+        get() = fr2ddocMessageGroup.messages
 
     override fun getMessageByName(name: String): Message? =
-        messageGroup.messages.find { it.name == name }
+        fr2ddocMessageGroup.messages.find { it.name == name }
 
     override fun getMessageByTag(tag: Int): Message? =
         getMessageByTag(tag.toString(16).uppercase().padStart(2, '0'))
 
     override fun getMessageByTag(tag: String): Message? =
-        messageGroup.messages.find { it.tag == tag }
+        fr2ddocMessageGroup.messages.find { it.tag == tag }
 
     override val signatureInfo: SignatureInfo?
         get() {
-            val sigDate = header.sigDate ?: return null
+            val sigDate = fr2ddocHeader.sigDate ?: return null
             return SignatureInfo(
                 plainSignatureBytes = fr2ddocSignature.plainSignatureBytes,
-                signerCertificateReference = (header.signerIdentifier ?: "") + (header.certificateReference ?: ""),
+                signerCertificateReference = (fr2ddocHeader.signerIdentifier
+                    ?: "") + (fr2ddocHeader.certificateReference ?: ""),
                 signingDate = sigDate,
                 signedBytes = signedData
             )
@@ -65,7 +71,7 @@ class Fr2ddocSeal private constructor(
         private fun parseSeal(barcodeString: String): Seal {
             val strBuffer = BufferReader(barcodeString)
 
-            val header = Fr2ddocHeader.fromStringBuffer(strBuffer)
+            val fr2ddocHeader = Fr2ddocHeader.fromStringBuffer(strBuffer)
             val headerLength = strBuffer.pointer
 
             val remaining = barcodeString.substring(headerLength)
@@ -80,14 +86,14 @@ class Fr2ddocSeal private constructor(
             log.v { "dataString: $dataString" }
             log.v { "signatureString: $signatureString" }
 
-            val perimeterId = header.perimeterId ?: "1"
+            val perimeterId = fr2ddocHeader.perimeterId ?: "1"
             val messageGroup = Fr2ddocMessageGroup.parse(dataString, perimeterId)
             val signature = Fr2ddocSignature.fromString(signatureString)
 
             // signedBytes = header + dataString (everything before US)
             val signedData = barcodeString.substring(0, headerLength + usIndex).encodeToByteArray()
 
-            return Fr2ddocSeal(header, messageGroup, signature, barcodeString, signedData)
+            return Fr2ddocSeal(fr2ddocHeader, messageGroup, signature, barcodeString, signedData)
         }
     }
 

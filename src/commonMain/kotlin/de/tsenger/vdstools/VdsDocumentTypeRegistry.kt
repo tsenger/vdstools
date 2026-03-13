@@ -4,6 +4,9 @@ import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.MessageCoding
+import de.tsenger.vdstools.generic.MessageDefinition
+import de.tsenger.vdstools.generic.MessageDefinitionResolver
+import de.tsenger.vdstools.generic.MessageResolver
 import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
 import de.tsenger.vdstools.vds.dto.VdsDocumentTypeDto
@@ -341,40 +344,57 @@ class VdsDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
         throw IllegalArgumentException("No Message with tag '" + tag + "' is specified for the given seal '" + docTypeDto.documentType + "'")
     }
 
-    /**
-     * Encodes a DerTlv to a Message based on the given VDS type.
-     *
-     * @param vdsType The VDS type name
-     * @param derTlv The DerTlv to encode
-     * @return The Message, or null if encoding fails
-     */
-    fun encodeDerTlv(vdsType: String, derTlv: DerTlv): Message? {
-        val bytes = derTlv.value
-        val name = getMessageName(vdsType, derTlv)
-        val tagInt = derTlv.tag.toInt()
-        val tagHex = (tagInt and 0xFF).toString(16).uppercase().padStart(2, '0')
-        val coding = getMessageCoding(vdsType, derTlv)
-        if (name == "" || coding == MessageCoding.UNKNOWN) return null
-        return Message(tagHex, name, coding, MessageValue.fromBytes(bytes, coding))
+    fun asResolver(
+        vdsType: String,
+        profileDefinition: VdsProfileDefinitionDto? = null
+    ): MessageDefinitionResolver = object : MessageDefinitionResolver {
+        override fun resolveByTag(tag: String): MessageDefinition? {
+            val tagInt = tag.toIntOrNull(16) ?: return null
+            val name = try {
+                getMessageName(vdsType, profileDefinition, tagInt)
+            } catch (_: Exception) {
+                return null
+            }
+            val coding = try {
+                getMessageCoding(vdsType, profileDefinition, tagInt)
+            } catch (_: Exception) {
+                return null
+            }
+            if (name.isEmpty() || coding == MessageCoding.UNKNOWN) return null
+            return MessageDefinition(tag.uppercase().padStart(2, '0'), name, coding)
+        }
+
+        override fun resolveByName(name: String): MessageDefinition? {
+            val tagInt = try {
+                getMessageTag(vdsType, profileDefinition, name)
+            } catch (_: Exception) {
+                return null
+            }
+            val tagHex = (tagInt and 0xFF).toString(16).uppercase().padStart(2, '0')
+            val coding = try {
+                getMessageCoding(vdsType, profileDefinition, tagInt)
+            } catch (_: Exception) {
+                return null
+            }
+            return MessageDefinition(tagHex, name, coding)
+        }
     }
 
-    /**
-     * Encodes a DerTlv to a Message with profile definition-aware lookup.
-     *
-     * @param vdsType The base VDS type
-     * @param profileDefinition The resolved profile definition (may be null)
-     * @param derTlv The DerTlv to encode
-     * @return The Message, or null if encoding fails
-     */
-    fun encodeDerTlv(vdsType: String, profileDefinition: VdsProfileDefinitionDto?, derTlv: DerTlv): Message? {
-        val bytes = derTlv.value
-        val tagInt = derTlv.tag.toInt()
-        val tagHex = (tagInt and 0xFF).toString(16).uppercase().padStart(2, '0')
-        val name = getMessageName(vdsType, profileDefinition, tagInt)
-        val coding = getMessageCoding(vdsType, profileDefinition, tagInt)
-        if (name == "" || coding == MessageCoding.UNKNOWN) return null
-        return Message(tagHex, name, coding, MessageValue.fromBytes(bytes, coding))
+    fun resolveMessage(vdsType: String, derTlv: DerTlv): Message? {
+        return MessageResolver.resolve(derTlv, asResolver(vdsType))
     }
+
+    fun resolveMessage(vdsType: String, profileDefinition: VdsProfileDefinitionDto?, derTlv: DerTlv): Message? {
+        return MessageResolver.resolve(derTlv, asResolver(vdsType, profileDefinition))
+    }
+
+    @Deprecated("Use resolveMessage()", ReplaceWith("resolveMessage(vdsType, derTlv)"))
+    fun encodeDerTlv(vdsType: String, derTlv: DerTlv): Message? =
+        resolveMessage(vdsType, derTlv)
+
+    @Deprecated("Use resolveMessage()", ReplaceWith("resolveMessage(vdsType, profileDefinition, derTlv)"))
+    fun encodeDerTlv(vdsType: String, profileDefinition: VdsProfileDefinitionDto?, derTlv: DerTlv): Message? =
+        resolveMessage(vdsType, profileDefinition, derTlv)
 
     override fun addEntriesFromJson(jsonString: String) {
         val newDtos = json.decodeFromString<List<VdsDocumentTypeDto>>(jsonString)

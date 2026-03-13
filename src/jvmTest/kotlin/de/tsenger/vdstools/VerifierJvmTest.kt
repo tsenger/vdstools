@@ -22,7 +22,7 @@ class VerifierJvmTest {
     fun testVerifyArrivalAttestationDETS00027() {
         val vdsSeal: VdsSeal =
             checkNotNull(VdsSeal.fromByteArray(VdsRawBytesJvm.arrivalAttestation)) as VdsSeal
-        val signerCertRef: String = vdsSeal.signerCertRef
+        val signerCertRef: String = vdsSeal.signerCertReference
         assertEquals("DETS27", signerCertRef) // input validation
 
         val cert = keystore.getCertificate(signerCertRef.lowercase(Locale.getDefault())) as X509Certificate
@@ -32,7 +32,7 @@ class VerifierJvmTest {
         val x509SignerCertRef = String.format("%s%x", signerIdentifier, serialNumber)
         assertEquals(signerCertRef, x509SignerCertRef)
 
-        val sigLocalDate = vdsSeal.sigDate
+        val sigLocalDate = vdsSeal.signingDate
 
         assertEquals(LocalDate.parse("2020-01-13"), sigLocalDate)
 
@@ -44,7 +44,7 @@ class VerifierJvmTest {
     @Test
     fun testVerifyResidentPermit256BitSig() {
         val vdsSeal = VdsSeal.fromByteArray(VdsRawBytesJvm.residentPermit) as VdsSeal
-        val signerCertRef = vdsSeal.signerCertRef
+        val signerCertRef = vdsSeal.signerCertReference
         assertEquals("UTTS5B", signerCertRef)
         val cert = keystore.getCertificate(signerCertRef.lowercase(Locale.getDefault())) as X509Certificate
 
@@ -56,7 +56,7 @@ class VerifierJvmTest {
     @Test
     fun testVerifyVisa224BitSig() {
         val vdsSeal = VdsSeal.fromByteArray(VdsRawBytesJvm.visa_224bitSig) as VdsSeal
-        val signerCertRef = vdsSeal.signerCertRef
+        val signerCertRef = vdsSeal.signerCertReference
         assertEquals("DETS32", signerCertRef)
         val cert = keystore.getCertificate(signerCertRef.lowercase(Locale.getDefault())) as X509Certificate
 

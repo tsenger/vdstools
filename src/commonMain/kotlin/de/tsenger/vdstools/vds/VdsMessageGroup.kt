@@ -56,7 +56,8 @@ class VdsMessageGroup {
             val messageList: MutableList<Message> = ArrayList()
             for (derTlv in derTlvList) {
                 if (derTlv.tag.toInt() in metadataTags) continue
-                DataEncoder.vdsDocumentTypes.encodeDerTlv(vdsType, profileDefinition, derTlv)?.let { messageList.add(it) }
+                DataEncoder.vdsDocumentTypes.resolveMessage(vdsType, profileDefinition, derTlv)
+                    ?.let { messageList.add(it) }
             }
             return messageList
         }
@@ -66,7 +67,7 @@ class VdsMessageGroup {
             val result: MutableList<Message> = ArrayList()
             for (derTlv in derTlvList) {
                 if (derTlv.tag.toInt() !in metadataTags) continue
-                DataEncoder.vdsDocumentTypes.encodeDerTlv(vdsType, profileDefinition, derTlv)
+                DataEncoder.vdsDocumentTypes.resolveMessage(vdsType, profileDefinition, derTlv)
                     ?.let { result.add(it) }
             }
             return result
@@ -162,7 +163,7 @@ class VdsMessageGroup {
 
     companion object {
         fun fromByteArray(rawBytes: ByteArray, vdsType: String): VdsMessageGroup {
-            val derTlvList = DataEncoder.parseDerTLvs(rawBytes)
+            val derTlvList = DerTlv.parseAll(rawBytes)
             return VdsMessageGroup(vdsType, derTlvList)
         }
     }

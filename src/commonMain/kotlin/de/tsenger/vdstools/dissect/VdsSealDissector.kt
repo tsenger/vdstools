@@ -35,10 +35,10 @@ private fun VdsSeal.buildHeaderDissection(raw: ByteArray, headerLen: Int): Field
     // v2 (rawVersion=0x02): signer+certRef always encodes to 6 bytes (9 C40 chars)
     // v3 (rawVersion=0x03): variable length — compute from remaining known-size fields
     val certRefBytes = if (version == 0x02) 6 else headerLen - pos - 8  // 8 = dates(6) + featureRef(1) + typeCat(1)
-    children += FieldDissection("Signer+CertRef ($signerCertRef)", ByteRange(pos, certRefBytes)); pos += certRefBytes
+    children += FieldDissection("Signer+CertRef ($signerCertReference)", ByteRange(pos, certRefBytes)); pos += certRefBytes
 
     children += FieldDissection("Issuing Date ($issuingDate)", ByteRange(pos, 3)); pos += 3
-    children += FieldDissection("Sig Date ($sigDate)", ByteRange(pos, 3)); pos += 3
+    children += FieldDissection("Sig Date ($signingDate)", ByteRange(pos, 3)); pos += 3
     children += FieldDissection("Doc Feature Ref (0x${docFeatureRef.toHex()})", ByteRange(pos, 1)); pos += 1
     children += FieldDissection("Doc Type Cat (0x${docTypeCat.toHex()})", ByteRange(pos, 1))
 

@@ -1,5 +1,7 @@
 package de.tsenger.vdstools.dissect
 
+import de.tsenger.vdstools.asn1.DerTlv
+
 /**
  * Represents a single DER-encoded TLV (Tag-Length-Value) element,
  * tracking its position and structure within a byte array.
@@ -35,35 +37,11 @@ internal fun scanTlvs(bytes: ByteArray, baseOffset: Int): List<TlvSpan> {
         val tag = bytes[pos].toInt() and 0xFF
         pos += 1
 
-        val firstLenByte = bytes[pos].toInt() and 0xFF
-        pos += 1
-        val derLen = decodeDerLength(firstLenByte, bytes, pos)
-        pos += derLen.extraBytes
+        val (length, lengthFieldSize) = DerTlv.decodeDerLength(bytes, pos)
+        pos += lengthFieldSize
 
-        result.add(TlvSpan(tag, tagOffset, 1 + derLen.extraBytes, derLen.value))
-        pos += derLen.value
+        result.add(TlvSpan(tag, tagOffset, lengthFieldSize, length))
+        pos += length
     }
     return result
-}
-
-private data class DerLength(val value: Int, val extraBytes: Int)
-
-private fun decodeDerLength(firstByte: Int, bytes: ByteArray, pos: Int): DerLength {
-    return when (firstByte) {
-        0x81 -> DerLength(
-            bytes[pos].toInt() and 0xFF,
-            1
-        )
-        0x82 -> DerLength(
-            ((bytes[pos].toInt() and 0xFF) shl 8) or (bytes[pos + 1].toInt() and 0xFF),
-            2
-        )
-        0x83 -> DerLength(
-            ((bytes[pos].toInt() and 0xFF) shl 16) or
-                    ((bytes[pos + 1].toInt() and 0xFF) shl 8) or
-                    (bytes[pos + 2].toInt() and 0xFF),
-            3
-        )
-        else -> DerLength(firstByte, 0)  // <= 0x7F: length is the byte itself
-    }
 }

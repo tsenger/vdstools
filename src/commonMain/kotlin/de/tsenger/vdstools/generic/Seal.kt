@@ -3,8 +3,12 @@ package de.tsenger.vdstools.generic
 import de.tsenger.vdstools.fr2ddoc.Fr2ddocSeal
 import de.tsenger.vdstools.idb.IdbSeal
 import de.tsenger.vdstools.vds.VdsSeal
+import kotlinx.datetime.LocalDate
 
 abstract class Seal {
+    abstract val signerCertReference: String?
+    abstract val signingDate: LocalDate?
+
     abstract fun getMessageByName(name: String): Message?
     abstract fun getMessageByTag(tag: Int): Message?
     abstract fun getMessageByTag(tag: String): Message?

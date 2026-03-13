@@ -28,8 +28,8 @@ class VerifierIosTest {
     @OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
     @Test
     fun testVerifyResidentPermit256BitSig() {
-        val vdsSeal = VdsSeal.fromByteArray(VdsRawBytesIos.residentPermit) as VdsSeal
-        val signerCertRef = vdsSeal.signerCertRef
+        val vdsSeal = VdsSeal.fromByteArray(VdsRawBytesIos.residentPermit)
+        val signerCertRef = vdsSeal.signerCertReference
         assertEquals("UTTS5B", signerCertRef)
 
         val certPath = NSBundle.mainBundle.pathForResource("sealgen_UTTS5B", "crt")?.toPath()
@@ -49,8 +49,8 @@ class VerifierIosTest {
     @OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
     @Test
     fun testVerifyVisa224BitSig() {
-        val vdsSeal = VdsSeal.fromByteArray(VdsRawBytesIos.visa_224bitSig) as VdsSeal
-        val signerCertRef = vdsSeal.signerCertRef
+        val vdsSeal = VdsSeal.fromByteArray(VdsRawBytesIos.visa_224bitSig)
+        val signerCertRef = vdsSeal.signerCertReference
         assertEquals("DETS32", signerCertRef)
 
         val certPath = NSBundle.mainBundle.pathForResource("sealgen_DETS32", "crt")?.toPath()

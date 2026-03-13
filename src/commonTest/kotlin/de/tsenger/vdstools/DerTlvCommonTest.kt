@@ -4,6 +4,7 @@ import de.tsenger.vdstools.asn1.DerTlv
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalStdlibApi::class)
 class DerTlvCommonTest {
@@ -33,6 +34,74 @@ class DerTlvCommonTest {
         val derTlv = DerTlv.fromByteArray("0809aabbccddeeff010203".hexToByteArray())
         assertEquals(0x08, derTlv!!.tag.toLong())
         assertEquals(0x09, derTlv.value.size.toLong())
+    }
+
+    @Test
+    fun testParseAll_multipleTlvs() {
+        // Two TLVs: tag=0x01 len=3 value=aabbcc, tag=0x02 len=2 value=ddee
+        val bytes = "0103aabbcc0202ddee".hexToByteArray()
+        val tlvs = DerTlv.parseAll(bytes)
+        assertEquals(2, tlvs.size)
+        assertEquals(0x01.toByte(), tlvs[0].tag)
+        assertContentEquals("aabbcc".hexToByteArray(), tlvs[0].value)
+        assertEquals(0x02.toByte(), tlvs[1].tag)
+        assertContentEquals("ddee".hexToByteArray(), tlvs[1].value)
+    }
+
+    @Test
+    fun testParseAll_shortLength() {
+        // tag=0x05 len=0x7F (127 bytes)
+        val value = ByteArray(127) { it.toByte() }
+        val bytes = byteArrayOf(0x05, 0x7F) + value
+        val tlvs = DerTlv.parseAll(bytes)
+        assertEquals(1, tlvs.size)
+        assertEquals(127, tlvs[0].value.size)
+    }
+
+    @Test
+    fun testParseAll_length81() {
+        // tag=0x05 len=0x81 0x80 (128 bytes)
+        val value = ByteArray(128) { it.toByte() }
+        val bytes = byteArrayOf(0x05, 0x81.toByte(), 0x80.toByte()) + value
+        val tlvs = DerTlv.parseAll(bytes)
+        assertEquals(1, tlvs.size)
+        assertEquals(128, tlvs[0].value.size)
+    }
+
+    @Test
+    fun testParseAll_length82() {
+        // tag=0x05 len=0x82 0x01 0x00 (256 bytes)
+        val value = ByteArray(256) { it.toByte() }
+        val bytes = byteArrayOf(0x05, 0x82.toByte(), 0x01, 0x00) + value
+        val tlvs = DerTlv.parseAll(bytes)
+        assertEquals(1, tlvs.size)
+        assertEquals(256, tlvs[0].value.size)
+    }
+
+    @Test
+    fun testParseAll_length83() {
+        // tag=0x05 len=0x83 0x01 0x00 0x01 (65537 bytes)
+        val value = ByteArray(65537)
+        val bytes = byteArrayOf(0x05, 0x83.toByte(), 0x01, 0x00, 0x01) + value
+        val tlvs = DerTlv.parseAll(bytes)
+        assertEquals(1, tlvs.size)
+        assertEquals(65537, tlvs[0].value.size)
+    }
+
+    @Test
+    fun testParseAll_empty() {
+        val tlvs = DerTlv.parseAll(byteArrayOf())
+        assertTrue(tlvs.isEmpty())
+    }
+
+    @Test
+    fun testFromByteArray_withParseAll_consistency() {
+        // fromByteArray and parseAll should agree on the first TLV
+        val single = DerTlv.fromByteArray(der_rawBytes)!!
+        val all = DerTlv.parseAll(der_rawBytes)
+        assertEquals(1, all.size)
+        assertEquals(single.tag, all[0].tag)
+        assertContentEquals(single.value, all[0].value)
     }
 
     companion object {

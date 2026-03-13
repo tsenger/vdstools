@@ -5,10 +5,7 @@ import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.Signer
 import de.tsenger.vdstools.asn1.DerTlv
-import de.tsenger.vdstools.generic.Message
-import de.tsenger.vdstools.generic.MessageValue
-import de.tsenger.vdstools.generic.Seal
-import de.tsenger.vdstools.generic.SignatureInfo
+import de.tsenger.vdstools.generic.*
 import kotlinx.datetime.LocalDate
 import okio.Buffer
 
@@ -34,6 +31,11 @@ class VdsSeal : Seal {
         this.documentType = vdsMessageGroup.profileDefinition?.definitionName ?: vdsHeader.vdsType
     }
 
+    override val signerCertReference: String
+        get() = vdsHeader.signerCertRef
+
+    override val signingDate get() = vdsHeader.sigDate
+
     override val documentType: String
 
     override val baseDocumentType: String?
@@ -45,9 +47,6 @@ class VdsSeal : Seal {
     override val issuingCountry: String
         get() = vdsHeader.issuingCountry
 
-    val signerCertRef: String
-        get() = vdsHeader.signerCertRef
-
     val signerIdentifier: String?
         get() = vdsHeader.signerIdentifier
 
@@ -56,9 +55,6 @@ class VdsSeal : Seal {
 
     val issuingDate: LocalDate?
         get() = vdsHeader.issuingDate
-
-    val sigDate: LocalDate?
-        get() = vdsHeader.sigDate
 
     val docFeatureRef: Byte
         get() = vdsHeader.docFeatureRef
@@ -140,8 +136,8 @@ class VdsSeal : Seal {
             }
             return SignatureInfo(
                 plainSignatureBytes = signatureBytes,
-                signerCertificateReference = signerCertRef,
-                signingDate = sigDate ?: LocalDate(1970, 1, 1),
+                signerCertificateReference = signerCertReference,
+                signingDate = signingDate ?: LocalDate(1970, 1, 1),
                 signedBytes = vdsHeader.encoded + vdsMessageGroup.encoded,
                 signerCertificateBytes = null,
                 signatureAlgorithm = signatureAlgorithm,
@@ -196,8 +192,7 @@ class VdsSeal : Seal {
             val vdsHeader = VdsHeader.fromBuffer(rawDataBuffer)
             var vdsSignature: VdsSignature? = null
 
-            val derTlvList = DataEncoder
-                .parseDerTLvs(rawDataBuffer.readByteArray())
+            val derTlvList = DerTlv.parseAll(rawDataBuffer.readByteArray())
 
             val messageList: MutableList<DerTlv> = ArrayList(derTlvList.size - 1)
 

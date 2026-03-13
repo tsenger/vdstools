@@ -133,7 +133,7 @@ class IdbMessageGroup {
                 }, but tag ${rawBytes[0].toString(16).padStart(2, '0').uppercase()} was found instead."
             }
             val valueBytes = DerTlv.fromByteArray(rawBytes)?.value ?: ByteArray(0)
-            val derTlvList = DataEncoder.parseDerTLvs(valueBytes)
+            val derTlvList = DerTlv.parseAll(valueBytes)
             return IdbMessageGroup(derTlvList)
         }
 
@@ -152,7 +152,7 @@ class IdbMessageGroup {
                 val firstByte = derTlv.value.firstOrNull()
                 if (firstByte != null && firstByte in expectedTags) {
                     try {
-                        val childTlvs = DataEncoder.parseDerTLvs(derTlv.value)
+                        val childTlvs = DerTlv.parseAll(derTlv.value)
                         childTlvs.map { childTlv -> parseMessage(childTlv, childDefs) }
                     } catch (_: Exception) {
                         emptyList()

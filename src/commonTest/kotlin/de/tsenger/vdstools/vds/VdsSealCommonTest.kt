@@ -12,11 +12,11 @@ class VdsSealCommonTest {
     fun testParseSocialInsurranceCard() {
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.socialInsurance) as VdsSeal
         assertEquals("SOCIAL_INSURANCE_CARD", seal.documentType)
-        assertEquals("65170839J003", seal.getMessage("SOCIAL_INSURANCE_NUMBER")?.value.toString())
+        assertEquals("65170839J003", seal.getMessageByName("SOCIAL_INSURANCE_NUMBER")?.value.toString())
 
-        assertEquals("Perschweiß", seal.getMessage("SURNAME")?.value.toString())
-        assertEquals("Oscar", seal.getMessage("FIRST_NAME")?.value.toString())
-        assertEquals("Jâcobénidicturius", seal.getMessage("BIRTH_NAME")?.value.toString())
+        assertEquals("Perschweiß", seal.getMessageByName("SURNAME")?.value.toString())
+        assertEquals("Oscar", seal.getMessageByName("FIRST_NAME")?.value.toString())
+        assertEquals("Jâcobénidicturius", seal.getMessageByName("BIRTH_NAME")?.value.toString())
     }
 
     @Test
@@ -35,11 +35,11 @@ class VdsSealCommonTest {
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.arrivalAttestationV02) as VdsSeal
         assertEquals(
             "MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
-            seal.getMessage("MRZ")?.value.toString()
+            seal.getMessageByName("MRZ")?.value.toString()
         )
         assertEquals("0004F", seal.certificateReference)
-        assertEquals("ABC123456DEF", seal.getMessage("AZR")?.value.toString())
-        assertNull(seal.getMessage("FIRST_NAME"))
+        assertEquals("ABC123456DEF", seal.getMessageByName("AZR")?.value.toString())
+        assertNull(seal.getMessageByName("FIRST_NAME"))
     }
 
     @Test
@@ -59,9 +59,9 @@ class VdsSealCommonTest {
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.residentPermit) as VdsSeal
         assertEquals(
             "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
-            seal.getMessage("MRZ")?.value.toString()
+            seal.getMessageByName("MRZ")?.value.toString()
         )
-        assertEquals("UFO001979", seal.getMessage("PASSPORT_NUMBER")!!.value.toString())
+        assertEquals("UFO001979", seal.getMessageByName("PASSPORT_NUMBER")!!.value.toString())
     }
 
     @Test
@@ -79,9 +79,9 @@ class VdsSealCommonTest {
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.supplementSheet) as VdsSeal
         assertEquals(
             "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
-            seal.getMessage("MRZ")?.value.toString()
+            seal.getMessageByName("MRZ")?.value.toString()
         )
-        assertEquals("PA0000005", seal.getMessage("SHEET_NUMBER")!!.value.toString())
+        assertEquals("PA0000005", seal.getMessageByName("SHEET_NUMBER")!!.value.toString())
     }
 
     @Test
@@ -99,7 +99,7 @@ class VdsSealCommonTest {
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.emergenyTravelDoc) as VdsSeal
         assertEquals(
             "I<GBRSUPAMANN<<MARY<<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06",
-            seal.getMessage("MRZ")?.value.toString()
+            seal.getMessageByName("MRZ")?.value.toString()
         )
     }
 
@@ -115,9 +115,9 @@ class VdsSealCommonTest {
     @Test
     fun testParseAddressStickerId() {
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.addressStickerId) as VdsSeal
-        assertEquals("T2000AK47", seal.getMessage("DOCUMENT_NUMBER")?.value.toString())
-        assertEquals("05314000", seal.getMessage("AGS")?.value.toString())
-        assertEquals("53175HEINEMANNSTR11", seal.getMessage("ADDRESS")?.value.toString())
+        assertEquals("T2000AK47", seal.getMessageByName("DOCUMENT_NUMBER")?.value.toString())
+        assertEquals("05314000", seal.getMessageByName("AGS")?.value.toString())
+        assertEquals("53175HEINEMANNSTR11", seal.getMessageByName("ADDRESS")?.value.toString())
     }
 
     @Test
@@ -131,9 +131,9 @@ class VdsSealCommonTest {
     @Test
     fun testParseAddressStickerPassport() {
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.addressStickerPassport) as VdsSeal
-        assertEquals("PA5500K11", seal.getMessage("DOCUMENT_NUMBER")?.value.toString())
-        assertEquals("03359010", seal.getMessage("AGS")?.value.toString())
-        assertEquals("21614", seal.getMessage("POSTAL_CODE")?.value.toString())
+        assertEquals("PA5500K11", seal.getMessageByName("DOCUMENT_NUMBER")?.value.toString())
+        assertEquals("03359010", seal.getMessageByName("AGS")?.value.toString())
+        assertEquals("21614", seal.getMessageByName("POSTAL_CODE")?.value.toString())
     }
 
     @Test
@@ -150,13 +150,13 @@ class VdsSealCommonTest {
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.visa_224bitSig) as VdsSeal
         assertEquals(
             "VCD<<DENT<<ARTHUR<PHILIP<<<<<<<<<<<<\n1234567XY7GBR5203116M2005250<<<<<<<<",
-            seal.getMessage("MRZ_MRVB")?.value.toString()
+            seal.getMessageByName("MRZ_MRVB")?.value.toString()
         )
-        assertEquals("47110815P", seal.getMessage("PASSPORT_NUMBER")?.value.toString())
+        assertEquals("47110815P", seal.getMessageByName("PASSPORT_NUMBER")?.value.toString())
         assertEquals(
-            "a00000", seal.getMessage("DURATION_OF_STAY")?.value?.rawBytes?.toHexString()
+            "a00000", seal.getMessageByName("DURATION_OF_STAY")?.value?.rawBytes?.toHexString()
         )
-        assertNull(seal.getMessage("NUMBER_OF_ENTRIES"))
+        assertNull(seal.getMessageByName("NUMBER_OF_ENTRIES"))
     }
 
     @Test
@@ -227,13 +227,13 @@ class VdsSealCommonTest {
         assertNotNull(seal)
         println(seal.docTypeCat)
         assertEquals("ARRIVAL_ATTESTATION", seal.documentType)
-        assertEquals(LocalDate.parse("2016-05-23"), seal.sigDate)
+        assertEquals(LocalDate.parse("2016-05-23"), seal.signingDate)
         assertEquals(LocalDate.parse("2016-02-01"), seal.issuingDate)
         val rawString = seal.rawString
         val seal2 = VdsSeal.fromRawString(rawString) as VdsSeal
         assertNotNull(seal2)
         assertEquals("ARRIVAL_ATTESTATION", seal2.documentType)
-        assertEquals(LocalDate.parse("2016-05-23"), seal2.sigDate)
+        assertEquals(LocalDate.parse("2016-05-23"), seal2.signingDate)
         assertEquals(LocalDate.parse("2016-02-01"), seal2.issuingDate)
         assertContentEquals(VdsRawBytesCommon.ankunftsnwPapier, seal2.encoded)
     }
@@ -244,13 +244,13 @@ class VdsSealCommonTest {
         assertNotNull(seal)
         println(seal.docTypeCat)
         assertEquals("ARRIVAL_ATTESTATION", seal.documentType)
-        assertEquals(LocalDate.parse("2016-05-23"), seal.sigDate)
+        assertEquals(LocalDate.parse("2016-05-23"), seal.signingDate)
         assertEquals(LocalDate.parse("2016-02-01"), seal.issuingDate)
         val rawString = seal.rawString
         val seal2 = VdsSeal.fromRawString(rawString) as VdsSeal
         assertNotNull(seal2)
         assertEquals("ARRIVAL_ATTESTATION", seal2.documentType)
-        assertEquals(LocalDate.parse("2016-05-23"), seal2.sigDate)
+        assertEquals(LocalDate.parse("2016-05-23"), seal2.signingDate)
         assertEquals(LocalDate.parse("2016-02-01"), seal2.issuingDate)
         assertContentEquals(VdsRawBytesCommon.ankunftsnwPapier2, seal2.encoded)
     }
@@ -262,14 +262,14 @@ class VdsSealCommonTest {
         println(seal.docTypeCat)
         assertEquals("MELDEBESCHEINIGUNG", seal.documentType)
         assertEquals("ADMINISTRATIVE_DOCUMENTS", seal.baseDocumentType)
-        assertEquals(LocalDate.parse("2025-05-14"), seal.sigDate)
+        assertEquals(LocalDate.parse("2025-05-14"), seal.signingDate)
         assertEquals(LocalDate.parse("2025-05-14"), seal.issuingDate)
-        assertEquals("Mustermann", seal.getMessage("SURNAME")?.value.toString())
-        assertEquals("Dr.", seal.getMessage("ACADEMIC_DEGREE")?.value.toString())
-        assertEquals("Erika", seal.getMessage("FIRST_NAME")?.value.toString())
-        assertEquals("20250414", seal.getMessage("MOVING_DATE")?.value.toString())
-        assertEquals("20250504", seal.getMessage("DATE_OF_NOTIFICATION")?.value.toString())
-        assertTrue(seal.getMessage("MOVING_DATE")?.value is MessageValue.StringValue)
+        assertEquals("Mustermann", seal.getMessageByName("SURNAME")?.value.toString())
+        assertEquals("Dr.", seal.getMessageByName("ACADEMIC_DEGREE")?.value.toString())
+        assertEquals("Erika", seal.getMessageByName("FIRST_NAME")?.value.toString())
+        assertEquals("20250414", seal.getMessageByName("MOVING_DATE")?.value.toString())
+        assertEquals("20250504", seal.getMessageByName("DATE_OF_NOTIFICATION")?.value.toString())
+        assertTrue(seal.getMessageByName("MOVING_DATE")?.value is MessageValue.StringValue)
     }
 
     @Test
@@ -279,7 +279,7 @@ class VdsSealCommonTest {
         println(seal.docTypeCat)
         assertEquals("MELDEBESCHEINIGUNG", seal.documentType)
         assertEquals("ADMINISTRATIVE_DOCUMENTS", seal.baseDocumentType)
-        assertEquals(LocalDate.parse("2025-05-14"), seal.sigDate)
+        assertEquals(LocalDate.parse("2025-05-14"), seal.signingDate)
         assertEquals(LocalDate.parse("2025-05-14"), seal.issuingDate)
         assertEquals("Mustermann", seal.getMessageByName("SURNAME")?.value.toString())
         assertEquals("Dr.", seal.getMessageByName("ACADEMIC_DEGREE")?.value.toString())
@@ -293,8 +293,8 @@ class VdsSealCommonTest {
     fun testMeldebescheinigung_tag0NotInMessageList() {
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.meldebescheinigung) as VdsSeal
         // Tag 0 (DOC_PROFILE_NUMBER) should not appear in messageList
-        assertNull(seal.getMessage("DOC_PROFILE_NUMBER"))
-        assertNull(seal.getMessage(0))
+        assertNull(seal.getMessageByName("DOC_PROFILE_NUMBER"))
+        assertNull(seal.getMessageByTag(0))
         // But documentProfileUuid should be set
         assertNotNull(seal.documentProfileUuid)
         assertEquals(16, seal.documentProfileUuid!!.size)
@@ -339,8 +339,8 @@ class VdsSealCommonTest {
     fun testParseMeldebescheinigungByTags() {
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.meldebescheinigung) as VdsSeal
         assertEquals("MELDEBESCHEINIGUNG", seal.documentType)
-        assertEquals("Mustermann", seal.getMessage(4)?.value.toString())
-        assertNull(seal.getMessage(0)?.value)
+        assertEquals("Mustermann", seal.getMessageByTag(4)?.value.toString())
+        assertNull(seal.getMessageByTag(0)?.value)
         assertContentEquals("9a4223406d374ef99e2cf95e31a23846".hexToByteArray(), seal.documentProfileUuid)
 
     }
@@ -359,8 +359,8 @@ class VdsSealCommonTest {
     fun testParseMeldebescheinigungByNames() {
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.meldebescheinigung) as VdsSeal
         assertEquals("MELDEBESCHEINIGUNG", seal.documentType)
-        assertEquals("Mustermann", seal.getMessage("SURNAME")?.value.toString())
-        assertNull(seal.getMessage("DOC_PROFILE_NUMBER")?.value)
+        assertEquals("Mustermann", seal.getMessageByName("SURNAME")?.value.toString())
+        assertNull(seal.getMessageByName("DOC_PROFILE_NUMBER")?.value)
         assertContentEquals("9a4223406d374ef99e2cf95e31a23846".hexToByteArray(), seal.documentProfileUuid)
     }
 
