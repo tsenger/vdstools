@@ -6,15 +6,12 @@ import de.tsenger.vdstools.Signer
 import de.tsenger.vdstools.vds.VdsMessageGroup
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey
 import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.bouncycastle.util.encoders.Hex
 import org.junit.Assert.*
 import org.junit.BeforeClass
 import org.junit.Test
 import java.io.FileInputStream
-import java.io.IOException
 import java.security.KeyStore
 import java.security.Security
-import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
 
 @OptIn(ExperimentalStdlibApi::class)
@@ -34,167 +31,6 @@ class IdbSealJvmTest {
             keystore.load(fis, keyStorePassword.toCharArray())
             fis.close()
         }
-    }
-
-    @Test
-    fun testIsNotSignedIsNotZipped() {
-        val icb = IdbSeal('A', IdbPayload(IdbHeader("UTO"), IdbMessageGroup(emptyList()), null, null))
-        assertFalse(icb.isSigned)
-        assertFalse(icb.isZipped)
-    }
-
-    @Test
-    fun testIsSignedIsNotZipped() {
-        val icb = IdbSeal('B', IdbPayload(IdbHeader("UTO"), IdbMessageGroup(emptyList()), null, null))
-        assertTrue(icb.isSigned)
-        assertFalse(icb.isZipped)
-    }
-
-    @Test
-    fun testIsNotSignedIsZipped() {
-        val icb = IdbSeal('C', IdbPayload(IdbHeader("UTO"), IdbMessageGroup(emptyList()), null, null))
-        assertFalse(icb.isSigned)
-        assertTrue(icb.isZipped)
-    }
-
-    @Test
-    fun testIsSignedIsZipped() {
-        val icb = IdbSeal('D', IdbPayload(IdbHeader("UTO"), IdbMessageGroup(emptyList()), null, null))
-        assertTrue(icb.isSigned)
-        assertTrue(icb.isZipped)
-    }
-
-    @Test
-    @Throws(CertificateException::class, IOException::class)
-    fun testConstructor_signed_zipped() {
-        val payload = IdbPayload.fromByteArray(
-            Hex.decode(
-                "6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbb"
-                        + "b332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7"
-            ),
-            true
-        )
-        val icb = IdbSeal(isSigned = true, isZipped = true, barcodePayload = payload)
-        println(icb.rawString)
-        assertEquals(
-            "RDB1DPDNACWQAUX7WVPABAUCAGAQBACNV3CDBCICBBMFRWKZ3JNNWW64LTOV3XS635P37HASLXOZTF5LCVFHUQ7NWEO4NWVOEUZNZZ5JSVFMYIOTKGTQRP5LDIOUU2XQYP4UCMKKD3BCXTL2G2REAJT3DFD5FEPDSP7ZKYE",
-            icb.rawString
-        )
-    }
-
-    @Test
-    @Throws(CertificateException::class, IOException::class)
-    fun testConstructor_signed_notZipped() {
-        val payload = IdbPayload.fromByteArray(
-            Hex.decode(
-                "6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbb"
-                        + "b332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7"
-            ),
-            true
-        )
-        val icb = IdbSeal(isSigned = true, isZipped = false, barcodePayload = payload)
-        println(icb.rawString)
-        assertEquals(
-            "RDB1BNK6ACBIEAMBACAE3LWEGCEQECCYLDMVTWS23NN5YXG5LXPF5X27X6OBEXO5TGL2WFKKPJB63MI5Y3NK4JJS3TT2TFKKZQQ5GUNHBC72WGQ5JJVPBQ7ZIEYUUHWCFPGXUNVCIATHWGKH2KI6H",
-            icb.rawString
-        )
-    }
-
-    @Test
-    @Throws(CertificateException::class, IOException::class)
-    fun testConstructor_notSigned_zipped() {
-        val payload = IdbPayload.fromByteArray(
-            Hex.decode("6abc61120510b0b1b2b3b4b5b6b7b8b9babbbcbdbebf"),
-            false
-        )
-        val icb = IdbSeal(isSigned = false, isZipped = true, barcodePayload = payload)
-        println(icb.rawString)
-        assertEquals("RDB1CPDNACFQA5H7WVPDBCICRBMFRWKZ3JNNWW64LTOV3XS635P4DDIGSO", icb.rawString)
-    }
-
-    @Test
-    @Throws(CertificateException::class, IOException::class)
-    fun testConstructor_notSigned_notZipped() {
-        val payload = IdbPayload.fromByteArray(
-            Hex.decode("6abc61120510b0b1b2b3b4b5b6b7b8b9babbbcbdbebf"),
-            false
-        )
-        val icb = IdbSeal(isSigned = false, isZipped = false, barcodePayload = payload)
-        println(icb.rawString)
-        assertEquals("RDB1ANK6GCEQFCCYLDMVTWS23NN5YXG5LXPF5X27Q", icb.rawString)
-    }
-
-    @Test
-    @Throws(CertificateException::class, IOException::class)
-    fun testGetEncoded() {
-        val payload = IdbPayload.fromByteArray(
-            Hex.decode(
-                "6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbb"
-                        + "b332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7"
-            ),
-            true
-        )
-        val icb = IdbSeal('D', payload)
-        println(icb.rawString)
-        assertEquals(
-            "RDB1DPDNACWQAUX7WVPABAUCAGAQBACNV3CDBCICBBMFRWKZ3JNNWW64LTOV3XS635P37HASLXOZTF5LCVFHUQ7NWEO4NWVOEUZNZZ5JSVFMYIOTKGTQRP5LDIOUU2XQYP4UCMKKD3BCXTL2G2REAJT3DFD5FEPDSP7ZKYE",
-            icb.rawString
-        )
-    }
-
-
-    @Test
-    fun testFromString_signed_zipped() {
-        val icb = IdbSeal.fromString(
-            "RDB1DPDNACWQAUX7WVPABAUCAGAQBACNV3CDBCICBBMFRWKZ3JNNWW64LTOV3XS635P37HASLXOZTF5LCVFHUQ7NWEO4NWVOEUZNZZ5JSVFMYIOTKGTQRP5LDIOUU2XQYP4UCMKKD3BCXTL2G2REAJT3DFD5FEPDSP7ZKYE"
-        ) as IdbSeal
-        assertNotNull(icb)
-        assertEquals(
-            "6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7",
-            icb.payLoad.encoded.toHexString()
-        )
-
-    }
-
-    @Test
-    fun testFromString_signed_notZipped() {
-        val icb = IdbSeal.fromString(
-            "RDB1BNK6ACBIEAMBACAE3LWEGCEQECCYLDMVTWS23NN5YXG5LXPF5X27X6OBEXO5TGL2WFKKPJB63MI5Y3NK4JJS3TT2TFKKZQQ5GUNHBC72WGQ5JJVPBQ7ZIEYUUHWCFPGXUNVCIATHWGKH2KI6H"
-        ) as IdbSeal
-        assertNotNull(icb)
-        assertEquals(
-            "6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7",
-            icb.payLoad.encoded.toHexString()
-        )
-    }
-
-    @Test
-
-    fun testFromString_notSigned_zipped() {
-        val icb = IdbSeal.fromString("RDB1CPDNACFQA5H7WVPDBCICRBMFRWKZ3JNNWW64LTOV3XS635P4DDIGSO") as IdbSeal
-        assertNotNull(icb)
-        assertEquals(
-            "6abc61120510b0b1b2b3b4b5b6b7b8b9babbbcbdbebf",
-            icb.payLoad.encoded.toHexString()
-        )
-
-    }
-
-    @Test
-    fun testFromString_notSigned_notZipped() {
-        val icb = IdbSeal.fromString("RDB1ANK6GCEQFCCYLDMVTWS23NN5YXG5LXPF5X27Q") as IdbSeal
-        assertNotNull(icb)
-        assertEquals(
-            "6abc61120510b0b1b2b3b4b5b6b7b8b9babbbcbdbebf",
-            icb.payLoad.encoded.toHexString()
-        )
-    }
-
-    @Test(expected = java.lang.IllegalArgumentException::class)
-    fun testFromString_invalid_BarcodeIdentifier() {
-
-        val icb = IdbSeal.fromString("ADB1ANK6GCEQFCCYLDMVTWS23NN5YXG5LXPF5X27Q")
-        assertNull(icb)
     }
 
     @Test
@@ -230,9 +66,5 @@ class IdbSealJvmTest {
         assertTrue(
             icb.rawString.startsWith("RDB1BNK6ADJL2PECXOAAUAUMWCNACGIBDAXF2CNMHLF3OYBTNIF5VT2GGVPATHQJTYEZ4CM6D73Z2FE4O4Q7RLE6RVZJNXMTHKH7G")
         )
-
-
     }
-
-
 }
