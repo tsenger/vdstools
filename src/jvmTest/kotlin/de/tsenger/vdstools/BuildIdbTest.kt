@@ -136,15 +136,15 @@ class BuildIdbTest {
         val bitMatrix = dmw.encode(rawString, BarcodeFormat.DATA_MATRIX, 450, 450)
 
         // Define your own export Path and uncomment if needed
-        val path = Path.of("generated_barcodes_bka/$filename").createParentDirectories()
+        val path = Path.of("generated_barcodes/$filename").createParentDirectories()
         MatrixToImageWriter.writeToPath(bitMatrix, "PNG", path)
     }
 
     @OptIn(ExperimentalStdlibApi::class)
     fun writeIcbDataFile(icb: IdbSeal, filename: String) {
-        val payloadFile = File("generated_barcodes_bka/${filename}_payload.txt")
+        val payloadFile = File("generated_barcodes/${filename}_payload.txt")
         payloadFile.writeText(icb.payLoad.encoded.toHexString())
-        val base32File = File("generated_barcodes_bka/${filename}_base32.txt")
+        val base32File = File("generated_barcodes/${filename}_base32.txt")
         base32File.writeText(icb.rawString)
     }
 
