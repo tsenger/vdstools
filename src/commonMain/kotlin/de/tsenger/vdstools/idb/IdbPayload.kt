@@ -18,7 +18,7 @@ class IdbPayload(
             val buffer = Buffer()
             buffer.write(idbHeader.encoded)
             buffer.write(idbMessageGroup.encoded)
-            if (idbSignerCertificate != null) buffer.write(idbMessageGroup.encoded)
+            if (idbSignerCertificate != null) buffer.write(idbSignerCertificate.encoded)
             if (idbSignature != null) {
                 buffer.write(idbSignature.encoded)
             } else if (idbHeader.getSignatureAlgorithm() != null) {
