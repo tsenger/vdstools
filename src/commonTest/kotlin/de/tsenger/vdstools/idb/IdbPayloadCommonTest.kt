@@ -2,10 +2,7 @@ package de.tsenger.vdstools.idb
 
 import de.tsenger.vdstools.idb.IdbPayload.Companion.fromByteArray
 import kotlinx.io.IOException
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
+import kotlin.test.*
 
 @OptIn(ExperimentalStdlibApi::class)
 class IdbPayloadCommonTest {
@@ -147,12 +144,12 @@ class IdbPayloadCommonTest {
         val messageGroupHex = messageGroup.encoded.toHexString()
         val firstIndex = encodedHex.indexOf(messageGroupHex)
         val secondIndex = encodedHex.indexOf(messageGroupHex, firstIndex + 1)
-        assert(firstIndex >= 0) { "Message group should be present in encoded payload" }
-        assert(secondIndex < 0) { "Message group must not be duplicated in encoded payload" }
+        assertTrue(firstIndex >= 0, "Message group should be present in encoded payload")
+        assertTrue(secondIndex < 0, "Message group must not be duplicated in encoded payload")
 
         // Signer certificate tag 0x7E must be present
         val certHex = signerCert.encoded.toHexString()
-        assert(encodedHex.contains(certHex)) { "Signer certificate should be present in encoded payload" }
+        assertTrue(encodedHex.contains(certHex), "Signer certificate should be present in encoded payload")
     }
 
     @Test
@@ -181,12 +178,12 @@ class IdbPayloadCommonTest {
         assertNotNull(parsed.idbSignerCertificate)
         assertEquals(
             certBytes.toHexString(),
-            parsed.idbSignerCertificate!!.certBytes.toHexString()
+            parsed.idbSignerCertificate.certBytes.toHexString()
         )
         assertNotNull(parsed.idbSignature)
         assertEquals(
             signature.plainSignatureBytes.toHexString(),
-            parsed.idbSignature!!.plainSignatureBytes.toHexString()
+            parsed.idbSignature.plainSignatureBytes.toHexString()
         )
     }
 
@@ -207,13 +204,15 @@ class IdbPayloadCommonTest {
 
         // Tag 0x7E (signer certificate) must NOT be present
         val signerCertTagHex = "7e"
-        val afterMessageGroup = encodedHex.indexOf(messageGroup.encoded.toHexString()) + messageGroup.encoded.toHexString().length
+        val afterMessageGroup =
+            encodedHex.indexOf(messageGroup.encoded.toHexString()) + messageGroup.encoded.toHexString().length
         val signatureTagHex = "7f38"
         val sigIdx = encodedHex.indexOf(signatureTagHex, afterMessageGroup)
         // Between message group and signature, there should be no 0x7E tag
         val between = encodedHex.substring(afterMessageGroup, sigIdx)
-        assert(!between.startsWith(signerCertTagHex)) {
+        assertTrue(
+            !between.startsWith(signerCertTagHex),
             "Signer certificate tag should not be present when certificate is null"
-        }
+        )
     }
 }
