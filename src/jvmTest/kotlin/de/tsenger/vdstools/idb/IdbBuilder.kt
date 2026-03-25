@@ -62,7 +62,7 @@ class IdbBuilder {
 
         //MessageGroup
         val mrz = "PUD<<KOEPPENIK<<JONATHAN<GERALD<<<<<\n2L1T3QPB04D<<8506210M2604239<<<<<<<8"
-        val vdsMessage = VdsMessageGroup.Builder("ICAO_EMERGENCY_TRAVEL_DOCUMENT")
+        val vdsMessage = VdsMessageGroup.Builder("EMERGENCY_TRAVEL_DOCUMENT")
             .addMessage("MRZ", mrz)
             .build()
 

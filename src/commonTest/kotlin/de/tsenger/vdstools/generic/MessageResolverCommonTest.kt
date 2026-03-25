@@ -13,10 +13,10 @@ class MessageResolverCommonTest {
 
     @Test
     fun testResolveVdsMessage() {
-        // MRZ tag=0x02 for ICAO_EMERGENCY_TRAVEL_DOCUMENT, encoded as C40
+        // MRZ tag=0x02 for EMERGENCY_TRAVEL_DOCUMENT, encoded as C40
         val mrzBytes = DataEncoder.encodeC40("I<GBRSUPAMANN<<MARY<<<<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06")
         val derTlv = DerTlv(0x02.toByte(), mrzBytes)
-        val resolver = DataEncoder.vdsDocumentTypes.asResolver("ICAO_EMERGENCY_TRAVEL_DOCUMENT")
+        val resolver = DataEncoder.vdsDocumentTypes.asResolver("EMERGENCY_TRAVEL_DOCUMENT")
         val message = MessageResolver.resolve(derTlv, resolver)
         assertNotNull(message)
         assertEquals("02", message.tag)
@@ -49,7 +49,7 @@ class MessageResolverCommonTest {
     fun testDeprecatedEncodeDerTlvStillWorks() {
         val mrzBytes = DataEncoder.encodeC40("I<GBRSUPAMANN<<MARY<<<<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06")
         val derTlv = DerTlv(0x02.toByte(), mrzBytes)
-        val message = DataEncoder.vdsDocumentTypes.encodeDerTlv("ICAO_EMERGENCY_TRAVEL_DOCUMENT", derTlv)
+        val message = DataEncoder.vdsDocumentTypes.encodeDerTlv("EMERGENCY_TRAVEL_DOCUMENT", derTlv)
         assertNotNull(message)
         assertEquals("MRZ", message.name)
     }

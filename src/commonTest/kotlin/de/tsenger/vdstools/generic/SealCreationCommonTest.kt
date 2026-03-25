@@ -70,12 +70,12 @@ class SealCreationCommonTest {
     fun testVdsMessageGroup_EmergencyTravelDocument() {
         val mrz = "PPD<<FOLKS<<TALLULAH<<<<<<<<<<<<<<<<<<<<<<<<\n3113883489D<<9709155F1601013<<<<<<<<<<<<<<04"
 
-        val messageGroup = VdsMessageGroup.Builder("ICAO_EMERGENCY_TRAVEL_DOCUMENT")
+        val messageGroup = VdsMessageGroup.Builder("EMERGENCY_TRAVEL_DOCUMENT")
             .addMessage("MRZ", mrz)
             .build()
 
         assertNotNull(messageGroup)
-        assertEquals("ICAO_EMERGENCY_TRAVEL_DOCUMENT", messageGroup.vdsType)
+        assertEquals("EMERGENCY_TRAVEL_DOCUMENT", messageGroup.vdsType)
 
         val mrzFeature = messageGroup.getMessageByName("MRZ")
         assertNotNull(mrzFeature)

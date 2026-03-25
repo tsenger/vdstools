@@ -79,7 +79,7 @@ class IcbJvmTest {
 
         val etdBytes = icb.getMessage("EMERGENCY_TRAVEL_DOCUMENT")?.value?.rawBytes
         assertNotNull(etdBytes)
-        val mrz = VdsMessageGroup.fromByteArray(etdBytes, "ICAO_EMERGENCY_TRAVEL_DOCUMENT")
+        val mrz = VdsMessageGroup.fromByteArray(etdBytes, "EMERGENCY_TRAVEL_DOCUMENT")
             .getMessage("MRZ")?.value.toString()
         assertEquals(
             "PUD<<KOEPPENIK<<JONATHAN<GERALD<<<<<\n2L1T3QPB04D<<8506210M2604239<<<<<<<8", mrz
@@ -104,7 +104,7 @@ class IcbJvmTest {
 
         val etdBytes = icb.getMessageByName("EMERGENCY_TRAVEL_DOCUMENT")?.value?.rawBytes
         assertNotNull(etdBytes)
-        val mrz = VdsMessageGroup.fromByteArray(etdBytes, "ICAO_EMERGENCY_TRAVEL_DOCUMENT")
+        val mrz = VdsMessageGroup.fromByteArray(etdBytes, "EMERGENCY_TRAVEL_DOCUMENT")
             .getMessageByName("MRZ")?.value.toString()
         assertEquals(
             "PUD<<KOEPPENIK<<JONATHAN<GERALD<<<<<\n2L1T3QPB04D<<8506210M2604239<<<<<<<8", mrz

@@ -46,7 +46,7 @@ class MessageDefinitionResolverCommonTest {
 
     @Test
     fun testVdsResolveByTag() {
-        val resolver = DataEncoder.vdsDocumentTypes.asResolver("ICAO_EMERGENCY_TRAVEL_DOCUMENT")
+        val resolver = DataEncoder.vdsDocumentTypes.asResolver("EMERGENCY_TRAVEL_DOCUMENT")
         val def = resolver.resolveByTag("02")
         assertNotNull(def)
         assertEquals("MRZ", def.name)
@@ -55,7 +55,7 @@ class MessageDefinitionResolverCommonTest {
 
     @Test
     fun testVdsResolveByName() {
-        val resolver = DataEncoder.vdsDocumentTypes.asResolver("ICAO_EMERGENCY_TRAVEL_DOCUMENT")
+        val resolver = DataEncoder.vdsDocumentTypes.asResolver("EMERGENCY_TRAVEL_DOCUMENT")
         val def = resolver.resolveByName("MRZ")
         assertNotNull(def)
         assertEquals("02", def.tag)

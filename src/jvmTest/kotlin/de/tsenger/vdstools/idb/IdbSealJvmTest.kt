@@ -6,7 +6,7 @@ import de.tsenger.vdstools.Signer
 import de.tsenger.vdstools.vds.VdsMessageGroup
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey
 import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.junit.Assert.*
+import org.junit.Assert.assertTrue
 import org.junit.BeforeClass
 import org.junit.Test
 import java.io.FileInputStream
@@ -50,7 +50,7 @@ class IdbSealJvmTest {
 
         // Build Emergency Travel Document VdsMessageGroup
         val mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06"
-        val vdsMessage = VdsMessageGroup.Builder("ICAO_EMERGENCY_TRAVEL_DOCUMENT")
+        val vdsMessage = VdsMessageGroup.Builder("EMERGENCY_TRAVEL_DOCUMENT")
             .addMessage("MRZ", mrz)
             .build()
 

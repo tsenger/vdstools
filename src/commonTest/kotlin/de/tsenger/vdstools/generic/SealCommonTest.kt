@@ -216,7 +216,7 @@ class SealCommonTest {
     fun testVdsDocumentType() {
         val rawString = DataEncoder.encodeBase256(VdsRawBytesCommon.emergenyTravelDoc)
         val seal = Seal.fromString(rawString)
-        assertEquals("ICAO_EMERGENCY_TRAVEL_DOCUMENT", seal.documentType)
+        assertEquals("EMERGENCY_TRAVEL_DOCUMENT", seal.documentType)
     }
 
     @Test

@@ -36,7 +36,7 @@ class BuildIdbTest {
 
         // 2. Build an ETD Message
         val mrz = "ITD<<MUSTERMANN<<ERIKA<<<<<<<<<<<<<<D000000001D<<8308126<2707314<<<<<<<8"
-        val vdsMessage = VdsMessageGroup.Builder("ICAO_EMERGENCY_TRAVEL_DOCUMENT")
+        val vdsMessage = VdsMessageGroup.Builder("EMERGENCY_TRAVEL_DOCUMENT")
             .addMessage("MRZ", mrz)
             .build()
 

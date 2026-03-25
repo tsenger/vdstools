@@ -163,7 +163,7 @@
     ]
   },
   {
-    "documentType": "ICAO_EMERGENCY_TRAVEL_DOCUMENT",
+    "documentType": "EMERGENCY_TRAVEL_DOCUMENT",
     "documentRef": "5e03",
     "version": 4,
     "messages": [
