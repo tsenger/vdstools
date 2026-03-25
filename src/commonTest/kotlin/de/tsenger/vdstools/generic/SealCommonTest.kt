@@ -348,5 +348,20 @@ class SealCommonTest {
         assertNull(seal.baseDocumentType)
     }
 
-
+    @Test
+    fun testIdbVisaWithoutNationalDocumentType() {
+        val seal = Seal.fromString(IcbRawStringsCommon.Visa)
+        assertEquals("VISA", seal.documentType)
+        assertEquals(1, seal.messageList.size)
+        val visa = seal.getMessageByTag("01")
+        assertNotNull(visa)
+        assertEquals(4, visa.messageList.size)
+        assertEquals(
+            "P<D<<GARCIA<<EVELYN<<<<<<<<<<<<<<<<<<<<<<<<<\nB870L41688D<<8108108F3507050<<<<<<<<<<<<<<08",
+            visa.getMessageByName("MRZ_MRVA").toString()
+        )
+        for (message in visa.messageList) {
+            println("${message.name}: ${message.value}")
+        }
+    }
 }
