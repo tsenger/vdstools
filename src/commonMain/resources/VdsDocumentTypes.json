@@ -131,7 +131,7 @@
     ]
   },
   {
-    "documentType": "ICAO_VISA",
+    "documentType": "VISA",
     "documentRef": "5d01",
     "version": 4,
     "messages": [
@@ -284,7 +284,12 @@
     "version": 4,
     "uuidMessageLookup": true,
     "uuidMessageTag": 0,
-    "metadataTagList": [0, 1, 2, 3],
+    "metadataTagList": [
+      0,
+      1,
+      2,
+      3
+    ],
     "messages": [
       {
         "name": "DOC_PROFILE_NUMBER",

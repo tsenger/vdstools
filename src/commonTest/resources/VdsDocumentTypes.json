@@ -178,7 +178,7 @@
     ]
   },
   {
-    "documentType": "ICAO_VISA",
+    "documentType": "VISA",
     "documentRef": "5d01",
     "version": 4,
     "messages": [
