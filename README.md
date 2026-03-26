@@ -10,8 +10,8 @@ specified in
 - [ICAO TR "VDS for Non-Electronic Documents"](https://www2023.icao.int/Security/FAL/TRIP/Documents/TR%20-%20Visible%20Digital%20Seals%20for%20Non-Electronic%20Documents%20V1.7.pdf)
 
 It also fully supports encoding and decoding Seals defined in the new draft
-of [ICAO Datastructure for Barcode](https://www.icao.int/Security/FAL/TRIP/PublishingImages/Pages/Publications/ICAO%20TR%20-%20ICAO%20Datastructure%20for%20Barcode.pdf).
-VDS and ICD barcodes can be parsed by a generic interface. An example is given in the following chapter
+of [ICAO Datastructure for Barcode](https://www.icao.int/sites/default/files/TRIP/Publications/ICAO-TR-ICAO-Datastructure-for-Barcode.pdf).
+VDS and ICD barcodes can be parsed by a generic interface. An example is given in the following chapter.
 
 VDS can be created with the help of this library or, if you want to try it out quickly, via the
 web [Sealgen](https://sealgen.tsenger.de) tool.
