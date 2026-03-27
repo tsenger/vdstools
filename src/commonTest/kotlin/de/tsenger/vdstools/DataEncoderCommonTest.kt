@@ -1,6 +1,8 @@
 package de.tsenger.vdstools
 
 
+import de.tsenger.vdstools.generic.MessageCoding
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -113,6 +115,44 @@ class DataEncoderCommonTest {
         println("encodedDate: " + encodedDate.toHexString())
 
         assertEquals("8d7ad8", encodedDate.toHexString())
+    }
+
+    @Test
+    fun testEncodeValueByCoding_DATE_withString() {
+        val encoded = DataEncoder.encodeValueByCoding(MessageCoding.DATE, "1979-10-09")
+        assertEquals("99fdcb", encoded.toHexString())
+    }
+
+    @Test
+    fun testEncodeValueByCoding_DATE_withLocalDate() {
+        val encoded = DataEncoder.encodeValueByCoding(MessageCoding.DATE, LocalDate.parse("1979-10-09"))
+        assertEquals("99fdcb", encoded.toHexString())
+    }
+
+    @Test
+    fun testEncodeValueByCoding_DATE_stringAndLocalDateProduceSameResult() {
+        val fromString = DataEncoder.encodeValueByCoding(MessageCoding.DATE, "2024-09-27")
+        val fromLocalDate = DataEncoder.encodeValueByCoding(MessageCoding.DATE, LocalDate.parse("2024-09-27"))
+        assertContentEquals(fromString, fromLocalDate)
+    }
+
+    @Test
+    fun testEncodeValueByCoding_DATE_TIME_withString() {
+        val encoded = DataEncoder.encodeValueByCoding(MessageCoding.DATE_TIME, "1957-03-25T08:15:22")
+        assertEquals("02f527bf25b2", encoded.toHexString())
+    }
+
+    @Test
+    fun testEncodeValueByCoding_DATE_TIME_withLocalDateTime() {
+        val encoded = DataEncoder.encodeValueByCoding(MessageCoding.DATE_TIME, LocalDateTime.parse("1957-03-25T08:15:22"))
+        assertEquals("02f527bf25b2", encoded.toHexString())
+    }
+
+    @Test
+    fun testEncodeValueByCoding_DATE_TIME_stringAndLocalDateTimeProduceSameResult() {
+        val fromString = DataEncoder.encodeValueByCoding(MessageCoding.DATE_TIME, "2030-12-01T00:00:00")
+        val fromLocalDateTime = DataEncoder.encodeValueByCoding(MessageCoding.DATE_TIME, LocalDateTime.parse("2030-12-01T00:00:00"))
+        assertContentEquals(fromString, fromLocalDateTime)
     }
 
     //	@Test

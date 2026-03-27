@@ -289,6 +289,14 @@ object DataEncoder {
 
 
     /**
+     * @param dateTimeString DateTime as String formatted as yyyy-MM-ddTHH:mm:ss
+     * @return date time encoded in 6 bytes
+     */
+    fun encodeDateTime(dateTimeString: String): ByteArray {
+        return encodeDateTime(LocalDateTime.parse(dateTimeString))
+    }
+
+    /**
      * Encode a LocalDate as described in as described in ICAO TR "Datastructure for
      * Barcode" in six bytes.
      *
@@ -494,13 +502,21 @@ object DataEncoder {
             }
 
             MessageCoding.MASKED_DATE -> encodeMaskedDate(value as String)
-            MessageCoding.DATE -> encodeDate(value as String)
+            MessageCoding.DATE -> when (value) {
+                is LocalDate -> encodeDate(value)
+                is String -> encodeDate(value)
+                else -> throw IllegalArgumentException("DATE coding expects LocalDate or String (yyyy-MM-dd), got ${value!!::class.simpleName}")
+            }
             MessageCoding.VALIDITY_DATES -> when (value) {
                 is MessageValue.ValidityDatesValue -> value.rawBytes
                 is ByteArray -> value
                 else -> throw IllegalArgumentException("VALIDITY_DATES coding expects ValidityDatesValue or ByteArray, got ${value!!::class.simpleName}")
             }
-            MessageCoding.DATE_TIME -> encodeDateTime(value as LocalDateTime)
+            MessageCoding.DATE_TIME -> when (value) {
+                is LocalDateTime -> encodeDateTime(value)
+                is String -> encodeDateTime(value)
+                else -> throw IllegalArgumentException("DATE_TIME coding expects LocalDateTime or String (yyyy-MM-ddTHH:mm:ss), got ${value!!::class.simpleName}")
+            }
             MessageCoding.UNKNOWN -> if (tag != null) {
                 throw IllegalArgumentException("Unsupported tag: $tag")
             } else {
