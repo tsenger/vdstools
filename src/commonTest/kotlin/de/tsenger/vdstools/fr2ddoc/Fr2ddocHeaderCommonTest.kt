@@ -8,7 +8,7 @@ import kotlin.test.assertNull
 class Fr2ddocHeaderCommonTest {
 
     private fun parseHeader(raw: String): Fr2ddocHeader =
-        Fr2ddocHeader.fromStringBuffer(Fr2ddocSeal.BufferReader(raw))
+        Fr2ddocHeader.fromStringBuffer(BufferReader(raw))
 
     // --- getDateFromDaysSince2000 ---
 

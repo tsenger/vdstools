@@ -1,7 +1,6 @@
 package de.tsenger.vdstools.fr2ddoc
 
 import co.touchlab.kermit.Logger
-import de.tsenger.vdstools.fr2ddoc.Fr2ddocSeal.BufferReader
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.plus
@@ -30,7 +29,7 @@ class Fr2ddocHeader {
     companion object {
         private val log = Logger.withTag(this::class.simpleName ?: "")
 
-        fun fromStringBuffer(buffer: BufferReader): Fr2ddocHeader {
+        internal fun fromStringBuffer(buffer: BufferReader): Fr2ddocHeader {
 
             val header = Fr2ddocHeader()
 

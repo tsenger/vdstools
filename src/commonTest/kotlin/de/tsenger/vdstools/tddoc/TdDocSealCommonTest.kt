@@ -1,11 +1,12 @@
-package de.tsenger.vdstools.fr2ddoc
+package de.tsenger.vdstools.tddoc
 
 import de.tsenger.vdstools.fr2ddoc.Fr2ddocRawStringsCommon.rawString1
 import de.tsenger.vdstools.fr2ddoc.Fr2ddocRawStringsCommon.rawString2
 import de.tsenger.vdstools.fr2ddoc.Fr2ddocRawStringsCommon.rawString3
 import de.tsenger.vdstools.fr2ddoc.Fr2ddocRawStringsCommon.rawString4
 import de.tsenger.vdstools.fr2ddoc.Fr2ddocRawStringsCommon.rawString5
-import de.tsenger.vdstools.generic.Seal
+import de.tsenger.vdstools.generic.SealParser
+import de.tsenger.vdstools.generic.SealType
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlin.test.Test
@@ -13,11 +14,13 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-class Fr2ddocSealCommonTest {
+class TdDocSealCommonTest {
+
+    private val parser = SealParser(setOf(SealType.TDDOC))
 
     @Test
     fun testParseSample01_acteHuissier() {
-        val seal = Fr2ddocSeal.fromRawString(rawString1)
+        val seal = TdDocSeal.fromRawString(rawString1)
         assertEquals("12", seal.documentType)
         assertEquals("FR", seal.issuingCountry)
         assertEquals(8, seal.messageList.size)
@@ -46,7 +49,7 @@ class Fr2ddocSealCommonTest {
 
     @Test
     fun testParseSample02_attestationCVE() {
-        val seal = Fr2ddocSeal.fromRawString(rawString2)
+        val seal = TdDocSeal.fromRawString(rawString2)
         assertEquals("B1", seal.documentType)
         assertEquals("FR", seal.issuingCountry)
         assertEquals(6, seal.messageList.size)
@@ -61,7 +64,7 @@ class Fr2ddocSealCommonTest {
 
     @Test
     fun testParseSample03_certificatCession() {
-        val seal = Fr2ddocSeal.fromRawString(rawString3)
+        val seal = TdDocSeal.fromRawString(rawString3)
         assertEquals("A8", seal.documentType)
         assertEquals("FR", seal.issuingCountry)
 
@@ -95,7 +98,7 @@ class Fr2ddocSealCommonTest {
 
     @Test
     fun testParseSample04_documentEtranger() {
-        val seal = Fr2ddocSeal.fromRawString(rawString4)
+        val seal = TdDocSeal.fromRawString(rawString4)
         assertEquals("13", seal.documentType)
         assertEquals("FR", seal.issuingCountry)
 
@@ -115,7 +118,7 @@ class Fr2ddocSealCommonTest {
 
     @Test
     fun testParseSample05_attestationDICEM() {
-        val seal = Fr2ddocSeal.fromRawString(rawString5)
+        val seal = TdDocSeal.fromRawString(rawString5)
         assertEquals("14", seal.documentType)
         assertEquals("FR", seal.issuingCountry)
 
@@ -134,7 +137,7 @@ class Fr2ddocSealCommonTest {
 
     @Test
     fun testParseSample05_messageList() {
-        val seal = Fr2ddocSeal.fromRawString(rawString5)
+        val seal = TdDocSeal.fromRawString(rawString5)
         assertEquals("14", seal.documentType)
         assertEquals("FR", seal.issuingCountry)
 
@@ -145,17 +148,16 @@ class Fr2ddocSealCommonTest {
     }
 
     @Test
-    fun testParseSealFromGenericSeal() {
-        val seal = Seal.fromString(rawString1)
+    fun testParseSealViaParser() {
+        val seal = parser.parse(rawString1)
         assertEquals("12", seal.documentType)
         assertEquals("FR", seal.issuingCountry)
     }
 
     @Test
     fun testSignedBytesDoNotIncludeSignature() {
-        val seal = Fr2ddocSeal.fromRawString(rawString1)
+        val seal = TdDocSeal.fromRawString(rawString1)
         val signedStr = seal.signedBytes!!.decodeToString()
-        // signedBytes should be everything before US separator
         assertTrue(!signedStr.contains('\u001F'), "signedBytes should not contain US separator")
         assertTrue(signedStr.startsWith("DC04"), "signedBytes should start with header")
     }
@@ -163,7 +165,7 @@ class Fr2ddocSealCommonTest {
     @Test
     @OptIn(ExperimentalStdlibApi::class)
     fun testSignatureBytes() {
-        val seal = Fr2ddocSeal.fromRawString(rawString1)
+        val seal = TdDocSeal.fromRawString(rawString1)
         val sigHex = seal.signatureInfo!!.plainSignatureBytes.toHexString()
         assertEquals(
             "73aed1edb18987950719f546c3c99fb1d3bd6d0259a7221169ff1d6d93863170" +

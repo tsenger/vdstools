@@ -36,6 +36,7 @@ class VdsSeal : Seal {
 
     override val signingDate get() = vdsHeader.sigDate
 
+    override val sealType = SealType.VDS
     override val documentType: String
 
     override val baseDocumentType: String?
@@ -164,24 +165,12 @@ class VdsSeal : Seal {
 
     companion object {
         private val log = Logger.withTag(this::class.simpleName ?: "")
-        fun fromRawString(rawString: String): Seal {
-            var seal: Seal? = null
-            try {
-                seal = parseVdsSeal(DataEncoder.decodeBase256(rawString))
-            } catch (e: Exception) {
-                log.e(e.message.toString())
-            }
-            return seal!!
+        internal fun fromRawString(rawString: String): Seal {
+            return parseVdsSeal(DataEncoder.decodeBase256(rawString))
         }
 
-        fun fromByteArray(rawBytes: ByteArray): Seal {
-            var seal: Seal? = null
-            try {
-                seal = parseVdsSeal(rawBytes)
-            } catch (e: Exception) {
-                log.e(e.message.toString())
-            }
-            return seal!!
+        internal fun fromByteArray(rawBytes: ByteArray): Seal {
+            return parseVdsSeal(rawBytes)
         }
 
         @OptIn(ExperimentalStdlibApi::class)

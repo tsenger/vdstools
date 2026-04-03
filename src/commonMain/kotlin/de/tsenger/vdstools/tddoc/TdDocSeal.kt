@@ -1,12 +1,17 @@
-package de.tsenger.vdstools.fr2ddoc
+package de.tsenger.vdstools.tddoc
 
 import co.touchlab.kermit.Logger
+import de.tsenger.vdstools.fr2ddoc.BufferReader
+import de.tsenger.vdstools.fr2ddoc.Fr2ddocHeader
+import de.tsenger.vdstools.fr2ddoc.Fr2ddocMessageGroup
+import de.tsenger.vdstools.fr2ddoc.Fr2ddocSignature
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.Seal
+import de.tsenger.vdstools.generic.SealType
 import de.tsenger.vdstools.generic.SignatureInfo
 
 
-class Fr2ddocSeal private constructor(
+class TdDocSeal private constructor(
     private val fr2ddocHeader: Fr2ddocHeader,
     private val fr2ddocMessageGroup: Fr2ddocMessageGroup,
     private val fr2ddocSignature: Fr2ddocSignature,
@@ -19,6 +24,7 @@ class Fr2ddocSeal private constructor(
 
     override val signingDate get() = fr2ddocHeader.sigDate
 
+    override val sealType = SealType.TDDOC
     override val documentType: String
         get() = fr2ddocHeader.docType ?: ""
 
@@ -58,7 +64,7 @@ class Fr2ddocSeal private constructor(
     companion object {
         private val log = Logger.withTag(this::class.simpleName ?: "")
 
-        fun fromRawString(rawString: String): Seal {
+        internal fun fromRawString(rawString: String): Seal {
             log.v("rawData: $rawString")
             try {
                 return parseSeal(rawString)
@@ -90,15 +96,9 @@ class Fr2ddocSeal private constructor(
             val messageGroup = Fr2ddocMessageGroup.parse(dataString, perimeterId)
             val signature = Fr2ddocSignature.fromString(signatureString)
 
-            // signedBytes = header + dataString (everything before US)
             val signedData = barcodeString.substring(0, headerLength + usIndex).encodeToByteArray()
 
-            return Fr2ddocSeal(fr2ddocHeader, messageGroup, signature, barcodeString, signedData)
+            return TdDocSeal(fr2ddocHeader, messageGroup, signature, barcodeString, signedData)
         }
-    }
-
-    class BufferReader(val data: String) {
-        var pointer = 0
-        fun next(n: Int) = data.substring(pointer, pointer + n).also { pointer += n }
     }
 }

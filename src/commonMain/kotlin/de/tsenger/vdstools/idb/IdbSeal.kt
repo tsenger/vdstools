@@ -7,6 +7,7 @@ import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.generic.Seal
+import de.tsenger.vdstools.generic.SealType
 import de.tsenger.vdstools.generic.SignatureInfo
 import kotlinx.datetime.LocalDate
 
@@ -93,6 +94,7 @@ class IdbSeal : Seal {
      * the name of the nation document type will be returned. Otherwise, the comma separated name(s) of the
      * available messages in the message group will be returned.
      */
+    override val sealType = SealType.IDB
     override val documentType: String
         get() {
             val msg = getMessageByTag(0x86)
@@ -149,7 +151,7 @@ class IdbSeal : Seal {
         private val log = Logger.withTag(this::class.simpleName ?: "")
 
         @Throws(IllegalArgumentException::class)
-        fun fromString(barcodeString: String): Seal {
+        internal fun fromString(barcodeString: String): Seal {
             val strBuffer = StringBuilder(barcodeString)
 
             val barcodeIdentifier = strBuffer.substring(0, 4)
