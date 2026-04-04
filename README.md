@@ -158,95 +158,81 @@ always empty and all tags appear in `messageList` as usual.
 
 ## Build a barcode
 
-Here is an example on how to use the DataEncoder and Signer classes to build a VDS barcode:
+The library follows a symmetric design:
+
+- **Parsing** uses a single entry point — `SealParser` accepts any raw barcode string (or bytes) and
+  returns a `Seal`, regardless of whether it is VDS, IDB, or 2D-DOC. You never need to know the
+  internal structure.
+- **Building** mirrors this with one builder per seal type — `VdsSeal.Builder` and `IdbSeal.Builder`.
+  Call `build(signer)` at the end and get back the finished seal. All internal components (header,
+  message group, signature, payload) are handled automatically.
+
+Both builders follow the same Kotlin fluent style: chain configuration calls, then call `build()`.
+
+### VDS
+
+VDS seals are always signed. The only way to create one is via `VdsSeal.Builder.build(signer)`:
 
 ```kotlin
-import de.tsenger.vdstools.Signer
-import de.tsenger.vdstools.vds.VdsHeader
-import de.tsenger.vdstools.vds.VdsMessageGroup
+import de.tsenger.vdstools.EcdsaSigner
 import de.tsenger.vdstools.vds.VdsSeal
 import kotlinx.datetime.LocalDate
 
-val keystore: KeyStore = ...
+// In this JVM example we use a BouncyCastle keystore to get the private key for signing
+val ecKey: ECPrivateKey = keystore.getKey(keyAlias, keyStorePassword.toCharArray())
 
-// In this JVM example we use a BouncyCastle keystore to get the certificate (for the header information)
-// and the private key for signing the seal's data
-val cert: X509Certificate = keystore.getCertificate(keyAlias)
-val ecKey: ECPrivateKey = keystore.getKey(certAlias, keyStorePassword.toCharArray())
+// Initialize the EcdsaSigner with the private key bytes and curve name
+val signer = EcdsaSigner(ecKey.encoded, "brainpoolP224r1")
 
-// Initialize the Signer with the private key bytes and curve name
-val signer = Signer(ecKey.encoded, curveName)
-
-// 1. Build a VdsHeader
-val header = VdsHeader.Builder("ARRIVAL_ATTESTATION")
-    .setIssuingCountry("D<<")
-    .setSignerIdentifier("DETS")
-    .setCertificateReference("32")
-    .setIssuingDate(LocalDate.parse("2024-09-27"))
-    .setSigDate(LocalDate.parse("2024-09-27"))
-    .build()
-
-// 2. Build a VdsMessageGroup with messages
-val mrz = "MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06"
-val azr = "ABC123456DEF"
-val messageGroup = VdsMessageGroup.Builder(header.vdsType)
-    .addMessage("MRZ", mrz)
-    .addMessage("AZR", azr)
-    .build()
-
-// 3. Build a signed VdsSeal
-val vdsSeal = VdsSeal(header, messageGroup, signer)
+// Build and sign the VdsSeal in a single step
+val vdsSeal = VdsSeal.Builder("ARRIVAL_ATTESTATION")
+    .issuingCountry("D<<")
+    .signerIdentifier("DETS")
+    .certificateReference("32")
+    .issuingDate(LocalDate.parse("2024-09-27"))
+    .sigDate(LocalDate.parse("2024-09-27"))
+    .addMessage("MRZ", "MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06")
+    .addMessage("AZR", "ABC123456DEF")
+    .build(signer)
 
 // The encoded bytes can now be used to build a DataMatrix (or other) code
 val encodedSealBytes = vdsSeal.encoded
-
 ```
 
-Here is an example on how to use the DataEncoder and Signer classes to build an IDB barcode:
+### IDB
+
+IDB seals can be unsigned (e.g. for test fixtures) or signed. Use `build()` for unsigned and
+`build(signer)` for signed. The signature algorithm is derived automatically from the signer's
+key size.
 
 ```kotlin
 import de.tsenger.vdstools.DataEncoder
-import de.tsenger.vdstools.Signer
-import de.tsenger.vdstools.idb.*
+import de.tsenger.vdstools.EcdsaSigner
+import de.tsenger.vdstools.idb.IdbSeal
 
-val keystore: KeyStore = ...
-
-// In this JVM example we use a BouncyCastle keystore to get the certificate (for the header information)
-// and the private key for signing the seal's data
+// In this JVM example we use a BouncyCastle keystore to get the certificate and private key
 val cert: X509Certificate = keystore.getCertificate(keyAlias)
-val ecKey: ECPrivateKey = keystore.getKey(certAlias, keyStorePassword.toCharArray())
+val ecKey: ECPrivateKey = keystore.getKey(keyAlias, keyStorePassword.toCharArray())
 
-// Initialize the Signer with the private key bytes and curve name
-val signer: Signer = Signer(ecKey.encoded, curveName)
+// Initialize the EcdsaSigner with the private key bytes and curve name
+val signer = EcdsaSigner(ecKey.encoded, "brainpoolP256r1")
 
-// 1. Build an IdbHeader
-val header = IdbHeader(
-    countryIdentifier = "D<<",
-    signatureAlgorithm = IdbSignatureAlgorithm.SHA256_WITH_ECDSA,
-    certificateReference = DataEncoder.buildCertificateReference(cert.encoded),
-    signatureCreationDate = "2025-02-11"
-)
+// The certificate reference is a hash derived from the signer certificate's DER bytes
+val certRef: ByteArray = DataEncoder.buildCertificateReference(cert.encoded)
 
-// 2. Build an IdbMessageGroup with messages
-val messageGroup = IdbMessageGroup.Builder()
-    .addMessage(0x80, faceImageBytes)           // FACE_IMAGE
-    .addMessage(0x81, mrzTd2String)             // MRZ_TD2
-    .addMessage(0x84, "2026-04-23")             // EXPIRY_DATE
-    .addMessage(0x86, 0x01)                     // NATIONAL_DOCUMENT_IDENTIFIER
-    .build()
-
-// 3. Sign the header + messageGroup
-val dataToSign = header.encoded + messageGroup.encoded
-val signatureBytes = signer.sign(dataToSign)
-val signature = IdbSignature(signatureBytes)
-
-// 4. Build the IdbSeal
-val payload = IdbPayload(header, messageGroup, null, signature)
-val idbSeal = IdbSeal(isSigned = true, isZipped = false, barcodePayload = payload)
+// Build and sign the IdbSeal in a single step
+val idbSeal = IdbSeal.Builder()
+    .countryIdentifier("D<<")
+    .certificateReference(certRef)
+    .signingDate("2025-02-11")
+    .addMessage(0x80, faceImageBytes)   // FACE_IMAGE
+    .addMessage(0x81, mrzTd2String)     // MRZ_TD2
+    .addMessage(0x84, "2026-04-23")     // EXPIRY_DATE
+    .addMessage(0x86, 0x01)             // NATIONAL_DOCUMENT_IDENTIFIER
+    .build(signer)
 
 // The raw string can now be used to build a DataMatrix (or other) code
 val encodedRawString = idbSeal.rawString
-
 ```
 
 Also have a look at the testcases for more usage inspiration.
@@ -328,20 +314,13 @@ DataEncoder.resetToDefaults()
 Once loaded, custom document types work seamlessly with the existing API:
 
 ```kotlin
-val messageGroup = VdsMessageGroup.Builder("MY_CUSTOM_DOCUMENT")
+val vdsSeal = VdsSeal.Builder("MY_CUSTOM_DOCUMENT")
+    .issuingCountry("D<<")
+    .signerIdentifier("TEST")
+    .certificateReference("32")
     .addMessage("OWNER_NAME", "MAX MUSTERMANN")
     .addMessage("ISSUE_DATE", "2024-06-15")
-    .build()
-
-val header = VdsHeader.Builder("MY_CUSTOM_DOCUMENT")
-    .setIssuingCountry("D<<")
-    .setSignerIdentifier("TEST")
-    .setCertificateReference("32")
-    .setIssuingDate(LocalDate.now())
-    .setSigDate(LocalDate.now())
-    .build()
-
-val vdsSeal = VdsSeal(header, messageGroup, signer)
+    .build(signer)
 ```
 
 ### Available Coding Types
@@ -410,15 +389,9 @@ for (field in d.messageGroup.children) {
 }
 ```
 
-**Note for IDB seals**: all offsets are relative to the concatenated decoded payload bytes in this order:
-
-```kotlin
-val payloadBytes =
-    seal.payLoad.idbHeader.encoded +
-            seal.payLoad.idbMessageGroup.encoded +
-            (seal.payLoad.idbSignerCertificate?.encoded ?: byteArrayOf()) +
-            (seal.payLoad.idbSignature?.encoded ?: byteArrayOf())
-```
+**Note for IDB seals**: all offsets are relative to the decoded payload bytes returned by
+`seal.encoded` — the library concatenates header, message group, optional signer certificate, and
+signature for you.
 
 ## How to include
 
