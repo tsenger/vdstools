@@ -25,12 +25,14 @@ specifications.
 ## Parse and verify a VDS / IDB
 
 Here is a quick overview how to use the generic parser and verifier. The generic interface
-handles VDS and IDB barcode via common function calls.
+handles VDS, IDB and 2D-DOC barcode via common function calls.
 When you received the raw string from your favorite datamatrix decoder use VdsTools like this:
 
 ```kotlin
 import de.tsenger.vdstools.Verifier
 import de.tsenger.vdstools.generic.Seal
+import de.tsenger.vdstools.generic.SealParser
+import de.tsenger.vdstools.generic.SealType
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.SignatureInfo
 import de.tsenger.vdstools.generic.MessageValue
@@ -39,7 +41,9 @@ import de.tsenger.vdstools.generic.MessageValue
 val rawString =
     "RDB1BNK6ADJL2PECXOABAHIMWDAQEE6ATAXHCCNJVXVGK5TEHZJGMV22BGPATHQJTYEZ4CM6D73Z2FE4O4Q7RLE6RVZJNXMTHKH7GJN6BGPATNOAIEA7EAAAAADDKKAQCADIKQ4FAAAAACRTHI6LQNJYDEIAAAAAAA2TQGIQAAAAAI5VHAMTIAAAAAFTJNBSHEAAAACAQAAAAMQAACBYHAAAAAAAAB5RW63DSAEAAAAAAAAIQAAAADJZGK4ZAAAAAAETSMVZWGAJMAD7ACLAA7YCAIAAAAAAGU4BSMP7U772RAAUQAAAAAAAGIAAAACAQAAAAAAAAAAAAAAAAAZAAAAAICAAAAAAAAAAAAAAACBYBAH7VYAAXIJTTKZ2MM5GGOZCGGZDDMRVMHYED4CB5UP7VEAAMAAAAAAIAAMCAIAAA75SAADQAAFGFIX2KKAZF6MRSG37ZAAAKAAAAAAADB4AAD74TY7FX6HL6CBIU4OROHXUXWYFSZTVXFI47EE2NADZRJWKVIGHF7BZDEJUHKDBB2LVVJBUG6MCWD66UJDQPTNHAIKTKEB4THMTRBKM6ORXIEW5WWVQDEYMMIFHA43M5OEHWK62OQHQQKTBLBNONJTM3INJTFMRPXM6NUTBYIQWXPHK6EMENBL25ZRIW5FXG2PZO3CLJC6WCXCLFGNZKYPSKOQ7EULA7BVUAKBQ44Q6HCLT5RDUZM4D3TT55GA7H57NQ7G7LXSG4W4NNAT344KM5LE7EMSDFOE5OFQDYF6PQYZRXR3RQSBCDGV34YNJG3VUWGUJ3DL7TJAYWW7YVI5GVGPX4IKM25DFVEAGB6OM2VFHQAGMFNJFT56I7V5XIRMFOIFJDG2SRS5GFCKY6UUYUVPBL3TG2ULE6ULYNIICKTLUJK6ALUA2SNNU7TSPBXVQVRPEJ7R7UHJWBWI6XGNKWRRBXEFB27VLV3OEVKMVQBCLRFUWXFYXFVOWMF7I763YAUQXDNTP7E42DG26XKBB4HYG4UPR3NQONHCMQKS5FOZOP6JDW75G5EPKRLSGBURBIMMLAW72X4TTXLFH5ATDGB4VCA6US4G57CFEPCE6SB6JUZJGDLWTD2L7YLDXCTYPXZYSMPITJV5ABIDRACHAYDBJZXQXWIPCWWX6TVPXTIA6MQQJNAVSETK7IYNK6NXA66V2A6UELOCCMQDDEKQYNOCLDZ2NGWSIRQFODRERJXLTKFZ2PIUHF34VJDGYKAAFN67I2WUVWD2UY3FOBWKVU5YXMYV5FRRN6DWNJWA76JYR2ONQ72CZHBHYBTN7XNRGVNVRMMT7DZLUXZPOA2HA46H6ADOTMVJTNWAG6SENPRKH4SJQZWGSFXXFGP4P6Q3J5NSRFZZBLFGHVFGLQIYB5VGSHBBE2YEXIPMP4XGND45NCNSKOJIN6LIT4ZQO2QXRWLOX6BY7QNMEHHI4A5VUX54LSUSASKQRNZUREAU2IATUK5OYDB3XGQTZBHZC3SHGSQJPCRSBJVFG72WXX6RN2R34JFPYXVPUKMEM55ZTGXLR76AJR2TPT7HKGO6RTEIDE6RBFNRKJRR4NPILHJ5XLUEMZKB4A65NSF6T2YN3Y3T4EXDIQCQ3XQ2N7ERQQKZYWTTVPVCNFAJMMNE4JXNFCY4FRH27KA5P3LWZGCF4TIPXSWR2QZESM4AOSH74XRORBXWWCTS3VO4CW6Q773GBQQWPJEA4DG43NESDACDL7IABCBTZ3ZUTZWNPRAW35KVFV3NSTBLXPY7FHG3HEUY3XDT6KR37OK3J3LEJSGIENHILIYX5D2OZKBGMU7FCU7ZIXAPJORJA7MBTGAQEN"
 
-val seal: Seal = Seal.fromString(rawString)
+// Create a parser that accepts all seal types (default)
+val parser = SealParser()
+val seal: Seal = parser.parse(rawString)
 
 //Get list with all messages in seal
 val messageList = seal.messageList
@@ -50,7 +54,7 @@ for (message in messageList) {
 // Access message data by name - value.toString() returns the decoded value
 val mrz: String? = seal.getMessageByName("MRZ_TD2")?.toString()
 
-// Or use type-safe access via sealed class
+// Or use type-safe access via MessageValue
 val messageValue = seal.getMessageByName("MRZ_TD2")?.value
 if (messageValue is MessageValue.MrzValue) {
     println("MRZ: ${messageValue.mrz}")
@@ -79,6 +83,39 @@ val verifier = Verifier(
 val result: Verifier.Result = verifier.verify()
 ```
 
+### Configuring accepted seal types
+
+`SealParser` can be configured to only accept specific seal types — analogous to configuring a
+barcode scanner to recognise only certain symbologies. If an input matches a type that is not in
+`allowedTypes`, a `SealParseException` is thrown.
+
+```kotlin
+// Accept only VDS and IDB, reject 2D-DOC
+val parser = SealParser(allowedTypes = setOf(SealType.VDS, SealType.IDB))
+val seal = parser.parse(rawString)  // throws SealParseException for a 2D-DOC input
+```
+
+For VDS seals provided as raw bytes (e.g. when working with test fixtures or binary data):
+
+```kotlin
+val parser = SealParser()
+val seal: Seal = parser.parse(rawBytes)  // ByteArray input, VDS only
+```
+
+### Dispatching on seal type
+
+Every `Seal` exposes a `sealType: SealType` property. Combined with Kotlin's exhaustive `when`,
+this gives compile-time safety when adding a new seal type:
+
+```kotlin
+when (seal.sealType) {
+    SealType.VDS    -> println("VDS seal, issuing country: ${seal.issuingCountry}")
+    SealType.IDB    -> println("IDB seal, document type: ${seal.documentType}")
+    SealType.TDDOC  -> println("2D-DOC seal")
+    // compiler warns here if a new SealType value is added and not handled
+}
+```
+
 ## Metadata messages (administrative documents)
 
 Some seal types use a two-stage lookup: the header's `documentRef` points to a base type (e.g.
@@ -89,7 +126,7 @@ These tags are declared as `metadataTagList` in `VdsDocumentTypes.json` and are 
 from the regular `messageList` during parsing. They are only accessible via `metadataMessageList`.
 
 ```kotlin
-val seal: Seal = Seal.fromString(rawString)
+val seal: Seal = SealParser().parse(rawString)
 
 // Regular user-visible messages (metadata tags are excluded)
 val messageList = seal.messageList
@@ -332,7 +369,7 @@ The entry point is an extension function on `Seal`:
 ```kotlin
 import de.tsenger.vdstools.dissect.dissect
 
-val seal: Seal = Seal.fromString(rawString)
+val seal: Seal = SealParser().parse(rawString)
 val dissection: SealDissection = seal.dissect()
 ```
 
@@ -395,7 +432,7 @@ To include this library to your Gradle build add this dependency:
 
 ```groovy
 dependencies {
-    implementation 'de.tsenger:vdstools:0.14.0'
+    implementation 'de.tsenger:vdstools:0.15.0'
 }
 ```
 
@@ -408,6 +445,6 @@ To include this library to your Maven build add this dependency:
 <dependency>
     <groupId>de.tsenger</groupId>
     <artifactId>vdstools</artifactId>
-    <version>0.14.0</version>
+    <version>0.15.0</version>
 </dependency>
 ```
