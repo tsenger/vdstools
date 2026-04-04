@@ -17,7 +17,7 @@ class SignerIosTest {
     fun testKeyStoreConstructor() {
         val keyPairGenerator = getCryptoProvider().get(ECDSA).keyPairGenerator(Curve("brainpoolP224r1"))
         val keyPair: ECDSA.KeyPair = keyPairGenerator.generateKeyBlocking()
-        val signer = Signer(keyPair.privateKey.encodeToByteArrayBlocking(EC.PrivateKey.Format.DER), "brainpoolP224r1")
+        val signer = EcdsaSigner(keyPair.privateKey.encodeToByteArrayBlocking(EC.PrivateKey.Format.DER), "brainpoolP224r1")
         assertEquals(224, signer.fieldSize)
     }
 
@@ -26,7 +26,7 @@ class SignerIosTest {
     fun testSign_224() {
         val keyPairGenerator = getCryptoProvider().get(ECDSA).keyPairGenerator(Curve("brainpoolP224r1"))
         val keyPair: ECDSA.KeyPair = keyPairGenerator.generateKeyBlocking()
-        val signer = Signer(keyPair.privateKey.encodeToByteArrayBlocking(EC.PrivateKey.Format.DER), "brainpoolP224r1")
+        val signer = EcdsaSigner(keyPair.privateKey.encodeToByteArrayBlocking(EC.PrivateKey.Format.DER), "brainpoolP224r1")
         val dataBytes = ByteArray(20)
         Random(5).nextBytes(dataBytes)
         val signatureBytes: ByteArray = signer.sign(dataBytes)
@@ -46,7 +46,7 @@ class SignerIosTest {
         val dataBytes = ByteArray(32)
         Random(5).nextBytes(dataBytes)
 
-        val signer = Signer(keyPair.privateKey.encodeToByteArrayBlocking(EC.PrivateKey.Format.DER), "prime256v1")
+        val signer = EcdsaSigner(keyPair.privateKey.encodeToByteArrayBlocking(EC.PrivateKey.Format.DER), "prime256v1")
         val signatureBytes: ByteArray = signer.sign(dataBytes)
         println("Signature: " + signatureBytes.toHexString())
         assertEquals(signatureBytes.size * 4, signer.fieldSize)
@@ -64,7 +64,7 @@ class SignerIosTest {
         val dataBytes = ByteArray(64)
         Random(5).nextBytes(dataBytes)
 
-        val signer = Signer(keyPair.privateKey.encodeToByteArrayBlocking(EC.PrivateKey.Format.DER), "secp384r1")
+        val signer = EcdsaSigner(keyPair.privateKey.encodeToByteArrayBlocking(EC.PrivateKey.Format.DER), "secp384r1")
         val signatureBytes: ByteArray = signer.sign(dataBytes)
         println("Signature: " + signatureBytes.toHexString())
         assertEquals(signatureBytes.size * 4, signer.fieldSize)
@@ -82,7 +82,7 @@ class SignerIosTest {
         val dataBytes = ByteArray(128)
         Random(5).nextBytes(dataBytes)
 
-        val signer = Signer(keyPair.privateKey.encodeToByteArrayBlocking(EC.PrivateKey.Format.DER), "brainpoolP512r1")
+        val signer = EcdsaSigner(keyPair.privateKey.encodeToByteArrayBlocking(EC.PrivateKey.Format.DER), "brainpoolP512r1")
         val signatureBytes: ByteArray = signer.sign(dataBytes)
         println("Signature: " + signatureBytes.toHexString())
         assertEquals(signatureBytes.size * 4, signer.fieldSize)
@@ -100,7 +100,7 @@ class SignerIosTest {
         Random(5).nextBytes(dataBytes)
 
         assertFailsWith<IllegalArgumentException> {
-            Signer(
+            EcdsaSigner(
                 keyPair.privateKey.encodeToByteArrayBlocking(EC.PrivateKey.Format.DER),
                 "secp521r1"
             )

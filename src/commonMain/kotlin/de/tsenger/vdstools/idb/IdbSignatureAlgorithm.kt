@@ -18,5 +18,11 @@ enum class IdbSignatureAlgorithm(val value: Byte) {
         fun valueOf(value: Byte): IdbSignatureAlgorithm? {
             return map[value]
         }
+
+        internal fun fromFieldSize(fieldSize: Int): IdbSignatureAlgorithm = when {
+            fieldSize <= 256 -> SHA256_WITH_ECDSA
+            fieldSize <= 384 -> SHA384_WITH_ECDSA
+            else -> SHA512_WITH_ECDSA
+        }
     }
 }

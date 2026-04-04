@@ -6,7 +6,7 @@ import de.tsenger.vdstools.asn1.DerTlv
 import okio.Buffer
 
 
-class IdbPayload(
+internal class IdbPayload(
     val idbHeader: IdbHeader,
     val idbMessageGroup: IdbMessageGroup,
     val idbSignerCertificate: IdbSignerCertificate?,

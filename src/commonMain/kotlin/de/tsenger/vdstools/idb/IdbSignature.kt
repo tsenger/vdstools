@@ -3,7 +3,7 @@ package de.tsenger.vdstools.idb
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.asn1.DerTlv
 
-class IdbSignature(
+internal class IdbSignature(
     val plainSignatureBytes: ByteArray
 ) {
     private val log = Logger.withTag(this::class.simpleName ?: "")

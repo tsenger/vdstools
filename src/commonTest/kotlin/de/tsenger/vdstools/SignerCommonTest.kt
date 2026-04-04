@@ -23,7 +23,7 @@ class SignerCommonTest {
 
         val dataBytes = CryptographyRandom.nextBytes(32)
 
-        val signer = Signer(pair.privateKey.encodeToByteArrayBlocking(DER), "prime256v1") //same as secp256r1
+        val signer = EcdsaSigner(pair.privateKey.encodeToByteArrayBlocking(DER), "prime256v1") //same as secp256r1
         val signatureBytes: ByteArray = signer.sign(dataBytes)
         println("Signature: " + signatureBytes.toHexString())
         assertEquals(signatureBytes.size * 4, signer.fieldSize)
@@ -38,7 +38,7 @@ class SignerCommonTest {
 
         val dataBytes = CryptographyRandom.nextBytes(64)
 
-        val signer = Signer(pair.privateKey.encodeToByteArrayBlocking(DER), "secp384r1")
+        val signer = EcdsaSigner(pair.privateKey.encodeToByteArrayBlocking(DER), "secp384r1")
         val signatureBytes: ByteArray = signer.sign(dataBytes)
         println("Signature: " + signatureBytes.toHexString())
         assertEquals(signatureBytes.size * 4, signer.fieldSize)
@@ -53,7 +53,7 @@ class SignerCommonTest {
         val pair: ECDSA.KeyPair = keyPairGenerator.generateKeyBlocking()
 
         assertFailsWith<IllegalArgumentException> {
-            Signer(
+            EcdsaSigner(
                 pair.privateKey.encodeToByteArrayBlocking(DER),
                 "secp521r1"
             )

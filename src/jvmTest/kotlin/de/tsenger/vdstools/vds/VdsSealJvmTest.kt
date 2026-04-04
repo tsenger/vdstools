@@ -1,7 +1,7 @@
 package de.tsenger.vdstools.vds
 
 import de.tsenger.vdstools.DataEncoder
-import de.tsenger.vdstools.Signer
+import de.tsenger.vdstools.EcdsaSigner
 import de.tsenger.vdstools.SignerJvmTest
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -20,28 +20,23 @@ class VdsSealJvmTest {
     @OptIn(ExperimentalTime::class)
     @Test
     fun testBuildDigitalSeal() {
-        val mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06"
-        val passportNumber = "UFO001979"
-        val vdsMessage = VdsMessageGroup.Builder("RESIDENCE_PERMIT")
-            .addMessage("MRZ", mrz)
-            .addMessage("PASSPORT_NUMBER", passportNumber)
-            .build()
-
         val ecPrivKey = SignerJvmTest.keystore.getKey(
             "dets32",
             SignerJvmTest.keyStorePassword.toCharArray()
         ) as BCECPrivateKey
-        val signer = Signer(ecPrivKey.encoded, "brainpoolP224r1")
+        val signer = EcdsaSigner(ecPrivKey.encoded, "brainpoolP224r1")
 
         val ldNow = Clock.System.todayIn(TimeZone.currentSystemDefault())
         val encodedDate: ByteArray = DataEncoder.encodeDate(ldNow)
 
-        val vdsHeader = VdsHeader.Builder(vdsMessage.vdsType)
-            .setIssuingCountry("D<<")
-            .setSignerIdentifier("DETS")
-            .setCertificateReference("32")
-            .build()
-        val vdsSeal = VdsSeal(vdsHeader, vdsMessage, signer)
+        val vdsSeal = VdsSeal.Builder("RESIDENCE_PERMIT")
+            .issuingCountry("D<<")
+            .signerIdentifier("DETS")
+            .certificateReference("32")
+            .addMessage("MRZ", "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06")
+            .addMessage("PASSPORT_NUMBER", "UFO001979")
+            .build(signer)
+
         Assert.assertNotNull(vdsSeal)
         val expectedHeaderMessage = Arrays.concatenate(
             Hex.decode("dc036abc6d32c8a72cb1"), encodedDate, encodedDate,
@@ -59,21 +54,17 @@ class VdsSealJvmTest {
             "dets32",
             SignerJvmTest.keyStorePassword.toCharArray()
         ) as BCECPrivateKey
-        val signer = Signer(ecPrivKey.encoded, "brainpoolP224r1")
-        val header = VdsHeader.Builder("ARRIVAL_ATTESTATION")
-            .setIssuingCountry("D<<")
-            .setSignerIdentifier("DETS")
-            .setCertificateReference("32")
-            .setIssuingDate(LocalDate.parse("2024-09-27"))
-            .setSigDate(LocalDate.parse("2024-09-27"))
-            .build()
-        val mrz = "MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06"
-        val azr = "ABC123456DEF"
-        val vdsMessage = VdsMessageGroup.Builder(header.vdsType)
-            .addMessage("MRZ", mrz)
-            .addMessage("AZR", azr)
-            .build()
-        val vdsSeal = VdsSeal(header, vdsMessage, signer)
+        val signer = EcdsaSigner(ecPrivKey.encoded, "brainpoolP224r1")
+
+        val vdsSeal = VdsSeal.Builder("ARRIVAL_ATTESTATION")
+            .issuingCountry("D<<")
+            .signerIdentifier("DETS")
+            .certificateReference("32")
+            .issuingDate(LocalDate.parse("2024-09-27"))
+            .sigDate(LocalDate.parse("2024-09-27"))
+            .addMessage("MRZ", "MED<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06")
+            .addMessage("AZR", "ABC123456DEF")
+            .build(signer)
 
         Assert.assertNotNull(vdsSeal)
         val expectedHeaderMessage = Hex.decode(

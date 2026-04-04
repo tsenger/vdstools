@@ -8,7 +8,7 @@ import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.vds.dto.MessageDto
 import okio.Buffer
 
-class IdbMessageGroup {
+internal class IdbMessageGroup {
     private var derTlvList: List<DerTlv>
 
     constructor(derTlvList: List<DerTlv>) {
@@ -52,7 +52,7 @@ class IdbMessageGroup {
             return DerTlv(TAG, messages.readByteArray()).encoded
         }
 
-    class Builder(private val subMessageDefs: List<MessageDto>? = null) {
+    internal class Builder(private val subMessageDefs: List<MessageDto>? = null) {
         val derTlvList: MutableList<DerTlv> = ArrayList(5)
 
         private fun resolveTag(name: String): Int {

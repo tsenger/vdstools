@@ -2,7 +2,7 @@ package de.tsenger.vdstools.idb
 
 import de.tsenger.vdstools.asn1.DerTlv
 
-class IdbSignerCertificate(val certBytes: ByteArray) {
+internal class IdbSignerCertificate(val certBytes: ByteArray) {
 
     val encoded: ByteArray
         get() = DerTlv(TAG, certBytes).encoded

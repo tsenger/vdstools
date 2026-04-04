@@ -7,7 +7,7 @@ import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
 import okio.Buffer
 
 
-class VdsMessageGroup {
+internal class VdsMessageGroup {
     internal var derTlvList: List<DerTlv>
     var vdsType: String
         internal set
@@ -107,7 +107,7 @@ class VdsMessageGroup {
         }
     }
 
-    class Builder(val vdsType: String) {
+    internal class Builder(val vdsType: String) {
         val derTlvList: MutableList<DerTlv> = ArrayList(5)
         internal val baseVdsType: String
         internal val profileDefinition: VdsProfileDefinitionDto?

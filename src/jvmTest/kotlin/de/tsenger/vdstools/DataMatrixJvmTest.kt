@@ -38,7 +38,7 @@ class DataMatrixJvmTest {
 
         val ks = keystore
         val ecKey = ks!!.getKey("utts5b", keyStorePassword.toCharArray()) as ECPrivateKey
-        val signer = Signer(ecKey.encoded, "brainpoolP256r1")
+        val signer = EcdsaSigner(ecKey.encoded, "brainpoolP256r1")
 
         val vdsHeader = VdsHeader.Builder(vdsMessage.vdsType)
             .setIssuingCountry("D  ")

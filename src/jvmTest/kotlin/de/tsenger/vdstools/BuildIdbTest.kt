@@ -4,7 +4,7 @@ package de.tsenger.vdstools
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.client.j2se.MatrixToImageWriter
 import com.google.zxing.datamatrix.DataMatrixWriter
-import de.tsenger.vdstools.idb.*
+import de.tsenger.vdstools.idb.IdbSeal
 import de.tsenger.vdstools.vds.VdsMessageGroup
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey
 import org.bouncycastle.jce.provider.BouncyCastleProvider
@@ -20,42 +20,32 @@ import kotlin.io.path.createParentDirectories
 
 class BuildIdbTest {
 
+    private fun getSigner(): EcdsaSigner {
+        val ecPrivKey = keystore.getKey("utts5b", keyStorePassword.toCharArray()) as BCECPrivateKey
+        return EcdsaSigner(ecPrivKey.encoded, "brainpoolP256r1")
+    }
+
+    private fun createBuilder(): IdbSeal.Builder {
+        val cert: X509Certificate = keystore.getCertificate("utts5b") as X509Certificate
+        return IdbSeal.Builder()
+            .countryIdentifier("D<<")
+            .certificateReference(DataEncoder.buildCertificateReference(cert.encoded))
+            .signingDate("2027-05-01")
+    }
+
     @Test
     fun testBuildVorlPA() {
-        val ecPrivKey = keystore.getKey("utts5b", keyStorePassword.toCharArray()) as BCECPrivateKey
-        val signer = Signer(ecPrivKey.encoded, "brainpoolP256r1")
-        val cert: X509Certificate = keystore.getCertificate("utts5b") as X509Certificate
-
-        // 1. Build a IdbHeader
-        val header = IdbHeader(
-            "D<<",
-            IdbSignatureAlgorithm.SHA256_WITH_ECDSA,
-            DataEncoder.buildCertificateReference(cert.encoded),
-            "2027-05-01"
-        )
-
-        // 2. Build an ETD Message
         val mrz = "ITD<<MUSTERMANN<<ERIKA<<<<<<<<<<<<<<D000000001D<<8308126<2707314<<<<<<<8"
         val vdsMessage = VdsMessageGroup.Builder("EMERGENCY_TRAVEL_DOCUMENT")
             .addMessage("MRZ", mrz)
             .build()
 
-        // 3. Build a MessageGroup
-        val messageGroup = IdbMessageGroup.Builder()
+        val icb = createBuilder()
             .addMessage(0x02, vdsMessage.encoded)
-            .addMessage(
-                0x80,
-                File("src/commonTest/resources/face_image_gen_female.jp2").readBytes()
-            )
+            .addMessage(0x80, File("src/commonTest/resources/face_image_gen_female.jp2").readBytes())
             .addMessage(0x84, "2027-07-31")
             .addMessage(0x86, 0x04)
-            .build()
-
-        // 4. Build a signed Icao Barcode
-        val signature = signer.sign(header.encoded + messageGroup.encoded)
-        val idbSignature = IdbSignature(signature)
-        val payload = IdbPayload(header, messageGroup, null, idbSignature)
-        val icb = IdbSeal(isSigned = true, isZipped = false, barcodePayload = payload)
+            .build(getSigner())
 
         generateDmBarcode(icb.rawString, "vorlPA.png")
         writeIcbDataFile(icb, "vorlPA")
@@ -63,31 +53,12 @@ class BuildIdbTest {
 
     @Test
     fun testBuildFiktion() {
-        val ecPrivKey = keystore.getKey("utts5b", keyStorePassword.toCharArray()) as BCECPrivateKey
-        val signer = Signer(ecPrivKey.encoded, "brainpoolP256r1")
-        val cert: X509Certificate = keystore.getCertificate("utts5b") as X509Certificate
-
-        // 1. Build a IdbHeader
-        val header = IdbHeader(
-            "D<<",
-            IdbSignatureAlgorithm.SHA256_WITH_ECDSA,
-            DataEncoder.buildCertificateReference(cert.encoded),
-            "2027-05-01"
-        )
-
-        // 3. Build a MessageGroup
-        val messageGroup = IdbMessageGroup.Builder()
+        val icb = createBuilder()
             .addMessage(0x81, "ABD<<MUSTERMANN<<ERIKA<<<<<<<<<<<<<<F000000005UTO8308126<2804305T2705011")
             .addMessage(0x82, "X98723021")
             .addMessage(0x83, "960113000085")
             .addMessage(0x86, 0x0E)
-            .build()
-
-        // 4. Build a signed Icao Barcode
-        val signature = signer.sign(header.encoded + messageGroup.encoded)
-        val idbSignature = IdbSignature(signature)
-        val payload = IdbPayload(header, messageGroup, null, idbSignature)
-        val icb = IdbSeal(isSigned = true, isZipped = false, barcodePayload = payload)
+            .build(getSigner())
 
         generateDmBarcode(icb.rawString, "Fiktionsbescheinigung.png")
         writeIcbDataFile(icb, "Fiktionsbescheinigung")
@@ -95,37 +66,12 @@ class BuildIdbTest {
 
     @Test
     fun testBuildVorlPass() {
-        val ecPrivKey = keystore.getKey("utts5b", keyStorePassword.toCharArray()) as BCECPrivateKey
-        val signer = Signer(ecPrivKey.encoded, "brainpoolP256r1")
-        val cert: X509Certificate = keystore.getCertificate("utts5b") as X509Certificate
-
-        // 1. Build a IdbHeader
-        val header = IdbHeader(
-            "D<<",
-            IdbSignatureAlgorithm.SHA256_WITH_ECDSA,
-            DataEncoder.buildCertificateReference(cert.encoded),
-            "2027-05-01"
-        )
-
-        // 3. Build a MessageGroup
-        val messageGroup = IdbMessageGroup.Builder()
-            .addMessage(
-                0x08,
-                "PPD<<MUSTERMANN<<ERIKA<<<<<<<<<<<<<<<<<<<<<<A000000000D<<8308126F2804305<<<<<<<<<<<<<<<2"
-            )
-            .addMessage(
-                0x80,
-                File("src/commonTest/resources/face_image_gen_female.jp2").readBytes()
-            )
+        val icb = createBuilder()
+            .addMessage(0x08, "PPD<<MUSTERMANN<<ERIKA<<<<<<<<<<<<<<<<<<<<<<A000000000D<<8308126F2804305<<<<<<<<<<<<<<<2")
+            .addMessage(0x80, File("src/commonTest/resources/face_image_gen_female.jp2").readBytes())
             .addMessage(0x84, "2028-04-30")
             .addMessage(0x86, 0x06)
-            .build()
-
-        // 4. Build a signed Icao Barcode
-        val signature = signer.sign(header.encoded + messageGroup.encoded)
-        val idbSignature = IdbSignature(signature)
-        val payload = IdbPayload(header, messageGroup, null, idbSignature)
-        val icb = IdbSeal(isSigned = true, isZipped = false, barcodePayload = payload)
+            .build(getSigner())
 
         generateDmBarcode(icb.rawString, "vorlPass.png")
         writeIcbDataFile(icb, "vorlPass")
@@ -143,7 +89,7 @@ class BuildIdbTest {
     @OptIn(ExperimentalStdlibApi::class)
     fun writeIcbDataFile(icb: IdbSeal, filename: String) {
         val payloadFile = File("generated_barcodes/${filename}_payload.txt")
-        payloadFile.writeText(icb.payLoad.encoded.toHexString())
+        payloadFile.writeText(icb.encoded.toHexString())
         val base32File = File("generated_barcodes/${filename}_base32.txt")
         base32File.writeText(icb.rawString)
     }

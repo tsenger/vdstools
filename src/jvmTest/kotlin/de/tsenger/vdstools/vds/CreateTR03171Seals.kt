@@ -4,7 +4,7 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.client.j2se.MatrixToImageWriter
 import de.tsenger.vdstools.DataEncoder
-import de.tsenger.vdstools.Signer
+import de.tsenger.vdstools.EcdsaSigner
 import de.tsenger.vdstools.generic.MessageValue
 import kotlinx.datetime.LocalDate
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey
@@ -84,7 +84,7 @@ class CreateTR03171Seals {
 
 
         val ecPrivKey = keystore.getKey("utts5b", keyStorePassword.toCharArray()) as BCECPrivateKey
-        val signer = Signer(ecPrivKey.encoded, "brainpoolP256r1")
+        val signer = EcdsaSigner(ecPrivKey.encoded, "brainpoolP256r1")
 
         val vdsSeal = VdsSeal(header, messageGroup, signer)
 

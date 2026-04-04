@@ -24,7 +24,7 @@ class VdsSeal : Seal {
         this.documentType = vdsMessageGroup.profileDefinition?.definitionName ?: vdsHeader.vdsType
     }
 
-    constructor(vdsHeader: VdsHeader, vdsMessageGroup: VdsMessageGroup, signer: Signer) {
+    internal constructor(vdsHeader: VdsHeader, vdsMessageGroup: VdsMessageGroup, signer: Signer) {
         this.vdsHeader = vdsHeader
         this.vdsMessageGroup = vdsMessageGroup
         this.vdsSignature = createVdsSignature(vdsHeader, vdsMessageGroup, signer)
@@ -162,6 +162,21 @@ class VdsSeal : Seal {
                 MessageValue.fromBytes(vdsMessage.value.rawBytes, vdsMessage.coding, mrzLength)
             )
         }
+
+    class Builder(private val documentType: String) {
+        private val headerBuilder = VdsHeader.Builder(documentType)
+        private val messageBuilder = VdsMessageGroup.Builder(documentType)
+
+        fun issuingCountry(v: String) = apply { headerBuilder.setIssuingCountry(v) }
+        fun signerIdentifier(v: String) = apply { headerBuilder.setSignerIdentifier(v) }
+        fun certificateReference(v: String) = apply { headerBuilder.setCertificateReference(v) }
+        fun issuingDate(v: LocalDate) = apply { headerBuilder.setIssuingDate(v) }
+        fun sigDate(v: LocalDate) = apply { headerBuilder.setSigDate(v) }
+        fun <T> addMessage(tag: Int, value: T) = apply { messageBuilder.addMessage(tag, value) }
+        fun <T> addMessage(name: String, value: T) = apply { messageBuilder.addMessage(name, value) }
+
+        fun build(signer: Signer): VdsSeal = VdsSeal(headerBuilder.build(), messageBuilder.build(), signer)
+    }
 
     companion object {
         private val log = Logger.withTag(this::class.simpleName ?: "")

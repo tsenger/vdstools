@@ -20,7 +20,7 @@ class SignerJvmTest {
     @Test
     fun testKeyStoreConstructor() {
         val ecPrivKey = keystore.getKey("dets32", keyStorePassword.toCharArray()) as BCECPrivateKey
-        val signer = Signer(ecPrivKey.encoded, "brainpoolP224r1")
+        val signer = EcdsaSigner(ecPrivKey.encoded, "brainpoolP224r1")
         assertEquals(224, signer.fieldSize)
     }
 
@@ -28,7 +28,7 @@ class SignerJvmTest {
     @Test
     fun testSign_224() {
         val ecPrivKey = keystore.getKey("dets32", keyStorePassword.toCharArray()) as BCECPrivateKey
-        val signer = Signer(ecPrivKey.encoded, "brainpoolP224r1")
+        val signer = EcdsaSigner(ecPrivKey.encoded, "brainpoolP224r1")
         val dataBytes = ByteArray(32)
         val rnd = Random()
         rnd.nextBytes(dataBytes)
@@ -47,7 +47,7 @@ class SignerJvmTest {
         val dataBytes = ByteArray(32)
         rnd.nextBytes(dataBytes)
 
-        val signer = Signer(pair.private.encoded, "secp256r1")
+        val signer = EcdsaSigner(pair.private.encoded, "secp256r1")
         val signatureBytes: ByteArray = signer.sign(dataBytes)
         println("Signature: " + Hex.toHexString(signatureBytes))
         Assert.assertTrue(signatureBytes.size * 4 == signer.fieldSize)
@@ -64,7 +64,7 @@ class SignerJvmTest {
         val dataBytes = ByteArray(64)
         rnd.nextBytes(dataBytes)
 
-        val signer = Signer(pair.private.encoded, "secp384r1")
+        val signer = EcdsaSigner(pair.private.encoded, "secp384r1")
         val signatureBytes: ByteArray = signer.sign(dataBytes)
         println("Signature: " + Hex.toHexString(signatureBytes))
         Assert.assertTrue(signatureBytes.size * 4 == signer.fieldSize)
@@ -82,7 +82,7 @@ class SignerJvmTest {
         val dataBytes = ByteArray(128)
         rnd.nextBytes(dataBytes)
 
-        val signer = Signer(pair.private.encoded, "brainpoolP512r1")
+        val signer = EcdsaSigner(pair.private.encoded, "brainpoolP512r1")
         val signatureBytes: ByteArray = signer.sign(dataBytes)
         println("Signature: " + Hex.toHexString(signatureBytes))
         Assert.assertTrue(signatureBytes.size * 4 == signer.fieldSize)
@@ -98,7 +98,7 @@ class SignerJvmTest {
         val dataBytes = ByteArray(128)
         rnd.nextBytes(dataBytes)
 
-        val signer = Signer(pair.private.encoded, "secp256r1")
+        val signer = EcdsaSigner(pair.private.encoded, "secp256r1")
         val signatureBytes: ByteArray = signer.sign(dataBytes)
         println("Signature: " + Hex.toHexString(signatureBytes))
         Assert.assertTrue(signatureBytes.size * 4 == signer.fieldSize)
