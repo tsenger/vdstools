@@ -7,7 +7,7 @@ import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
 import okio.Buffer
 
 
-class VdsMessageGroup {
+internal class VdsMessageGroup {
     internal var derTlvList: List<DerTlv>
     var vdsType: String
         internal set
@@ -78,11 +78,6 @@ class VdsMessageGroup {
     }
 
     fun getMessageByTag(messageTag: Int): Message? {
-        val hexTag = (messageTag and 0xFF).toString(16).uppercase().padStart(2, '0')
-        return messageList.firstOrNull { message: Message -> message.tag == hexTag }
-    }
-
-    fun getMessageByTag(messageTag: String): Message? {
         return messageList.firstOrNull { message: Message -> message.tag == messageTag }
     }
 
@@ -107,7 +102,7 @@ class VdsMessageGroup {
         }
     }
 
-    class Builder(val vdsType: String) {
+    internal class Builder(val vdsType: String) {
         val derTlvList: MutableList<DerTlv> = ArrayList(5)
         internal val baseVdsType: String
         internal val profileDefinition: VdsProfileDefinitionDto?

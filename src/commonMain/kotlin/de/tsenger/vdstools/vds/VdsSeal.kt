@@ -24,7 +24,7 @@ class VdsSeal : Seal {
         this.documentType = vdsMessageGroup.profileDefinition?.definitionName ?: vdsHeader.vdsType
     }
 
-    constructor(vdsHeader: VdsHeader, vdsMessageGroup: VdsMessageGroup, signer: Signer) {
+    internal constructor(vdsHeader: VdsHeader, vdsMessageGroup: VdsMessageGroup, signer: Signer) {
         this.vdsHeader = vdsHeader
         this.vdsMessageGroup = vdsMessageGroup
         this.vdsSignature = createVdsSignature(vdsHeader, vdsMessageGroup, signer)
@@ -36,6 +36,7 @@ class VdsSeal : Seal {
 
     override val signingDate get() = vdsHeader.sigDate
 
+    override val sealType = SealType.VDS
     override val documentType: String
 
     override val baseDocumentType: String?
@@ -108,15 +109,6 @@ class VdsSeal : Seal {
         )
     }
 
-    override fun getMessageByTag(tag: String): Message? {
-        val vdsMessage = vdsMessageGroup.getMessageByTag(tag) ?: return null
-        val mrzLength = getMrzLength(vdsMessage.name)
-        return Message(
-            vdsMessage.tag, vdsMessage.name, vdsMessage.coding,
-            MessageValue.fromBytes(vdsMessage.value.rawBytes, vdsMessage.coding, mrzLength)
-        )
-    }
-
     private fun getMrzLength(messageName: String): Int? = when (messageName) {
         "MRZ_MRVA" -> 88
         "MRZ_MRVB" -> 72
@@ -162,26 +154,29 @@ class VdsSeal : Seal {
             )
         }
 
+    class Builder(private val documentType: String) {
+        private val headerBuilder = VdsHeader.Builder(documentType)
+        private val messageBuilder = VdsMessageGroup.Builder(documentType)
+
+        fun issuingCountry(v: String) = apply { headerBuilder.setIssuingCountry(v) }
+        fun signerIdentifier(v: String) = apply { headerBuilder.setSignerIdentifier(v) }
+        fun certificateReference(v: String) = apply { headerBuilder.setCertificateReference(v) }
+        fun issuingDate(v: LocalDate) = apply { headerBuilder.setIssuingDate(v) }
+        fun sigDate(v: LocalDate) = apply { headerBuilder.setSigDate(v) }
+        fun <T> addMessage(tag: Int, value: T) = apply { messageBuilder.addMessage(tag, value) }
+        fun <T> addMessage(name: String, value: T) = apply { messageBuilder.addMessage(name, value) }
+
+        fun build(signer: Signer): VdsSeal = VdsSeal(headerBuilder.build(), messageBuilder.build(), signer)
+    }
+
     companion object {
         private val log = Logger.withTag(this::class.simpleName ?: "")
-        fun fromRawString(rawString: String): Seal {
-            var seal: Seal? = null
-            try {
-                seal = parseVdsSeal(DataEncoder.decodeBase256(rawString))
-            } catch (e: Exception) {
-                log.e(e.message.toString())
-            }
-            return seal!!
+        internal fun fromRawString(rawString: String): Seal {
+            return parseVdsSeal(DataEncoder.decodeBase256(rawString))
         }
 
-        fun fromByteArray(rawBytes: ByteArray): Seal {
-            var seal: Seal? = null
-            try {
-                seal = parseVdsSeal(rawBytes)
-            } catch (e: Exception) {
-                log.e(e.message.toString())
-            }
-            return seal!!
+        internal fun fromByteArray(rawBytes: ByteArray): Seal {
+            return parseVdsSeal(rawBytes)
         }
 
         @OptIn(ExperimentalStdlibApi::class)

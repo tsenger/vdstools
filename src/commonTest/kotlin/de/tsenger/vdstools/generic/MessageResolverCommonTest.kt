@@ -19,7 +19,7 @@ class MessageResolverCommonTest {
         val resolver = DataEncoder.vdsDocumentTypes.asResolver("EMERGENCY_TRAVEL_DOCUMENT")
         val message = MessageResolver.resolve(derTlv, resolver)
         assertNotNull(message)
-        assertEquals("02", message.tag)
+        assertEquals(0x02, message.tag)
         assertEquals("MRZ", message.name)
         assertEquals(MessageCoding.MRZ, message.coding)
     }
@@ -31,7 +31,7 @@ class MessageResolverCommonTest {
         val resolver = DataEncoder.idbMessageTypes.asResolver()
         val message = MessageResolver.resolve(derTlv, resolver)
         assertNotNull(message)
-        assertEquals("86", message.tag)
+        assertEquals(0x86, message.tag)
         assertEquals("NATIONAL_DOCUMENT_IDENTIFIER", message.name)
         assertEquals(MessageCoding.BYTE, message.coding)
     }

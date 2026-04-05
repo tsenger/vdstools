@@ -378,7 +378,7 @@ class VdsSealCommonTest {
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.meldebescheinigung) as VdsSeal
         val metaList = seal.metadataMessageList
         assertEquals(1, metaList.size)
-        assertEquals("00", metaList[0].tag)
+        assertEquals(0x00, metaList[0].tag)
         assertEquals("DOC_PROFILE_NUMBER", metaList[0].name)
         assertContentEquals("9a4223406d374ef99e2cf95e31a23846".hexToByteArray(), metaList[0].value.rawBytes)
     }
@@ -386,7 +386,7 @@ class VdsSealCommonTest {
     @Test
     fun testMeldebescheinigung_metadataTagAbsentFromMessageList() {
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.meldebescheinigung) as VdsSeal
-        assertTrue(seal.messageList.none { it.tag == "00" })
+        assertTrue(seal.messageList.none { it.tag == 0x00 })
     }
 
     @Test
@@ -399,7 +399,7 @@ class VdsSealCommonTest {
     fun testMeldebescheinigung_messageListContainsNoBaseTags() {
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.meldebescheinigung) as VdsSeal
         // Tags 0-3 are base-type metadata tags and must not appear in messageList
-        assertTrue(seal.messageList.none { it.tag in listOf("00", "01", "02", "03") })
+        assertTrue(seal.messageList.none { it.tag in listOf(0x00, 0x01, 0x02, 0x03) })
     }
 
     @Test

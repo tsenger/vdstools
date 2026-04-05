@@ -4,24 +4,26 @@ package de.tsenger.vdstools.idb
 import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.Base32
 import de.tsenger.vdstools.DataEncoder
+import de.tsenger.vdstools.Signer
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.generic.Seal
+import de.tsenger.vdstools.generic.SealType
 import de.tsenger.vdstools.generic.SignatureInfo
 import kotlinx.datetime.LocalDate
 
 class IdbSeal : Seal {
     private var barcodeFlag: Char = 0x41.toChar()
     private var _barcodeIdentifier: String = BARCODE_IDENTIFIER
-    var payLoad: IdbPayload
+    internal var payLoad: IdbPayload
 
-    constructor(barcodeFlag: Char, barcodePayload: IdbPayload, identifier: String = BARCODE_IDENTIFIER) {
+    internal constructor(barcodeFlag: Char, barcodePayload: IdbPayload, identifier: String = BARCODE_IDENTIFIER) {
         this.barcodeFlag = barcodeFlag
         this._barcodeIdentifier = identifier
         this.payLoad = barcodePayload
     }
 
-    constructor(isSigned: Boolean, isZipped: Boolean, barcodePayload: IdbPayload) {
+    internal constructor(isSigned: Boolean, isZipped: Boolean, barcodePayload: IdbPayload) {
         if (isSigned) barcodeFlag = (barcodeFlag.code + 0x01).toChar()
         if (isZipped) barcodeFlag = (barcodeFlag.code + 0x02).toChar()
         this.payLoad = barcodePayload
@@ -83,16 +85,12 @@ class IdbSeal : Seal {
         return Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value, idbMessage.messageList)
     }
 
-    override fun getMessageByTag(tag: String): Message? {
-        val idbMessage = payLoad.idbMessageGroup.getMessageByTag(tag) ?: return null
-        return Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value, idbMessage.messageList)
-    }
-
     /**
      * If messageGroup contains a message with tag 0x86 ("NATIONAL_DOCUMENT_IDENTIFIER")
      * the name of the nation document type will be returned. Otherwise, the comma separated name(s) of the
      * available messages in the message group will be returned.
      */
+    override val sealType = SealType.IDB
     override val documentType: String
         get() {
             val msg = getMessageByTag(0x86)
@@ -142,6 +140,50 @@ class IdbSeal : Seal {
             return payLoad.idbHeader.getSignatureCreationDate()
         }
 
+    class Builder {
+        private var countryIdentifier: String = "UTO"
+        private var certificateReference: ByteArray? = null
+        private var signingDate: String? = null
+        private var signerCertBytes: ByteArray? = null
+        private var compress: Boolean = false
+        private val messageBuilder = IdbMessageGroup.Builder()
+
+        fun countryIdentifier(v: String) = apply { countryIdentifier = v }
+        fun certificateReference(v: ByteArray) = apply { certificateReference = v }
+        fun signingDate(v: String) = apply { signingDate = v }
+        fun signerCertificate(v: ByteArray) = apply { signerCertBytes = v }
+        fun compress(v: Boolean) = apply { compress = v }
+        fun <T> addMessage(tag: Int, value: T) = apply { messageBuilder.addMessage(tag, value) }
+        fun <T> addMessage(name: String, value: T) = apply { messageBuilder.addMessage(name, value) }
+        fun addMessage(name: String, block: SubMessageBuilder.() -> Unit) = apply {
+            messageBuilder.addMessage(name) { SubMessageBuilder(this).block() }
+        }
+        fun addMessage(tag: Int, block: SubMessageBuilder.() -> Unit) = apply {
+            messageBuilder.addMessage(tag) { SubMessageBuilder(this).block() }
+        }
+
+        fun build(): IdbSeal {
+            val header = IdbHeader(countryIdentifier)
+            val payload = IdbPayload(header, messageBuilder.build(), null, null)
+            return IdbSeal(isSigned = false, isZipped = compress, barcodePayload = payload)
+        }
+
+        fun build(signer: Signer): IdbSeal {
+            val algo = IdbSignatureAlgorithm.fromFieldSize(signer.fieldSize)
+            val header = IdbHeader(countryIdentifier, algo, certificateReference, signingDate)
+            val msgGroup = messageBuilder.build()
+            val sigBytes = signer.sign(header.encoded + msgGroup.encoded)
+            val cert = signerCertBytes?.let { IdbSignerCertificate(it) }
+            val payload = IdbPayload(header, msgGroup, cert, IdbSignature(sigBytes))
+            return IdbSeal(isSigned = true, isZipped = compress, barcodePayload = payload)
+        }
+
+        class SubMessageBuilder internal constructor(private val inner: IdbMessageGroup.Builder) {
+            fun <T> addMessage(tag: Int, value: T) = apply { inner.addMessage(tag, value) }
+            fun <T> addMessage(name: String, value: T) = apply { inner.addMessage(name, value) }
+        }
+    }
+
     companion object {
         const val BARCODE_IDENTIFIER_OLD: String = "NDB1"
         const val BARCODE_IDENTIFIER: String = "RDB1"
@@ -149,7 +191,7 @@ class IdbSeal : Seal {
         private val log = Logger.withTag(this::class.simpleName ?: "")
 
         @Throws(IllegalArgumentException::class)
-        fun fromString(barcodeString: String): Seal {
+        internal fun fromString(barcodeString: String): Seal {
             val strBuffer = StringBuilder(barcodeString)
 
             val barcodeIdentifier = strBuffer.substring(0, 4)

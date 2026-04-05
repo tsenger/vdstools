@@ -52,7 +52,7 @@ private fun VdsSeal.buildMessageGroupDissection(
     val spans = scanTlvs(msgBytes, baseOffset = headerLen)
 
     val children = spans.map { span ->
-        val label = messageList.firstOrNull { it.tag == (span.tag and 0xFF).toString(16).uppercase().padStart(2, '0') }?.name
+        val label = messageList.firstOrNull { it.tag == (span.tag and 0xFF) }?.name
             ?: "Unknown (0x${span.tag.toHex()})"
         FieldDissection(
             label, span.range, listOf(

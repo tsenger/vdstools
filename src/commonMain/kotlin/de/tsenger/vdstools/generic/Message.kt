@@ -4,7 +4,7 @@ import de.tsenger.vdstools.asn1.DerTlv
 import okio.Buffer
 
 class Message(
-    val tag: String,
+    val tag: Int,
     val name: String,
     internal val coding: MessageCoding,
     val value: MessageValue,
@@ -16,9 +16,9 @@ class Message(
             for (child in messageList) {
                 childBytes.write(child.encoded)
             }
-            DerTlv(tag.toInt(16).toByte(), childBytes.readByteArray()).encoded
+            DerTlv(tag.toByte(), childBytes.readByteArray()).encoded
         } else {
-            DerTlv(tag.toInt(16).toByte(), value.rawBytes).encoded
+            DerTlv(tag.toByte(), value.rawBytes).encoded
         }
 
     fun getMessageByName(name: String): Message? {
@@ -26,11 +26,6 @@ class Message(
     }
 
     fun getMessageByTag(tag: Int): Message? {
-        val hexTag = (tag and 0xFF).toString(16).uppercase().padStart(2, '0')
-        return messageList.firstOrNull { it.tag == hexTag }
-    }
-
-    fun getMessageByTag(tag: String): Message? {
         return messageList.firstOrNull { it.tag == tag }
     }
 

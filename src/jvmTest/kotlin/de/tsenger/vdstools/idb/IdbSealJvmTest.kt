@@ -2,7 +2,7 @@ package de.tsenger.vdstools.idb
 
 
 import de.tsenger.vdstools.DataEncoder.buildCertificateReference
-import de.tsenger.vdstools.Signer
+import de.tsenger.vdstools.EcdsaSigner
 import de.tsenger.vdstools.vds.VdsMessageGroup
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey
 import org.bouncycastle.jce.provider.BouncyCastleProvider
@@ -35,34 +35,24 @@ class IdbSealJvmTest {
 
     @Test
     fun testBuildIdbSeal() {
-
         val signerCertRef = "utts5b"
-
-        // Build Header
         val cert = keystore.getCertificate(signerCertRef) as X509Certificate
         val certRef = buildCertificateReference(cert.encoded)
-        val header = IdbHeader(
-            "D<<",
-            IdbSignatureAlgorithm.SHA256_WITH_ECDSA,
-            certRef,
-            "2025-01-31"
-        )
-
-        // Build Emergency Travel Document VdsMessageGroup
-        val mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06"
-        val vdsMessage = VdsMessageGroup.Builder("EMERGENCY_TRAVEL_DOCUMENT")
-            .addMessage("MRZ", mrz)
-            .build()
-
-        // Add ETD to an IdbMessageGroup
-        val messageGroup = IdbMessageGroup.Builder().addMessage("EMERGENCY_TRAVEL_DOCUMENT", vdsMessage.encoded).build()
-
-        // Generate Signature
         val ecPrivKey = keystore.getKey(signerCertRef, keyStorePassword.toCharArray()) as BCECPrivateKey
-        val signer = Signer(ecPrivKey.encoded, "brainpoolP256r1")
-        val signature = IdbSignature(signer.sign(header.encoded + messageGroup.encoded))
+        val signer = EcdsaSigner(ecPrivKey.encoded, "brainpoolP256r1")
 
-        val icb = IdbSeal('B', IdbPayload(header, messageGroup, null, signature))
+        val mrz = "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06"
+        val vdsMessageEncoded = VdsMessageGroup.Builder("EMERGENCY_TRAVEL_DOCUMENT")
+            .addMessage("MRZ", mrz)
+            .build().encoded
+
+        val icb = IdbSeal.Builder()
+            .countryIdentifier("D<<")
+            .certificateReference(certRef)
+            .signingDate("2025-01-31")
+            .addMessage("EMERGENCY_TRAVEL_DOCUMENT", vdsMessageEncoded)
+            .build(signer)
+
         assertTrue(
             icb.rawString.startsWith("RDB1BNK6ADJL2PECXOAAUAUMWCNACGIBDAXF2CNMHLF3OYBTNIF5VT2GGVPATHQJTYEZ4CM6D73Z2FE4O4Q7RLE6RVZJNXMTHKH7G")
         )

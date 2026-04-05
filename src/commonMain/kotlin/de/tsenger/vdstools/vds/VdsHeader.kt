@@ -11,7 +11,7 @@ import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 
-class VdsHeader {
+internal class VdsHeader {
     private val log = Logger.withTag(this::class.simpleName ?: "")
 
     var issuingCountry: String = "UTO"
@@ -140,7 +140,7 @@ class VdsHeader {
         }
 
     @OptIn(ExperimentalTime::class)
-    class Builder(vdsType: String) {
+    internal class Builder(vdsType: String) {
         var issuingCountry: String = "UTO"
             private set
         var signerIdentifier: String = "UTXX"

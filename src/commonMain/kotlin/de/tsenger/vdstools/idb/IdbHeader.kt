@@ -5,7 +5,7 @@ import de.tsenger.vdstools.DataEncoder
 import okio.Buffer
 
 
-class IdbHeader {
+internal class IdbHeader {
     private var countryIdentifier: ByteArray
     private var signatureAlgorithm: Byte = 0
     var certificateReference: ByteArray? = null

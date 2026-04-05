@@ -8,6 +8,6 @@ object MessageResolver {
         val definition = resolver.resolveByTag(tagHex) ?: return null
         if (definition.coding == MessageCoding.UNKNOWN) return null
         val value = MessageValue.fromBytes(derTlv.value, definition.coding)
-        return Message(tagHex, definition.name, definition.coding, value)
+        return Message(derTlv.tag.toInt() and 0xFF, definition.name, definition.coding, value)
     }
 }
