@@ -1,14 +1,14 @@
 [versions]
 # Kotlin & Core
-kotlin = "2.2.21"
+kotlin = "2.3.20"
 
 # Kotlinx Libraries
 kotlinx-datetime = "0.7.1"
-kotlinx-serialization = "1.9.0"
+kotlinx-serialization = "1.10.0"
 kotlinx-coroutines = "1.10.2"
 
 # Cryptography
-cryptography = "0.5.0"
+cryptography = "0.6.0"
 bouncycastle = "1.83"
 
 # XML
@@ -16,7 +16,7 @@ xmlutil = "0.91.3"
 
 # Utilities
 okio = "3.16.4"
-kermit = "2.0.8"
+kermit = "2.1.0"
 
 # Testing
 junit = "4.13.2"
