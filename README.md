@@ -25,7 +25,7 @@ specifications.
 ## Parse and verify a VDS / IDB
 
 Here is a quick overview how to use the generic parser and verifier. The generic interface
-handles VDS, IDB and 2D-DOC barcode via common function calls.
+handles VDS and IDB barcodes via common function calls.
 When you received the raw string from your favorite datamatrix decoder use VdsTools like this:
 
 ```kotlin
@@ -90,9 +90,9 @@ barcode scanner to recognise only certain symbologies. If an input matches a typ
 `allowedTypes`, a `SealParseException` is thrown.
 
 ```kotlin
-// Accept only VDS and IDB, reject 2D-DOC
-val parser = SealParser(allowedTypes = setOf(SealType.VDS, SealType.IDB))
-val seal = parser.parse(rawString)  // throws SealParseException for a 2D-DOC input
+// Accept only VDS, reject IDB
+val parser = SealParser(allowedTypes = setOf(SealType.VDS))
+val seal = parser.parse(rawString)  // throws SealParseException for an IDB input
 ```
 
 For VDS seals provided as raw bytes (e.g. when working with test fixtures or binary data):
@@ -109,9 +109,8 @@ this gives compile-time safety when adding a new seal type:
 
 ```kotlin
 when (seal.sealType) {
-    SealType.VDS    -> println("VDS seal, issuing country: ${seal.issuingCountry}")
-    SealType.IDB    -> println("IDB seal, document type: ${seal.documentType}")
-    SealType.TDDOC  -> println("2D-DOC seal")
+    SealType.VDS -> println("VDS seal, issuing country: ${seal.issuingCountry}")
+    SealType.IDB -> println("IDB seal, document type: ${seal.documentType}")
     // compiler warns here if a new SealType value is added and not handled
 }
 ```
@@ -161,7 +160,7 @@ always empty and all tags appear in `messageList` as usual.
 The library follows a symmetric design:
 
 - **Parsing** uses a single entry point — `SealParser` accepts any raw barcode string (or bytes) and
-  returns a `Seal`, regardless of whether it is VDS, IDB, or 2D-DOC. You never need to know the
+  returns a `Seal`, regardless of whether it is VDS or IDB. You never need to know the
   internal structure.
 - **Building** mirrors this with one builder per seal type — `VdsSeal.Builder` and `IdbSeal.Builder`.
   Call `build(signer)` at the end and get back the finished seal. All internal components (header,
