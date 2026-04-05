@@ -78,11 +78,6 @@ internal class VdsMessageGroup {
     }
 
     fun getMessageByTag(messageTag: Int): Message? {
-        val hexTag = (messageTag and 0xFF).toString(16).uppercase().padStart(2, '0')
-        return messageList.firstOrNull { message: Message -> message.tag == hexTag }
-    }
-
-    fun getMessageByTag(messageTag: String): Message? {
         return messageList.firstOrNull { message: Message -> message.tag == messageTag }
     }
 

@@ -355,7 +355,7 @@ class SealCommonTest {
         val seal = parser.parse(IcbRawStringsCommon.Visa)
         assertEquals("VISA", seal.documentType)
         assertEquals(1, seal.messageList.size)
-        val visa = seal.getMessageByTag("01")
+        val visa = seal.getMessageByTag(0x01)
         assertNotNull(visa)
         assertEquals(4, visa.messageList.size)
         assertEquals(

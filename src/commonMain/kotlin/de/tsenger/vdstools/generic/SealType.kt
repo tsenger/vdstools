@@ -1,3 +1,3 @@
 package de.tsenger.vdstools.generic
 
-enum class SealType { VDS, IDB, TDDOC }
+enum class SealType { VDS, IDB }

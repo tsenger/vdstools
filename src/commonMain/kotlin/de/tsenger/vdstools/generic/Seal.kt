@@ -8,7 +8,6 @@ abstract class Seal {
 
     abstract fun getMessageByName(name: String): Message?
     abstract fun getMessageByTag(tag: Int): Message?
-    abstract fun getMessageByTag(tag: String): Message?
 
     @Deprecated("Use getMessageByName(name) instead", ReplaceWith("getMessageByName(name)"))
     fun getMessage(name: String): Message? = getMessageByName(name)

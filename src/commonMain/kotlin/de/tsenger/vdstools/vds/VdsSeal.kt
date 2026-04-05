@@ -109,15 +109,6 @@ class VdsSeal : Seal {
         )
     }
 
-    override fun getMessageByTag(tag: String): Message? {
-        val vdsMessage = vdsMessageGroup.getMessageByTag(tag) ?: return null
-        val mrzLength = getMrzLength(vdsMessage.name)
-        return Message(
-            vdsMessage.tag, vdsMessage.name, vdsMessage.coding,
-            MessageValue.fromBytes(vdsMessage.value.rawBytes, vdsMessage.coding, mrzLength)
-        )
-    }
-
     private fun getMrzLength(messageName: String): Int? = when (messageName) {
         "MRZ_MRVA" -> 88
         "MRZ_MRVB" -> 72

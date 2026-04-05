@@ -85,11 +85,6 @@ class IdbSeal : Seal {
         return Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value, idbMessage.messageList)
     }
 
-    override fun getMessageByTag(tag: String): Message? {
-        val idbMessage = payLoad.idbMessageGroup.getMessageByTag(tag) ?: return null
-        return Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value, idbMessage.messageList)
-    }
-
     /**
      * If messageGroup contains a message with tag 0x86 ("NATIONAL_DOCUMENT_IDENTIFIER")
      * the name of the nation document type will be returned. Otherwise, the comma separated name(s) of the

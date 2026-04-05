@@ -25,11 +25,6 @@ internal class IdbMessageGroup {
         }
 
     fun getMessageByTag(messageTag: Int): Message? {
-        val hexTag = (messageTag and 0xFF).toString(16).uppercase().padStart(2, '0')
-        return messageList.firstOrNull { it.tag == hexTag }
-    }
-
-    fun getMessageByTag(messageTag: String): Message? {
         return messageList.firstOrNull { it.tag == messageTag }
     }
 
@@ -164,8 +159,7 @@ internal class IdbMessageGroup {
                 emptyList()
             }
 
-            val tagHex = tagInt.toString(16).uppercase().padStart(2, '0')
-            return Message(tagHex, name, coding, value, subMessages)
+            return Message(tagInt, name, coding, value, subMessages)
         }
     }
 }

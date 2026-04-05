@@ -129,11 +129,6 @@ class IdbMessageGroupCommonTest {
         val eventByInt = pov.getMessageByTag(9)
         assertNotNull(eventByInt)
         assertEquals("VACCINATION_EVENT", eventByInt.name)
-
-        // Hex string access
-        val eventByHex = pov.getMessageByTag("09")
-        assertNotNull(eventByHex)
-        assertEquals("VACCINATION_EVENT", eventByHex.name)
     }
 
     @Test

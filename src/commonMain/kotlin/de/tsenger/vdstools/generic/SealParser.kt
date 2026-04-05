@@ -1,7 +1,6 @@
 package de.tsenger.vdstools.generic
 
 import de.tsenger.vdstools.idb.IdbSeal
-import de.tsenger.vdstools.tddoc.TdDocSeal
 import de.tsenger.vdstools.vds.VdsSeal
 
 class SealParser(val allowedTypes: Set<SealType> = SealType.entries.toSet()) {
@@ -14,9 +13,8 @@ class SealParser(val allowedTypes: Set<SealType> = SealType.entries.toSet()) {
             throw SealParseException("Seal type $type is not in allowed types: $allowedTypes")
         return try {
             when (type) {
-                SealType.VDS    -> VdsSeal.fromRawString(input)
-                SealType.IDB    -> IdbSeal.fromString(input)
-                SealType.TDDOC  -> TdDocSeal.fromRawString(input)
+                SealType.VDS -> VdsSeal.fromRawString(input)
+                SealType.IDB -> IdbSeal.fromString(input)
             }
         } catch (e: SealParseException) {
             throw e
@@ -41,7 +39,6 @@ class SealParser(val allowedTypes: Set<SealType> = SealType.entries.toSet()) {
     private fun detectType(input: String): SealType? = when {
         input.startsWith("RDB1") || input.startsWith("NDB1") -> SealType.IDB
         input.startsWith("Ü")                                -> SealType.VDS
-        input.startsWith("DC")                               -> SealType.TDDOC
         else                                                 -> null
     }
 }

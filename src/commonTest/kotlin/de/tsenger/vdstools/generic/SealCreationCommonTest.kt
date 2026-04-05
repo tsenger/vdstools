@@ -79,7 +79,7 @@ class SealCreationCommonTest {
 
         val mrzFeature = messageGroup.getMessageByName("MRZ")
         assertNotNull(mrzFeature)
-        assertEquals("02", mrzFeature.tag)
+        assertEquals(0x02, mrzFeature.tag)
     }
 
     @Test
@@ -96,7 +96,7 @@ class SealCreationCommonTest {
         // Access by name
         val featureByName = messageGroup.getMessageByName("MRZ")
         assertNotNull(featureByName)
-        assertEquals("02", featureByName.tag)
+        assertEquals(0x02, featureByName.tag)
     }
 
     @Test
@@ -145,7 +145,7 @@ class SealCreationCommonTest {
         // Check by name
         val mrzFeature = messageGroup.getMessageByName("MRZ_TD2")
         assertNotNull(mrzFeature)
-        assertEquals("81", mrzFeature.tag)
+        assertEquals(0x81, mrzFeature.tag)
         assertTrue(mrzFeature.value is MessageValue.MrzValue)
 
         // Check date message
@@ -191,7 +191,7 @@ class SealCreationCommonTest {
 
         val feature = messageGroup.getMessageByName("PROOF_OF_VACCINATION")
         assertNotNull(feature)
-        assertEquals("04", feature.tag)
+        assertEquals(0x04, feature.tag)
         assertTrue(feature.value is MessageValue.BytesValue)
     }
 
@@ -273,7 +273,7 @@ class SealCreationCommonTest {
         // Verify message can be retrieved
         val msg = seal.getMessageByName("PROOF_OF_VACCINATION")
         assertNotNull(msg)
-        assertEquals("04", msg.tag)
+        assertEquals(0x04, msg.tag)
     }
 
     @Test
@@ -324,7 +324,7 @@ class SealCreationCommonTest {
         val vdsFeature = vdsMessageGroup.getMessageByName("MRZ")
         assertNotNull(vdsFeature)
         assertEquals("MRZ", vdsFeature.name)
-        assertEquals("02", vdsFeature.tag)
+        assertEquals(0x02, vdsFeature.tag)
         assertNotNull(vdsFeature.value)
 
         // IDB: Create message group and access messages (same pattern!)
@@ -335,7 +335,7 @@ class SealCreationCommonTest {
         val idbFeature = idbMessageGroup.getMessageByName("MRZ_TD2")
         assertNotNull(idbFeature)
         assertEquals("MRZ_TD2", idbFeature.name)
-        assertEquals("81", idbFeature.tag)
+        assertEquals(0x81, idbFeature.tag)
         assertNotNull(idbFeature.value)
     }
 
