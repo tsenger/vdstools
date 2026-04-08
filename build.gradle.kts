@@ -98,7 +98,6 @@ kotlin {
                 implementation(libs.xmlutil.serialization)
                 implementation(libs.okio)
                 implementation(libs.cryptography.core)
-                implementation(libs.kotlinx.coroutines.core)
             }
         }
 

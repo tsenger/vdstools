@@ -5,6 +5,7 @@ import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.internal.logD
 import de.tsenger.vdstools.internal.logE
 import de.tsenger.vdstools.internal.logI
+
 import de.tsenger.vdstools.vds.tr03171.ProfileConverter
 import de.tsenger.vdstools.vds.tr03171.ProfileXmlParser
 import de.tsenger.vdstools.generated.ResourceConstants
@@ -13,7 +14,6 @@ import de.tsenger.vdstools.generic.MessageValue
 import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.DelicateCryptographyApi
 import dev.whyoleg.cryptography.algorithms.SHA1
-import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.number
@@ -474,9 +474,7 @@ object DataEncoder {
             .get(SHA1)
             .hasher()
 
-        val certSha1 = runBlocking {
-            hasher.hash(certificateBytes)
-        }
+        val certSha1 = hasher.hashBlocking(certificateBytes)
         return certSha1.sliceArray(15..19)
     }
 
