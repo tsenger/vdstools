@@ -3,6 +3,8 @@ package de.tsenger.vdstools.vds
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generic.Message
+import de.tsenger.vdstools.generic.MessageCoding
+import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
 import okio.Buffer
 
@@ -51,13 +53,19 @@ internal class VdsMessageGroup {
         /**
          * @return a list of all decoded Messages, using extended message definition-aware lookup if available.
          * Metadata tags (e.g. UUID tag) are excluded.
+         * For unknown document types, messages are returned as raw bytes with names like "TAG02".
          */
         get() {
             val messageList: MutableList<Message> = ArrayList()
             for (derTlv in derTlvList) {
                 if (derTlv.tag.toInt() in metadataTags) continue
-                DataEncoder.vdsDocumentTypes.resolveMessage(vdsType, profileDefinition, derTlv)
-                    ?.let { messageList.add(it) }
+                val tag = derTlv.tag.toInt() and 0xFF
+                val message = DataEncoder.vdsDocumentTypes.resolveMessage(vdsType, profileDefinition, derTlv)
+                    ?: if (vdsType == VdsHeader.UNKNOWN_TYPE) {
+                        Message(tag, "0x${tag.toString(16).uppercase().padStart(2, '0')}", MessageCoding.BYTES,
+                            MessageValue.BytesValue(derTlv.value))
+                    } else null
+                message?.let { messageList.add(it) }
             }
             return messageList
         }

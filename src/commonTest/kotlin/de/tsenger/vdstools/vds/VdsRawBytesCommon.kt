@@ -155,6 +155,25 @@ object VdsRawBytesCommon {
                 "da6ff83d3bcf8b64ffede2be2201169d" +
                 "e7fb866f048df6e2cd1528767d8d6337" +
                 "20465396e64681e3a49ec74d").hexToByteArray()
+
+    val utoVisa: ByteArray =
+        ("dc03d9c56d296ae819a65fdb275fdb27" +
+                "5f0302308a1bd2b074e013565cea57fc" +
+                "133c133c133c133c133c133c9e2e4cee" +
+                "19d93771598f1a9539e4269e269e4b7c" +
+                "133c133f0380647e8c65467c675da84c" +
+                "9768447b6c9d5543725981697f8f4825" +
+                "585d734b7894497c6e907e45937e4866" +
+                "799fa0718d56a02b7a996f7f814e8988" +
+                "4b948a60795fa99f604c9843668f4f47" +
+                "296be2a75f7e577a75a66d755986b874" +
+                "6bb96f866f8952706b7062736f8f4b91" +
+                "54715c6760799a3583a788998490765b" +
+                "567972656a7eff4031cf9bc3732e0e14" +
+                "e17b353149f39c6b1d705c320da80aa3" +
+                "185ba67ee77acdce73554aece7a1af81" +
+                "1c785d54cee6cd251293b6a9b91ae02e" +
+                "76d427873073193f").hexToByteArray()
 }
 
 

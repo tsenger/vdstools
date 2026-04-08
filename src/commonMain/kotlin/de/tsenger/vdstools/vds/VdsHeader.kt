@@ -69,7 +69,7 @@ internal class VdsHeader {
     val vdsType: String
         get() {
             val vdsType = DataEncoder.vdsDocumentTypes.getVdsType(documentRef)
-            return vdsType ?: "UNKNOWN"
+            return vdsType ?: UNKNOWN_TYPE
         }
 
     val encoded: ByteArray
@@ -244,6 +244,7 @@ internal class VdsHeader {
 
     companion object {
         const val DC: Byte = 0xDC.toByte()
+        const val UNKNOWN_TYPE = "UNKNOWN"
         private val log = Logger.withTag(this::class.simpleName ?: "")
 
         /**

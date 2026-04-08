@@ -1,6 +1,8 @@
 package de.tsenger.vdstools.vds
 
 import de.tsenger.vdstools.generic.MessageValue
+import de.tsenger.vdstools.generic.SealParser
+import de.tsenger.vdstools.generic.SealType
 import kotlinx.datetime.LocalDate
 import okio.Buffer
 import kotlin.test.*
@@ -342,7 +344,6 @@ class VdsSealCommonTest {
         assertEquals("Mustermann", seal.getMessageByTag(4)?.value.toString())
         assertNull(seal.getMessageByTag(0)?.value)
         assertContentEquals("9a4223406d374ef99e2cf95e31a23846".hexToByteArray(), seal.documentProfileUuid)
-
     }
 
     @Test
@@ -352,7 +353,6 @@ class VdsSealCommonTest {
         assertEquals("Mustermann", seal.getMessageByTag(4)?.value.toString())
         assertNull(seal.getMessageByTag(0)?.value)
         assertContentEquals("9a4223406d374ef99e2cf95e31a23846".hexToByteArray(), seal.documentProfileUuid)
-
     }
 
     @Test
@@ -412,6 +412,27 @@ class VdsSealCommonTest {
         assertTrue(1 in group.metadataTags)
         assertTrue(2 in group.metadataTags)
         assertTrue(3 in group.metadataTags)
+    }
+
+    @Test
+    fun testUtoVisa() {
+        //val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.utoVisa) as VdsSeal
+        val seal = SealParser().parse(VdsRawBytesCommon.utoVisa)
+
+        assertNotNull(seal)
+        assertEquals(SealType.VDS, seal.sealType)
+        assertEquals("UNKNOWN", seal.documentType)
+        assertEquals("DEKD1", seal.signerCertReference)
+        assertEquals("UTO", seal.issuingCountry)
+        assertEquals(LocalDate.parse("2023-06-28"), seal.signingDate)
+
+        val messages = seal.messageList
+        assertEquals(3, messages.size)
+
+        for (message in messages) {
+            println("${message.name}: ${message.value}")
+        }
+
     }
 
 
