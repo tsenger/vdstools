@@ -1,6 +1,5 @@
 package de.tsenger.vdstools
 
-import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.MessageCoding
@@ -9,6 +8,7 @@ import de.tsenger.vdstools.generic.MessageDefinitionResolver
 import de.tsenger.vdstools.generic.MessageResolver
 import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
+import de.tsenger.vdstools.internal.logW
 import de.tsenger.vdstools.vds.dto.VdsDocumentTypeDto
 import kotlinx.serialization.json.Json
 
@@ -26,7 +26,7 @@ import kotlinx.serialization.json.Json
  * @param jsonString JSON string containing an array of [VdsDocumentTypeDto] definitions
  */
 class VdsDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
-    private val log = Logger.withTag(this::class.simpleName ?: "")
+    private val logTag = this::class.simpleName ?: ""
     private var documentTypeDtoList: List<VdsDocumentTypeDto>
 
     private val vdsTypes: MutableMap<String, Int> = HashMap()
@@ -139,7 +139,7 @@ class VdsDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
     @Throws(IllegalArgumentException::class)
     fun getMessageName(vdsType: String, derTlv: DerTlv): String {
         if (!vdsTypes.containsKey(vdsType)) {
-            log.w("No seal type with name '$vdsType' was found.")
+            logW(logTag,"No seal type with name '$vdsType' was found.")
             throw IllegalArgumentException("No seal type with name '$vdsType' was found.")
         }
         val docTypeDto = getVdsDocumentTypeDto(vdsType)
@@ -157,7 +157,7 @@ class VdsDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
     @Throws(IllegalArgumentException::class)
     fun getMessageCoding(vdsType: String, derTlv: DerTlv): MessageCoding {
         if (!vdsTypes.containsKey(vdsType)) {
-            log.w("No seal type with name '$vdsType' was found.")
+            logW(logTag,"No seal type with name '$vdsType' was found.")
             throw IllegalArgumentException("No seal type with name '$vdsType' was found.")
         }
         val docTypeDto = getVdsDocumentTypeDto(vdsType)
@@ -232,11 +232,11 @@ class VdsDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
     @Throws(IllegalArgumentException::class)
     fun <T> encodeMessage(vdsType: String, messageName: String, inputValue: T): DerTlv {
         if (!vdsTypes.containsKey(vdsType)) {
-            log.w("No VdsSeal type with name '$vdsType' was found.")
+            logW(logTag,"No VdsSeal type with name '$vdsType' was found.")
             throw IllegalArgumentException("No seal type with name '$vdsType' was found.")
         }
         if (!vdsMessages.contains(messageName)) {
-            log.w("No VdsSeal message with name '$messageName' was found.")
+            logW(logTag,"No VdsSeal message with name '$messageName' was found.")
             throw IllegalArgumentException("No VdsSeal message with name '$messageName' was found.")
         }
         val docTypeDto = getVdsDocumentTypeDto(vdsType)
@@ -247,7 +247,7 @@ class VdsDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
     private fun <T> encodeMessage(docTypeDto: VdsDocumentTypeDto, messageName: String, inputValue: T): DerTlv {
         val tag = getMessageTag(docTypeDto, messageName)
         if (tag.toInt() == 0) {
-            log.w("VdsType: " + docTypeDto.documentType + " has no Message " + messageName)
+            logW(logTag,"VdsType: " + docTypeDto.documentType + " has no Message " + messageName)
             throw IllegalArgumentException("VdsType: " + docTypeDto.documentType + " has no Message " + messageName)
         }
         val coding = getCoding(docTypeDto, messageName)

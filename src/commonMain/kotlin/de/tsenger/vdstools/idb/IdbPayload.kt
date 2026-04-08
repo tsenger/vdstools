@@ -1,8 +1,8 @@
 package de.tsenger.vdstools.idb
 
 
-import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.asn1.DerTlv
+import de.tsenger.vdstools.internal.logE
 import okio.Buffer
 
 
@@ -12,7 +12,7 @@ internal class IdbPayload(
     val idbSignerCertificate: IdbSignerCertificate?,
     val idbSignature: IdbSignature?
 ) {
-    private val log = Logger.withTag(this::class.simpleName ?: "")
+    private val tag = this::class.simpleName ?: ""
     val encoded: ByteArray
         get() {
             val buffer = Buffer()
@@ -22,9 +22,7 @@ internal class IdbPayload(
             if (idbSignature != null) {
                 buffer.write(idbSignature.encoded)
             } else if (idbHeader.getSignatureAlgorithm() != null) {
-                log.e(
-                    "Missing Signature Field! This field should be present if a signature algorithm has been specified in the header."
-                )
+                logE(tag, "Missing Signature Field! This field should be present if a signature algorithm has been specified in the header.")
             }
             return buffer.readByteArray()
         }

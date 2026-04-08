@@ -1,6 +1,6 @@
 package de.tsenger.vdstools
 
-import co.touchlab.kermit.Logger
+import de.tsenger.vdstools.internal.logE
 import dev.whyoleg.cryptography.algorithms.*
 import dev.whyoleg.cryptography.algorithms.EC.Curve
 import dev.whyoleg.cryptography.algorithms.EC.PrivateKey.Format.DER
@@ -8,7 +8,7 @@ import dev.whyoleg.cryptography.algorithms.EC.PrivateKey.Format.RAW
 
 
 class EcdsaSigner(privKeyBytes: ByteArray, curveName: String) : Signer {
-    private val log = Logger.withTag(this::class.simpleName ?: "")
+    private val tag = this::class.simpleName ?: ""
     private var ecPrivKey: ECDSA.PrivateKey
     override var fieldSize: Int = 0
         private set
@@ -21,7 +21,7 @@ class EcdsaSigner(privKeyBytes: ByteArray, curveName: String) : Signer {
         ecPrivKey = keyDecoder.decodeFromByteArrayBlocking(DER, privKeyBytes)
         fieldSize = ecPrivKey.encodeToByteArrayBlocking(RAW).size * 8
         if (fieldSize !in 224..512) {
-            log.e("Bit length of Field is out of defined value: $fieldSize")
+            logE(tag, "Bit length of Field is out of defined value: $fieldSize")
             throw IllegalArgumentException(
                 "Bit length of Field is out of defined value (224 to 512 bits): $fieldSize"
             )

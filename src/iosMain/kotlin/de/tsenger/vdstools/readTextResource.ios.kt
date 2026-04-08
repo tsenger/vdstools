@@ -1,6 +1,7 @@
 package de.tsenger.vdstools
 
-import co.touchlab.kermit.Logger
+import de.tsenger.vdstools.internal.logD
+import de.tsenger.vdstools.internal.logE
 import okio.FileNotFoundException
 import okio.FileSystem
 import okio.Path
@@ -25,19 +26,17 @@ actual fun readTextResource(fileName: String): String {
  * We need to search in all loaded bundles to find our framework.
  */
 internal fun getResourcePath(fileName: String): Path? {
-    val log = Logger.withTag("getResourcePath")
-
     // Search in all loaded bundles for vdstools framework
     NSBundle.allBundles().forEach { bundle ->
         val bundleBundle = bundle as? NSBundle ?: return@forEach
         val path = bundleBundle.pathForResource(fileName, null)
         if (path != null) {
-            log.d("Found resource at: $path in bundle: ${bundleBundle.bundlePath}")
+            logD("getResourcePath", "Found resource at: $path in bundle: ${bundleBundle.bundlePath}")
             return path.toPath()
         }
     }
 
-    log.e("Resource $fileName not found in any loaded bundle")
+    logE("getResourcePath", "Resource $fileName not found in any loaded bundle")
     return null
 }
 

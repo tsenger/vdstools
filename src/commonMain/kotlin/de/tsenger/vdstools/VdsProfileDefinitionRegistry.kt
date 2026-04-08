@@ -1,6 +1,7 @@
 package de.tsenger.vdstools
 
-import co.touchlab.kermit.Logger
+import de.tsenger.vdstools.internal.logD
+import de.tsenger.vdstools.internal.logW
 import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
 import kotlinx.serialization.json.Json
 
@@ -19,7 +20,7 @@ import kotlinx.serialization.json.Json
  */
 @OptIn(ExperimentalStdlibApi::class)
 class VdsProfileDefinitionRegistry(jsonString: String) : DefinitionRegistry {
-    private val log = Logger.withTag(this::class.simpleName ?: "")
+    private val tag = this::class.simpleName ?: ""
     private var definitionsByUuid: Map<String, VdsProfileDefinitionDto>
     private var definitionsByName: Map<String, VdsProfileDefinitionDto>
 
@@ -31,7 +32,7 @@ class VdsProfileDefinitionRegistry(jsonString: String) : DefinitionRegistry {
         val definitionList: List<VdsProfileDefinitionDto> = json.decodeFromString(jsonString)
         definitionsByUuid = definitionList.associateBy { it.definitionId.lowercase() }
         definitionsByName = definitionList.associateBy { it.definitionName }
-        log.d("Loaded ${definitionsByUuid.size} VDS profile definitions")
+        logD(tag,"Loaded ${definitionsByUuid.size} VDS profile definitions")
     }
 
     override fun addEntriesFromJson(jsonString: String) {
@@ -47,15 +48,15 @@ class VdsProfileDefinitionRegistry(jsonString: String) : DefinitionRegistry {
      */
     fun resolve(uuidBytes: ByteArray): VdsProfileDefinitionDto? {
         if (uuidBytes.size != 16) {
-            log.w("Invalid UUID length: expected 16 bytes, got ${uuidBytes.size}")
+            logW(tag,"Invalid UUID length: expected 16 bytes, got ${uuidBytes.size}")
             return null
         }
         val uuidHex = uuidBytes.toHexString().lowercase()
         val definition = definitionsByUuid[uuidHex]
         if (definition != null) {
-            log.d("Resolved definition: ${definition.definitionName} for UUID: $uuidHex")
+            logD(tag,"Resolved definition: ${definition.definitionName} for UUID: $uuidHex")
         } else {
-            log.d("No definition found for UUID: $uuidHex")
+            logD(tag,"No definition found for UUID: $uuidHex")
         }
         return definition
     }
@@ -69,14 +70,14 @@ class VdsProfileDefinitionRegistry(jsonString: String) : DefinitionRegistry {
     fun resolve(uuidHex: String): VdsProfileDefinitionDto? {
         val normalizedUuid = uuidHex.lowercase().replace("-", "")
         if (normalizedUuid.length != 32) {
-            log.w("Invalid UUID hex length: expected 32 characters, got ${normalizedUuid.length}")
+            logW(tag,"Invalid UUID hex length: expected 32 characters, got ${normalizedUuid.length}")
             return null
         }
         val definition = definitionsByUuid[normalizedUuid]
         if (definition != null) {
-            log.d("Resolved definition: ${definition.definitionName} for UUID: $normalizedUuid")
+            logD(tag,"Resolved definition: ${definition.definitionName} for UUID: $normalizedUuid")
         } else {
-            log.d("No definition found for UUID: $normalizedUuid")
+            logD(tag,"No definition found for UUID: $normalizedUuid")
         }
         return definition
     }
@@ -94,7 +95,7 @@ class VdsProfileDefinitionRegistry(jsonString: String) : DefinitionRegistry {
     fun addDefinition(definition: VdsProfileDefinitionDto) {
         definitionsByUuid = definitionsByUuid + (definition.definitionId.lowercase() to definition)
         definitionsByName = definitionsByName + (definition.definitionName to definition)
-        log.d("Added definition: ${definition.definitionName} (${definition.definitionId})")
+        logD(tag,"Added definition: ${definition.definitionName} (${definition.definitionId})")
     }
 
     /**

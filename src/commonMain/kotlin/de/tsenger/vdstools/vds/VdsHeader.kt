@@ -1,7 +1,9 @@
 package de.tsenger.vdstools.vds
 
-import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.DataEncoder
+import de.tsenger.vdstools.internal.logE
+import de.tsenger.vdstools.internal.logV
+import de.tsenger.vdstools.internal.logW
 import de.tsenger.vdstools.vds.VdsHeader.Companion.fromBuffer
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -12,7 +14,7 @@ import kotlin.time.ExperimentalTime
 
 
 internal class VdsHeader {
-    private val log = Logger.withTag(this::class.simpleName ?: "")
+    private val tag = this::class.simpleName ?: ""
 
     var issuingCountry: String = "UTO"
         private set
@@ -89,7 +91,7 @@ internal class VdsHeader {
                 buffer.writeByte(docFeatureRef.toInt())
                 buffer.writeByte(docTypeCat.toInt())
             } catch (e: Exception) {
-                log.e("Error while encoding header data: " + e.message)
+                logE(tag, "Error while encoding header data: " + e.message)
             }
             return buffer.readByteArray()
         }
@@ -245,7 +247,7 @@ internal class VdsHeader {
     companion object {
         const val DC: Byte = 0xDC.toByte()
         const val UNKNOWN_TYPE = "UNKNOWN"
-        private val log = Logger.withTag(this::class.simpleName ?: "")
+        private const val TAG = "VdsHeader"
 
         /**
          * Strictly parses certificate reference and issuing/sig dates for ICAO version 4 headers.
@@ -261,7 +263,7 @@ internal class VdsHeader {
         ): Triple<String, LocalDate, LocalDate> {
             val certRefLength = lengthStr.toInt(16)
             val bytesToDecode = ((certRefLength - 1) / 3) * 2 + 2
-            log.v("version 4: certRefLength=$certRefLength (radix 16), bytesToDecode=$bytesToDecode")
+            logV(TAG, "version 4: certRefLength=$certRefLength (radix 16), bytesToDecode=$bytesToDecode")
             val certRef = DataEncoder.decodeC40(buffer.readByteArray(bytesToDecode.toLong()))
             val issuingDate = DataEncoder.decodeDate(buffer.readByteArray(3))
             val sigDate = DataEncoder.decodeDate(buffer.readByteArray(3))
@@ -294,14 +296,14 @@ internal class VdsHeader {
                 try {
                     val certRefLength = lengthStr.toInt(radix)
                     val bytesToDecode = ((certRefLength - 1) / 3) * 2 + 2
-                    log.v("version 4: certRefLength=$certRefLength (radix $radix), bytesToDecode=$bytesToDecode")
+                    logV(TAG, "version 4: certRefLength=$certRefLength (radix $radix), bytesToDecode=$bytesToDecode")
                     val certRef = DataEncoder.decodeC40(buffer.readByteArray(bytesToDecode.toLong()))
                     val issuingDate = DataEncoder.decodeDate(buffer.readByteArray(3))
                     val sigDate = DataEncoder.decodeDate(buffer.readByteArray(3))
                     return Triple(certRef, issuingDate, sigDate)
                 } catch (e: Exception) {
                     if (radix != radixCandidates.last()) {
-                        log.w("version 4: parse failed with radix $radix, retrying: ${e.message}")
+                        logW(TAG, "version 4: parse failed with radix $radix, retrying: ${e.message}")
                     }
                     lastException = e
                     buffer.skip(buffer.size)
@@ -320,9 +322,7 @@ internal class VdsHeader {
             // Magic Byte
             val magicByte = rawdataBuffer.readByte()
             if (magicByte != DC) {
-                log.e(
-                    "Magic Constant mismatch:  ${magicByte.toString(16).padStart(2, '0').uppercase()}, instead of 0xDC"
-                )
+                logE(TAG, "Magic Constant mismatch:  ${magicByte.toString(16).padStart(2, '0').uppercase()}, instead of 0xDC")
                 throw IllegalArgumentException(
                     "Magic Constant mismatch:  ${magicByte.toString(16).padStart(2, '0').uppercase()}, instead of 0xDC"
                 )
@@ -339,9 +339,7 @@ internal class VdsHeader {
 		 * 0x03 for rawVersion 3 and static length of Document Signer Reference.
 		 */
             if (!(vdsHeader.rawVersion.toInt() == 0x02 || vdsHeader.rawVersion.toInt() == 0x03)) {
-                log.e(
-                    "Unsupported rawVersion: ${vdsHeader.rawVersion.toString(16).padStart(2, '0').uppercase()}"
-                )
+                logE(TAG, "Unsupported rawVersion: ${vdsHeader.rawVersion.toString(16).padStart(2, '0').uppercase()}")
                 throw IllegalArgumentException(
                     "Unsupported rawVersion: ${
                         vdsHeader.rawVersion.toString(16).padStart(2, '0').uppercase()

@@ -1,10 +1,11 @@
 package de.tsenger.vdstools
 
-import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.generic.Seal
 import de.tsenger.vdstools.generic.SignatureInfo
 import de.tsenger.vdstools.idb.IdbSeal
 import de.tsenger.vdstools.vds.VdsSeal
+import de.tsenger.vdstools.internal.logE
+import de.tsenger.vdstools.internal.logV
 import dev.whyoleg.cryptography.algorithms.*
 import dev.whyoleg.cryptography.algorithms.EC.Curve
 import dev.whyoleg.cryptography.algorithms.EC.PublicKey.Format.RAW
@@ -45,7 +46,7 @@ class Verifier(
     ) : this(vdsSeal.signedBytes ?: byteArrayOf(), vdsSeal.signatureBytes, publicKeyBytes, curveName)
 
 
-    private val log = Logger.withTag(this::class.simpleName ?: "")
+    private val tag = this::class.simpleName ?: ""
 
     private val keyDecoder = getCryptoProvider().get(ECDSA).publicKeyDecoder(Curve(curveName))
     private val ecPubKey = keyDecoder.decodeFromByteArrayBlocking(EC.PublicKey.Format.DER, publicKeyBytes)
@@ -60,10 +61,10 @@ class Verifier(
 
     init {
 
-        log.v("Public Key bytes: 0x${ecPubKey.encodeToByteArrayBlocking(RAW).toHexString()}")
-        log.v("Field bit length: $fieldSize")
-        log.v("Message bytes: ${messageBytes.toHexString()}")
-        log.v("Signature bytes: ${signatureBytes.toHexString()}")
+        logV(tag, "Public Key bytes: 0x${ecPubKey.encodeToByteArrayBlocking(RAW).toHexString()}")
+        logV(tag, "Field bit length: $fieldSize")
+        logV(tag, "Message bytes: ${messageBytes.toHexString()}")
+        logV(tag, "Signature bytes: ${signatureBytes.toHexString()}")
     }
 
     fun verify(): Result {
@@ -77,7 +78,7 @@ class Verifier(
             in 257..384 -> SHA384
             in 385..512 -> SHA512
             else -> {
-                log.e("Bit length of Field is out of defined value: $fieldSize")
+                logE(tag, "Bit length of Field is out of defined value: $fieldSize")
                 return Result.VerifyError
             }
         }

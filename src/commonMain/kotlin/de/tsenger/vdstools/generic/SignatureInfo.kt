@@ -1,7 +1,7 @@
 package de.tsenger.vdstools.generic
 
-import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.asn1.ASN1Encoder
+import de.tsenger.vdstools.internal.logD
 import kotlinx.datetime.LocalDate
 
 
@@ -13,8 +13,7 @@ data class SignatureInfo(
     var signerCertificateBytes: ByteArray? = null,
     var signatureAlgorithm: String? = null
 ) {
-    private val log = Logger.withTag(this::class.simpleName ?: "")
-
+    private val tag = this::class.simpleName ?: ""
 
     val derSignatureBytes: ByteArray
         get() {
@@ -25,7 +24,7 @@ data class SignatureInfo(
             val sEncoded = ASN1Encoder.getDerInteger(s)
             val derSignatureBytes = ASN1Encoder.getDerSequence(rEncoded, sEncoded)
 
-            log.d("DER Signature bytes: ${derSignatureBytes.toHexString()}")
+            logD(tag, "DER Signature bytes: ${derSignatureBytes.toHexString()}")
             return derSignatureBytes
         }
 

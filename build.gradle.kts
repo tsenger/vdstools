@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "de.tsenger"
-version = "0.15.0"
+version = "0.16.0"
 description = "Kotlin multiplatform library to encode/sign and decode/verify Visible Digital Seals"
 
 repositories {
@@ -97,7 +97,6 @@ kotlin {
                 implementation(libs.kotlinx.serialization.json)
                 implementation(libs.xmlutil.serialization)
                 implementation(libs.okio)
-                implementation(libs.kermit)
                 implementation(libs.cryptography.core)
                 implementation(libs.kotlinx.coroutines.core)
             }

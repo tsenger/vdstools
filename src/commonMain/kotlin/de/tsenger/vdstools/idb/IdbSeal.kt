@@ -1,7 +1,6 @@
 package de.tsenger.vdstools.idb
 
 
-import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.Base32
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.Signer
@@ -10,6 +9,7 @@ import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.generic.Seal
 import de.tsenger.vdstools.generic.SealType
 import de.tsenger.vdstools.generic.SignatureInfo
+import de.tsenger.vdstools.internal.logW
 import kotlinx.datetime.LocalDate
 
 class IdbSeal : Seal {
@@ -188,7 +188,7 @@ class IdbSeal : Seal {
         const val BARCODE_IDENTIFIER_OLD: String = "NDB1"
         const val BARCODE_IDENTIFIER: String = "RDB1"
 
-        private val log = Logger.withTag(this::class.simpleName ?: "")
+        private const val TAG = "IdbSeal"
 
         @Throws(IllegalArgumentException::class)
         internal fun fromString(barcodeString: String): Seal {
@@ -201,7 +201,7 @@ class IdbSeal : Seal {
                 throw IllegalArgumentException("Didn't found an ICAO Barcode in the given String: $barcodeString")
             }
             if (barcodeIdentifier == BARCODE_IDENTIFIER_OLD) {
-                log.w { "Using old ICAO barcode identifier NDB instead of new identifier RDB!" }
+                logW(TAG, "Using old ICAO barcode identifier NDB instead of new identifier RDB!")
             }
 
             val barcodeFlag = strBuffer[4]

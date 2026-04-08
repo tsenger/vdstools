@@ -1,8 +1,10 @@
 package de.tsenger.vdstools
 
 
-import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.asn1.DerTlv
+import de.tsenger.vdstools.internal.logD
+import de.tsenger.vdstools.internal.logE
+import de.tsenger.vdstools.internal.logI
 import de.tsenger.vdstools.vds.tr03171.ProfileConverter
 import de.tsenger.vdstools.vds.tr03171.ProfileXmlParser
 import de.tsenger.vdstools.generated.ResourceConstants
@@ -81,7 +83,7 @@ import okio.*
  * ```
  */
 object DataEncoder {
-    private val log = Logger.withTag(this::class.simpleName ?: "")
+    private const val TAG = "DataEncoder"
 
     /** VDS document type profiles: `documentRef` ↔ name ↔ messages */
     var vdsDocumentTypes: VdsDocumentTypeRegistry = VdsDocumentTypeRegistry(ResourceConstants.VDS_DOCUMENT_TYPES_JSON)
@@ -111,9 +113,9 @@ object DataEncoder {
             idbMessageTypes = IdbMessageTypeRegistry(ResourceConstants.IDB_MESSAGE_TYPES_JSON)
             idbDocumentTypes = IdbDocumentTypeRegistry(ResourceConstants.IDB_DOCUMENT_TYPES_JSON)
             vdsProfileDefinitions = VdsProfileDefinitionRegistry(ResourceConstants.VDS_PROFILE_DEFINITIONS_JSON)
-            log.i("Reset all registries to defaults")
+            logI(TAG,"Reset all registries to defaults")
         } catch (e: Exception) {
-            log.e("Failed to initialize from embedded resources: ${e.message}")
+            logE(TAG,"Failed to initialize from embedded resources: ${e.message}")
             println("Failed to initialize from embedded resources: ${e.message}")
         }
     }
@@ -126,7 +128,7 @@ object DataEncoder {
      */
     fun replaceCustomVdsDocumentTypes(jsonString: String) {
         vdsDocumentTypes = VdsDocumentTypeRegistry(jsonString)
-        log.i("Replaced VdsDocumentTypes registry")
+        logI(TAG,"Replaced VdsDocumentTypes registry")
     }
 
     /**
@@ -137,7 +139,7 @@ object DataEncoder {
      */
     fun replaceCustomIdbMessageTypes(jsonString: String) {
         idbMessageTypes = IdbMessageTypeRegistry(jsonString)
-        log.i("Replaced IdbMessageTypes registry")
+        logI(TAG,"Replaced IdbMessageTypes registry")
     }
 
     /**
@@ -148,7 +150,7 @@ object DataEncoder {
      */
     fun replaceCustomIdbDocumentTypes(jsonString: String) {
         idbDocumentTypes = IdbDocumentTypeRegistry(jsonString)
-        log.i("Replaced IdbDocumentTypes registry")
+        logI(TAG,"Replaced IdbDocumentTypes registry")
     }
 
     /**
@@ -159,7 +161,7 @@ object DataEncoder {
      */
     fun replaceCustomVdsProfileDefinitions(jsonString: String) {
         vdsProfileDefinitions = VdsProfileDefinitionRegistry(jsonString)
-        log.i("Replaced VdsProfileDefinitions registry")
+        logI(TAG,"Replaced VdsProfileDefinitions registry")
     }
 
     @Throws(FileNotFoundException::class)
@@ -190,7 +192,7 @@ object DataEncoder {
      */
     fun addCustomVdsDocumentTypes(jsonString: String) {
         vdsDocumentTypes.addEntriesFromJson(jsonString)
-        log.i("Added custom VdsDocumentTypes entries")
+        logI(TAG,"Added custom VdsDocumentTypes entries")
     }
 
     @Throws(FileNotFoundException::class)
@@ -206,7 +208,7 @@ object DataEncoder {
      */
     fun addCustomIdbMessageTypes(jsonString: String) {
         idbMessageTypes.addEntriesFromJson(jsonString)
-        log.i("Added custom IdbMessageTypes entries")
+        logI(TAG,"Added custom IdbMessageTypes entries")
     }
 
     @Throws(FileNotFoundException::class)
@@ -222,7 +224,7 @@ object DataEncoder {
      */
     fun addCustomIdbDocumentTypes(jsonString: String) {
         idbDocumentTypes.addEntriesFromJson(jsonString)
-        log.i("Added custom IdbDocumentTypes entries")
+        logI(TAG,"Added custom IdbDocumentTypes entries")
     }
 
     @Throws(FileNotFoundException::class)
@@ -238,7 +240,7 @@ object DataEncoder {
      */
     fun addCustomVdsProfileDefinitions(jsonString: String) {
         vdsProfileDefinitions.addEntriesFromJson(jsonString)
-        log.i("Added custom VdsProfileDefinitions entries")
+        logI(TAG,"Added custom VdsProfileDefinitions entries")
     }
 
     @Throws(FileNotFoundException::class)
@@ -259,7 +261,7 @@ object DataEncoder {
         val profile = ProfileXmlParser.parse(xmlString)
         val definition = ProfileConverter.toVdsProfileDefinition(profile)
         vdsProfileDefinitions.addDefinition(definition)
-        log.i("Loaded VDS profile definition from XML: ${definition.definitionName}")
+        logI(TAG,"Loaded VDS profile definition from XML: ${definition.definitionName}")
     }
 
     /**
@@ -461,10 +463,8 @@ object DataEncoder {
         compressor.close()
         val compressedBytes = outputBuffer.readByteArray()
 
-        log.d(
-            ("Zip ratio " + (bytesToCompress.size.toFloat() / compressedBytes.size.toFloat()) + ", input size "
+        logD(TAG, "Zip ratio " + (bytesToCompress.size.toFloat() / compressedBytes.size.toFloat()) + ", input size "
                     + bytesToCompress.size + ", compressed size " + compressedBytes.size)
-        )
         return compressedBytes
     }
 

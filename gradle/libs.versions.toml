@@ -16,7 +16,6 @@ xmlutil = "0.91.3"
 
 # Utilities
 okio = "3.16.4"
-kermit = "2.1.0"
 
 # Testing
 junit = "4.13.2"
@@ -41,7 +40,6 @@ xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", v
 
 # Utilities
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
-kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 
 # JVM Specific
 bouncycastle-bcprov = { module = "org.bouncycastle:bcprov-jdk15to18", version.ref = "bouncycastle" }

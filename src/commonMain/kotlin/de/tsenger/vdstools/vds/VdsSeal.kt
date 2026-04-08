@@ -1,8 +1,10 @@
 package de.tsenger.vdstools.vds
 
 
-import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.DataEncoder
+import de.tsenger.vdstools.internal.logD
+import de.tsenger.vdstools.internal.logE
+import de.tsenger.vdstools.internal.logV
 import de.tsenger.vdstools.Signer
 import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generic.*
@@ -11,7 +13,7 @@ import okio.Buffer
 
 
 class VdsSeal : Seal {
-    private val log = Logger.withTag(this::class.simpleName ?: "")
+    private val tag = this::class.simpleName ?: ""
 
     private val vdsHeader: VdsHeader
     private val vdsMessageGroup: VdsMessageGroup
@@ -86,7 +88,7 @@ class VdsSeal : Seal {
             val signatureBytes = signer.sign(headerMessage)
             return VdsSignature(signatureBytes)
         } catch (e: Exception) {
-            log.e("Signature creation failed: " + e.message)
+            logE(tag, "Signature creation failed: " + e.message)
             return null
         }
     }
@@ -170,7 +172,7 @@ class VdsSeal : Seal {
     }
 
     companion object {
-        private val log = Logger.withTag(this::class.simpleName ?: "")
+        private const val TAG = "VdsSeal"
         internal fun fromRawString(rawString: String): Seal {
             return parseVdsSeal(DataEncoder.decodeBase256(rawString))
         }
@@ -182,7 +184,7 @@ class VdsSeal : Seal {
         @OptIn(ExperimentalStdlibApi::class)
         private fun parseVdsSeal(rawBytes: ByteArray): Seal {
             val rawDataBuffer = Buffer().write(rawBytes)
-            log.v("rawData: ${rawBytes.toHexString()}")
+            logV(TAG, "rawData: ${rawBytes.toHexString()}")
 
             val vdsHeader = VdsHeader.fromBuffer(rawDataBuffer)
             var vdsSignature: VdsSignature? = null
@@ -207,7 +209,7 @@ class VdsSeal : Seal {
                 DataEncoder.vdsDocumentTypes.getMetadataTags(vdsHeader.vdsType).forEach {
                     vdsMessageGroup.metadataTags.add(it)
                 }
-                log.d("Resolved extended definition: ${vdsMessageGroup.profileDefinition?.definitionName}")
+                logD(TAG, "Resolved extended definition: ${vdsMessageGroup.profileDefinition?.definitionName}")
             }
 
             return VdsSeal(vdsHeader, vdsMessageGroup, vdsSignature)

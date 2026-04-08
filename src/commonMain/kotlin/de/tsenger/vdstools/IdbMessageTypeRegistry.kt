@@ -1,6 +1,5 @@
 package de.tsenger.vdstools
 
-import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.generic.MessageCoding
 import de.tsenger.vdstools.generic.MessageDefinition
 import de.tsenger.vdstools.generic.MessageDefinitionResolver
@@ -23,7 +22,6 @@ import kotlinx.serialization.json.Json
  * @param jsonString JSON string containing an array of [IdbMessageTypeDto] definitions
  */
 class IdbMessageTypeRegistry(jsonString: String) : DefinitionRegistry {
-    private val log = Logger.withTag(this::class.simpleName ?: "")
     private var messageTypeDtoList: List<IdbMessageTypeDto> = emptyList()
     private val messageTypes: HashMap<Int, IdbMessageTypeDto> = HashMap()
     private val messageTypesInverse: HashMap<String, IdbMessageTypeDto> = HashMap()

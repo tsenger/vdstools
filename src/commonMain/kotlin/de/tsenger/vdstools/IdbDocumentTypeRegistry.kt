@@ -1,6 +1,5 @@
 package de.tsenger.vdstools
 
-import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.idb.dto.IdbDocumentTypeDto
 import de.tsenger.vdstools.idb.dto.IdbMessageTypeRef
 import kotlinx.serialization.json.Json
@@ -19,7 +18,6 @@ import kotlinx.serialization.json.Json
  * @param jsonString JSON string containing an array of [IdbDocumentTypeDto] definitions
  */
 class IdbDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
-    private val log = Logger.withTag(this::class.simpleName ?: "")
     private var documentTypeDtoList: List<IdbDocumentTypeDto> = emptyList()
     private val documentTypes: HashMap<Int, IdbDocumentTypeDto> = HashMap()
     private val documentTypesInverse: HashMap<String, IdbDocumentTypeDto> = HashMap()

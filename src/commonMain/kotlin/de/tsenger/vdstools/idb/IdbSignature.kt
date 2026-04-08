@@ -1,13 +1,10 @@
 package de.tsenger.vdstools.idb
 
-import co.touchlab.kermit.Logger
 import de.tsenger.vdstools.asn1.DerTlv
 
 internal class IdbSignature(
     val plainSignatureBytes: ByteArray
 ) {
-    private val log = Logger.withTag(this::class.simpleName ?: "")
-
     val encoded: ByteArray
         get() {
             val derSignature = DerTlv(TAG, plainSignatureBytes)

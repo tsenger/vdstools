@@ -1,6 +1,5 @@
 package de.tsenger.vdstools
 
-import co.touchlab.kermit.Logger
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.client.j2se.MatrixToImageWriter
 import com.google.zxing.datamatrix.DataMatrixWriter
@@ -84,19 +83,19 @@ class DataMatrixJvmTest {
                 fis.close()
                 return keystore
             } catch (e: KeyStoreException) {
-                Logger.w("Error while opening keystore '" + keyStoreFile + "': " + e.message)
+                System.err.println("Error while opening keystore '" + keyStoreFile + "': " + e.message)
                 return null
             } catch (e: NoSuchProviderException) {
-                Logger.w("Error while opening keystore '" + keyStoreFile + "': " + e.message)
+                System.err.println("Error while opening keystore '" + keyStoreFile + "': " + e.message)
                 return null
             } catch (e: NoSuchAlgorithmException) {
-                Logger.w("Error while opening keystore '" + keyStoreFile + "': " + e.message)
+                System.err.println("Error while opening keystore '" + keyStoreFile + "': " + e.message)
                 return null
             } catch (e: CertificateException) {
-                Logger.w("Error while opening keystore '" + keyStoreFile + "': " + e.message)
+                System.err.println("Error while opening keystore '" + keyStoreFile + "': " + e.message)
                 return null
             } catch (e: IOException) {
-                Logger.w("Error while opening keystore '" + keyStoreFile + "': " + e.message)
+                System.err.println("Error while opening keystore '" + keyStoreFile + "': " + e.message)
                 return null
             }
         }
