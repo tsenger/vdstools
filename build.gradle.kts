@@ -95,7 +95,7 @@ kotlin {
             dependencies {
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.kotlinx.serialization.json)
-                implementation(libs.xmlutil.serialization)
+                implementation(libs.xmlutil.core)
                 implementation(libs.okio)
                 implementation(libs.cryptography.core)
             }
@@ -109,7 +109,6 @@ kotlin {
 
         jvmMain.dependencies {
             implementation(libs.bouncycastle.bcprov)
-            implementation(libs.kotlin.stdlib.jdk8)
             implementation(libs.cryptography.provider.jdk)
         }
 

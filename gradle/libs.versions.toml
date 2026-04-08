@@ -33,14 +33,13 @@ cryptography-provider-jdk = { module = "dev.whyoleg.cryptography:cryptography-pr
 cryptography-provider-openssl3-prebuilt = { module = "dev.whyoleg.cryptography:cryptography-provider-openssl3-prebuilt", version.ref = "cryptography" }
 
 # XML
-xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version.ref = "xmlutil" }
+xmlutil-core = { module = "io.github.pdvrieze.xmlutil:core", version.ref = "xmlutil" }
 
 # Utilities
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 
 # JVM Specific
 bouncycastle-bcprov = { module = "org.bouncycastle:bcprov-jdk15to18", version.ref = "bouncycastle" }
-kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
 
 # Testing
 junit = { module = "junit:junit", version.ref = "junit" }
