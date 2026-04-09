@@ -12,7 +12,6 @@ description = "Kotlin multiplatform library to encode/sign and decode/verify Vis
 
 repositories {
     mavenCentral()
-    google()
 }
 
 publishing {
@@ -123,11 +122,6 @@ kotlin {
 
         }
 
-        iosTest.dependencies {
-            implementation(libs.cryptography.provider.openssl3.prebuilt)
-
-        }
-
     }
 }
 
@@ -138,7 +132,7 @@ tasks.register<Copy>("copyiOSTestResources") {
 }
 
 
-tasks.findByName("iosSimulatorArm64Test")!!.dependsOn("copyiOSTestResources")
+tasks.named("iosSimulatorArm64Test") { dependsOn("copyiOSTestResources") }
 
 tasks.withType<Test> {
     useJUnit()
