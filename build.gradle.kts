@@ -82,7 +82,7 @@ kotlin {
 
     jvm {
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_21)
+            jvmTarget.set(JvmTarget.JVM_11)
         }
     }
     iosX64() // iOS simulator
@@ -105,7 +105,6 @@ kotlin {
             implementation(kotlin("test"))
 
         }
-
 
         jvmMain.dependencies {
             implementation(libs.bouncycastle.bcprov)
@@ -133,7 +132,6 @@ kotlin {
 }
 
 
-
 tasks.register<Copy>("copyiOSTestResources") {
     from("src/commonTest/resources")
     into("build/bin/iosSimulatorArm64/debugTest")
@@ -145,54 +143,6 @@ tasks.findByName("iosSimulatorArm64Test")!!.dependsOn("copyiOSTestResources")
 tasks.withType<Test> {
     useJUnit()
     testLogging.showStandardStreams = true
-}
-
-tasks.register("generateMappingsFile") {
-    doLast {
-        val inputFile = file("src/main/resources/countrycodes.csv")
-        val outputFile = file("src/main/java/de/tsenger/vdstools/generated/CountryCodeMap.kt")
-
-        val lines = inputFile.readLines().drop(1) // Überspringe die Kopfzeile
-        val mappings = mutableListOf<Pair<String, String>>()
-
-        lines.forEach { line ->
-            // CSV-Zeile mit Anführungszeichen und Kommas behandeln
-            val fields = parseCsvLine(line)
-            if (fields.size >= 3) {
-                val alpha2 = fields[1].trim()
-                val alpha3 = fields[2].trim()
-                mappings.add(alpha2 to alpha3)
-            }
-        }
-
-        // Generiere die Kotlin-Datei mit bidirektionalem Mapping
-        outputFile.writeText(
-            """
-package de.tsenger.vdstools.generated
-
-object CountryCodeMap {
-    val alpha2ToAlpha3 = mapOf(
-        ${mappings.joinToString(",\n\t\t") { "\"${it.first}\" to \"${it.second}\"" }}
-    )
-
-    val alpha3ToAlpha2 = mapOf(
-        ${mappings.joinToString(",\n\t\t") { "\"${it.second}\" to \"${it.first}\"" }}
-    )
-}
-""".trimIndent()
-        )
-        println("Mappings file generated: $outputFile")
-
-    }
-}
-
-// CSV-Zeile mit eingebetteten Kommas und Anführungszeichen korrekt parsen
-fun parseCsvLine(line: String): List<String> {
-    // Regex zum Parsen von Feldern mit oder ohne Anführungszeichen
-    val regex = """(?<=^|,)(?:"([^"]*)"|([^",]*))""".toRegex()
-    return regex.findAll(line)
-        .map { it.groupValues[1].takeIf { str -> str.isNotEmpty() } ?: it.groupValues[2] }
-        .toList()
 }
 
 tasks.register("generateResourceConstants") {
@@ -241,7 +191,7 @@ internal object ResourceConstants {
             writeText(kotlinCode)
         }
 
-        println("✅ Generated ResourceConstants.kt with ${vdsDocumentTypes.length + idbMessageTypes.length + idbDocumentTypes.length + vdsProfileDefinitions.length} bytes")
+        println("Generated ResourceConstants.kt with ${vdsDocumentTypes.length + idbMessageTypes.length + idbDocumentTypes.length + vdsProfileDefinitions.length} bytes")
     }
 }
 

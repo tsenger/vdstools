@@ -198,33 +198,6 @@ internal class VdsHeader {
             return VdsHeader(this)
         }
 
-//        /**
-//         * Get signerIdentifier and certificateReference from given X509Certificate.
-//         *
-//         * @param x509Cert                      X509Certificate to get the
-//         * signerIdentifier and the
-//         * certificateReference from
-//         * @param setIssuingCountryFromX509Cert If true also build the issuing country
-//         * code base on the X509Certificate. It
-//         * will take the Country code 'C' and
-//         * convert it to a 3-letter country code.
-//         * @return updated Builder instance
-//         */
-//        fun setSignerCertRef(x509Cert: X509Certificate, setIssuingCountryFromX509Cert: Boolean): Builder {
-//            var signerCertRef: Pair<String, String>? = null
-//            try {
-//                signerCertRef = DataEncoder.getSignerCertRef(x509Cert)
-//            } catch (e: Exception) {
-//                log.e("Couldn't build header, because getSignerCertRef throws error: " + e.message)
-//            }
-//            this.signerIdentifier = signerCertRef?.first
-//            this.certificateReference = signerCertRef?.second
-//            if (setIssuingCountryFromX509Cert) {
-//                this.issuingCountry = Doc9303CountryCodes.convertToIcaoOrIso3(signerCertRef?.first?.substring(0, 2))
-//            }
-//            return this
-//        }
-
         private fun setDocumentType(vdsType: String) {
             val docRef = DataEncoder.vdsDocumentTypes.getDocumentRef(vdsType)
             if (docRef != null) {
@@ -322,7 +295,10 @@ internal class VdsHeader {
             // Magic Byte
             val magicByte = rawdataBuffer.readByte()
             if (magicByte != DC) {
-                logE(TAG, "Magic Constant mismatch:  ${magicByte.toString(16).padStart(2, '0').uppercase()}, instead of 0xDC")
+                logE(
+                    TAG,
+                    "Magic Constant mismatch:  ${magicByte.toString(16).padStart(2, '0').uppercase()}, instead of 0xDC"
+                )
                 throw IllegalArgumentException(
                     "Magic Constant mismatch:  ${magicByte.toString(16).padStart(2, '0').uppercase()}, instead of 0xDC"
                 )
