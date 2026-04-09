@@ -276,7 +276,7 @@ internal class VdsHeader {
                     return Triple(certRef, issuingDate, sigDate)
                 } catch (e: Exception) {
                     if (radix != radixCandidates.last()) {
-                        logW(TAG, "version 4: parse failed with radix $radix, retrying: ${e.message}")
+                        logV(TAG, "version 4: parse failed with radix $radix, retrying: ${e.message}")
                     }
                     lastException = e
                     buffer.skip(buffer.size)
