@@ -11,6 +11,14 @@ import dev.whyoleg.cryptography.algorithms.EC.Curve
 import dev.whyoleg.cryptography.algorithms.EC.PublicKey.Format.RAW
 
 
+/**
+ * Verifies an ECDSA signature over a message.
+ *
+ * @param messageBytes the raw bytes that were signed
+ * @param signatureBytes the ECDSA signature in plain r||s format (not ASN.1/DER-encoded)
+ * @param publicKeyBytes the signer's public key as DER-encoded SubjectPublicKeyInfo
+ * @param curveName the curve name, e.g. "brainpoolP224r1"
+ */
 @OptIn(ExperimentalStdlibApi::class)
 class Verifier(
     val messageBytes: ByteArray,

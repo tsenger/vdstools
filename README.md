@@ -72,8 +72,10 @@ val signerCertRef: String? = signatureInfo?.signerCertificateReference
 println("Signer certificate reference: $signerCertRef")
 
 // Since X509 certificate handling is strongly platform-dependent,
-// the Verifier is given the plain publicKey (r|s) and the curve name.
-val publicKeyBytes: ByteArray = ... // load from your certificate store
+// the Verifier expects the signer's public key as DER-encoded SubjectPublicKeyInfo
+// and the ECDSA signature as plain r||s bytes (not ASN.1/DER-encoded).
+// signatureInfo.plainSignatureBytes contains the signature in r||s format.
+val publicKeyBytes: ByteArray = ... // DER-encoded SubjectPublicKeyInfo from your certificate store
 val verifier = Verifier(
     seal.signedBytes,
     signatureInfo!!.plainSignatureBytes,
