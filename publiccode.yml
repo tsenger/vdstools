@@ -1,12 +1,12 @@
-# This repository adheres to the publiccode.yml standard by including this 
+# This repository adheres to the publiccode.yml standard by including this
 # metadata file that makes public software easily discoverable.
 # More info at https://github.com/italia/publiccode.yml
 
 publiccodeYmlVersion: '0.2'
 name: VdsTools
 url: 'https://github.com/tsenger/vdstools'
-releaseDate: '2026-01-07'
-softwareVersion: 0.14.0
+releaseDate: '2026-04-05'
+softwareVersion: '0.15.0'
 softwareType: library
 platforms:
   - ios
@@ -16,11 +16,10 @@ platforms:
   - windows
 categories:
   - document-management
-  - data-analytics
   - identity-management
   - it-security
   - it-development
-developmentStatus: beta
+developmentStatus: stable
 maintenance:
   type: internal
   contacts:
@@ -42,12 +41,12 @@ localisation:
 description:
   de:
     shortDescription: >-
-      VdsTools ist eine Softwarebibliothek zum (De-)kodieren, Verifizieren,und
+      VdsTools ist eine Softwarebibliothek zum (De-)kodieren, Verifizieren, und
       Signieren von Visuellen Digitalen Siegeln (VDS).
-    longDescription: >
+    longDescription: >+
       VdsTools ist eine Softwarebibliothek zum (De-)kodieren, Verifizieren und
-      Signieren von visuellen digitalen Siegeln (VDS). Diese sichtbaren
-      digitalen Siegel finden sich auf offiziellen Regierungsdokumenten wie:
+      Signieren von visuellen digitalen Siegeln (VDS). Diese visuellen digitalen
+      Siegel finden sich auf offiziellen Regierungsdokumenten wie:
 
 
       - Aufenthaltsgenehmigungen
@@ -60,7 +59,7 @@ description:
 
       - Visa
 
-      -  ...und zukünftigen Profilen
+      - ...und zukünftigen Profilen
 
 
       Die Bibliothek verarbeitet den Inhalt von Barcodes und stellt die
@@ -74,17 +73,28 @@ description:
 
       - ICAO Doc 9303-13: Sichtbare digitale Siegel
 
-      - ICAO TR „VDS für nicht-elektronische Dokumente”
+      - ICAO TR „VDS für nicht-elektronische Dokumente"
 
       - ICAO-Datenstruktur für Barcodes
 
 
       Die Releases sind auf Maven Central verfügbar und lassen sich leicht in
       eigene Projekte integrieren.
-    genericName: VdsTools
+
+    features:
+      - Visuelle Digitale Siegel (VDS) auf amtlichen Dokumenten lesen und dekodieren
+      - Echtheit und Unversehrtheit digitaler Siegel kryptografisch prüfen
+      - Neue Siegel für die amtliche Dokumentenausstellung erstellen und signieren
+      - Unterstützung für ICAO-IDB-Barcodes sowie klassische VDS-Barcodes
+      - Erkennung von Fälschungen und Manipulationen durch kryptografische Prüfungen
+      - Konform mit BSI TR-03137 und ICAO Doc 9303-13
+      - Lauffähig auf iOS, Android, Windows, macOS und Linux
+      - Integration in Dokumentenverwaltungs- und Grenzkontrollsysteme
+      - Grenzüberschreitende Dokumentenanerkennung auf Basis internationaler Standards
+    genericName: Bibliothek für Digitale Siegel
   en:
     shortDescription: >-
-      VdsTools is a software library for decoding, verifying,  encoding, and
+      VdsTools is a software library for decoding, verifying, encoding, and
       signing Visible Digital Seals (VDS).
     longDescription: >
       VdsTools is a software library for decoding, verifying, encoding, and
@@ -92,17 +102,17 @@ description:
       on official government documents such as:
 
 
-      - Residence permits 
+      - Residence permits
 
-      - Arrival attestation 
+      - Arrival attestation
 
-      - Address stickers on ID cards and passports 
+      - Address stickers on ID cards and passports
 
-      - Emergency travel documents 
+      - Emergency travel documents
 
-      - Visas 
+      - Visas
 
-      - ... and upcoming profiles 
+      - ... and upcoming profiles
 
 
       The library processes the content of barcodes and makes the information
@@ -111,14 +121,25 @@ description:
       library). The library implements the following specifications:
 
 
-      - BSI TR-03137-1 
+      - BSI TR-03137-1
 
-      - ICAO Doc 9303-13: Visible Digital Seals 
+      - ICAO Doc 9303-13: Visible Digital Seals
 
-      - ICAO TR "VDS for Non-Electronic Documents" 
+      - ICAO TR "VDS for Non-Electronic Documents"
 
-      - ICAO Datastructure for Barcode 
+      - ICAO Datastructure for Barcode
 
 
       Releases are available on Maven Central for easy integration into own
       projects.
+    features:
+      - Read and decode Visible Digital Seals (VDS) from official government documents
+      - Cryptographically verify the authenticity and integrity of digital seals
+      - Create and digitally sign new seals for official document issuance
+      - Support for ICAO IDB barcodes in addition to traditional VDS barcodes
+      - Detects tampering and forged documents through cryptographic checks
+      - Compliant with BSI TR-03137 and ICAO Doc 9303-13 standards
+      - Works on iOS, Android, Windows, macOS, and Linux
+      - Integrates into document management and border control systems
+      - Enables cross-border document recognition based on international standards
+    genericName: Digital Seal Verification Library
