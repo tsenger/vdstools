@@ -8,7 +8,7 @@ url: 'https://github.com/tsenger/vdstools'
 releaseDate: '2026-04-05'
 softwareVersion: '0.15.0'
 softwareType: library
-logo: Logo_vdstools.png
+logo: Logo_vdstools.svg
 platforms:
   - ios
   - android
