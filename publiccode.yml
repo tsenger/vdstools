@@ -5,7 +5,7 @@
 publiccodeYmlVersion: '0.2'
 name: VdsTools
 url: 'https://github.com/tsenger/vdstools'
-releaseDate: '2026-04-05'
+releaseDate: '2026-01-07'
 softwareVersion: '0.15.0'
 softwareType: library
 logo: Logo_vdstools.svg
@@ -87,11 +87,8 @@ description:
       - Echtheit und Unversehrtheit digitaler Siegel kryptografisch prüfen
       - Neue Siegel für die amtliche Dokumentenausstellung erstellen und signieren
       - Unterstützung für ICAO-IDB-Barcodes sowie klassische VDS-Barcodes
-      - Erkennung von Fälschungen und Manipulationen durch kryptografische Prüfungen
       - Konform mit BSI TR-03137 und ICAO Doc 9303-13
       - Lauffähig auf iOS, Android, Windows, macOS und Linux
-      - Integration in Dokumentenverwaltungs- und Grenzkontrollsysteme
-      - Grenzüberschreitende Dokumentenanerkennung auf Basis internationaler Standards
     genericName: Bibliothek für Digitale Siegel
   en:
     shortDescription: >-
@@ -138,9 +135,6 @@ description:
       - Cryptographically verify the authenticity and integrity of digital seals
       - Create and digitally sign new seals for official document issuance
       - Support for ICAO IDB barcodes in addition to traditional VDS barcodes
-      - Detects tampering and forged documents through cryptographic checks
       - Compliant with BSI TR-03137 and ICAO Doc 9303-13 standards
       - Works on iOS, Android, Windows, macOS, and Linux
-      - Integrates into document management and border control systems
-      - Enables cross-border document recognition based on international standards
     genericName: Digital Seal Verification Library
