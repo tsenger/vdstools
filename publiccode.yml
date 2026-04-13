@@ -1,12 +1,8 @@
-# This repository adheres to the publiccode.yml standard by including this
-# metadata file that makes public software easily discoverable.
-# More info at https://github.com/italia/publiccode.yml
-
-publiccodeYmlVersion: '0.2'
+publiccodeYmlVersion: 0.4
 name: VdsTools
-url: 'https://github.com/tsenger/vdstools'
+url: https://github.com/tsenger/vdstools
 releaseDate: '2026-01-07'
-softwareVersion: '0.15.0'
+softwareVersion: 0.15.0
 softwareType: library
 logo: Logo_vdstools.svg
 platforms:
