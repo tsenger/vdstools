@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased] - v0.16.0
+## [0.16.0] - 2026-04-14
 
 ### Added
 - Pluggable `VdsLogger` interface replacing the Kermit dependency
