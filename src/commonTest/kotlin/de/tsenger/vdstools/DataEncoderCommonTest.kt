@@ -144,14 +144,16 @@ class DataEncoderCommonTest {
 
     @Test
     fun testEncodeValueByCoding_DATE_TIME_withLocalDateTime() {
-        val encoded = DataEncoder.encodeValueByCoding(MessageCoding.DATE_TIME, LocalDateTime.parse("1957-03-25T08:15:22"))
+        val encoded =
+            DataEncoder.encodeValueByCoding(MessageCoding.DATE_TIME, LocalDateTime.parse("1957-03-25T08:15:22"))
         assertEquals("02f527bf25b2", encoded.toHexString())
     }
 
     @Test
     fun testEncodeValueByCoding_DATE_TIME_stringAndLocalDateTimeProduceSameResult() {
         val fromString = DataEncoder.encodeValueByCoding(MessageCoding.DATE_TIME, "2030-12-01T00:00:00")
-        val fromLocalDateTime = DataEncoder.encodeValueByCoding(MessageCoding.DATE_TIME, LocalDateTime.parse("2030-12-01T00:00:00"))
+        val fromLocalDateTime =
+            DataEncoder.encodeValueByCoding(MessageCoding.DATE_TIME, LocalDateTime.parse("2030-12-01T00:00:00"))
         assertContentEquals(fromString, fromLocalDateTime)
     }
 
@@ -264,7 +266,7 @@ class DataEncoderCommonTest {
     @Test
     fun testGetIdbExpectedMessagesByName() {
         val messages = DataEncoder.idbDocumentTypes.getExpectedMessages("CERTIFYING_PERMANENT_RESIDENCE")
-        assertEquals(2, messages.size)
+        assertEquals(3, messages.size)
         assertTrue(messages.any { it.name == "DOCUMENT_NUMBER" })
         assertTrue(messages.any { it.name == "NATIONAL_DOCUMENT_IDENTIFIER" })
     }
