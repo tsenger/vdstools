@@ -334,6 +334,10 @@
     "name": "CERTIFYING_PERMANENT_RESIDENCE",
     "messages": [
       {
+        "name": "DOCUMENT_REFERENCE",
+        "required": true
+      },
+      {
         "name": "DOCUMENT_NUMBER",
         "required": true
       },
