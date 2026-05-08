@@ -360,6 +360,10 @@
         "required": true
       },
       {
+        "name": "DOCUMENT_REFERENCE",
+        "required": true
+      },
+      {
         "name": "NATIONAL_DOCUMENT_IDENTIFIER",
         "required": true
       }
