@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- `MRZ_MRVA` and `MRZ_MRVB` codings for spec-compliant Visa MRZ truncation
+
+### Fixed
+- Missing `DOCUMENT_REFERENCE` message in `CERTIFYING_PERMANENT_RESIDENCE`
+- Missing `DOCUMENT_REFERENCE` tag in `FRONTIER_WORKER_PERMIT`
+
+---
+
 ## [0.16.0] - 2026-04-14
 
 ### Added
