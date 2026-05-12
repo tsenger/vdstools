@@ -61,6 +61,50 @@ class VdsMessageGroupCommonTest {
         }
     }
 
+    // MRZ_MRVA: line1 (44) + first 28 chars of line2; full 88-char input must be truncated to 72
+    @Test
+    fun testMrzMrvaEncodingTruncatesToLine1Plus28() {
+        val fullMrz = "VIS<<HOLDER<<GIVEN<NAME<<<<<<<<<<<<<<<<<<<<<\n1234567XY7GBR5203116M2005250OPTIONALDAT06"
+        val group = VdsMessageGroup.Builder("VISA")
+            .addMessage("MRZ_MRVA", fullMrz)
+            .build()
+        val mrzMsg = group.getMessageByName("MRZ_MRVA")!!
+        // Encoded bytes must be 48 (C40 encoding of 72 chars = 24 triples × 2 bytes)
+        assertEquals(48, mrzMsg.value.rawBytes.size)
+        // Decoded display: line1 (44 chars) + newline + line2 (28 chars, no optional data)
+        assertEquals(
+            "VIS<<HOLDER<<GIVEN<NAME<<<<<<<<<<<<<<<<<<<<<\n1234567XY7GBR5203116M2005250",
+            mrzMsg.value.toString()
+        )
+    }
+
+    // MRZ_MRVB: line1 (36) + first 28 chars of line2; full 72-char input must be truncated to 64
+    @Test
+    fun testMrzMrvbEncodingTruncatesToLine1Plus28() {
+        val fullMrz = "VCD<<DENT<<ARTHUR<PHILIP<<<<<<<<<<<<\n1234567XY7GBR5203116M2005250OPTDAT06"
+        val group = VdsMessageGroup.Builder("VISA")
+            .addMessage("MRZ_MRVB", fullMrz)
+            .build()
+        val mrzMsg = group.getMessageByName("MRZ_MRVB")!!
+        // Encoded bytes must be 44 (C40 encoding of 64 chars: 21 triples × 2 bytes + unlatch pair)
+        assertEquals(44, mrzMsg.value.rawBytes.size)
+        // Decoded display: line1 (36 chars) + newline + line2 (28 chars, no optional data)
+        assertEquals(
+            "VCD<<DENT<<ARTHUR<PHILIP<<<<<<<<<<<<\n1234567XY7GBR5203116M2005250",
+            mrzMsg.value.toString()
+        )
+    }
+
+    // Input without newline separator must yield the same result as input with newline
+    @Test
+    fun testMrzMrvbEncodingStripsNewlineBeforeTruncation() {
+        val mrzWithNewline    = "VCD<<DENT<<ARTHUR<PHILIP<<<<<<<<<<<<\n1234567XY7GBR5203116M2005250OPTDAT06"
+        val mrzWithoutNewline = "VCD<<DENT<<ARTHUR<PHILIP<<<<<<<<<<<<1234567XY7GBR5203116M2005250OPTDAT06"
+        val groupWith = VdsMessageGroup.Builder("VISA").addMessage("MRZ_MRVB", mrzWithNewline).build()
+        val groupWithout = VdsMessageGroup.Builder("VISA").addMessage("MRZ_MRVB", mrzWithoutNewline).build()
+        assertContentEquals(groupWith.encoded, groupWithout.encoded)
+    }
+
     @Test
     fun testFromByteArray() {
         val messageBytes =

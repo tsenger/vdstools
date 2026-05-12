@@ -174,10 +174,13 @@ sealed class MessageValue {
 
     companion object {
         /**
-         * Factory method: Creates MessageValue based on coding type.
-         * @param bytes The raw byte array to decode
-         * @param coding The encoding type of the bytes
-         * @param mrzLength Optional MRZ length for correct formatting (88 for MRVA, 72 for MRVB)
+         * Factory method: Creates a [MessageValue] from raw bytes based on the given coding.
+         *
+         * @param bytes The raw encoded bytes to decode.
+         * @param coding The encoding type; drives both decode algorithm and display formatting.
+         * @param mrzLength Optional line-split length for [MessageCoding.MRZ]. When null, the
+         *   decoded string length is used (i.e. split at half). Unused for [MessageCoding.MRZ_MRVA]
+         *   and [MessageCoding.MRZ_MRVB], which have fixed line lengths defined by their coding.
          */
         fun fromBytes(bytes: ByteArray, coding: MessageCoding, mrzLength: Int? = null): MessageValue {
             return try {
@@ -200,6 +203,16 @@ sealed class MessageValue {
                         val unformattedMrz = DataEncoder.decodeC40(bytes)
                         val length = mrzLength ?: unformattedMrz.length
                         MrzValue(DataEncoder.formatMRZ(unformattedMrz, length), bytes)
+                    }
+
+                    MessageCoding.MRZ_MRVA -> {
+                        val decoded = DataEncoder.decodeC40(bytes).replace(' ', '<')
+                        MrzValue(decoded.take(44) + "\n" + decoded.drop(44).take(28), bytes)
+                    }
+
+                    MessageCoding.MRZ_MRVB -> {
+                        val decoded = DataEncoder.decodeC40(bytes).replace(' ', '<')
+                        MrzValue(decoded.take(36) + "\n" + decoded.drop(36).take(28), bytes)
                     }
 
                     MessageCoding.VALIDITY_DATES -> ValidityDatesValue.parse(bytes)

@@ -185,7 +185,7 @@
       {
         "name": "MRZ_MRVA",
         "tag": 1,
-        "coding": "MRZ",
+        "coding": "MRZ_MRVA",
         "required": true,
         "minBytes": 48,
         "maxBytes": 48
@@ -193,7 +193,7 @@
       {
         "name": "MRZ_MRVB",
         "tag": 2,
-        "coding": "MRZ",
+        "coding": "MRZ_MRVB",
         "required": true,
         "minBytes": 44,
         "maxBytes": 44

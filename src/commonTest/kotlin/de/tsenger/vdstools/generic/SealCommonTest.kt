@@ -359,7 +359,7 @@ class SealCommonTest {
         assertNotNull(visa)
         assertEquals(4, visa.messageList.size)
         assertEquals(
-            "P<D<<GARCIA<<EVELYN<<<<<<<<<<<<<<<<<<<<<<<<<\nB870L41688D<<8108108F3507050<<<<<<<<<<<<<<08",
+            "P<D<<GARCIA<<EVELYN<<<<<<<<<<<<<<<<<<<<<<<<<\nB870L41688D<<8108108F3507050",
             visa.getMessageByName("MRZ_MRVA").toString()
         )
         for (message in visa.messageList) {

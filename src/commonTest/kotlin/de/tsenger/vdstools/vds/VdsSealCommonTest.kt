@@ -151,7 +151,7 @@ class VdsSealCommonTest {
     fun testParseVisa() {
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.visa_224bitSig) as VdsSeal
         assertEquals(
-            "VCD<<DENT<<ARTHUR<PHILIP<<<<<<<<<<<<\n1234567XY7GBR5203116M2005250<<<<<<<<",
+            "VCD<<DENT<<ARTHUR<PHILIP<<<<<<<<<<<<\n1234567XY7GBR5203116M2005250",
             seal.getMessageByName("MRZ_MRVB")?.value.toString()
         )
         assertEquals("47110815P", seal.getMessageByName("PASSPORT_NUMBER")?.value.toString())
@@ -165,7 +165,7 @@ class VdsSealCommonTest {
     fun testParseVisa_newApi() {
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.visa_224bitSig) as VdsSeal
         assertEquals(
-            "VCD<<DENT<<ARTHUR<PHILIP<<<<<<<<<<<<\n1234567XY7GBR5203116M2005250<<<<<<<<",
+            "VCD<<DENT<<ARTHUR<PHILIP<<<<<<<<<<<<\n1234567XY7GBR5203116M2005250",
             seal.getMessageByName("MRZ_MRVB")?.value.toString()
         )
         assertEquals("47110815P", seal.getMessageByName("PASSPORT_NUMBER")?.value.toString())

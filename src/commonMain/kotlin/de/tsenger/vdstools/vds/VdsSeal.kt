@@ -95,26 +95,18 @@ class VdsSeal : Seal {
 
     override fun getMessageByName(name: String): Message? {
         val vdsMessage = vdsMessageGroup.getMessageByName(name) ?: return null
-        val mrzLength = getMrzLength(vdsMessage.name)
         return Message(
             vdsMessage.tag, vdsMessage.name, vdsMessage.coding,
-            MessageValue.fromBytes(vdsMessage.value.rawBytes, vdsMessage.coding, mrzLength)
+            MessageValue.fromBytes(vdsMessage.value.rawBytes, vdsMessage.coding)
         )
     }
 
     override fun getMessageByTag(tag: Int): Message? {
         val vdsMessage = vdsMessageGroup.getMessageByTag(tag) ?: return null
-        val mrzLength = getMrzLength(vdsMessage.name)
         return Message(
             vdsMessage.tag, vdsMessage.name, vdsMessage.coding,
-            MessageValue.fromBytes(vdsMessage.value.rawBytes, vdsMessage.coding, mrzLength)
+            MessageValue.fromBytes(vdsMessage.value.rawBytes, vdsMessage.coding)
         )
-    }
-
-    private fun getMrzLength(messageName: String): Int? = when (messageName) {
-        "MRZ_MRVA" -> 88
-        "MRZ_MRVB" -> 72
-        else -> null
     }
 
     override val signatureInfo: SignatureInfo?
@@ -140,19 +132,17 @@ class VdsSeal : Seal {
 
     override val messageList: List<Message>
         get() = vdsMessageGroup.messageList.map { vdsMessage ->
-            val mrzLength = getMrzLength(vdsMessage.name)
             Message(
                 vdsMessage.tag, vdsMessage.name, vdsMessage.coding,
-                MessageValue.fromBytes(vdsMessage.value.rawBytes, vdsMessage.coding, mrzLength)
+                MessageValue.fromBytes(vdsMessage.value.rawBytes, vdsMessage.coding)
             )
         }
 
     override val metadataMessageList: List<Message>
         get() = vdsMessageGroup.metadataMessageList.map { vdsMessage ->
-            val mrzLength = getMrzLength(vdsMessage.name)
             Message(
                 vdsMessage.tag, vdsMessage.name, vdsMessage.coding,
-                MessageValue.fromBytes(vdsMessage.value.rawBytes, vdsMessage.coding, mrzLength)
+                MessageValue.fromBytes(vdsMessage.value.rawBytes, vdsMessage.coding)
             )
         }
 

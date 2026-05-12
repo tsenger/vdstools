@@ -491,6 +491,14 @@ object DataEncoder {
     fun <T> encodeValueByCoding(coding: MessageCoding, value: T, tag: Int? = null): ByteArray {
         return when (coding) {
             MessageCoding.C40, MessageCoding.MRZ -> encodeC40(value as String)
+            MessageCoding.MRZ_MRVA -> {
+                val s = (value as String).replace("\r", "").replace("\n", "")
+                encodeC40(s.take(44) + s.drop(44).take(28))
+            }
+            MessageCoding.MRZ_MRVB -> {
+                val s = (value as String).replace("\r", "").replace("\n", "")
+                encodeC40(s.take(36) + s.drop(36).take(28))
+            }
             MessageCoding.UTF8_STRING -> (value as String).encodeToByteArray()
             MessageCoding.BYTES, MessageCoding.SUB_MESSAGES -> value as ByteArray
             MessageCoding.BYTE -> when (value) {
