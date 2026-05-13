@@ -13,7 +13,8 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - Missing `DOCUMENT_REFERENCE` message in `CERTIFYING_PERMANENT_RESIDENCE`
-- Missing `DOCUMENT_REFERENCE` tag in `FRONTIER_WORKER_PERMIT`
+- Missing `DOCUMENT_REFERENCE` message in `FRONTIER_WORKER_PERMIT`
+- Incorrect MRZ type for `PROVISIONAL_RESIDENCE_DOCUMENT` (now `MRZ_TD2`)
 
 ---
 
