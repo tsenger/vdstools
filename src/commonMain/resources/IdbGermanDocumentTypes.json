@@ -290,7 +290,7 @@
     "name": "PROVISIONAL_RESIDENCE_DOCUMENT",
     "messages": [
       {
-        "name": "MRZ_TD1",
+        "name": "MRZ_TD2",
         "required": true
       },
       {
