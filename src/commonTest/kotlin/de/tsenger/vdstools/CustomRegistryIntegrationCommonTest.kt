@@ -27,7 +27,7 @@ class CustomRegistryIntegrationCommonTest {
 
         // Custom definition maps same UUID to "MY_CUSTOM_DOCUMENT"
         assertEquals("MY_CUSTOM_DOCUMENT", seal.documentType)
-        assertEquals("ADMINISTRATIVE_DOCUMENTS", seal.baseDocumentType)
+        assertEquals("ADMINISTRATIVE_DOCUMENTS_V8", seal.baseDocumentType)
 
         // Messages should still decode correctly (same structure)
         assertEquals("Mustermann", seal.getMessageByName("SURNAME")?.value.toString())
@@ -114,12 +114,13 @@ class CustomRegistryIntegrationCommonTest {
             </profile>
         """.trimIndent()
 
-        DataEncoder.loadVdsProfileDefinitionFromXml(xml)
+        // Explicit legacy base type: the raw seal bytes encode a 0xC8 seal (ADMINISTRATIVE_DOCUMENTS_V8)
+        DataEncoder.loadVdsProfileDefinitionFromXml(xml, "ADMINISTRATIVE_DOCUMENTS_V8")
 
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.meldebescheinigung) as VdsSeal
 
         assertEquals("XML_MELDEBESCHEINIGUNG", seal.documentType)
-        assertEquals("ADMINISTRATIVE_DOCUMENTS", seal.baseDocumentType)
+        assertEquals("ADMINISTRATIVE_DOCUMENTS_V8", seal.baseDocumentType)
         assertEquals("Mustermann", seal.getMessageByName("SURNAME")?.value.toString())
         assertEquals("Berlin", seal.getMessageByName("CITY")?.value.toString())
     }
@@ -305,7 +306,7 @@ class CustomRegistryIntegrationCommonTest {
         val json = """[{
             "definitionId": "$newUuid",
             "definitionName": "NEW_DOCUMENT",
-            "baseDocumentType": "ADMINISTRATIVE_DOCUMENTS",
+            "baseDocumentType": "ADMINISTRATIVE_DOCUMENTS_V8",
             "version": 1,
             "messages": []
         }]"""

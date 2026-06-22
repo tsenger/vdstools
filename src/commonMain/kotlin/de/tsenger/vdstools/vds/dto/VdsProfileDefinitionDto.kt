@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
  * Data class representing an extended message definition for UUID-based seal lookup.
  *
  * Extended message definitions allow for a two-stage lookup process as specified in TR-03171:
- * 1. The documentRef in the header determines the base type (e.g., ADMINISTRATIVE_DOCUMENTS)
+ * 1. The documentRef in the header determines the base type (e.g., ADMINISTRATIVE_DOCUMENTS_V8)
  * 2. The UUID in Tag 0 (Dokumentenprofilnummer) determines the specific definition (e.g., MELDEBESCHEINIGUNG)
  *
  * This extends the limited 256-value space of Document Feature Definition Reference in the header

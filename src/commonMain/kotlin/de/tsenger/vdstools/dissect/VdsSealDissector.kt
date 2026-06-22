@@ -11,7 +11,8 @@ import de.tsenger.vdstools.vds.VdsSeal
 fun VdsSeal.dissect(): SealDissection {
     val raw = encoded
     val headerLen = headerBytes.size
-    val signedEnd = signedBytes?.size ?: 0  // header + message group
+    // signedBytes is null when the seal has no signature — treat entire raw as signed content
+    val signedEnd = signedBytes?.size ?: raw.size
 
     return SealDissection(
         header = buildHeaderDissection(raw, headerLen),
@@ -51,8 +52,10 @@ private fun VdsSeal.buildMessageGroupDissection(
     val msgBytes = raw.copyOfRange(headerLen, signedEnd)
     val spans = scanTlvs(msgBytes, baseOffset = headerLen)
 
+    // Include metadata messages (V9 tags 0x00–0x06) so they get proper names too
+    val allMessages = messageList + metadataMessageList
     val children = spans.map { span ->
-        val label = messageList.firstOrNull { it.tag == (span.tag and 0xFF) }?.name
+        val label = allMessages.firstOrNull { it.tag == (span.tag and 0xFF) }?.name
             ?: "Unknown (0x${span.tag.toHex()})"
         FieldDissection(
             label, span.range, listOf(

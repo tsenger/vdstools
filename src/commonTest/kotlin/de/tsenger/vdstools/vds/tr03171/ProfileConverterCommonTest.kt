@@ -1,7 +1,10 @@
 package de.tsenger.vdstools.vds.tr03171
 
 import de.tsenger.vdstools.generic.MessageCoding
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class ProfileConverterCommonTest {
 
@@ -45,10 +48,19 @@ class ProfileConverterCommonTest {
     }
 
     @Test
-    fun testBaseDocumentTypeIsAdministrativeDocuments() {
+    fun testBaseDocumentTypeDefaultIsV9() {
+        // Default is ADMINISTRATIVE_DOCUMENTS_V9 (0xC9) — the current TR-03171 standard
         val profile = createProfile(createEntry())
         val result = ProfileConverter.toVdsProfileDefinition(profile)
-        assertEquals("ADMINISTRATIVE_DOCUMENTS", result.baseDocumentType)
+        assertEquals("ADMINISTRATIVE_DOCUMENTS_V9", result.baseDocumentType)
+    }
+
+    @Test
+    fun testBaseDocumentTypeLegacy_whenExplicitlySet() {
+        // Legacy 0xC8 seals must pass ADMINISTRATIVE_DOCUMENTS_V8 explicitly
+        val profile = createProfile(createEntry())
+        val result = ProfileConverter.toVdsProfileDefinition(profile, "ADMINISTRATIVE_DOCUMENTS_V8")
+        assertEquals("ADMINISTRATIVE_DOCUMENTS_V8", result.baseDocumentType)
     }
 
     @Test
@@ -132,11 +144,12 @@ class ProfileConverterCommonTest {
 
     @Test
     fun testDateMapping() {
+        // TR-03171 uses ASN.1 DATE as 8-byte YYYYMMDD UTF-8 (DATE_STRING), not the 3-byte ICAO binary format
         val profile = createProfile(createEntry(type = Asn1Type.DATE))
         val result = ProfileConverter.toVdsProfileDefinition(profile)
         val msg = result.messages[0]
-        assertEquals(MessageCoding.DATE, msg.coding)
-        assertEquals(3, msg.maxBytes)
+        assertEquals(MessageCoding.DATE_STRING, msg.coding)
+        assertEquals(8, msg.maxBytes)
     }
 
     @Test
@@ -204,11 +217,12 @@ class ProfileConverterCommonTest {
         """.trimIndent()
 
         val profile = ProfileXmlParser.parse(xml)
-        val definition = ProfileConverter.toVdsProfileDefinition(profile)
+        // This profile is used with 0xC8 seals — pass the legacy base type explicitly
+        val definition = ProfileConverter.toVdsProfileDefinition(profile, "ADMINISTRATIVE_DOCUMENTS_V8")
 
         assertEquals("9a4223406d374ef99e2cf95e31a23846", definition.definitionId)
         assertEquals("MELDEBESCHEINIGUNG", definition.definitionName)
-        assertEquals("ADMINISTRATIVE_DOCUMENTS", definition.baseDocumentType)
+        assertEquals("ADMINISTRATIVE_DOCUMENTS_V8", definition.baseDocumentType)
         assertEquals(3, definition.messages.size)
 
         val surname = definition.messages.first { it.name == "SURNAME" }

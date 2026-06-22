@@ -10,7 +10,7 @@ import kotlinx.serialization.json.Json
  *
  * This class enables a two-stage lookup process for seals with UUID-based definitions
  * as specified in TR-03171:
- * 1. The documentRef in the header determines the base type (e.g., ADMINISTRATIVE_DOCUMENTS)
+ * 1. The documentRef in the header determines the base type (e.g., ADMINISTRATIVE_DOCUMENTS_V8)
  * 2. The UUID from Tag 0 (Dokumentenprofilnummer) is used to look up the specific definition
  *
  * This extends the limited 256-value space of Document Feature Definition Reference in the header

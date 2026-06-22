@@ -174,6 +174,62 @@ object VdsRawBytesCommon {
                 "185ba67ee77acdce73554aece7a1af81" +
                 "1c785d54cee6cd251293b6a9b91ae02e" +
                 "76d427873073193f").hexToByteArray()
+
+    // -------------------------------------------------------------------------
+    // TR-03171 v0.9 test seals — document category 0xC9 (ADMINISTRATIVE_DOCUMENTS_V9)
+    //
+    // Profile UUID: AABBCCDD11223344AABBCCDD11223344 → "TEST_V9_PROFILE"
+    // Header: same signer params as other test seals but docTypeCat = 0xC9
+    // No signature present — these bytes are used for structural parsing only.
+    // The profile must be registered before parsing (see VdsAdministrativeDocumentsV9CommonTest).
+    // -------------------------------------------------------------------------
+
+    /**
+     * Minimal V9 seal: UUID (tag 0x00) + PROFILE_URI (0x03) + CERTIFICATE_URI (0x04) +
+     * SURNAME "Mustermann" (0x0A). No validity dates or status fields.
+     */
+    val administrativeDocumentV9Basic: ByteArray =
+        ("dc036abc6d38dbb519a620372ce13372" +
+                "401c46ad535759e866926d2379b98d7a" +
+                "d88d7ad801c9" +
+                "0010aabbccdd11223344aabbccdd1122" +
+                "334403146578616d706c652e636f6d2f" +
+                "70726f66696c657304116578616d706c" +
+                "652e636f6d2f63657274730a0a4d7573" +
+                "7465726d616e6e").hexToByteArray()
+
+    /**
+     * V9 seal with optional validity dates: UUID + VALID_FROM "20250101" (0x01) +
+     * VALID_TO "20251231" (0x02) + PROFILE_URI (0x03) + CERTIFICATE_URI (0x04) +
+     * SURNAME "Mustermann" (0x0A).
+     */
+    val administrativeDocumentV9WithDates: ByteArray =
+        ("dc036abc6d38dbb519a620372ce13372" +
+                "401c46ad535759e866926d2379b98d7a" +
+                "d88d7ad801c9" +
+                "0010aabbccdd11223344aabbccdd1122" +
+                "3344010832303235303130310208" +
+                "3230323531323331" +
+                "03146578616d706c652e636f6d2f" +
+                "70726f66696c657304116578616d706c" +
+                "652e636f6d2f63657274730a0a4d7573" +
+                "7465726d616e6e").hexToByteArray()
+
+    /**
+     * V9 seal with optional status fields: UUID + PROFILE_URI (0x03) +
+     * CERTIFICATE_URI (0x04) + STATUS_URI "example.com/status" (0x05) +
+     * STATUS_LIST_INDEX 424242 (0x06) + SURNAME "Mustermann" (0x0A).
+     */
+    val administrativeDocumentV9WithStatus: ByteArray =
+        ("dc036abc6d38dbb519a620372ce13372" +
+                "401c46ad535759e866926d2379b98d7a" +
+                "d88d7ad801c9" +
+                "0010aabbccdd11223344aabbccdd1122" +
+                "334403146578616d706c652e636f6d2f" +
+                "70726f66696c657304116578616d706c" +
+                "652e636f6d2f636572747305126578616d" +
+                "706c652e636f6d2f7374617475730603" +
+                "0679320a0a4d75737465726d616e6e").hexToByteArray()
 }
 
 

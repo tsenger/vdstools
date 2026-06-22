@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- BSI TR-03171 v0.9 support (document category 0xC9) via new
+  `ADMINISTRATIVE_DOCUMENTS_V9` base document type with reserved metadata tags
+  0x00–0x06 (UUID, validity dates, profile/certificate/status URIs, status list index)
+- `MessageCoding.DATE_STRING` for 8-byte `YYYYMMDD` UTF-8 date encoding used by
+  TR-03171 v0.9 `validFrom` / `validTo` fields
+
+### Changed
+- **Breaking:** the legacy TR-03171 v0.8 base document type was renamed from
+  `ADMINISTRATIVE_DOCUMENTS` to `ADMINISTRATIVE_DOCUMENTS_V8` (document category
+  0xC8 / documentRef 0x01C8 unchanged). Update any custom profile JSON
+  (`baseDocumentType`), `VdsHeader.Builder(...)` calls, and comparisons against
+  `seal.baseDocumentType` accordingly. Use the constants
+  `DataEncoder.ADMINISTRATIVE_DOCUMENTS_V8` / `…_V9` instead of string literals.
+- `DataEncoder.loadVdsProfileDefinitionFromXml()` and
+  `ProfileConverter.toVdsProfileDefinition()` now default to
+  `ADMINISTRATIVE_DOCUMENTS_V9`; pass `ADMINISTRATIVE_DOCUMENTS_V8` for legacy 0xC8 seals
+
+### Fixed
+- `VdsSeal.dissect()` no longer truncates the message zone for unsigned seals
+
 ---
 
 ## [0.17.0] - 2026-05-12

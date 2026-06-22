@@ -1,5 +1,6 @@
 package de.tsenger.vdstools.dissect
 
+import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.generic.Seal
 import de.tsenger.vdstools.idb.IcbRawStringsCommon
 import de.tsenger.vdstools.idb.IdbSeal
@@ -8,6 +9,30 @@ import de.tsenger.vdstools.vds.VdsSeal
 import kotlin.test.*
 
 class SealDissectorCommonTest {
+
+    private val v9ProfileXml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <profile>
+            <profileNumber>AABBCCDD11223344AABBCCDD11223344</profileNumber>
+            <profileName>TEST_V9_PROFILE</profileName>
+            <creator>Test</creator>
+            <entry tag="10">
+                <name>SURNAME</name>
+                <description>Familienname</description>
+                <type>UTF8String</type>
+            </entry>
+        </profile>
+    """.trimIndent()
+
+    @BeforeTest
+    fun setUp() {
+        DataEncoder.loadVdsProfileDefinitionFromXml(v9ProfileXml)
+    }
+
+    @AfterTest
+    fun tearDown() {
+        DataEncoder.resetToDefaults()
+    }
 
     // --- VDS v3 (residentPermit) ---
 
@@ -196,5 +221,94 @@ class SealDissectorCommonTest {
     fun idb_signed_hasSignature() {
         val seal = IdbSeal.fromString(IcbRawStringsCommon.CertifyingPermanentResidence) as IdbSeal
         assertNotNull(seal.dissect().signature)
+    }
+
+    // --- VDS V9 (ADMINISTRATIVE_DOCUMENTS_V9 / 0xC9) ---
+
+    @Test
+    fun vds_v9_headerStartsAtZero() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.administrativeDocumentV9Basic) as VdsSeal
+        assertEquals(0, seal.dissect().header.range.offset)
+    }
+
+    @Test
+    fun vds_v9_messageGroupStartsWhereHeaderEnds() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.administrativeDocumentV9Basic) as VdsSeal
+        val d = seal.dissect()
+        assertEquals(
+            d.header.range.offset + d.header.range.length,
+            d.messageGroup.range.offset
+        )
+    }
+
+    @Test
+    fun vds_v9_noSignature_whenBytesHaveNoSignatureTag() {
+        // The raw test bytes contain no 0xFF signature tag
+        val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.administrativeDocumentV9Basic) as VdsSeal
+        assertNull(seal.dissect().signature)
+    }
+
+    @Test
+    fun vds_v9_messageFieldRangesWithinBounds() {
+        val raw = VdsRawBytesCommon.administrativeDocumentV9Basic
+        val seal = VdsSeal.fromByteArray(raw) as VdsSeal
+        for (field in seal.dissect().messageGroup.children) {
+            assertTrue(field.range.offset >= 0, "negative offset: ${field.label}")
+            assertTrue(field.range.offset + field.range.length <= raw.size, "out of bounds: ${field.label}")
+        }
+    }
+
+    @Test
+    fun vds_v9_metadataFieldsGetProperNames() {
+        // UUID (tag 0x00), PROFILE_URI (0x03), CERTIFICATE_URI (0x04) are metadata — must not
+        // fall through to "Unknown" after the metadataMessageList fallback was added.
+        val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.administrativeDocumentV9Basic) as VdsSeal
+        val fieldNames = seal.dissect().messageGroup.children.map { it.label }
+        assertTrue(fieldNames.none { it.startsWith("Unknown") },
+            "All V9 fields should resolve to named labels, got: $fieldNames")
+    }
+
+    @Test
+    fun vds_v9_dissectionContainsSurnameField() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.administrativeDocumentV9Basic) as VdsSeal
+        val fieldNames = seal.dissect().messageGroup.children.map { it.label }
+        assertTrue(fieldNames.any { it == "SURNAME" }, "Expected SURNAME field, got: $fieldNames")
+    }
+
+    @Test
+    fun vds_v9_dissectionContainsProfileUriField() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.administrativeDocumentV9Basic) as VdsSeal
+        val fieldNames = seal.dissect().messageGroup.children.map { it.label }
+        assertTrue(fieldNames.any { it == "PROFILE_URI" }, "Expected PROFILE_URI field, got: $fieldNames")
+    }
+
+    @Test
+    fun vds_v9_eachFieldHasThreeSubFields() {
+        // Every TLV in the message zone must dissect into Tag + Length + Value children
+        val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.administrativeDocumentV9Basic) as VdsSeal
+        for (field in seal.dissect().messageGroup.children) {
+            assertEquals(3, field.children.size,
+                "Field ${field.label} should have Tag/Length/Value children")
+        }
+    }
+
+    @Test
+    fun vds_v9_withDates_validFromAndValidToNamed() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.administrativeDocumentV9WithDates) as VdsSeal
+        val fieldNames = seal.dissect().messageGroup.children.map { it.label }
+        assertTrue(fieldNames.any { it == "VALID_FROM" }, "Expected VALID_FROM, got: $fieldNames")
+        assertTrue(fieldNames.any { it == "VALID_TO" }, "Expected VALID_TO, got: $fieldNames")
+        assertTrue(fieldNames.none { it.startsWith("Unknown") },
+            "All V9 date-seal fields should be named, got: $fieldNames")
+    }
+
+    @Test
+    fun vds_v9_withStatus_statusFieldsNamed() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.administrativeDocumentV9WithStatus) as VdsSeal
+        val fieldNames = seal.dissect().messageGroup.children.map { it.label }
+        assertTrue(fieldNames.any { it == "STATUS_URI" }, "Expected STATUS_URI, got: $fieldNames")
+        assertTrue(fieldNames.any { it == "STATUS_LIST_INDEX" }, "Expected STATUS_LIST_INDEX, got: $fieldNames")
+        assertTrue(fieldNames.none { it.startsWith("Unknown") },
+            "All V9 status-seal fields should be named, got: $fieldNames")
     }
 }

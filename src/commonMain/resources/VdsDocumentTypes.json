@@ -279,7 +279,7 @@
     ]
   },
   {
-    "documentType": "ADMINISTRATIVE_DOCUMENTS",
+    "documentType": "ADMINISTRATIVE_DOCUMENTS_V8",
     "documentRef": "01c8",
     "version": 4,
     "uuidMessageLookup": true,
@@ -306,6 +306,80 @@
         "required": false,
         "minBytes": 1,
         "maxBytes": 17
+      }
+    ]
+  },
+  {
+    "documentType": "ADMINISTRATIVE_DOCUMENTS_V9",
+    "documentRef": "01c9",
+    "version": 4,
+    "uuidMessageLookup": true,
+    "uuidMessageTag": 0,
+    "metadataTagList": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "messages": [
+      {
+        "name": "DOC_PROFILE_NUMBER",
+        "tag": 0,
+        "coding": "BYTES",
+        "required": true,
+        "minBytes": 16,
+        "maxBytes": 16
+      },
+      {
+        "name": "VALID_FROM",
+        "tag": 1,
+        "coding": "DATE_STRING",
+        "required": false,
+        "minBytes": 8,
+        "maxBytes": 8
+      },
+      {
+        "name": "VALID_TO",
+        "tag": 2,
+        "coding": "DATE_STRING",
+        "required": false,
+        "minBytes": 8,
+        "maxBytes": 8
+      },
+      {
+        "name": "PROFILE_URI",
+        "tag": 3,
+        "coding": "UTF8_STRING",
+        "required": true,
+        "minBytes": 1,
+        "maxBytes": 255
+      },
+      {
+        "name": "CERTIFICATE_URI",
+        "tag": 4,
+        "coding": "UTF8_STRING",
+        "required": true,
+        "minBytes": 1,
+        "maxBytes": 255
+      },
+      {
+        "name": "STATUS_URI",
+        "tag": 5,
+        "coding": "UTF8_STRING",
+        "required": false,
+        "minBytes": 1,
+        "maxBytes": 255
+      },
+      {
+        "name": "STATUS_LIST_INDEX",
+        "tag": 6,
+        "coding": "BYTES",
+        "required": false,
+        "minBytes": 1,
+        "maxBytes": 4
       }
     ]
   }

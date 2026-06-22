@@ -10,7 +10,7 @@ class VdsProfileDefinitionRegistryCommonTest {
           {
             "definitionId": "9a4223406d374ef99e2cf95e31a23846",
             "definitionName": "MELDEBESCHEINIGUNG",
-            "baseDocumentType": "ADMINISTRATIVE_DOCUMENTS",
+            "baseDocumentType": "ADMINISTRATIVE_DOCUMENTS_V8",
             "version": 1,
             "messages": [
               {"name": "SURNAME", "tag": 4, "coding": "UTF8_STRING", "required": true, "minBytes": 1, "maxBytes": 255}
@@ -19,7 +19,7 @@ class VdsProfileDefinitionRegistryCommonTest {
           {
             "definitionId": "550e8400e29b41d4a716446655440002",
             "definitionName": "TEST_DEFINITION",
-            "baseDocumentType": "ADMINISTRATIVE_DOCUMENTS",
+            "baseDocumentType": "ADMINISTRATIVE_DOCUMENTS_V8",
             "version": 1,
             "messages": []
           }
@@ -35,7 +35,7 @@ class VdsProfileDefinitionRegistryCommonTest {
 
         assertNotNull(definition)
         assertEquals("MELDEBESCHEINIGUNG", definition.definitionName)
-        assertEquals("ADMINISTRATIVE_DOCUMENTS", definition.baseDocumentType)
+        assertEquals("ADMINISTRATIVE_DOCUMENTS_V8", definition.baseDocumentType)
         assertEquals(1, definition.version)
     }
 

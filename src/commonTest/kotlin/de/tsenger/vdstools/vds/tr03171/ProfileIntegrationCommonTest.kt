@@ -33,7 +33,8 @@ class ProfileIntegrationCommonTest {
 
         assertNotNull(definition)
         assertEquals("TEST_XML_PROFILE", definition.definitionName)
-        assertEquals("ADMINISTRATIVE_DOCUMENTS", definition.baseDocumentType)
+        // Default is V9 (0xC9) — the current TR-03171 standard
+        assertEquals("ADMINISTRATIVE_DOCUMENTS_V9", definition.baseDocumentType)
         assertEquals(1, definition.messages.size)
         assertEquals("FIELD1", definition.messages[0].name)
         assertEquals(MessageCoding.UTF8_STRING, definition.messages[0].coding)
@@ -154,8 +155,8 @@ class ProfileIntegrationCommonTest {
         val jsonDef = DataEncoder.vdsProfileDefinitions.resolve("9a4223406d374ef99e2cf95e31a23846")
         assertNotNull(jsonDef)
 
-        // Load XML and overwrite
-        DataEncoder.loadVdsProfileDefinitionFromXml(xml)
+        // Load XML and overwrite — explicit legacy base type to match the JSON definition (0xC8 seal)
+        DataEncoder.loadVdsProfileDefinitionFromXml(xml, "ADMINISTRATIVE_DOCUMENTS_V8")
         val xmlDef = DataEncoder.vdsProfileDefinitions.resolve("9a4223406d374ef99e2cf95e31a23846")
         assertNotNull(xmlDef)
 
