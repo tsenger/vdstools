@@ -11,14 +11,17 @@ class ProfileConverterCommonTest {
     private fun createProfile(vararg entries: ProfileEntryDto): ProfileDto {
         return ProfileDto(
             profileNumber = "9A4223406D374EF99E2CF95E31A23846",
+            versionTR = "0.9",
             profileName = "TEST_PROFILE",
             creator = "Test",
+            validFromPresent = false,
+            validToPresent = false,
             entries = entries.toList()
         )
     }
 
     private fun createEntry(
-        tag: Int = 4,
+        tag: Int = 10,
         type: Asn1Type = Asn1Type.UTF8String,
         length: Int? = null,
         optional: Boolean = false
@@ -48,19 +51,26 @@ class ProfileConverterCommonTest {
     }
 
     @Test
-    fun testBaseDocumentTypeDefaultIsV9() {
-        // Default is ADMINISTRATIVE_DOCUMENTS_V9 (0xC9) — the current TR-03171 standard
+    fun testBaseDocumentTypeIsAlwaysV9() {
+        // Profiles parsed from XML are always TR-03171 v0.9 (0xC9)
         val profile = createProfile(createEntry())
         val result = ProfileConverter.toVdsProfileDefinition(profile)
         assertEquals("ADMINISTRATIVE_DOCUMENTS_V9", result.baseDocumentType)
     }
 
     @Test
-    fun testBaseDocumentTypeLegacy_whenExplicitlySet() {
-        // Legacy 0xC8 seals must pass ADMINISTRATIVE_DOCUMENTS_V8 explicitly
-        val profile = createProfile(createEntry())
-        val result = ProfileConverter.toVdsProfileDefinition(profile, "ADMINISTRATIVE_DOCUMENTS_V8")
-        assertEquals("ADMINISTRATIVE_DOCUMENTS_V8", result.baseDocumentType)
+    fun testProfileNameFallsBackToProfileNumberWhenAbsent() {
+        val profile = ProfileDto(
+            profileNumber = "9A4223406D374EF99E2CF95E31A23846",
+            versionTR = "0.9",
+            profileName = null,
+            creator = null,
+            validFromPresent = false,
+            validToPresent = false,
+            entries = listOf(createEntry())
+        )
+        val result = ProfileConverter.toVdsProfileDefinition(profile)
+        assertEquals("9A4223406D374EF99E2CF95E31A23846", result.definitionName)
     }
 
     @Test
@@ -195,19 +205,22 @@ class ProfileConverterCommonTest {
             <?xml version="1.0" encoding="UTF-8"?>
             <profile>
                 <profileNumber>9A4223406D374EF99E2CF95E31A23846</profileNumber>
+                <versionTR>0.9</versionTR>
                 <profileName>MELDEBESCHEINIGUNG</profileName>
                 <creator>BSI</creator>
-                <entry tag="4">
+                <validFromPresent>false</validFromPresent>
+                <validToPresent>false</validToPresent>
+                <entry tag="10">
                     <name>SURNAME</name>
                     <description>Familienname</description>
                     <type>UTF8String</type>
                 </entry>
-                <entry tag="5" optional="true">
+                <entry tag="11" optional="true">
                     <name>ACADEMIC_DEGREE</name>
                     <description>Akademischer Grad</description>
                     <type>UTF8String</type>
                 </entry>
-                <entry tag="14">
+                <entry tag="20">
                     <name>HOUSING_STATUS</name>
                     <description>Wohnungsstatus</description>
                     <length>1</length>
@@ -217,16 +230,15 @@ class ProfileConverterCommonTest {
         """.trimIndent()
 
         val profile = ProfileXmlParser.parse(xml)
-        // This profile is used with 0xC8 seals — pass the legacy base type explicitly
-        val definition = ProfileConverter.toVdsProfileDefinition(profile, "ADMINISTRATIVE_DOCUMENTS_V8")
+        val definition = ProfileConverter.toVdsProfileDefinition(profile)
 
         assertEquals("9a4223406d374ef99e2cf95e31a23846", definition.definitionId)
         assertEquals("MELDEBESCHEINIGUNG", definition.definitionName)
-        assertEquals("ADMINISTRATIVE_DOCUMENTS_V8", definition.baseDocumentType)
+        assertEquals("ADMINISTRATIVE_DOCUMENTS_V9", definition.baseDocumentType)
         assertEquals(3, definition.messages.size)
 
         val surname = definition.messages.first { it.name == "SURNAME" }
-        assertEquals(4, surname.tag)
+        assertEquals(10, surname.tag)
         assertEquals(MessageCoding.UTF8_STRING, surname.coding)
         assertTrue(surname.required)
         assertEquals(255, surname.maxBytes)

@@ -268,22 +268,19 @@ object DataEncoder {
      * The XML profile is parsed and converted to a [de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto],
      * which is then added to the existing registry without replacing other definitions.
      *
-     * @param xmlString XML content conforming to the DocProfileSchema TR-03171.
-     * @param baseDocumentType The VDS document type that carries seals of this profile in its
-     *   header. Pass [ADMINISTRATIVE_DOCUMENTS_V9] for TR-03171 v0.9 seals (document category
-     *   0xC9) and [ADMINISTRATIVE_DOCUMENTS_V8] for legacy v0.8 seals (0xC8).
-     *   Defaults to [ADMINISTRATIVE_DOCUMENTS_V9] — pass [ADMINISTRATIVE_DOCUMENTS_V8] explicitly
-     *   when working with legacy 0xC8 seals.
+     * Profiles loaded this way are always TR-03171 v0.9 and are carried by
+     * [ADMINISTRATIVE_DOCUMENTS_V9] (document category 0xC9). This is the runtime entry point
+     * for registering profiles fetched at runtime (e.g. via REST); once registered, seals
+     * referencing the profile's UUID (Tag 0x00) can be decoded.
+     *
+     * @param xmlString XML content conforming to the DocProfileSchema TR-03171 v0.9.
      * @throws IllegalArgumentException if the XML is invalid or fails validation.
      */
-    fun loadVdsProfileDefinitionFromXml(
-        xmlString: String,
-        baseDocumentType: String = ADMINISTRATIVE_DOCUMENTS_V9
-    ) {
+    fun loadVdsProfileDefinitionFromXml(xmlString: String) {
         val profile = ProfileXmlParser.parse(xmlString)
-        val definition = ProfileConverter.toVdsProfileDefinition(profile, baseDocumentType)
+        val definition = ProfileConverter.toVdsProfileDefinition(profile)
         vdsProfileDefinitions.addDefinition(definition)
-        logI(TAG, "Loaded VDS profile definition from XML: ${definition.definitionName} (baseDocumentType=$baseDocumentType)")
+        logI(TAG, "Loaded VDS profile definition from XML: ${definition.definitionName}")
     }
 
     /**

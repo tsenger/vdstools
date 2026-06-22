@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file.
   0x00–0x06 (UUID, validity dates, profile/certificate/status URIs, status list index)
 - `MessageCoding.DATE_STRING` for 8-byte `YYYYMMDD` UTF-8 date encoding used by
   TR-03171 v0.9 `validFrom` / `validTo` fields
+- TR-03171 v0.9 XML profile fields: `versionTR`, `validFromPresent`,
+  `validToPresent` (all mandatory) are now parsed into `ProfileDto`
 
 ### Changed
 - **Breaking:** the legacy TR-03171 v0.8 base document type was renamed from
@@ -18,9 +20,18 @@ All notable changes to this project will be documented in this file.
   (`baseDocumentType`), `VdsHeader.Builder(...)` calls, and comparisons against
   `seal.baseDocumentType` accordingly. Use the constants
   `DataEncoder.ADMINISTRATIVE_DOCUMENTS_V8` / `…_V9` instead of string literals.
-- `DataEncoder.loadVdsProfileDefinitionFromXml()` and
-  `ProfileConverter.toVdsProfileDefinition()` now default to
-  `ADMINISTRATIVE_DOCUMENTS_V9`; pass `ADMINISTRATIVE_DOCUMENTS_V8` for legacy 0xC8 seals
+- **Breaking:** the XML profile parser now targets the TR-03171 **v0.9** schema:
+  `profileName` / `creator` are optional, `versionTR` / `validFromPresent` /
+  `validToPresent` are mandatory, the `statusIndicator` element was removed, and
+  profile entry tags are restricted to `0x0A`–`0xFE` (10–254, max 245 entries).
+  Profiles parsed from XML are always v0.9; `DataEncoder.loadVdsProfileDefinitionFromXml()`
+  and `ProfileConverter.toVdsProfileDefinition()` no longer take a `baseDocumentType`
+  argument and always produce `ADMINISTRATIVE_DOCUMENTS_V9` definitions. Legacy 0xC8
+  seals remain decodable via the bundled JSON profile definitions.
+
+### Removed
+- `StatusIndicator` enum and the `statusIndicator` profile field (not part of the
+  TR-03171 v0.9 schema)
 
 ### Fixed
 - `VdsSeal.dissect()` no longer truncates the message zone for unsigned seals

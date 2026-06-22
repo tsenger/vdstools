@@ -149,8 +149,11 @@ class CreateTR03171Seals {
         <?xml version="1.0" encoding="UTF-8"?>
         <profile>
             <profileNumber>CCDDAABB44332211CCDDAABB44332211</profileNumber>
+            <versionTR>0.9</versionTR>
             <profileName>TEST_V9_JVM_PROFILE</profileName>
             <creator>Test</creator>
+            <validFromPresent>false</validFromPresent>
+            <validToPresent>false</validToPresent>
             <entry tag="10">
                 <name>SURNAME</name>
                 <description>Familienname</description>
