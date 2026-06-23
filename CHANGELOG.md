@@ -29,6 +29,10 @@ All notable changes to this project will be documented in this file.
   argument and always produce `ADMINISTRATIVE_DOCUMENTS_V9` definitions. Legacy 0xC8
   seals remain decodable via the bundled JSON profile definitions.
 
+- Upgraded Gradle wrapper to 9.6.0
+- Bumped Kotlin to 2.4.0 and updated dependencies (kotlinx-datetime 0.8.0,
+  kotlinx-serialization 1.11.0, BouncyCastle 1.84, okio 3.17.0, maven-publish 0.37.0)
+
 ### Removed
 - `StatusIndicator` enum and the `statusIndicator` profile field (not part of the
   TR-03171 v0.9 schema)
