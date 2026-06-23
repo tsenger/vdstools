@@ -169,7 +169,7 @@ class VdsDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
      * Gets the message name for a given tag, considering profile definitions.
      * Lookup order: Extended definition first (if provided), then base type.
      *
-     * @param baseVdsType The base VDS type (e.g., "ADMINISTRATIVE_DOCUMENTS")
+     * @param baseVdsType The base VDS type (e.g., "ADMINISTRATIVE_DOCUMENTS_V8")
      * @param profileDefinition The resolved profile definition (can be null)
      * @param tag The tag number to look up
      * @return The message name
@@ -192,7 +192,7 @@ class VdsDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
      * Gets the message coding for a given tag, considering profile definitions.
      * Lookup order: Extended definition first (if provided), then base type.
      *
-     * @param baseVdsType The base VDS type (e.g., "ADMINISTRATIVE_DOCUMENTS")
+     * @param baseVdsType The base VDS type (e.g., "ADMINISTRATIVE_DOCUMENTS_V8")
      * @param profileDefinition The resolved profile definition (can be null)
      * @param tag The tag number to look up
      * @return The message coding
@@ -273,7 +273,7 @@ class VdsDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
      * Gets the tag number for a given message name, considering profile definitions.
      * Lookup order: Extended definition first (if provided), then base type.
      *
-     * @param baseVdsType The base VDS type (e.g., "ADMINISTRATIVE_DOCUMENTS")
+     * @param baseVdsType The base VDS type (e.g., "ADMINISTRATIVE_DOCUMENTS_V8")
      * @param profileDefinition The resolved profile definition (can be null)
      * @param messageName The message name to look up
      * @return The tag number

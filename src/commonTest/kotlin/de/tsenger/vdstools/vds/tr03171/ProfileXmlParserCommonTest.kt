@@ -10,9 +10,10 @@ class ProfileXmlParserCommonTest {
             <?xml version="1.0" encoding="UTF-8"?>
             <profile>
                 <profileNumber>9A4223406D374EF99E2CF95E31A23846</profileNumber>
-                <profileName>MINIMAL</profileName>
-                <creator>Test</creator>
-                <entry tag="4">
+                <versionTR>0.9</versionTR>
+                <validFromPresent>false</validFromPresent>
+                <validToPresent>false</validToPresent>
+                <entry tag="10">
                     <name>FIELD1</name>
                     <description>A field</description>
                     <type>UTF8String</type>
@@ -23,11 +24,14 @@ class ProfileXmlParserCommonTest {
         val profile = ProfileXmlParser.parse(xml)
 
         assertEquals("9A4223406D374EF99E2CF95E31A23846", profile.profileNumber)
-        assertEquals("MINIMAL", profile.profileName)
-        assertEquals("Test", profile.creator)
+        assertEquals("0.9", profile.versionTR)
+        // profileName and creator are optional in v0.9
+        assertNull(profile.profileName)
+        assertNull(profile.creator)
         assertNull(profile.category)
         assertNull(profile.leikaID)
-        assertNull(profile.statusIndicator)
+        assertFalse(profile.validFromPresent)
+        assertFalse(profile.validToPresent)
         assertEquals(1, profile.entries.size)
     }
 
@@ -37,19 +41,21 @@ class ProfileXmlParserCommonTest {
             <?xml version="1.0" encoding="UTF-8"?>
             <profile>
                 <profileNumber>9A4223406D374EF99E2CF95E31A23846</profileNumber>
+                <versionTR>0.9</versionTR>
                 <profileName>FULL</profileName>
                 <creator>BSI</creator>
                 <category>Meldewesen</category>
                 <leikaID>99123456789012</leikaID>
-                <statusIndicator>BLOCKLISTING</statusIndicator>
-                <entry tag="4" optional="true">
+                <validFromPresent>true</validFromPresent>
+                <validToPresent>true</validToPresent>
+                <entry tag="10" optional="true">
                     <name>FIELD1</name>
                     <description>Description 1</description>
                     <length>10</length>
                     <type>UTF8String</type>
                     <defaultValue>default</defaultValue>
                 </entry>
-                <entry tag="5">
+                <entry tag="11">
                     <name>FIELD2</name>
                     <description>Description 2</description>
                     <type>INTEGER</type>
@@ -59,15 +65,17 @@ class ProfileXmlParserCommonTest {
 
         val profile = ProfileXmlParser.parse(xml)
 
+        assertEquals("0.9", profile.versionTR)
         assertEquals("FULL", profile.profileName)
         assertEquals("BSI", profile.creator)
         assertEquals("Meldewesen", profile.category)
         assertEquals("99123456789012", profile.leikaID)
-        assertEquals(StatusIndicator.BLOCKLISTING, profile.statusIndicator)
+        assertTrue(profile.validFromPresent)
+        assertTrue(profile.validToPresent)
         assertEquals(2, profile.entries.size)
 
         val entry1 = profile.entries[0]
-        assertEquals(4, entry1.tag)
+        assertEquals(10, entry1.tag)
         assertTrue(entry1.optional)
         assertEquals("FIELD1", entry1.name)
         assertEquals("Description 1", entry1.description)
@@ -76,7 +84,7 @@ class ProfileXmlParserCommonTest {
         assertEquals("default", entry1.defaultValue)
 
         val entry2 = profile.entries[1]
-        assertEquals(5, entry2.tag)
+        assertEquals(11, entry2.tag)
         assertFalse(entry2.optional)
         assertEquals(Asn1Type.INTEGER, entry2.type)
         assertNull(entry2.length)
@@ -89,9 +97,10 @@ class ProfileXmlParserCommonTest {
             <?xml version="1.0" encoding="UTF-8"?>
             <profile>
                 <profileNumber>9A4223406D374EF99E2CF95E31A23846</profileNumber>
-                <profileName>TEST</profileName>
-                <creator>Test</creator>
-                <entry tag="4">
+                <versionTR>0.9</versionTR>
+                <validFromPresent>false</validFromPresent>
+                <validToPresent>false</validToPresent>
+                <entry tag="10">
                     <name>FIELD1</name>
                     <description>Desc</description>
                     <type>UTF8String</type>
@@ -109,34 +118,35 @@ class ProfileXmlParserCommonTest {
             <?xml version="1.0" encoding="UTF-8"?>
             <profile>
                 <profileNumber>9A4223406D374EF99E2CF95E31A23846</profileNumber>
-                <profileName>TYPES</profileName>
-                <creator>Test</creator>
-                <entry tag="4">
+                <versionTR>0.9</versionTR>
+                <validFromPresent>false</validFromPresent>
+                <validToPresent>false</validToPresent>
+                <entry tag="10">
                     <name>F1</name>
                     <description>D</description>
                     <type>BOOLEAN</type>
                 </entry>
-                <entry tag="5">
+                <entry tag="11">
                     <name>F2</name>
                     <description>D</description>
                     <type>INTEGER</type>
                 </entry>
-                <entry tag="6">
+                <entry tag="12">
                     <name>F3</name>
                     <description>D</description>
                     <type>OCTET_STRING</type>
                 </entry>
-                <entry tag="7">
+                <entry tag="13">
                     <name>F4</name>
                     <description>D</description>
                     <type>UTF8String</type>
                 </entry>
-                <entry tag="8">
+                <entry tag="14">
                     <name>F5</name>
                     <description>D</description>
                     <type>DATE</type>
                 </entry>
-                <entry tag="9">
+                <entry tag="15">
                     <name>F6</name>
                     <description>D</description>
                     <type>DATE-TIME</type>
@@ -160,9 +170,10 @@ class ProfileXmlParserCommonTest {
             <?xml version="1.0" encoding="UTF-8"?>
             <profile>
                 <profileNumber>INVALID</profileNumber>
-                <profileName>TEST</profileName>
-                <creator>Test</creator>
-                <entry tag="4">
+                <versionTR>0.9</versionTR>
+                <validFromPresent>false</validFromPresent>
+                <validToPresent>false</validToPresent>
+                <entry tag="10">
                     <name>F1</name>
                     <description>D</description>
                     <type>UTF8String</type>
@@ -177,19 +188,111 @@ class ProfileXmlParserCommonTest {
     }
 
     @Test
+    fun testMissingVersionTrThrows() {
+        val xml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <profile>
+                <profileNumber>9A4223406D374EF99E2CF95E31A23846</profileNumber>
+                <validFromPresent>false</validFromPresent>
+                <validToPresent>false</validToPresent>
+                <entry tag="10">
+                    <name>F1</name>
+                    <description>D</description>
+                    <type>UTF8String</type>
+                </entry>
+            </profile>
+        """.trimIndent()
+
+        val exception = assertFailsWith<IllegalArgumentException> {
+            ProfileXmlParser.parse(xml)
+        }
+        assertTrue(exception.message!!.contains("versionTR"))
+    }
+
+    @Test
+    fun testMissingValidPresentFlagsThrow() {
+        // validToPresent omitted -> must throw
+        val xml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <profile>
+                <profileNumber>9A4223406D374EF99E2CF95E31A23846</profileNumber>
+                <versionTR>0.9</versionTR>
+                <validFromPresent>false</validFromPresent>
+                <entry tag="10">
+                    <name>F1</name>
+                    <description>D</description>
+                    <type>UTF8String</type>
+                </entry>
+            </profile>
+        """.trimIndent()
+
+        val exception = assertFailsWith<IllegalArgumentException> {
+            ProfileXmlParser.parse(xml)
+        }
+        assertTrue(exception.message!!.contains("validToPresent"))
+    }
+
+    @Test
+    fun testInvalidLeikaIdThrows() {
+        val xml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <profile>
+                <profileNumber>9A4223406D374EF99E2CF95E31A23846</profileNumber>
+                <versionTR>0.9</versionTR>
+                <leikaID>not-numeric</leikaID>
+                <validFromPresent>false</validFromPresent>
+                <validToPresent>false</validToPresent>
+                <entry tag="10">
+                    <name>F1</name>
+                    <description>D</description>
+                    <type>UTF8String</type>
+                </entry>
+            </profile>
+        """.trimIndent()
+
+        val exception = assertFailsWith<IllegalArgumentException> {
+            ProfileXmlParser.parse(xml)
+        }
+        assertTrue(exception.message!!.contains("leikaID"))
+    }
+
+    @Test
+    fun testMultipleLeikaIdsAccepted() {
+        val xml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <profile>
+                <profileNumber>9A4223406D374EF99E2CF95E31A23846</profileNumber>
+                <versionTR>0.9</versionTR>
+                <leikaID>99123456789012;99123456789013</leikaID>
+                <validFromPresent>false</validFromPresent>
+                <validToPresent>false</validToPresent>
+                <entry tag="10">
+                    <name>F1</name>
+                    <description>D</description>
+                    <type>UTF8String</type>
+                </entry>
+            </profile>
+        """.trimIndent()
+
+        val profile = ProfileXmlParser.parse(xml)
+        assertEquals("99123456789012;99123456789013", profile.leikaID)
+    }
+
+    @Test
     fun testDuplicateTagsThrows() {
         val xml = """
             <?xml version="1.0" encoding="UTF-8"?>
             <profile>
                 <profileNumber>9A4223406D374EF99E2CF95E31A23846</profileNumber>
-                <profileName>TEST</profileName>
-                <creator>Test</creator>
-                <entry tag="4">
+                <versionTR>0.9</versionTR>
+                <validFromPresent>false</validFromPresent>
+                <validToPresent>false</validToPresent>
+                <entry tag="10">
                     <name>F1</name>
                     <description>D</description>
                     <type>UTF8String</type>
                 </entry>
-                <entry tag="4">
+                <entry tag="10">
                     <name>F2</name>
                     <description>D</description>
                     <type>UTF8String</type>
@@ -203,14 +306,16 @@ class ProfileXmlParserCommonTest {
     }
 
     @Test
-    fun testTagOutOfRangeThrows() {
+    fun testTagBelowRangeThrows() {
+        // Tag 9 is reserved (0x07-0x09); profile entries must use 0x0A-0xFE
         val xml = """
             <?xml version="1.0" encoding="UTF-8"?>
             <profile>
                 <profileNumber>9A4223406D374EF99E2CF95E31A23846</profileNumber>
-                <profileName>TEST</profileName>
-                <creator>Test</creator>
-                <entry tag="3">
+                <versionTR>0.9</versionTR>
+                <validFromPresent>false</validFromPresent>
+                <validToPresent>false</validToPresent>
+                <entry tag="9">
                     <name>F1</name>
                     <description>D</description>
                     <type>UTF8String</type>
@@ -221,7 +326,7 @@ class ProfileXmlParserCommonTest {
         val exception = assertFailsWith<IllegalArgumentException> {
             ProfileXmlParser.parse(xml)
         }
-        assertTrue(exception.message!!.contains("Tag 3 out of range"))
+        assertTrue(exception.message!!.contains("Tag 9 out of range"))
     }
 
     @Test
@@ -230,8 +335,9 @@ class ProfileXmlParserCommonTest {
             <?xml version="1.0" encoding="UTF-8"?>
             <profile>
                 <profileNumber>9A4223406D374EF99E2CF95E31A23846</profileNumber>
-                <profileName>TEST</profileName>
-                <creator>Test</creator>
+                <versionTR>0.9</versionTR>
+                <validFromPresent>false</validFromPresent>
+                <validToPresent>false</validToPresent>
                 <entry tag="255">
                     <name>F1</name>
                     <description>D</description>
@@ -251,38 +357,14 @@ class ProfileXmlParserCommonTest {
             <?xml version="1.0" encoding="UTF-8"?>
             <profile>
                 <profileNumber>9A4223406D374EF99E2CF95E31A23846</profileNumber>
-                <profileName>TEST</profileName>
-                <creator>Test</creator>
+                <versionTR>0.9</versionTR>
+                <validFromPresent>false</validFromPresent>
+                <validToPresent>false</validToPresent>
             </profile>
         """.trimIndent()
 
         assertFailsWith<Exception> {
             ProfileXmlParser.parse(xml)
         }
-    }
-
-    @Test
-    fun testAllStatusIndicators() {
-        fun parseWithStatus(status: String): StatusIndicator? {
-            val xml = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <profile>
-                    <profileNumber>9A4223406D374EF99E2CF95E31A23846</profileNumber>
-                    <profileName>TEST</profileName>
-                    <creator>Test</creator>
-                    <statusIndicator>$status</statusIndicator>
-                    <entry tag="4">
-                        <name>F1</name>
-                        <description>D</description>
-                        <type>UTF8String</type>
-                    </entry>
-                </profile>
-            """.trimIndent()
-            return ProfileXmlParser.parse(xml).statusIndicator
-        }
-
-        assertEquals(StatusIndicator.NONE, parseWithStatus("NONE"))
-        assertEquals(StatusIndicator.BLOCKLISTING, parseWithStatus("BLOCKLISTING"))
-        assertEquals(StatusIndicator.ALLOWLISTING, parseWithStatus("ALLOWLISTING"))
     }
 }

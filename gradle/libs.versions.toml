@@ -1,27 +1,27 @@
 [versions]
 # Kotlin & Core
-kotlin = "2.3.20"
+kotlin = "2.4.0"
 
 # Kotlinx Libraries
-kotlinx-datetime = "0.7.1"
-kotlinx-serialization = "1.10.0"
+kotlinx-datetime = "0.8.0"
+kotlinx-serialization = "1.11.0"
 
 # Cryptography
 cryptography = "0.6.0"
-bouncycastle = "1.83"
+bouncycastle = "1.84"
 
 # XML
 xmlutil = "0.91.3"
 
 # Utilities
-okio = "3.16.4"
+okio = "3.17.0"
 
 # Testing
 junit = "4.13.2"
 zxing = "3.5.3"
 
 # Plugins
-maven-publish = "0.36.0"
+maven-publish = "0.37.0"
 
 [libraries]
 # Kotlinx

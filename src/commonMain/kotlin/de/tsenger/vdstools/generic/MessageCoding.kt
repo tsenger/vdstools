@@ -49,6 +49,20 @@ enum class MessageCoding {
     MRZ_MRVB,
 
     VALIDITY_DATES,
+
+    /**
+     * Date encoding as an 8-byte ASCII/UTF-8 string in `YYYYMMDD` order, as specified by
+     * BSI TR-03171 version 0.9 for the `validFrom` (tag 0x01) and `validTo` (tag 0x02) fields
+     * in the message zone of administrative documents (document category 0xC9).
+     *
+     * This is distinct from [DATE], which uses a 3-byte binary encoding as defined by ICAO Doc 9303
+     * Part 13 and is used for standard VDS-NC document dates.
+     *
+     * Accepts [kotlinx.datetime.LocalDate] or an ISO-8601 string (`yyyy-MM-dd`) as input.
+     * Decodes to [MessageValue.DateValue].
+     */
+    DATE_STRING,
+
     UNKNOWN;
 
     companion object {

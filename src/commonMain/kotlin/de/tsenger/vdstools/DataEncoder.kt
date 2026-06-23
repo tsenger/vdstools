@@ -31,10 +31,12 @@ import okio.*
  * `VdsDocumentTypes.json`. Each profile defines which messages (fields) the seal contains.
  *
  * For administrative documents, the 256-value space of `documentRef` is not sufficient.
- * These types use a two-stage lookup: the header's `documentRef` points to the base type
- * `ADMINISTRATIVE_DOCUMENTS`, and Tag 0 of the message zone carries a 16-byte UUID
+ * These types use a two-stage lookup: the header's `documentRef` points to a base type
+ * (`ADMINISTRATIVE_DOCUMENTS_V8` for TR-03171 v0.8 / 0xC8, or `ADMINISTRATIVE_DOCUMENTS_V9`
+ * for TR-03171 v0.9 / 0xC9), and Tag 0 of the message zone carries a 16-byte UUID
  * (Dokumentenprofilnummer) that identifies the actual profile in
- * `VdsProfileDefinitions.json`.
+ * `VdsProfileDefinitions.json`. V9 seals additionally reserve tags 0x01–0x06 in the
+ * message zone for standard metadata (validity dates, profile URI, certificate URI, etc.).
  *
  * ## IDB – ICAO Datastructure for Barcode (ICAO TR-IDB)
  * An IDB barcode can contain multiple message types simultaneously in its message group.
@@ -84,6 +86,18 @@ import okio.*
  */
 object DataEncoder {
     private const val TAG = "DataEncoder"
+
+    /**
+     * Base VDS document type for legacy TR-03171 v0.8 administrative document seals
+     * (document category 0xC8 / documentRef 0x01C8).
+     */
+    const val ADMINISTRATIVE_DOCUMENTS_V8 = "ADMINISTRATIVE_DOCUMENTS_V8"
+
+    /**
+     * Base VDS document type for TR-03171 v0.9 administrative document seals
+     * (document category 0xC9 / documentRef 0x01C9). Default for newly loaded profiles.
+     */
+    const val ADMINISTRATIVE_DOCUMENTS_V9 = "ADMINISTRATIVE_DOCUMENTS_V9"
 
     /** VDS document type profiles: `documentRef` ↔ name ↔ messages */
     var vdsDocumentTypes: VdsDocumentTypeRegistry = VdsDocumentTypeRegistry(ResourceConstants.VDS_DOCUMENT_TYPES_JSON)
@@ -251,17 +265,22 @@ object DataEncoder {
     /**
      * Loads a VDS profile definition from an XML document profile (BSI TR-03171).
      *
-     * The XML profile is parsed and converted to a VdsProfileDefinitionDto,
+     * The XML profile is parsed and converted to a [de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto],
      * which is then added to the existing registry without replacing other definitions.
      *
-     * @param xmlString XML content conforming to the DocProfileSchema TR-03171
-     * @throws IllegalArgumentException if the XML is invalid or fails validation
+     * Profiles loaded this way are always TR-03171 v0.9 and are carried by
+     * [ADMINISTRATIVE_DOCUMENTS_V9] (document category 0xC9). This is the runtime entry point
+     * for registering profiles fetched at runtime (e.g. via REST); once registered, seals
+     * referencing the profile's UUID (Tag 0x00) can be decoded.
+     *
+     * @param xmlString XML content conforming to the DocProfileSchema TR-03171 v0.9.
+     * @throws IllegalArgumentException if the XML is invalid or fails validation.
      */
     fun loadVdsProfileDefinitionFromXml(xmlString: String) {
         val profile = ProfileXmlParser.parse(xmlString)
         val definition = ProfileConverter.toVdsProfileDefinition(profile)
         vdsProfileDefinitions.addDefinition(definition)
-        logI(TAG,"Loaded VDS profile definition from XML: ${definition.definitionName}")
+        logI(TAG, "Loaded VDS profile definition from XML: ${definition.definitionName}")
     }
 
     /**
@@ -513,6 +532,13 @@ object DataEncoder {
                 is String -> encodeDate(value)
                 else -> throw IllegalArgumentException("DATE coding expects LocalDate or String (yyyy-MM-dd), got ${value!!::class.simpleName}")
             }
+
+            // TR-03171 v0.9: YYYYMMDD as 8-byte UTF-8 string (tags 0x01/0x02 in doc category 0xC9)
+            MessageCoding.DATE_STRING -> when (value) {
+                is LocalDate -> encodeDateString(value)
+                is String -> encodeDateString(value)
+                else -> throw IllegalArgumentException("DATE_STRING coding expects LocalDate or String (yyyy-MM-dd), got ${value!!::class.simpleName}")
+            }
             MessageCoding.VALIDITY_DATES -> when (value) {
                 is MessageValue.ValidityDatesValue -> value.rawBytes
                 is ByteArray -> value
@@ -605,6 +631,51 @@ object DataEncoder {
         val second = paddedDateString.substring(12, 14).toInt()
 
         return LocalDateTime(year, month, day, hour, minute, second)
+    }
+
+    /**
+     * Encodes a [LocalDate] as an 8-byte UTF-8 string in `YYYYMMDD` order, as required by
+     * BSI TR-03171 v0.9 for the `validFrom` and `validTo` fields (tags 0x01 / 0x02) in the
+     * message zone of administrative documents (document category 0xC9).
+     *
+     * Example: 2025-01-01 → `"20250101"` → `0x3230323530313031`
+     *
+     * @throws IllegalArgumentException if the year is outside the 4-digit range (0000–9999),
+     *   which would break the fixed 8-byte encoding.
+     */
+    fun encodeDateString(localDate: LocalDate): ByteArray {
+        require(localDate.year in 0..9999) {
+            "DATE_STRING supports only 4-digit years (0000–9999), got ${localDate.year}"
+        }
+        val year = localDate.year.toString().padStart(4, '0')
+        val month = localDate.month.number.toString().padStart(2, '0')
+        val day = localDate.day.toString().padStart(2, '0')
+        return "$year$month$day".encodeToByteArray()
+    }
+
+    /**
+     * Convenience overload that parses an ISO-8601 date string (`yyyy-MM-dd`) before encoding.
+     */
+    fun encodeDateString(dateString: String): ByteArray = encodeDateString(LocalDate.parse(dateString))
+
+    /**
+     * Decodes an 8-byte UTF-8 string in `YYYYMMDD` order back to a [LocalDate].
+     *
+     * This is the inverse of [encodeDateString]. Note that TR-03171 encodes its ASN.1 `DATE`
+     * fields as this UTF-8 `YYYYMMDD` string — not as the 3-byte binary format used by
+     * ICAO Doc 9303 (see [decodeDate]).
+     *
+     * @throws IllegalArgumentException if the byte array is not exactly 8 bytes or the
+     *   string does not represent a valid calendar date.
+     */
+    fun decodeDateString(dateBytes: ByteArray): LocalDate {
+        require(dateBytes.size == 8) { "DATE_STRING requires exactly 8 bytes, got ${dateBytes.size}" }
+        val s = dateBytes.decodeToString()
+        require(s.all { it in '0'..'9' }) { "DATE_STRING must contain only ASCII digits, got: $s" }
+        val year = s.substring(0, 4).toInt()
+        val month = s.substring(4, 6).toInt()
+        val day = s.substring(6, 8).toInt()
+        return LocalDate(year, month, day)
     }
 
     @Deprecated("Use DerTlv.parseAll()", ReplaceWith("DerTlv.parseAll(rawBytes)", "de.tsenger.vdstools.asn1.DerTlv"))

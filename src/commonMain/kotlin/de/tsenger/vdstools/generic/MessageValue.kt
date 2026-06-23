@@ -193,6 +193,8 @@ sealed class MessageValue {
                     MessageCoding.C40 -> StringValue(DataEncoder.decodeC40(bytes), bytes)
                     MessageCoding.UTF8_STRING -> StringValue(bytes.decodeToString(), bytes)
                     MessageCoding.DATE -> DateValue(DataEncoder.decodeDate(bytes), bytes)
+                    // TR-03171 v0.9: 8-byte YYYYMMDD UTF-8 string; decoded result is the same DateValue type
+                    MessageCoding.DATE_STRING -> DateValue(DataEncoder.decodeDateString(bytes), bytes)
                     MessageCoding.DATE_TIME -> DateTimeValue(DataEncoder.decodeDateTime(bytes), bytes)
                     MessageCoding.MASKED_DATE -> MaskedDateValue(
                         DataEncoder.decodeMaskedDate(bytes),

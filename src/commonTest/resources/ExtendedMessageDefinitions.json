@@ -2,7 +2,7 @@
   {
     "definitionId": "9a4223406d374ef99e2cf95e31a23846",
     "definitionName": "MELDEBESCHEINIGUNG",
-    "baseDocumentType": "ADMINISTRATIVE_DOCUMENTS",
+    "baseDocumentType": "ADMINISTRATIVE_DOCUMENTS_V8",
     "version": 1,
     "messages": [
       {

@@ -4,6 +4,42 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- BSI TR-03171 v0.9 support (document category 0xC9) via new
+  `ADMINISTRATIVE_DOCUMENTS_V9` base document type with reserved metadata tags
+  0x00–0x06 (UUID, validity dates, profile/certificate/status URIs, status list index)
+- `MessageCoding.DATE_STRING` for 8-byte `YYYYMMDD` UTF-8 date encoding used by
+  TR-03171 v0.9 `validFrom` / `validTo` fields
+- TR-03171 v0.9 XML profile fields: `versionTR`, `validFromPresent`,
+  `validToPresent` (all mandatory) are now parsed into `ProfileDto`
+
+### Changed
+- **Breaking:** the legacy TR-03171 v0.8 base document type was renamed from
+  `ADMINISTRATIVE_DOCUMENTS` to `ADMINISTRATIVE_DOCUMENTS_V8` (document category
+  0xC8 / documentRef 0x01C8 unchanged). Update any custom profile JSON
+  (`baseDocumentType`), `VdsHeader.Builder(...)` calls, and comparisons against
+  `seal.baseDocumentType` accordingly. Use the constants
+  `DataEncoder.ADMINISTRATIVE_DOCUMENTS_V8` / `…_V9` instead of string literals.
+- **Breaking:** the XML profile parser now targets the TR-03171 **v0.9** schema:
+  `profileName` / `creator` are optional, `versionTR` / `validFromPresent` /
+  `validToPresent` are mandatory, the `statusIndicator` element was removed, and
+  profile entry tags are restricted to `0x0A`–`0xFE` (10–254, max 245 entries).
+  Profiles parsed from XML are always v0.9; `DataEncoder.loadVdsProfileDefinitionFromXml()`
+  and `ProfileConverter.toVdsProfileDefinition()` no longer take a `baseDocumentType`
+  argument and always produce `ADMINISTRATIVE_DOCUMENTS_V9` definitions. Legacy 0xC8
+  seals remain decodable via the bundled JSON profile definitions.
+
+- Upgraded Gradle wrapper to 9.6.0
+- Bumped Kotlin to 2.4.0 and updated dependencies (kotlinx-datetime 0.8.0,
+  kotlinx-serialization 1.11.0, BouncyCastle 1.84, okio 3.17.0, maven-publish 0.37.0)
+
+### Removed
+- `StatusIndicator` enum and the `statusIndicator` profile field (not part of the
+  TR-03171 v0.9 schema)
+
+### Fixed
+- `VdsSeal.dissect()` no longer truncates the message zone for unsigned seals
+
 ---
 
 ## [0.17.0] - 2026-05-12

@@ -1,21 +1,27 @@
 package de.tsenger.vdstools.vds.tr03171
 
 import de.tsenger.vdstools.generic.MessageCoding
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class ProfileConverterCommonTest {
 
     private fun createProfile(vararg entries: ProfileEntryDto): ProfileDto {
         return ProfileDto(
             profileNumber = "9A4223406D374EF99E2CF95E31A23846",
+            versionTR = "0.9",
             profileName = "TEST_PROFILE",
             creator = "Test",
+            validFromPresent = false,
+            validToPresent = false,
             entries = entries.toList()
         )
     }
 
     private fun createEntry(
-        tag: Int = 4,
+        tag: Int = 10,
         type: Asn1Type = Asn1Type.UTF8String,
         length: Int? = null,
         optional: Boolean = false
@@ -45,10 +51,26 @@ class ProfileConverterCommonTest {
     }
 
     @Test
-    fun testBaseDocumentTypeIsAdministrativeDocuments() {
+    fun testBaseDocumentTypeIsAlwaysV9() {
+        // Profiles parsed from XML are always TR-03171 v0.9 (0xC9)
         val profile = createProfile(createEntry())
         val result = ProfileConverter.toVdsProfileDefinition(profile)
-        assertEquals("ADMINISTRATIVE_DOCUMENTS", result.baseDocumentType)
+        assertEquals("ADMINISTRATIVE_DOCUMENTS_V9", result.baseDocumentType)
+    }
+
+    @Test
+    fun testProfileNameFallsBackToProfileNumberWhenAbsent() {
+        val profile = ProfileDto(
+            profileNumber = "9A4223406D374EF99E2CF95E31A23846",
+            versionTR = "0.9",
+            profileName = null,
+            creator = null,
+            validFromPresent = false,
+            validToPresent = false,
+            entries = listOf(createEntry())
+        )
+        val result = ProfileConverter.toVdsProfileDefinition(profile)
+        assertEquals("9A4223406D374EF99E2CF95E31A23846", result.definitionName)
     }
 
     @Test
@@ -132,11 +154,12 @@ class ProfileConverterCommonTest {
 
     @Test
     fun testDateMapping() {
+        // TR-03171 uses ASN.1 DATE as 8-byte YYYYMMDD UTF-8 (DATE_STRING), not the 3-byte ICAO binary format
         val profile = createProfile(createEntry(type = Asn1Type.DATE))
         val result = ProfileConverter.toVdsProfileDefinition(profile)
         val msg = result.messages[0]
-        assertEquals(MessageCoding.DATE, msg.coding)
-        assertEquals(3, msg.maxBytes)
+        assertEquals(MessageCoding.DATE_STRING, msg.coding)
+        assertEquals(8, msg.maxBytes)
     }
 
     @Test
@@ -182,19 +205,22 @@ class ProfileConverterCommonTest {
             <?xml version="1.0" encoding="UTF-8"?>
             <profile>
                 <profileNumber>9A4223406D374EF99E2CF95E31A23846</profileNumber>
+                <versionTR>0.9</versionTR>
                 <profileName>MELDEBESCHEINIGUNG</profileName>
                 <creator>BSI</creator>
-                <entry tag="4">
+                <validFromPresent>false</validFromPresent>
+                <validToPresent>false</validToPresent>
+                <entry tag="10">
                     <name>SURNAME</name>
                     <description>Familienname</description>
                     <type>UTF8String</type>
                 </entry>
-                <entry tag="5" optional="true">
+                <entry tag="11" optional="true">
                     <name>ACADEMIC_DEGREE</name>
                     <description>Akademischer Grad</description>
                     <type>UTF8String</type>
                 </entry>
-                <entry tag="14">
+                <entry tag="20">
                     <name>HOUSING_STATUS</name>
                     <description>Wohnungsstatus</description>
                     <length>1</length>
@@ -208,11 +234,11 @@ class ProfileConverterCommonTest {
 
         assertEquals("9a4223406d374ef99e2cf95e31a23846", definition.definitionId)
         assertEquals("MELDEBESCHEINIGUNG", definition.definitionName)
-        assertEquals("ADMINISTRATIVE_DOCUMENTS", definition.baseDocumentType)
+        assertEquals("ADMINISTRATIVE_DOCUMENTS_V9", definition.baseDocumentType)
         assertEquals(3, definition.messages.size)
 
         val surname = definition.messages.first { it.name == "SURNAME" }
-        assertEquals(4, surname.tag)
+        assertEquals(10, surname.tag)
         assertEquals(MessageCoding.UTF8_STRING, surname.coding)
         assertTrue(surname.required)
         assertEquals(255, surname.maxBytes)

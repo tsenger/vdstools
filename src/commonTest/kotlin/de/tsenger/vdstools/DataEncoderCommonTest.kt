@@ -157,6 +157,108 @@ class DataEncoderCommonTest {
         assertContentEquals(fromString, fromLocalDateTime)
     }
 
+    // -------------------------------------------------------------------------
+    // DATE_STRING — BSI TR-03171 v0.9 (tags 0x01/0x02, doc category 0xC9)
+    // 8-byte UTF-8 YYYYMMDD, distinct from the 3-byte ICAO binary DATE format
+    // -------------------------------------------------------------------------
+
+    @Test
+    fun testEncodeDateString_producesEightAsciiBytes() {
+        // 2025-01-01 → "20250101" → 0x3230323530313031
+        val encoded = DataEncoder.encodeDateString(LocalDate(2025, 1, 1))
+        assertEquals(8, encoded.size)
+        assertEquals("3230323530313031", encoded.toHexString())
+    }
+
+    @Test
+    fun testEncodeDateString_fromIsoString() {
+        val encoded = DataEncoder.encodeDateString("2025-01-01")
+        assertEquals("3230323530313031", encoded.toHexString())
+    }
+
+    @Test
+    fun testEncodeDateString_stringAndLocalDateProduceSameResult() {
+        val fromString    = DataEncoder.encodeDateString("2030-12-31")
+        val fromLocalDate = DataEncoder.encodeDateString(LocalDate(2030, 12, 31))
+        assertContentEquals(fromString, fromLocalDate)
+    }
+
+    @Test
+    fun testEncodeDateString_contentIsReadableAscii() {
+        val date = LocalDate(1979, 10, 9)
+        val encoded = DataEncoder.encodeDateString(date)
+        assertEquals("19791009", encoded.decodeToString())
+    }
+
+    @Test
+    fun testDecodeDateString_roundTrip() {
+        val original = LocalDate(2025, 6, 15)
+        val encoded  = DataEncoder.encodeDateString(original)
+        val decoded  = DataEncoder.decodeDateString(encoded)
+        assertEquals(original, decoded)
+    }
+
+    @Test
+    fun testDecodeDateString_knownBytes() {
+        // "20250101" as UTF-8
+        val bytes = "3230323530313031".hexToByteArray()
+        val date  = DataEncoder.decodeDateString(bytes)
+        assertEquals(LocalDate(2025, 1, 1), date)
+    }
+
+    @Test
+    fun testDecodeDateString_rejectsWrongLength() {
+        assertFailsWith<IllegalArgumentException> {
+            DataEncoder.decodeDateString("202501".encodeToByteArray()) // 6 bytes
+        }
+        assertFailsWith<IllegalArgumentException> {
+            DataEncoder.decodeDateString("2025010112".encodeToByteArray()) // 10 bytes
+        }
+    }
+
+    @Test
+    fun testDecodeDateString_rejectsNonDigits() {
+        assertFailsWith<IllegalArgumentException> {
+            DataEncoder.decodeDateString("2025-101".encodeToByteArray()) // contains '-'
+        }
+    }
+
+    @Test
+    fun testEncodeValueByCoding_DATE_STRING_withLocalDate() {
+        val encoded = DataEncoder.encodeValueByCoding(MessageCoding.DATE_STRING, LocalDate(2025, 1, 1))
+        assertEquals("3230323530313031", encoded.toHexString())
+    }
+
+    @Test
+    fun testEncodeValueByCoding_DATE_STRING_withString() {
+        val encoded = DataEncoder.encodeValueByCoding(MessageCoding.DATE_STRING, "2025-01-01")
+        assertEquals("3230323530313031", encoded.toHexString())
+    }
+
+    @Test
+    fun testEncodeValueByCoding_DATE_STRING_stringAndLocalDateProduceSameResult() {
+        val fromString    = DataEncoder.encodeValueByCoding(MessageCoding.DATE_STRING, "1999-12-31")
+        val fromLocalDate = DataEncoder.encodeValueByCoding(MessageCoding.DATE_STRING, LocalDate(1999, 12, 31))
+        assertContentEquals(fromString, fromLocalDate)
+    }
+
+    @Test
+    fun testEncodeValueByCoding_DATE_STRING_rejectsWrongType() {
+        assertFailsWith<IllegalArgumentException> {
+            DataEncoder.encodeValueByCoding(MessageCoding.DATE_STRING, 42)
+        }
+    }
+
+    @Test
+    fun testDateString_isDifferentFromIcaoDateEncoding() {
+        // Verify DATE_STRING and DATE produce different byte representations for the same date
+        val date = LocalDate(2025, 1, 1)
+        val dateStringBytes = DataEncoder.encodeDateString(date)
+        val icaoDateBytes   = DataEncoder.encodeDate(date)
+        assertEquals(8, dateStringBytes.size)
+        assertEquals(3, icaoDateBytes.size)
+    }
+
     //	@Test
     //	public void testGetSignerCertRef() throws InvalidNameException, KeyStoreException {
     //		X509Certificate cert = (X509Certificate) keystore.getCertificate("dets32");

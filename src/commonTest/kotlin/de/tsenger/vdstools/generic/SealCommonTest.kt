@@ -339,7 +339,7 @@ class SealCommonTest {
         val seal = parser.parse(rawString)
         assertNotNull(seal)
         assertEquals("MELDEBESCHEINIGUNG", seal.documentType)
-        assertEquals("ADMINISTRATIVE_DOCUMENTS", seal.baseDocumentType)
+        assertEquals("ADMINISTRATIVE_DOCUMENTS_V8", seal.baseDocumentType)
     }
 
     @Test

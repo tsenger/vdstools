@@ -27,101 +27,13 @@ class CustomRegistryIntegrationCommonTest {
 
         // Custom definition maps same UUID to "MY_CUSTOM_DOCUMENT"
         assertEquals("MY_CUSTOM_DOCUMENT", seal.documentType)
-        assertEquals("ADMINISTRATIVE_DOCUMENTS", seal.baseDocumentType)
+        assertEquals("ADMINISTRATIVE_DOCUMENTS_V8", seal.baseDocumentType)
 
         // Messages should still decode correctly (same structure)
         assertEquals("Mustermann", seal.getMessageByName("SURNAME")?.value.toString())
         assertEquals("Dr.", seal.getMessageByName("ACADEMIC_DEGREE")?.value.toString())
         assertEquals("Erika", seal.getMessageByName("FIRST_NAME")?.value.toString())
         assertEquals("20250414", seal.getMessageByName("MOVING_DATE")?.value.toString())
-    }
-
-    // --- VdsProfileDefinitions (XML / TR-03171) ---
-
-    @Test
-    fun testXmlProfileUsedDuringSealParsing() {
-        val xml = """
-            <?xml version="1.0" encoding="UTF-8"?>
-            <profile>
-                <profileNumber>9A4223406D374EF99E2CF95E31A23846</profileNumber>
-                <profileName>XML_MELDEBESCHEINIGUNG</profileName>
-                <creator>Test</creator>
-                <entry tag="4">
-                    <name>SURNAME</name>
-                    <description>Familienname</description>
-                    <type>UTF8String</type>
-                </entry>
-                <entry tag="5" optional="true">
-                    <name>ACADEMIC_DEGREE</name>
-                    <description>Akademischer Grad</description>
-                    <type>UTF8String</type>
-                </entry>
-                <entry tag="6">
-                    <name>FIRST_NAME</name>
-                    <description>Vorname</description>
-                    <type>UTF8String</type>
-                </entry>
-                <entry tag="7" optional="true">
-                    <name>COMMON_FIRST_NAME</name>
-                    <description>Rufname</description>
-                    <type>UTF8String</type>
-                </entry>
-                <entry tag="8" optional="true">
-                    <name>DATE_OF_BIRTH</name>
-                    <description>Geburtsdatum</description>
-                    <type>UTF8String</type>
-                </entry>
-                <entry tag="9">
-                    <name>STREET</name>
-                    <description>Strasse</description>
-                    <type>UTF8String</type>
-                </entry>
-                <entry tag="10">
-                    <name>HOUSE_NUMBER</name>
-                    <description>Hausnummer</description>
-                    <length>10</length>
-                    <type>UTF8String</type>
-                </entry>
-                <entry tag="11">
-                    <name>POSTAL_CODE</name>
-                    <description>Postleitzahl</description>
-                    <length>5</length>
-                    <type>UTF8String</type>
-                </entry>
-                <entry tag="12">
-                    <name>CITY</name>
-                    <description>Ort</description>
-                    <type>UTF8String</type>
-                </entry>
-                <entry tag="13">
-                    <name>MOVING_DATE</name>
-                    <description>Datum des Einzugs</description>
-                    <length>8</length>
-                    <type>UTF8String</type>
-                </entry>
-                <entry tag="14">
-                    <name>HOUSING_STATUS</name>
-                    <description>Wohnungsstatus</description>
-                    <length>1</length>
-                    <type>INTEGER</type>
-                </entry>
-                <entry tag="15">
-                    <name>DATE_OF_NOTIFICATION</name>
-                    <description>Datum der Anmeldung</description>
-                    <length>8</length>
-                    <type>UTF8String</type>
-                </entry>
-            </profile>
-        """.trimIndent()
-
-        DataEncoder.loadVdsProfileDefinitionFromXml(xml)
-
-        val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.meldebescheinigung) as VdsSeal
-
-        assertEquals("XML_MELDEBESCHEINIGUNG", seal.documentType)
-        assertEquals("ADMINISTRATIVE_DOCUMENTS", seal.baseDocumentType)
-        assertEquals("Mustermann", seal.getMessageByName("SURNAME")?.value.toString())
-        assertEquals("Berlin", seal.getMessageByName("CITY")?.value.toString())
     }
 
     // --- VdsDocumentTypes ---
@@ -305,7 +217,7 @@ class CustomRegistryIntegrationCommonTest {
         val json = """[{
             "definitionId": "$newUuid",
             "definitionName": "NEW_DOCUMENT",
-            "baseDocumentType": "ADMINISTRATIVE_DOCUMENTS",
+            "baseDocumentType": "ADMINISTRATIVE_DOCUMENTS_V8",
             "version": 1,
             "messages": []
         }]"""
