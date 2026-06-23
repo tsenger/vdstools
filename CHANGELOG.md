@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [0.18.0] - 2026-06-23
 
 ### Added
 - BSI TR-03171 v0.9 support (document category 0xC9) via new
