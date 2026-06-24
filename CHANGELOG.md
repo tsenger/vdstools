@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- `VdsSeal.Builder.forProfileUuid(profileUuid)` — a typed factory to build a
+  BSI TR-03171 seal for a registered document profile by its **UUID** instead of
+  its profile name. Because profiles are uniquely identified by their UUID,
+  several profiles may now share the same `profileName` without ambiguity. The
+  profile must be registered first (e.g. via
+  `DataEncoder.loadVdsProfileDefinitionFromXml`); the factory throws
+  `IllegalArgumentException` if no profile is registered for the UUID. The
+  existing `VdsSeal.Builder(documentType)` constructor (base document type or
+  predefined profile name) is unchanged. Additive, non-breaking.
+
 ### Fixed
 - TR-03171 / DEZV seals: the certificate reference length in the ICAO version 4
   header is now encoded as a **decimal** value for the special signer identifier

@@ -110,27 +110,38 @@ internal class VdsMessageGroup {
         }
     }
 
-    internal class Builder(val vdsType: String) {
+    internal class Builder private constructor() {
         val derTlvList: MutableList<DerTlv> = ArrayList(5)
-        internal val baseVdsType: String
-        internal val profileDefinition: VdsProfileDefinitionDto?
+        var vdsType: String = ""
+            private set
+        internal var baseVdsType: String = ""
+            private set
+        internal var profileDefinition: VdsProfileDefinitionDto? = null
+            private set
 
-        init {
+        /** Builds a message group for a known base document type or predefined profile name. */
+        constructor(vdsType: String) : this() {
+            this.vdsType = vdsType
             val docRef = DataEncoder.vdsDocumentTypes.getDocumentRef(vdsType)
             if (docRef == null) {
-                // Not a base type — try resolving as extended definition
+                // Not a base type — try resolving as a predefined extended definition name
                 val extDef = DataEncoder.vdsProfileDefinitions.resolveByName(vdsType)
                 if (extDef != null) {
                     profileDefinition = extDef
                     baseVdsType = extDef.baseDocumentType
                 } else {
-                    profileDefinition = null
                     baseVdsType = vdsType
                 }
             } else {
-                profileDefinition = null
                 baseVdsType = vdsType
             }
+        }
+
+        /** Builds a message group for an already-resolved (e.g. TR-03171) profile definition. */
+        constructor(profileDefinition: VdsProfileDefinitionDto) : this() {
+            this.vdsType = profileDefinition.definitionName
+            this.profileDefinition = profileDefinition
+            this.baseVdsType = profileDefinition.baseDocumentType
         }
 
         @Throws(IllegalArgumentException::class)
@@ -150,12 +161,13 @@ internal class VdsMessageGroup {
         fun build(): VdsMessageGroup {
             val group = VdsMessageGroup(this)
             // If using an extended definition, inject UUID as Tag 0 and set definition on group
-            if (profileDefinition != null) {
-                val uuidBytes = profileDefinition.definitionId.hexToByteArray()
+            val definition = profileDefinition
+            if (definition != null) {
+                val uuidBytes = definition.definitionId.hexToByteArray()
                 val uuidTlv = DerTlv(0.toByte(), uuidBytes)
                 group.derTlvList = listOf(uuidTlv) + group.derTlvList
                 group.vdsType = baseVdsType
-                group.profileDefinition = profileDefinition
+                group.profileDefinition = definition
                 group.documentProfileUuid = uuidBytes
                 DataEncoder.vdsDocumentTypes.getMetadataTags(baseVdsType).forEach { group.metadataTags.add(it) }
                 if (group.metadataTags.isEmpty()) group.metadataTags.add(0)

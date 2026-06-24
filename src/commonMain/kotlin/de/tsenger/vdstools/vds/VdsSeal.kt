@@ -146,9 +146,12 @@ class VdsSeal : Seal {
             )
         }
 
-    class Builder(private val documentType: String) {
-        private val headerBuilder = VdsHeader.Builder(documentType)
-        private val messageBuilder = VdsMessageGroup.Builder(documentType)
+    class Builder private constructor(
+        private val headerBuilder: VdsHeader.Builder,
+        private val messageBuilder: VdsMessageGroup.Builder
+    ) {
+        /** Builds a seal for a known base document type or predefined profile name. */
+        constructor(documentType: String) : this(VdsHeader.Builder(documentType), VdsMessageGroup.Builder(documentType))
 
         fun issuingCountry(v: String) = apply { headerBuilder.setIssuingCountry(v) }
         fun signerIdentifier(v: String) = apply { headerBuilder.setSignerIdentifier(v) }
@@ -159,6 +162,23 @@ class VdsSeal : Seal {
         fun <T> addMessage(name: String, value: T) = apply { messageBuilder.addMessage(name, value) }
 
         fun build(signer: Signer): VdsSeal = VdsSeal(headerBuilder.build(), messageBuilder.build(), signer)
+
+        companion object {
+            /**
+             * Builds a seal for a BSI TR-03171 document profile identified by its UUID. The profile
+             * must be registered beforehand (e.g. via [DataEncoder.loadVdsProfileDefinitionFromXml]).
+             * Unlike [Builder] by name, this resolves the profile by its unique UUID, so several
+             * profiles may share the same profile name without ambiguity.
+             *
+             * @param profileUuid the profile UUID (32 hex chars, dashes ignored, case-insensitive)
+             * @throws IllegalArgumentException if no profile is registered for the UUID
+             */
+            fun forProfileUuid(profileUuid: String): Builder {
+                val profileDefinition = DataEncoder.vdsProfileDefinitions.resolve(profileUuid)
+                    ?: throw IllegalArgumentException("No TR-03171 profile registered for UUID: $profileUuid")
+                return Builder(VdsHeader.Builder(profileDefinition), VdsMessageGroup.Builder(profileDefinition))
+            }
+        }
     }
 
     companion object {

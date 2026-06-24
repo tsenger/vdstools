@@ -16,6 +16,7 @@ import java.security.KeyStore
 import java.security.Security
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
@@ -264,6 +265,60 @@ class CreateTR03171Seals {
         assertEquals("example.com/status", statusUri.value.toString())
 
         println("V9 seal with dates bytes: ${seal.encoded.toHexString()}")
+    }
+
+    @Test
+    fun forProfileUuid_resolvesByUuidEvenWithDuplicateProfileName() {
+        // Two profiles sharing the same profileName but different UUIDs and different fields.
+        val sharedName = "DUPLICATE_NAME_PROFILE"
+        val uuidA = "AAAA1111BBBB2222CCCC3333DDDD4444"
+        val uuidB = "EEEE5555FFFF6666AAAA7777BBBB8888"
+        fun xml(uuid: String, field: String) = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <profile>
+                <profileNumber>$uuid</profileNumber>
+                <versionTR>0.9</versionTR>
+                <profileName>$sharedName</profileName>
+                <validFromPresent>false</validFromPresent>
+                <validToPresent>false</validToPresent>
+                <entry tag="10"><name>$field</name><description>d</description><type>UTF8String</type></entry>
+            </profile>
+        """.trimIndent()
+
+        DataEncoder.loadVdsProfileDefinitionFromXml(xml(uuidA, "SURNAME"))
+        DataEncoder.loadVdsProfileDefinitionFromXml(xml(uuidB, "CITY")) // registered last → wins the name map
+
+        val ecPrivKey = keystore.getKey("utts5b", keyStorePassword.toCharArray()) as BCECPrivateKey
+        val signer = EcdsaSigner(ecPrivKey.encoded, "brainpoolP256r1")
+
+        // Build profile A by UUID: must resolve A's field (SURNAME), not B's, despite the shared name.
+        val sealA = VdsSeal.Builder.forProfileUuid(uuidA)
+            .issuingCountry("D<<").signerIdentifier("DEZV")
+            .certificateReference("00112233445566778899AABBCCDDEEFF00112233")
+            .addMessage("PROFILE_URI", "example.com/profiles")
+            .addMessage("CERTIFICATE_URI", "example.com/certs")
+            .addMessage("SURNAME", "Mustermann")
+            .build(signer)
+        assertEquals("Mustermann", sealA.getMessageByName("SURNAME")?.value.toString())
+        assertEquals(uuidA.lowercase(), sealA.documentProfileUuid?.toHexString())
+
+        // Build profile B by UUID: must resolve B's field (CITY).
+        val sealB = VdsSeal.Builder.forProfileUuid(uuidB)
+            .issuingCountry("D<<").signerIdentifier("DEZV")
+            .certificateReference("00112233445566778899AABBCCDDEEFF00112233")
+            .addMessage("PROFILE_URI", "example.com/profiles")
+            .addMessage("CERTIFICATE_URI", "example.com/certs")
+            .addMessage("CITY", "Berlin")
+            .build(signer)
+        assertEquals("Berlin", sealB.getMessageByName("CITY")?.value.toString())
+        assertEquals(uuidB.lowercase(), sealB.documentProfileUuid?.toHexString())
+    }
+
+    @Test
+    fun forProfileUuid_throwsForUnregisteredUuid() {
+        assertFailsWith<IllegalArgumentException> {
+            VdsSeal.Builder.forProfileUuid("0123456789ABCDEF0123456789ABCDEF")
+        }
     }
 
     companion object {
