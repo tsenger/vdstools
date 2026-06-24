@@ -329,7 +329,7 @@ class VdsSealCommonTest {
         assertEquals("ADMINISTRATIVE_DOCUMENTS_V8", header.vdsType)
         assertEquals("D  ", header.issuingCountry)
         assertEquals("DEZV", header.signerIdentifier)
-        assertEquals("A41E7E495F0B4DE58AA0FE7C01D7FEA8", header.certificateReference)
+        assertEquals("00112233445566778899AABBCCDDEEFF00112233", header.certificateReference)
         assertEquals("2025-05-14", header.issuingDate.toString())
         assertEquals("2025-05-14", header.sigDate.toString())
         assertEquals(LocalDate(2025, 5, 14), header.sigDate)

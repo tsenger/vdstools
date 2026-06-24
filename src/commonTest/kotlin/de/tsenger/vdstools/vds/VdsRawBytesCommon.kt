@@ -140,21 +140,24 @@ object VdsRawBytesCommon {
                 "de68124052479585d9756353012dee6d" +
                 "41b2").hexToByteArray()
 
+    // DEZV / TR-03171 seal: cert ref is the 20-byte SHA-1 hash → 40-char hex, length
+    // encoded as decimal 40 ("DEZV40"). Signature recomputed over the new header.
     val meldebescheinigung: ByteArray =
-        ("dc036abc6d38dbdf58c6724b34127770" +
-                "34bb3a2f5834724919da47cb59614e76" +
-                "094e760901c800109a4223406d374ef9" +
-                "9e2cf95e31a23846040a4d7573746572" +
-                "6d616e6e050344722e06054572696b61" +
-                "0700080a31312e31322e313936340910" +
-                "4b6f6d6d616e64616e74656e7374722e" +
-                "0a0231380b0531303936390c06426572" +
-                "6c696e0d0832303235303431340e0100" +
-                "0f083230323530353034ff407b423fba" +
-                "c54a00d992faec76b70966dbfb611f67" +
-                "da6ff83d3bcf8b64ffede2be2201169d" +
-                "e7fb866f048df6e2cd1528767d8d6337" +
-                "20465396e64681e3a49ec74d").hexToByteArray()
+        ("dc036abc6d38dc0519a620372ce13372" +
+                "401c46ad535759e866926d2379bd19ce" +
+                "2678fe344e76094e760901c800109a42" +
+                "23406d374ef99e2cf95e31a23846040a" +
+                "4d75737465726d616e6e050344722e06" +
+                "054572696b610700080a31312e31322e" +
+                "3139363409104b6f6d6d616e64616e74" +
+                "656e7374722e0a0231380b0531303936" +
+                "390c064265726c696e0d083230323530" +
+                "3431340e01000f083230323530353034" +
+                "ff4006b9f31a1ff62283db32f21e77f1" +
+                "dc969c4319b96c52ba50442e8c0d251a" +
+                "044b9c8906e69bfc778bc0693021c178" +
+                "6d5075d8e5f1580b88eb4a7980250b90" +
+                "5067").hexToByteArray()
 
     val utoVisa: ByteArray =
         ("dc03d9c56d296ae819a65fdb275fdb27" +
@@ -189,9 +192,9 @@ object VdsRawBytesCommon {
      * SURNAME "Mustermann" (0x0A). No validity dates or status fields.
      */
     val administrativeDocumentV9Basic: ByteArray =
-        ("dc036abc6d38dbb519a620372ce13372" +
-                "401c46ad535759e866926d2379b98d7a" +
-                "d88d7ad801c9" +
+        ("dc036abc6d38dc0519a620372ce13372" +
+                "401c46ad535759e866926d2379bd19ce" +
+                "2678fe348d7ad88d7ad801c9" +
                 "0010aabbccdd11223344aabbccdd1122" +
                 "334403146578616d706c652e636f6d2f" +
                 "70726f66696c657304116578616d706c" +
@@ -204,9 +207,9 @@ object VdsRawBytesCommon {
      * SURNAME "Mustermann" (0x0A).
      */
     val administrativeDocumentV9WithDates: ByteArray =
-        ("dc036abc6d38dbb519a620372ce13372" +
-                "401c46ad535759e866926d2379b98d7a" +
-                "d88d7ad801c9" +
+        ("dc036abc6d38dc0519a620372ce13372" +
+                "401c46ad535759e866926d2379bd19ce" +
+                "2678fe348d7ad88d7ad801c9" +
                 "0010aabbccdd11223344aabbccdd1122" +
                 "3344010832303235303130310208" +
                 "3230323531323331" +
@@ -221,9 +224,9 @@ object VdsRawBytesCommon {
      * STATUS_LIST_INDEX 424242 (0x06) + SURNAME "Mustermann" (0x0A).
      */
     val administrativeDocumentV9WithStatus: ByteArray =
-        ("dc036abc6d38dbb519a620372ce13372" +
-                "401c46ad535759e866926d2379b98d7a" +
-                "d88d7ad801c9" +
+        ("dc036abc6d38dc0519a620372ce13372" +
+                "401c46ad535759e866926d2379bd19ce" +
+                "2678fe348d7ad88d7ad801c9" +
                 "0010aabbccdd11223344aabbccdd1122" +
                 "334403146578616d706c652e636f6d2f" +
                 "70726f66696c657304116578616d706c" +

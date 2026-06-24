@@ -120,8 +120,9 @@ internal class VdsHeader {
      * Example: signerIdentifier="DETS", certificateReference="5022026" (length=7)
      *          → length hex = "07" → "DETS075022026"
      *
-     * **Note:** When decoding, the special Signer Identifier "DEZV" uses **decimal**
-     * encoding for the length field instead of hexadecimal (see [fromBuffer]).
+     * **Note:** The special Signer Identifier "DEZV" (BSI TR-03171) uses **decimal**
+     * encoding for the length field instead of hexadecimal, both when encoding here
+     * and when decoding (see [fromBuffer]).
      *
      * @return The concatenated string ready for C40 encoding
      */
@@ -133,8 +134,11 @@ internal class VdsHeader {
                 }".uppercase().replace(' ', '0')
 
             } else if (rawVersion.toInt() == 3) {
+                // Per BSI TR-03171 the special signer "DEZV" encodes the cert ref length
+                // as a decimal value; all other signers use the ICAO hexadecimal encoding.
+                val lengthRadix = if (signerIdentifier?.uppercase() == "DEZV") 10 else 16
                 "${signerIdentifier.orEmpty()}${
-                    certificateReference.orEmpty().length.toString(16).padStart(2, '0')
+                    certificateReference.orEmpty().length.toString(lengthRadix).padStart(2, '0')
                 }${certificateReference.orEmpty()}".uppercase()
             } else {
                 ""

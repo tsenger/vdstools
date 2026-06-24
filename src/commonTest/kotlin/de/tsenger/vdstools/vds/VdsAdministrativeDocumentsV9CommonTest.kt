@@ -63,7 +63,7 @@ class VdsAdministrativeDocumentsV9CommonTest {
         val header = VdsHeader.Builder("TEST_V9_PROFILE")
             .setIssuingCountry("D<<")
             .setSignerIdentifier("DEZV")
-            .setCertificateReference("00112233445566778899AABBCCDDEEFF")
+            .setCertificateReference("00112233445566778899AABBCCDDEEFF00112233")
             .setIssuingDate(LocalDate.parse("2024-09-27"))
             .setSigDate(LocalDate.parse("2024-09-27"))
             .build()
@@ -80,7 +80,7 @@ class VdsAdministrativeDocumentsV9CommonTest {
         val header = VdsHeader.Builder("TEST_V9_PROFILE")
             .setIssuingCountry("D<<")
             .setSignerIdentifier("DEZV")
-            .setCertificateReference("00112233445566778899AABBCCDDEEFF")
+            .setCertificateReference("00112233445566778899AABBCCDDEEFF00112233")
             .setIssuingDate(LocalDate.parse("2024-09-27"))
             .setSigDate(LocalDate.parse("2024-09-27"))
             .build()
@@ -94,13 +94,13 @@ class VdsAdministrativeDocumentsV9CommonTest {
         val header = VdsHeader.Builder("ADMINISTRATIVE_DOCUMENTS_V9")
             .setIssuingCountry("D<<")
             .setSignerIdentifier("DEZV")
-            .setCertificateReference("00112233445566778899AABBCCDDEEFF")
+            .setCertificateReference("00112233445566778899AABBCCDDEEFF00112233")
             .setIssuingDate(LocalDate.parse("2024-09-27"))
             .setSigDate(LocalDate.parse("2024-09-27"))
             .build()
 
         assertEquals(
-            "dc036abc6d38dbb519a620372ce13372401c46ad535759e866926d2379b98d7ad88d7ad801c9",
+            "dc036abc6d38dc0519a620372ce13372401c46ad535759e866926d2379bd19ce2678fe348d7ad88d7ad801c9",
             header.encoded.toHexString()
         )
     }
@@ -338,7 +338,7 @@ class VdsAdministrativeDocumentsV9CommonTest {
         val header = VdsHeader.Builder("ADMINISTRATIVE_DOCUMENTS_V8")
             .setIssuingCountry("D<<")
             .setSignerIdentifier("DEZV")
-            .setCertificateReference("00112233445566778899AABBCCDDEEFF")
+            .setCertificateReference("00112233445566778899AABBCCDDEEFF00112233")
             .setIssuingDate(LocalDate.parse("2024-09-27"))
             .setSigDate(LocalDate.parse("2024-09-27"))
             .build()

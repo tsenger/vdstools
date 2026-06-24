@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Fixed
+- TR-03171 / DEZV seals: the certificate reference length in the ICAO version 4
+  header is now encoded as a **decimal** value for the special signer identifier
+  `DEZV` (e.g. a 40-char SHA-1 hex reference encodes to `DEZV40`), matching the
+  BSI TR-03171 specification. Previously the length was always hex-encoded
+  (producing `DEZV28` for a 40-char reference). Other signer identifiers keep the
+  ICAO hexadecimal encoding. Decoding already tolerated both encodings.
+
 ## [0.18.0] - 2026-06-23
 
 ### Added

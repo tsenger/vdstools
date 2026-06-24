@@ -26,13 +26,13 @@ class CreateTR03171Seals {
         val header = VdsHeader.Builder("MELDEBESCHEINIGUNG")
             .setIssuingCountry("D<<")
             .setSignerIdentifier("DEZV")
-            .setCertificateReference("00112233445566778899AABBCCDDEEFF")
+            .setCertificateReference("00112233445566778899AABBCCDDEEFF00112233")
             .setIssuingDate(LocalDate.parse("2024-09-27"))
             .setSigDate(LocalDate.parse("2024-09-27"))
             .build()
 
         assertEquals(
-            "dc036abc6d38dbb519a620372ce13372401c46ad535759e866926d2379b98d7ad88d7ad801c8",
+            "dc036abc6d38dc0519a620372ce13372401c46ad535759e866926d2379bd19ce2678fe348d7ad88d7ad801c8",
             header.encoded.toHexString()
         )
         assertEquals("ADMINISTRATIVE_DOCUMENTS_V8", header.vdsType)
@@ -43,13 +43,13 @@ class CreateTR03171Seals {
         val header = VdsHeader.Builder("ADMINISTRATIVE_DOCUMENTS_V8")
             .setIssuingCountry("D<<")
             .setSignerIdentifier("DEZV")
-            .setCertificateReference("00112233445566778899AABBCCDDEEFF")
+            .setCertificateReference("00112233445566778899AABBCCDDEEFF00112233")
             .setIssuingDate(LocalDate.parse("2024-09-27"))
             .setSigDate(LocalDate.parse("2024-09-27"))
             .build()
 
         assertEquals(
-            "dc036abc6d38dbb519a620372ce13372401c46ad535759e866926d2379b98d7ad88d7ad801c8",
+            "dc036abc6d38dc0519a620372ce13372401c46ad535759e866926d2379bd19ce2678fe348d7ad88d7ad801c8",
             header.encoded.toHexString()
         )
         assertEquals("ADMINISTRATIVE_DOCUMENTS_V8", header.vdsType)
@@ -60,13 +60,13 @@ class CreateTR03171Seals {
         val header = VdsHeader.Builder("ADMINISTRATIVE_DOCUMENTS_V8")
             .setIssuingCountry("D<<")
             .setSignerIdentifier("DEZV")
-            .setCertificateReference("00112233445566778899AABBCCDDEEFF")
+            .setCertificateReference("00112233445566778899AABBCCDDEEFF00112233")
             .setIssuingDate(LocalDate.parse("2024-09-27"))
             .setSigDate(LocalDate.parse("2024-09-27"))
             .build()
 
         assertEquals(
-            "dc036abc6d38dbb519a620372ce13372401c46ad535759e866926d2379b98d7ad88d7ad801c8",
+            "dc036abc6d38dc0519a620372ce13372401c46ad535759e866926d2379bd19ce2678fe348d7ad88d7ad801c8",
             header.encoded.toHexString()
         )
         assertEquals("ADMINISTRATIVE_DOCUMENTS_V8", header.vdsType)
@@ -175,14 +175,14 @@ class CreateTR03171Seals {
         val header = VdsHeader.Builder("TEST_V9_JVM_PROFILE")
             .setIssuingCountry("D<<")
             .setSignerIdentifier("DEZV")
-            .setCertificateReference("00112233445566778899AABBCCDDEEFF")
+            .setCertificateReference("00112233445566778899AABBCCDDEEFF00112233")
             .setIssuingDate(LocalDate.parse("2024-09-27"))
             .setSigDate(LocalDate.parse("2024-09-27"))
             .build()
 
         // Same encoding as the 0xC8 header except the last byte is 0xC9
         assertEquals(
-            "dc036abc6d38dbb519a620372ce13372401c46ad535759e866926d2379b98d7ad88d7ad801c9",
+            "dc036abc6d38dc0519a620372ce13372401c46ad535759e866926d2379bd19ce2678fe348d7ad88d7ad801c9",
             header.encoded.toHexString()
         )
         assertEquals("ADMINISTRATIVE_DOCUMENTS_V9", header.vdsType)
@@ -198,7 +198,7 @@ class CreateTR03171Seals {
         val seal = VdsSeal.Builder("TEST_V9_JVM_PROFILE")
             .issuingCountry("D<<")
             .signerIdentifier("DEZV")
-            .certificateReference("00112233445566778899AABBCCDDEEFF")
+            .certificateReference("00112233445566778899AABBCCDDEEFF00112233")
             .issuingDate(LocalDate.parse("2024-09-27"))
             .sigDate(LocalDate.parse("2024-09-27"))
             .addMessage("PROFILE_URI", "example.com/profiles")
@@ -237,7 +237,7 @@ class CreateTR03171Seals {
         val seal = VdsSeal.Builder("TEST_V9_JVM_PROFILE")
             .issuingCountry("D<<")
             .signerIdentifier("DEZV")
-            .certificateReference("00112233445566778899AABBCCDDEEFF")
+            .certificateReference("00112233445566778899AABBCCDDEEFF00112233")
             .issuingDate(LocalDate.parse("2024-09-27"))
             .sigDate(LocalDate.parse("2024-09-27"))
             .addMessage("PROFILE_URI", "example.com/profiles")

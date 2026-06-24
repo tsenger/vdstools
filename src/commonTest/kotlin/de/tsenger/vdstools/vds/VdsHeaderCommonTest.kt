@@ -236,4 +236,29 @@ class VdsHeaderCommonTest {
         }
     }
 
+    @Test
+    fun testEncode_DEZV_usesDecimalLengthForSha1CertRef() {
+        // Per BSI TR-03171 a DEZV cert ref is the 20-byte SHA-1 hash rendered as a
+        // 40-char hex string, and its length is encoded as the decimal value 40 → "DEZV40"
+        // (hex would be "28"). Verify the encoder emits decimal and round-trips.
+        val certRef = "00112233445566778899AABBCCDDEEFF00112233" // 40 chars / 20 bytes
+        val header = VdsHeader.Builder("ADMINISTRATIVE_DOCUMENTS_V8")
+            .setIssuingCountry("D<<")
+            .setSignerIdentifier("DEZV")
+            .setCertificateReference(certRef)
+            .setIssuingDate(LocalDate.parse("2024-09-27"))
+            .setSigDate(LocalDate.parse("2024-09-27"))
+            .build()
+
+        val encoded = header.encoded
+        // bytes: magic(1) + version(1) + country C40(2) + signer&length C40(4) + ...
+        val signerAndLength = DataEncoder.decodeC40(encoded.copyOfRange(4, 8))
+        assertEquals("DEZV40", signerAndLength, "DEZV length must be decimal 40, not hex 28")
+
+        // Round-trip: decoding must yield back the full 40-char cert ref
+        val parsed = VdsHeader.fromBuffer(Buffer().write(encoded))
+        assertEquals("DEZV", parsed.signerIdentifier)
+        assertEquals(certRef, parsed.certificateReference)
+    }
+
 }
