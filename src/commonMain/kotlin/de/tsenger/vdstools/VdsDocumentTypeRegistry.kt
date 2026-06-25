@@ -59,6 +59,13 @@ class VdsDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
         get() = vdsTypes.keys.toList()
 
     /**
+     * All registered VDS document types (defaults plus any merged via [addEntriesFromJson]),
+     * for read-only consumers that need the full definition rather than a lookup by name.
+     */
+    val allDocumentTypes: List<VdsDocumentTypeDto>
+        get() = documentTypeDtoList
+
+    /**
      * Returns the document reference number for a given VDS type name.
      *
      * @param vdsType The VDS type name (e.g., "ARRIVAL_ATTESTATION")
