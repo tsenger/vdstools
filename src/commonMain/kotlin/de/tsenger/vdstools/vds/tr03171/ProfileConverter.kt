@@ -29,7 +29,7 @@ object ProfileConverter {
     }
 
     private fun toMessageDto(entry: ProfileEntryDto): MessageDto {
-        val coding = mapCoding(entry.type, entry.length)
+        val coding = mapCoding(entry.type)
         val maxLength = mapMaxLength(entry.type, entry.length)
         return MessageDto(
             name = entry.name,
@@ -41,15 +41,16 @@ object ProfileConverter {
         )
     }
 
-    private fun mapCoding(type: Asn1Type, length: Int?): MessageCoding {
+    private fun mapCoding(type: Asn1Type): MessageCoding {
         return when (type) {
             Asn1Type.BOOLEAN -> MessageCoding.BYTE
-            Asn1Type.INTEGER -> if (length != null && length == 1) MessageCoding.BYTE else MessageCoding.BYTES
+            // length is a validation constraint only; the coding is always the dedicated INTEGER coding
+            Asn1Type.INTEGER -> MessageCoding.INTEGER
             Asn1Type.OCTET_STRING -> MessageCoding.BYTES
             Asn1Type.UTF8String -> MessageCoding.UTF8_STRING
             // TR-03171 uses ASN.1 DATE as YYYYMMDD UTF-8 (8 bytes), not the 3-byte ICAO binary format
             Asn1Type.DATE -> MessageCoding.DATE_STRING
-            Asn1Type.DATE_TIME -> MessageCoding.BYTES
+            Asn1Type.DATE_TIME -> MessageCoding.DATE_TIME
         }
     }
 

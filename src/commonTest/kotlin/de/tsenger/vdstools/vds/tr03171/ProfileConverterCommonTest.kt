@@ -90,29 +90,30 @@ class ProfileConverterCommonTest {
     }
 
     @Test
-    fun testIntegerLength1MappedToByte() {
+    fun testIntegerLength1MappedToInteger() {
+        // length is a validation constraint only; the coding stays INTEGER regardless of length
         val profile = createProfile(createEntry(type = Asn1Type.INTEGER, length = 1))
         val result = ProfileConverter.toVdsProfileDefinition(profile)
         val msg = result.messages[0]
-        assertEquals(MessageCoding.BYTE, msg.coding)
+        assertEquals(MessageCoding.INTEGER, msg.coding)
         assertEquals(1, msg.maxBytes)
     }
 
     @Test
-    fun testIntegerNoLengthMappedToBytes() {
+    fun testIntegerNoLengthMappedToInteger() {
         val profile = createProfile(createEntry(type = Asn1Type.INTEGER))
         val result = ProfileConverter.toVdsProfileDefinition(profile)
         val msg = result.messages[0]
-        assertEquals(MessageCoding.BYTES, msg.coding)
+        assertEquals(MessageCoding.INTEGER, msg.coding)
         assertEquals(255, msg.maxBytes)
     }
 
     @Test
-    fun testIntegerWithLengthMappedToBytes() {
+    fun testIntegerWithLengthMappedToInteger() {
         val profile = createProfile(createEntry(type = Asn1Type.INTEGER, length = 4))
         val result = ProfileConverter.toVdsProfileDefinition(profile)
         val msg = result.messages[0]
-        assertEquals(MessageCoding.BYTES, msg.coding)
+        assertEquals(MessageCoding.INTEGER, msg.coding)
         assertEquals(4, msg.maxBytes)
     }
 
@@ -167,7 +168,7 @@ class ProfileConverterCommonTest {
         val profile = createProfile(createEntry(type = Asn1Type.DATE_TIME))
         val result = ProfileConverter.toVdsProfileDefinition(profile)
         val msg = result.messages[0]
-        assertEquals(MessageCoding.BYTES, msg.coding)
+        assertEquals(MessageCoding.DATE_TIME, msg.coding)
         assertEquals(6, msg.maxBytes)
     }
 
@@ -247,7 +248,7 @@ class ProfileConverterCommonTest {
         assertFalse(academic.required)
 
         val housing = definition.messages.first { it.name == "HOUSING_STATUS" }
-        assertEquals(MessageCoding.BYTE, housing.coding)
+        assertEquals(MessageCoding.INTEGER, housing.coding)
         assertEquals(1, housing.maxBytes)
     }
 }

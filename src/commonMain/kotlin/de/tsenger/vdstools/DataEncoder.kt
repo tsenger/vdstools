@@ -363,6 +363,50 @@ object DataEncoder {
     }
 
     /**
+     * Encodes a signed integer as the minimal-length big-endian two's-complement byte sequence,
+     * i.e. the content octets of an ASN.1 INTEGER. Used by TR-03171 profile fields of ASN.1 type
+     * `INTEGER` ([MessageCoding.INTEGER]).
+     *
+     * Examples: 0 -> [00], 400 -> [01, 90], 255 -> [00, FF], -1 -> [FF].
+     */
+    fun encodeInteger(value: Long): ByteArray {
+        val bytes = mutableListOf<Byte>()
+        var v = value
+        if (value >= 0) {
+            do {
+                bytes.add(0, (v and 0xFF).toByte())
+                v = v shr 8
+            } while (v != 0L)
+            // Prepend 0x00 so a set high bit isn't read as a negative sign.
+            if (bytes[0].toInt() and 0x80 != 0) bytes.add(0, 0)
+        } else {
+            do {
+                bytes.add(0, (v and 0xFF).toByte())
+                v = v shr 8
+            } while (v != -1L)
+            // Prepend 0xFF so a cleared high bit doesn't flip the value positive.
+            if (bytes[0].toInt() and 0x80 == 0) bytes.add(0, 0xFF.toByte())
+        }
+        return bytes.toByteArray()
+    }
+
+    fun encodeInteger(value: String): ByteArray = encodeInteger(value.trim().toLong())
+
+    /**
+     * Decodes a big-endian two's-complement byte sequence (ASN.1 INTEGER content octets) back to a
+     * [Long]. Inverse of [encodeInteger]. Supports up to 8 bytes.
+     */
+    fun decodeInteger(bytes: ByteArray): Long {
+        require(bytes.isNotEmpty()) { "INTEGER requires at least one byte" }
+        require(bytes.size <= 8) { "INTEGER supports at most 8 bytes, got ${bytes.size}" }
+        var result = if (bytes[0].toInt() and 0x80 != 0) -1L else 0L
+        for (b in bytes) {
+            result = (result shl 8) or (b.toLong() and 0xFF)
+        }
+        return result
+    }
+
+    /**
      * Encodes a date string with unknown date parts as described in ICAO TR
      * "Datastructure for Barcode". Unknown parts of the date string shall be filled
      * with an 'x', e.g. 19xx-10-xx
@@ -524,6 +568,13 @@ object DataEncoder {
                 is Int -> byteArrayOf((value and 0xFF).toByte())
                 is Byte -> byteArrayOf(value)
                 else -> throw IllegalArgumentException("BYTE coding expects Int or Byte, got ${value!!::class.simpleName}")
+            }
+
+            MessageCoding.INTEGER -> when (value) {
+                is Int -> encodeInteger(value.toLong())
+                is Long -> encodeInteger(value)
+                is String -> encodeInteger(value)
+                else -> throw IllegalArgumentException("INTEGER coding expects Int, Long or decimal String, got ${value!!::class.simpleName}")
             }
 
             MessageCoding.MASKED_DATE -> encodeMaskedDate(value as String)

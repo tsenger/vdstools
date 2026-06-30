@@ -111,4 +111,20 @@ class MessageValueCommonTest {
         val fromDate       = MessageValue.fromBytes(DataEncoder.encodeDate(date),       MessageCoding.DATE)       as MessageValue.DateValue
         assertEquals(fromDate.date, fromDateString.date)
     }
+
+    @Test
+    fun testFromBytes_INTEGER_decodesCorrectly() {
+        val value = MessageValue.fromBytes("0190".hexToByteArray(), MessageCoding.INTEGER)
+        assertIs<MessageValue.IntegerValue>(value)
+        assertEquals(400L, value.value)
+        assertEquals("400", value.toString())
+    }
+
+    @Test
+    fun testFromBytes_INTEGER_roundTrip() {
+        val bytes = DataEncoder.encodeInteger(400L)
+        val value = MessageValue.fromBytes(bytes, MessageCoding.INTEGER) as MessageValue.IntegerValue
+        assertEquals(400L, value.value)
+        assertContentEquals(bytes, value.rawBytes)
+    }
 }

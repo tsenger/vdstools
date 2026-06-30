@@ -25,6 +25,20 @@ sealed class MessageValue {
         override fun hashCode(): Int = 31 * value + rawBytes.contentHashCode()
     }
 
+    data class IntegerValue(val value: Long, override val rawBytes: ByteArray) : MessageValue() {
+        override val decoded: Long get() = value
+
+        override fun toString(): String = decoded.toString()
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is IntegerValue) return false
+            return value == other.value && rawBytes.contentEquals(other.rawBytes)
+        }
+
+        override fun hashCode(): Int = 31 * value.hashCode() + rawBytes.contentHashCode()
+    }
+
     data class StringValue(val value: String, override val rawBytes: ByteArray) : MessageValue() {
         override val decoded: String get() = value
 
@@ -190,6 +204,7 @@ sealed class MessageValue {
                         else ByteValue(bytes[0].toInt() and 0xFF, bytes)
                     }
 
+                    MessageCoding.INTEGER -> IntegerValue(DataEncoder.decodeInteger(bytes), bytes)
                     MessageCoding.C40 -> StringValue(DataEncoder.decodeC40(bytes), bytes)
                     MessageCoding.UTF8_STRING -> StringValue(bytes.decodeToString(), bytes)
                     MessageCoding.DATE -> DateValue(DataEncoder.decodeDate(bytes), bytes)

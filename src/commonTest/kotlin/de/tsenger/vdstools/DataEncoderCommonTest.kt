@@ -396,4 +396,47 @@ class DataEncoderCommonTest {
         assertEquals("EMERGENCY_TRAVEL_DOCUMENT", DataEncoder.idbMessageTypes.getMessageType(2))
     }
 
+    @Test
+    fun testEncodeInteger() {
+        assertEquals("00", DataEncoder.encodeInteger(0L).toHexString())
+        assertEquals("0190", DataEncoder.encodeInteger(400L).toHexString())   // needs 2 bytes
+        assertEquals("7f", DataEncoder.encodeInteger(127L).toHexString())
+        assertEquals("00ff", DataEncoder.encodeInteger(255L).toHexString())   // leading 00 keeps it positive
+        assertEquals("0080", DataEncoder.encodeInteger(128L).toHexString())
+        assertEquals("ff", DataEncoder.encodeInteger(-1L).toHexString())
+    }
+
+    @Test
+    fun testEncodeIntegerFromString() {
+        assertEquals("0190", DataEncoder.encodeInteger("400").toHexString())
+    }
+
+    @Test
+    fun testEncodeIntegerInvalidString() {
+        assertFailsWith<NumberFormatException> { DataEncoder.encodeInteger("not-a-number") }
+    }
+
+    @Test
+    fun testDecodeInteger() {
+        assertEquals(0L, DataEncoder.decodeInteger("00".hexToByteArray()))
+        assertEquals(400L, DataEncoder.decodeInteger("0190".hexToByteArray()))
+        assertEquals(255L, DataEncoder.decodeInteger("00ff".hexToByteArray()))
+        assertEquals(128L, DataEncoder.decodeInteger("0080".hexToByteArray()))
+        assertEquals(-1L, DataEncoder.decodeInteger("ff".hexToByteArray()))
+    }
+
+    @Test
+    fun testIntegerRoundTrip() {
+        for (v in listOf(0L, 1L, 127L, 128L, 255L, 256L, 400L, 65535L, 16777216L, -1L, -128L, -400L)) {
+            assertEquals(v, DataEncoder.decodeInteger(DataEncoder.encodeInteger(v)), "round-trip failed for $v")
+        }
+    }
+
+    @Test
+    fun testEncodeValueByCodingInteger() {
+        assertEquals("0190", DataEncoder.encodeValueByCoding(MessageCoding.INTEGER, "400").toHexString())
+        assertEquals("0190", DataEncoder.encodeValueByCoding(MessageCoding.INTEGER, 400).toHexString())
+        assertEquals("0190", DataEncoder.encodeValueByCoding(MessageCoding.INTEGER, 400L).toHexString())
+    }
+
 }

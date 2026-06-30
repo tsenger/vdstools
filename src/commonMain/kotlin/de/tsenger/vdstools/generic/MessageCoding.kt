@@ -10,6 +10,16 @@ enum class MessageCoding {
     BYTES,
     SUB_MESSAGES,
     BYTE,
+
+    /**
+     * Signed integer encoded as minimal-length big-endian two's-complement bytes (the content
+     * octets of an ASN.1 INTEGER). Used by BSI TR-03171 profile fields of ASN.1 type `INTEGER`,
+     * independent of the field's `length` (which is a validation constraint, not a coding choice).
+     *
+     * Accepts [Int], [Long] or a decimal [String] as input. Decodes to [MessageValue.IntegerValue].
+     */
+    INTEGER,
+
     MASKED_DATE,
     DATE,
     DATE_TIME,
