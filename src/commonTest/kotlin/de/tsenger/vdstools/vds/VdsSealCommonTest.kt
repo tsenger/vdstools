@@ -177,11 +177,22 @@ class VdsSealCommonTest {
 
     @Test
     fun testWrongFormatedCertificateReferenceLengthCoding() {
+        // This seal belongs to a non-DEZV signer but encodes the cert ref length decimally ("32"
+        // for a 32-char ref) instead of the spec-mandated hex ("20"). An earlier parser tolerated
+        // this by trying both radices and keeping whichever produced parseable dates. That heuristic
+        // was unstable (see VdsHeader.parseV4CertRefAndDates): coincidentally valid dates after a
+        // wrong-radix over-read could win and swallow cert-ref bytes. Since decimal length encoding
+        // is exclusive to the DEZV signer, the radix is now derived deterministically from the signer
+        // identifier and such a malformed non-DEZV seal is rejected rather than silently mis-parsed.
+        //
+        // We keep this case on record deliberately: should genuinely wrong-coded lengths show up for
+        // non-DEZV signers in the wild, revisit VdsHeader.parseV4CertRefAndDates — and disambiguate
+        // via full-seal DER-TLV consistency, not by guessing radices here.
         val rawBytes =
             "dc036abc6d38dbb519a620372ce13372401c46ad535759e866926d2379b98d7ad88d7ad801c800109a4223406d374ef99e2cf95e31a2384604094c656965726d616e6e06074c6f72656e7a6fff40191d2ab504d5b6f9cda382857aeab508db1178463225bda4efac6ea64e803bb23c65e11d3ffae6f469feaa540d63ea6f612d4a4ba7f016a64ec39c5caf936bc7".hexToByteArray()
-        val seal = VdsSeal.fromByteArray(rawBytes) as VdsSeal
-        assertNotNull(seal)
-        assertEquals("00112233445566778899AABBCCDDEEFF", seal.certificateReference)
+        assertFailsWith<IllegalArgumentException> {
+            VdsSeal.fromByteArray(rawBytes)
+        }
     }
 
     @Test

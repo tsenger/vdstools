@@ -22,13 +22,25 @@ All notable changes to this project will be documented in this file.
   BSI TR-03171 specification. Previously the length was always hex-encoded
   (producing `DEZV28` for a 40-char reference). Other signer identifiers keep the
   ICAO hexadecimal encoding.
-- TR-03171 / DEZV seals: decoding the cert ref length now uses the signer's
-  expected radix first (decimal for `DEZV`, hex otherwise), mirroring the encoder.
-  Previously decoding always tried hex first; for a `DEZV` length ≥ 10 (e.g. the
-  40-char SHA-1 reference encoded as `DEZV40`) this read `0x40` = 64, over-read 16
-  bytes, and — when trailing message/signature bytes happened to decode to valid
-  dates — never triggered the radix-10 fallback, mis-aligning the rest of the seal
-  and failing later with a `toIndex > size` error.
+- TR-03171 / DEZV seals: decoding the cert ref length now derives the radix
+  **deterministically** from the signer identifier (decimal for `DEZV`, hex
+  otherwise), mirroring the encoder. The previous lenient approach tried both
+  radices and kept whichever produced parseable dates; because `decodeDate` only
+  rejects obviously out-of-range values, coincidentally valid dates after a
+  wrong-radix over-read could win and silently swallow cert-ref bytes. The radix
+  is no longer guessed, removing that instability. As a consequence, a non-`DEZV`
+  seal that encodes its cert ref length decimally (a spec violation) is now
+  rejected as malformed instead of being heuristically recovered.
+- Parsing a malformed ICAO v4 header now consistently throws
+  `IllegalArgumentException`. Previously a wrong cert ref length could surface as
+  an okio `EOFException` (over-read past the buffer end) or, when the misalignment
+  reached the message body, an `IndexOutOfBoundsException` from `DerTlv.parseAll`.
+  Both are now wrapped into `IllegalArgumentException` with diagnostic context
+  (signer, length field, radix / truncated tag), matching the documented contract.
+- `DerTlv` parsing is hardened against truncated / misaligned input: a tag with no
+  following length byte, a multi-byte length prefix that runs past the end, and a
+  length value that overflows the `Int` range now all throw a descriptive
+  `IllegalArgumentException` instead of an opaque `IndexOutOfBoundsException`.
 
 ## [0.18.0] - 2026-06-23
 

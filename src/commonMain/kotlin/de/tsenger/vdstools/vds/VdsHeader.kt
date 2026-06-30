@@ -235,69 +235,59 @@ internal class VdsHeader {
         private const val TAG = "VdsHeader"
 
         /**
-         * Strictly parses certificate reference and issuing/sig dates for ICAO version 4 headers.
+         * Parses certificate reference and issuing/sig dates for ICAO version 4 headers.
          *
-         * The cert ref length field is decoded with radix 16 only. No fallback, no tolerance for
-         * non-standard lengths. Throws immediately on any malformed input.
+         * The cert ref length field is decoded deterministically from the signer identifier: the
+         * special signer "DEZV" (BSI TR-03171) encodes the length decimally (radix 10), every other
+         * signer uses the ICAO hexadecimal encoding (radix 16). This mirrors the encoder in
+         * [encodedSignerIdentifierAndCertificateReference] exactly, so encode/decode are symmetric.
          *
-         * @return Triple of (certificateReference, issuingDate, sigDate)
-         */
-        private fun parseV4CertRefAndDatesStrict(
-            buffer: Buffer,
-            lengthStr: String,
-        ): Triple<String, LocalDate, LocalDate> {
-            val certRefLength = lengthStr.toInt(16)
-            val bytesToDecode = ((certRefLength - 1) / 3) * 2 + 2
-            logV(TAG, "version 4: certRefLength=$certRefLength (radix 16), bytesToDecode=$bytesToDecode")
-            val certRef = DataEncoder.decodeC40(buffer.readByteArray(bytesToDecode.toLong()))
-            val issuingDate = DataEncoder.decodeDate(buffer.readByteArray(3))
-            val sigDate = DataEncoder.decodeDate(buffer.readByteArray(3))
-            return Triple(certRef, issuingDate, sigDate)
-        }
-
-        /**
-         * Leniently parses certificate reference and issuing/sig dates for ICAO version 4 headers.
+         * Background — why no radix guessing here:
+         * For length values 00–09 both encodings are equivalent; they only diverge for lengths >= 10
+         * (e.g. a 40-char SHA-1 cert ref is "40" decimally but reads as 0x40 = 64 in hex). An earlier
+         * version tried both radices and accepted whichever yielded parseable dates. That heuristic
+         * was unstable: [DataEncoder.decodeDate] only rejects obviously out-of-range month/day values,
+         * so coincidental "valid" dates after a wrong-radix over-read could win and silently swallow
+         * bytes that actually belonged to the cert ref serial number. Since decimal encoding is — as
+         * far as we know — exclusive to DEZV, the signer identifier fully determines the radix and no
+         * guessing is needed.
          *
-         * The cert ref length field is hex-encoded (radix 16) for standard ICAO signers, but the
-         * special signer "DEZV" (BSI TR-03171) encodes it decimally (radix 10). When the value is
-         * in the range 00–09 both encodings are equivalent; they only diverge for lengths >= 10,
-         * which is why a SHA-1 cert ref (length 40) is misread as 0x40 = 64 if the wrong radix is
-         * tried first and happens to succeed on garbage bytes.
-         *
-         * Strategy: try the signer's expected radix first (decimal for DEZV, hex otherwise) and the
-         * other radix as a fallback. This mirrors [encodedSignerIdentifierAndCertificateReference].
-         * Throws the last caught exception if all candidates fail.
+         * If non-DEZV seals with decimally encoded lengths ever turn up in the wild, this is the place
+         * to reconsider. Do NOT reintroduce the "try both radices, check the dates" approach — it is
+         * not a reliable discriminator. The robust disambiguator is full-seal structural consistency:
+         * pick the radix under which the remainder parses cleanly as a DER-TLV stream that consumes
+         * all bytes and ends in a signature (tag 0xFF). That check lives one layer up in
+         * [de.tsenger.vdstools.vds.VdsSeal], where the whole seal is visible.
          *
          * @return Triple of (certificateReference, issuingDate, sigDate)
          */
-        private fun parseV4CertRefAndDatesLenient(
+        private fun parseV4CertRefAndDates(
             buffer: Buffer,
             lengthStr: String,
             signerIdentifier: String?,
         ): Triple<String, LocalDate, LocalDate> {
-            val radixCandidates =
-                if (signerIdentifier?.uppercase() == "DEZV") listOf(10, 16) else listOf(16, 10)
-            var lastException: Exception? = null
-            for (radix in radixCandidates) {
-                val snapshot = buffer.copy()
-                try {
-                    val certRefLength = lengthStr.toInt(radix)
-                    val bytesToDecode = ((certRefLength - 1) / 3) * 2 + 2
-                    logV(TAG, "version 4: certRefLength=$certRefLength (radix $radix), bytesToDecode=$bytesToDecode")
-                    val certRef = DataEncoder.decodeC40(buffer.readByteArray(bytesToDecode.toLong()))
-                    val issuingDate = DataEncoder.decodeDate(buffer.readByteArray(3))
-                    val sigDate = DataEncoder.decodeDate(buffer.readByteArray(3))
-                    return Triple(certRef, issuingDate, sigDate)
-                } catch (e: Exception) {
-                    if (radix != radixCandidates.last()) {
-                        logV(TAG, "version 4: parse failed with radix $radix, retrying: ${e.message}")
-                    }
-                    lastException = e
-                    buffer.skip(buffer.size)
-                    buffer.write(snapshot, snapshot.size)
-                }
+            val radix = if (signerIdentifier?.uppercase() == "DEZV") 10 else 16
+            // A length that does not match the signer's encoding (e.g. a non-DEZV seal that encodes
+            // the length decimally) makes the byte count wrong and the parse fail somewhere downstream:
+            // the over-read either runs past the buffer end (okio EOFException) or lands on bytes that
+            // do not decode as valid dates (LocalDate throws). Funnel all of these into a single
+            // IllegalArgumentException with diagnostic context so callers get the documented contract
+            // (see fromBuffer's @Throws) instead of a leaking okio/datetime exception type.
+            try {
+                val certRefLength = lengthStr.toInt(radix)
+                val bytesToDecode = ((certRefLength - 1) / 3) * 2 + 2
+                logV(TAG, "version 4: certRefLength=$certRefLength (radix $radix), bytesToDecode=$bytesToDecode")
+                val certRef = DataEncoder.decodeC40(buffer.readByteArray(bytesToDecode.toLong()))
+                val issuingDate = DataEncoder.decodeDate(buffer.readByteArray(3))
+                val sigDate = DataEncoder.decodeDate(buffer.readByteArray(3))
+                return Triple(certRef, issuingDate, sigDate)
+            } catch (e: Exception) {
+                throw IllegalArgumentException(
+                    "Malformed ICAO v4 header: could not decode cert ref length '$lengthStr' " +
+                            "(radix $radix, signer '$signerIdentifier'): ${e.message}",
+                    e,
+                )
             }
-            throw lastException!!
         }
 
         @Throws(IllegalArgumentException::class)
@@ -345,14 +335,10 @@ internal class VdsHeader {
                 val signerIdentifierAndCertRefLength = DataEncoder.decodeC40(rawdataBuffer.readByteArray(4))
                 vdsHeader.signerIdentifier = signerIdentifierAndCertRefLength.take(4)
 
-                // Some real-world seals (notably from DEZV) deviate from the spec by using
-                // decimal instead of hex encoding for the cert ref length, or carry a
-                // non-standard length value. parseV4CertRefAndDatesLenient tolerates this by
-                // trying both radices; for DEZV the decimal encoding is tried first to mirror
-                // the encoder (see encodedSignerIdentifierAndCertificateReference).
-                // Use parseV4CertRefAndDatesStrict instead when spec-compliance must be enforced
-                // (e.g. during issuance/validation pipelines that should reject malformed seals).
-                val (certRef, issuingDate, sigDate) = parseV4CertRefAndDatesLenient(
+                // The cert ref length radix is determined solely by the signer identifier (decimal
+                // for the DEZV signer per BSI TR-03171, hex for everyone else). See
+                // parseV4CertRefAndDates for the rationale and why we no longer guess the radix.
+                val (certRef, issuingDate, sigDate) = parseV4CertRefAndDates(
                     rawdataBuffer,
                     signerIdentifierAndCertRefLength.substring(4),
                     vdsHeader.signerIdentifier,

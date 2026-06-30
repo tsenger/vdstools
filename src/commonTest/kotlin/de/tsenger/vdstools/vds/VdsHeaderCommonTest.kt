@@ -9,6 +9,7 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
+import kotlin.test.assertFailsWith
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
@@ -233,6 +234,26 @@ class VdsHeaderCommonTest {
                 parsed.certificateReference,
                 "Certificate reference mismatch for DEZV with length $length (decimal)"
             )
+        }
+    }
+
+    @Test
+    fun testV4CertRefLengthOverRead_throwsIllegalArgument() {
+        // A non-DEZV v4 header whose cert ref length over-reads past the end of the buffer. The hex
+        // length "0A" = 10 demands 8 cert ref bytes plus 6 date bytes, but none follow the signer
+        // field. The okio EOFException from the over-read must be funneled into the documented
+        // IllegalArgumentException contract rather than leaking the okio type (see
+        // VdsHeader.parseV4CertRefAndDates).
+        val buffer = Buffer()
+        buffer.writeByte(0xDC)
+        buffer.writeByte(0x03) // Version 4
+        buffer.write(DataEncoder.encodeC40("D<<"))
+        buffer.write(DataEncoder.encodeC40("TEST0A")) // signer "TEST" + hex length 0x0A = 10
+        // intentionally no cert ref / date / doc bytes follow -> over-read hits end of buffer
+
+        val parseBuffer = Buffer().write(buffer.readByteArray())
+        assertFailsWith<IllegalArgumentException> {
+            VdsHeader.fromBuffer(parseBuffer)
         }
     }
 

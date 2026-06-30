@@ -4,6 +4,7 @@ import de.tsenger.vdstools.asn1.DerTlv
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalStdlibApi::class)
@@ -92,6 +93,48 @@ class DerTlvCommonTest {
     fun testParseAll_empty() {
         val tlvs = DerTlv.parseAll(byteArrayOf())
         assertTrue(tlvs.isEmpty())
+    }
+
+    @Test
+    fun testParseAll_truncatedValue_throws() {
+        // tag=0x01 declares length 0x05 but only 1 value byte follows. This is the shape a
+        // misaligned message stream takes when a wrong header length shifted its start: the parser
+        // must reject it with a clear IllegalArgumentException instead of an opaque bounds error.
+        val bytes = byteArrayOf(0x01, 0x05, 0xaa.toByte())
+        assertFailsWith<IllegalArgumentException> {
+            DerTlv.parseAll(bytes)
+        }
+    }
+
+    @Test
+    fun testParseAll_tagWithoutLengthByte_throws() {
+        // Stream ends right after a tag byte, so the length prefix is missing entirely. The read
+        // happens inside decodeDerLength (before the value-bounds check) and must still surface as a
+        // clear IllegalArgumentException.
+        val bytes = byteArrayOf(0x01)
+        assertFailsWith<IllegalArgumentException> {
+            DerTlv.parseAll(bytes)
+        }
+    }
+
+    @Test
+    fun testParseAll_truncatedMultiByteLength_throws() {
+        // tag=0x01, length prefix 0x82 announces 2 length bytes but only 1 follows -> the multi-byte
+        // length read runs past the end of the array.
+        val bytes = byteArrayOf(0x01, 0x82.toByte(), 0x01)
+        assertFailsWith<IllegalArgumentException> {
+            DerTlv.parseAll(bytes)
+        }
+    }
+
+    @Test
+    fun testDecodeDerLength_overflowingLength_throws() {
+        // A 4-byte length with the top bit set (0x84 0xFF 0xFF 0xFF 0xFF) overflows the Int
+        // accumulator to a negative value; reject it instead of returning a bogus length.
+        val bytes = byteArrayOf(0x84.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte())
+        assertFailsWith<IllegalArgumentException> {
+            DerTlv.decodeDerLength(bytes, 0)
+        }
     }
 
     @Test
