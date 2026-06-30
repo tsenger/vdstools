@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<profile>
+    <profileNumber>4F2B91C7A8E5402DBC3169D7E0A45F18</profileNumber>
+    <versionTR>0.9</versionTR>
+    <profileName>GEWERBEERLAUBNIS</profileName>
+    <creator>BSI</creator>
+    <category>Gewerbewesen</category>
+    <leikaID>99076001084000</leikaID>
+    <validFromPresent>true</validFromPresent>
+    <validToPresent>true</validToPresent>
+    <entry tag="10" optional="false">
+        <name>SURNAME</name>
+        <description>Familienname des Gewerbetreibenden</description>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="11" optional="false">
+        <name>FIRST_NAME</name>
+        <description>Vorname des Gewerbetreibenden</description>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="12" optional="true">
+        <name>DATE_OF_BIRTH</name>
+        <description>Geburtsdatum</description>
+        <type>DATE</type>
+    </entry>
+    <entry tag="13" optional="false">
+        <name>BUSINESS_NAME</name>
+        <description>Bezeichnung des Gewerbes</description>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="14" optional="false">
+        <name>BUSINESS_ADDRESS</name>
+        <description>Anschrift der Betriebsstätte</description>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="15" optional="false">
+        <name>POSTAL_CODE</name>
+        <description>Postleitzahl der Betriebsstätte</description>
+        <length>5</length>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="16" optional="false">
+        <name>PERMIT_NUMBER</name>
+        <description>Aktenzeichen der Erlaubnis</description>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="17" optional="false">
+        <name>ISSUED_AT</name>
+        <description>Zeitpunkt der Ausstellung</description>
+        <type>DATE-TIME</type>
+    </entry>
+    <entry tag="18" optional="true">
+        <name>NUMBER_OF_EMPLOYEES</name>
+        <description>Anzahl der Beschaeftigten</description>
+        <type>INTEGER</type>
+    </entry>
+</profile>
