@@ -258,14 +258,14 @@ internal class VdsHeader {
         /**
          * Leniently parses certificate reference and issuing/sig dates for ICAO version 4 headers.
          *
-         * The cert ref length field is normally hex-encoded (radix 16) for all signer identifiers.
-         * DEZV seals are known to occasionally use decimal encoding (radix 10) instead; when the
-         * value is in the range 00–09, both encodings are equivalent anyway.
+         * The cert ref length field is hex-encoded (radix 16) for standard ICAO signers, but the
+         * special signer "DEZV" (BSI TR-03171) encodes it decimally (radix 10). When the value is
+         * in the range 00–09 both encodings are equivalent; they only diverge for lengths >= 10,
+         * which is why a SHA-1 cert ref (length 40) is misread as 0x40 = 64 if the wrong radix is
+         * tried first and happens to succeed on garbage bytes.
          *
-         * DEZV seals are expected to carry a cert ref length of 0x20 (32); deviations are tolerated
-         * and logged as a warning.
-         *
-         * Strategy: try radix 16 first; for DEZV, fall back to radix 10 if parsing fails.
+         * Strategy: try the signer's expected radix first (decimal for DEZV, hex otherwise) and the
+         * other radix as a fallback. This mirrors [encodedSignerIdentifierAndCertificateReference].
          * Throws the last caught exception if all candidates fail.
          *
          * @return Triple of (certificateReference, issuingDate, sigDate)
@@ -273,8 +273,10 @@ internal class VdsHeader {
         private fun parseV4CertRefAndDatesLenient(
             buffer: Buffer,
             lengthStr: String,
+            signerIdentifier: String?,
         ): Triple<String, LocalDate, LocalDate> {
-            val radixCandidates = listOf(16, 10)
+            val radixCandidates =
+                if (signerIdentifier?.uppercase() == "DEZV") listOf(10, 16) else listOf(16, 10)
             var lastException: Exception? = null
             for (radix in radixCandidates) {
                 val snapshot = buffer.copy()
@@ -346,12 +348,14 @@ internal class VdsHeader {
                 // Some real-world seals (notably from DEZV) deviate from the spec by using
                 // decimal instead of hex encoding for the cert ref length, or carry a
                 // non-standard length value. parseV4CertRefAndDatesLenient tolerates this by
-                // trying radix 16 first and falling back to radix 10 on failure.
+                // trying both radices; for DEZV the decimal encoding is tried first to mirror
+                // the encoder (see encodedSignerIdentifierAndCertificateReference).
                 // Use parseV4CertRefAndDatesStrict instead when spec-compliance must be enforced
                 // (e.g. during issuance/validation pipelines that should reject malformed seals).
                 val (certRef, issuingDate, sigDate) = parseV4CertRefAndDatesLenient(
                     rawdataBuffer,
                     signerIdentifierAndCertRefLength.substring(4),
+                    vdsHeader.signerIdentifier,
                 )
                 vdsHeader.certificateReference = certRef
                 vdsHeader.issuingDate = issuingDate

@@ -261,4 +261,36 @@ class VdsHeaderCommonTest {
         assertEquals(certRef, parsed.certificateReference)
     }
 
+    @Test
+    fun testParseByteArray_DEZV_Sha1CertRef_WithTrailingSealBytes() {
+        // Regression: a real TR-03171 (DEZV) seal whose 40-char SHA-1 cert ref encodes its
+        // length as decimal "40" ("DEZV40"). Read as hex, "40" = 0x40 = 64 -> the parser
+        // over-reads 16 bytes; because trailing message/signature bytes follow the header,
+        // the over-read succeeds and (here) yields coincidentally valid dates, so the old
+        // radix-16-first strategy never fell back to radix 10 and silently mis-parsed the
+        // seal. The header-only round-trip test above does NOT catch this, because without
+        // trailing bytes the over-read underflows the buffer and triggers the fallback.
+        val rawSeal = (
+            "dc036abc6d38dc055f80585a34136c0b66913397209426a03acb788758f459461a74fe3860" +
+                "294a60294a01c900104f2b91c7a8e5402dbc3169d7e0a45f1803127473656e6765722e64652f" +
+                "70726f66696c65040f7473656e6765722e64652f6365727401083230323630363330020832303" +
+                "237303633300a0653656e6765720b06546f626961730c0831393739313030390d0c4d65676143" +
+                "6f7270204c74640e114175662064656d2048c3bc67656c2034370f053533333437100954303030" +
+                "30303037331106059f5d790c8c120105130101ff4062f15d53ba85cf1659e171762c2a910e46a6" +
+                "d1ae2c7d61d5f3be329e96ecbb0f65fcafdd4b6e48afef1250fcd98458c61e5e869176aa72d98bd" +
+                "fb7a851458acc"
+            ).hexToByteArray()
+
+        val buffer = Buffer().write(rawSeal)
+        val header = VdsHeader.fromBuffer(buffer)
+
+        assertEquals("DEZV", header.signerIdentifier)
+        assertEquals("B73A1D496D7ECCC46214F2335C6F7AA57A790577", header.certificateReference)
+        assertEquals("2026-06-30", header.issuingDate.toString())
+        assertEquals("2026-06-30", header.sigDate.toString())
+        // The header is exactly 44 bytes; trailing seal bytes must remain untouched so the
+        // subsequent DerTlv message/signature parsing stays aligned.
+        assertEquals((rawSeal.size - 44).toLong(), buffer.size)
+    }
+
 }

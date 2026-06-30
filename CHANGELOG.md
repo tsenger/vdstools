@@ -21,7 +21,14 @@ All notable changes to this project will be documented in this file.
   `DEZV` (e.g. a 40-char SHA-1 hex reference encodes to `DEZV40`), matching the
   BSI TR-03171 specification. Previously the length was always hex-encoded
   (producing `DEZV28` for a 40-char reference). Other signer identifiers keep the
-  ICAO hexadecimal encoding. Decoding already tolerated both encodings.
+  ICAO hexadecimal encoding.
+- TR-03171 / DEZV seals: decoding the cert ref length now uses the signer's
+  expected radix first (decimal for `DEZV`, hex otherwise), mirroring the encoder.
+  Previously decoding always tried hex first; for a `DEZV` length ≥ 10 (e.g. the
+  40-char SHA-1 reference encoded as `DEZV40`) this read `0x40` = 64, over-read 16
+  bytes, and — when trailing message/signature bytes happened to decode to valid
+  dates — never triggered the radix-10 fallback, mis-aligning the rest of the seal
+  and failing later with a `toIndex > size` error.
 
 ## [0.18.0] - 2026-06-23
 
