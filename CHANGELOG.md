@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-10-06
+
 ### Added
 - `VdsSeal.Builder.forProfileUuid(profileUuid)` — a typed factory to build a
   BSI TR-03171 seal for a registered document profile by its **UUID** instead of
@@ -244,7 +246,9 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-[Unreleased]: https://github.com/tsenger/vdstools/compare/v0.17.0...HEAD
+[Unreleased]: https://github.com/tsenger/vdstools/compare/v0.19.0...HEAD
+[0.19.0]: https://github.com/tsenger/vdstools/compare/v0.18.0...v0.19.0
+[0.18.0]: https://github.com/tsenger/vdstools/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/tsenger/vdstools/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/tsenger/vdstools/compare/v0.15.0...v0.16.0
 [0.15.0]: https://github.com/tsenger/vdstools/compare/v0.14.0...v0.15.0
