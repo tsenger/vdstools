@@ -157,6 +157,35 @@ internal class VdsMessageGroup {
             return addMessage(DataEncoder.vdsDocumentTypes.getMessageTag(baseVdsType, profileDefinition, name), value)
         }
 
+        /**
+         * Enforces the encoder-side requirements of BSI TR-03171 v0.9 (document category 0xC9):
+         * PROFILE_URI (0x03) and CERTIFICATE_URI (0x04) are mandatory, VALID_FROM (0x01) / VALID_TO (0x02)
+         * must be present or absent as the profile's validFromPresent / validToPresent demand, and all
+         * non-optional profile entries must be present. No-op for all other document types.
+         */
+        @Throws(IllegalArgumentException::class)
+        fun requireTr03171Conformance() {
+            if (baseVdsType != DataEncoder.ADMINISTRATIVE_DOCUMENTS_V9) return
+            val tags = derTlvList.map { it.tag.toInt() and 0xFF }.toSet()
+            require(3 in tags) { "TR-03171: PROFILE_URI (tag 0x03) is mandatory" }
+            require(4 in tags) { "TR-03171: CERTIFICATE_URI (tag 0x04) is mandatory" }
+            val definition = profileDefinition ?: return
+            requireDatePresence("VALID_FROM", 1, definition.validFromPresent, tags)
+            requireDatePresence("VALID_TO", 2, definition.validToPresent, tags)
+            val missing = definition.messages.filter { it.required && it.tag !in tags }.map { it.name }
+            require(missing.isEmpty()) {
+                "TR-03171: profile '${definition.definitionName}' requires missing field(s): ${missing.joinToString()}"
+            }
+        }
+
+        private fun requireDatePresence(name: String, tag: Int, mustBePresent: Boolean?, tags: Set<Int>) {
+            if (mustBePresent == null) return
+            require((tag in tags) == mustBePresent) {
+                if (mustBePresent) "TR-03171: $name (tag 0x0$tag) is required by the profile"
+                else "TR-03171: $name (tag 0x0$tag) must not be present according to the profile"
+            }
+        }
+
         @OptIn(ExperimentalStdlibApi::class)
         fun build(): VdsMessageGroup {
             val group = VdsMessageGroup(this)

@@ -161,7 +161,10 @@ class VdsSeal : Seal {
         fun <T> addMessage(tag: Int, value: T) = apply { messageBuilder.addMessage(tag, value) }
         fun <T> addMessage(name: String, value: T) = apply { messageBuilder.addMessage(name, value) }
 
-        fun build(signer: Signer): VdsSeal = VdsSeal(headerBuilder.build(), messageBuilder.build(), signer)
+        fun build(signer: Signer): VdsSeal {
+            messageBuilder.requireTr03171Conformance()
+            return VdsSeal(headerBuilder.build(), messageBuilder.build(), signer)
+        }
 
         companion object {
             /**

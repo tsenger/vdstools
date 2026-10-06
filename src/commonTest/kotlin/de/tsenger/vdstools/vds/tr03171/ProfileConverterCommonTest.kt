@@ -74,6 +74,14 @@ class ProfileConverterCommonTest {
     }
 
     @Test
+    fun testValidFromAndValidToPresentAreCarriedOver() {
+        val profile = createProfile(createEntry()).copy(validFromPresent = true, validToPresent = false)
+        val result = ProfileConverter.toVdsProfileDefinition(profile)
+        assertEquals(true, result.validFromPresent)
+        assertEquals(false, result.validToPresent)
+    }
+
+    @Test
     fun testVersionIsOne() {
         val profile = createProfile(createEntry())
         val result = ProfileConverter.toVdsProfileDefinition(profile)

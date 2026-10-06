@@ -230,7 +230,12 @@ class CreateTR03171Seals {
 
     @Test
     fun buildV9SealWithValidityDatesAndStatusUri() {
-        DataEncoder.loadVdsProfileDefinitionFromXml(v9ProfileXml)
+        // Validity dates may only be encoded if the profile demands them (validFromPresent/validToPresent)
+        DataEncoder.loadVdsProfileDefinitionFromXml(
+            v9ProfileXml
+                .replace("<validFromPresent>false", "<validFromPresent>true")
+                .replace("<validToPresent>false", "<validToPresent>true")
+        )
 
         val ecPrivKey = keystore.getKey("utts5b", keyStorePassword.toCharArray()) as BCECPrivateKey
         val signer = EcdsaSigner(ecPrivKey.encoded, "brainpoolP256r1")

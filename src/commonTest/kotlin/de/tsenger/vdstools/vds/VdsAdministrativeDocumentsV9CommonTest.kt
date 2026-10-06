@@ -1,6 +1,7 @@
 package de.tsenger.vdstools.vds
 
 import de.tsenger.vdstools.DataEncoder
+import de.tsenger.vdstools.Signer
 import de.tsenger.vdstools.generic.MessageValue
 import kotlinx.datetime.LocalDate
 import kotlin.test.*
@@ -479,5 +480,102 @@ class VdsAdministrativeDocumentsV9CommonTest {
         val buffer = okio.Buffer().write(VdsRawBytesCommon.administrativeDocumentV9Basic)
         val header = VdsHeader.fromBuffer(buffer)
         assertEquals(0xC9.toByte(), header.docTypeCat)
+    }
+
+    // -------------------------------------------------------------------------
+    // Seal building — encoder-side TR-03171 requirements
+    // -------------------------------------------------------------------------
+
+    private val dummySigner = object : Signer {
+        override val fieldSize = 256
+        override fun sign(data: ByteArray) = ByteArray(64)
+    }
+
+    private fun sealBuilder(profile: String = "TEST_V9_PROFILE") = VdsSeal.Builder(profile)
+        .issuingCountry("D<<")
+        .signerIdentifier("DEZV")
+        .certificateReference("00112233445566778899AABBCCDDEEFF00112233")
+
+    @Test
+    fun testBuild_withMandatoryUris_succeeds() {
+        val seal = sealBuilder()
+            .addMessage("PROFILE_URI", "example.com/profiles")
+            .addMessage("CERTIFICATE_URI", "example.com/certs")
+            .addMessage("SURNAME", "Mustermann")
+            .build(dummySigner)
+        assertEquals("Mustermann", seal.getMessageByName("SURNAME")?.value.toString())
+    }
+
+    @Test
+    fun testBuild_missingProfileUri_fails() {
+        val e = assertFailsWith<IllegalArgumentException> {
+            sealBuilder()
+                .addMessage("CERTIFICATE_URI", "example.com/certs")
+                .addMessage("SURNAME", "Mustermann")
+                .build(dummySigner)
+        }
+        assertTrue(e.message!!.contains("PROFILE_URI"), e.message)
+    }
+
+    @Test
+    fun testBuild_missingCertificateUri_fails() {
+        val e = assertFailsWith<IllegalArgumentException> {
+            sealBuilder()
+                .addMessage("PROFILE_URI", "example.com/profiles")
+                .addMessage("SURNAME", "Mustermann")
+                .build(dummySigner)
+        }
+        assertTrue(e.message!!.contains("CERTIFICATE_URI"), e.message)
+    }
+
+    @Test
+    fun testBuild_missingRequiredProfileEntry_fails() {
+        val e = assertFailsWith<IllegalArgumentException> {
+            sealBuilder()
+                .addMessage("PROFILE_URI", "example.com/profiles")
+                .addMessage("CERTIFICATE_URI", "example.com/certs")
+                .build(dummySigner)
+        }
+        assertTrue(e.message!!.contains("SURNAME"), e.message)
+    }
+
+    @Test
+    fun testBuild_validFromPresentFalse_rejectsValidFrom() {
+        // TEST_V9_PROFILE declares validFromPresent=false -> VALID_FROM must not be present
+        val e = assertFailsWith<IllegalArgumentException> {
+            sealBuilder()
+                .addMessage("PROFILE_URI", "example.com/profiles")
+                .addMessage("CERTIFICATE_URI", "example.com/certs")
+                .addMessage("VALID_FROM", LocalDate(2025, 1, 1))
+                .addMessage("SURNAME", "Mustermann")
+                .build(dummySigner)
+        }
+        assertTrue(e.message!!.contains("VALID_FROM"), e.message)
+    }
+
+    @Test
+    fun testBuild_validFromAndToPresentTrue_requiresBothDates() {
+        DataEncoder.loadVdsProfileDefinitionFromXml(
+            testProfileXml
+                .replace(testUuid, "11112222333344445555666677778888")
+                .replace("TEST_V9_PROFILE", "TEST_V9_DATED_PROFILE")
+                .replace("<validFromPresent>false", "<validFromPresent>true")
+                .replace("<validToPresent>false", "<validToPresent>true")
+        )
+        fun base() = sealBuilder("TEST_V9_DATED_PROFILE")
+            .addMessage("PROFILE_URI", "example.com/profiles")
+            .addMessage("CERTIFICATE_URI", "example.com/certs")
+            .addMessage("SURNAME", "Mustermann")
+
+        val e = assertFailsWith<IllegalArgumentException> {
+            base().addMessage("VALID_FROM", LocalDate(2025, 1, 1)).build(dummySigner)
+        }
+        assertTrue(e.message!!.contains("VALID_TO"), e.message)
+
+        val seal = base()
+            .addMessage("VALID_FROM", LocalDate(2025, 1, 1))
+            .addMessage("VALID_TO", LocalDate(2025, 12, 31))
+            .build(dummySigner)
+        assertEquals(2, seal.metadataMessageList.count { it.name == "VALID_FROM" || it.name == "VALID_TO" })
     }
 }

@@ -24,6 +24,8 @@ object ProfileConverter {
             definitionName = profile.profileName ?: profile.profileNumber,
             baseDocumentType = DataEncoder.ADMINISTRATIVE_DOCUMENTS_V9,
             version = 1,
+            validFromPresent = profile.validFromPresent,
+            validToPresent = profile.validToPresent,
             messages = profile.entries.map { toMessageDto(it) }
         )
     }
