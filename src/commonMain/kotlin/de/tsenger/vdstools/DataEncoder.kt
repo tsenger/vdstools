@@ -367,7 +367,7 @@ object DataEncoder {
      * i.e. the content octets of an ASN.1 INTEGER. Used by TR-03171 profile fields of ASN.1 type
      * `INTEGER` ([MessageCoding.INTEGER]).
      *
-     * Examples: 0 -> [00], 400 -> [01, 90], 255 -> [00, FF], -1 -> [FF].
+     * Examples: `0 -> [00]`, `400 -> [01, 90]`, `255 -> [00, FF]`, `-1 -> [FF]`.
      */
     fun encodeInteger(value: Long): ByteArray {
         val bytes = mutableListOf<Byte>()
