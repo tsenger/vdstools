@@ -29,6 +29,9 @@ All notable changes to this project will be documented in this file.
   profile types are encoded per ASN.1/X.690.
 
 ### Changed
+- Dependency updates: Kotlin 2.4.0 → 2.4.20, BouncyCastle 1.84 → 1.86,
+  xmlutil 0.91.3 → 1.0.2.1, Okio 3.17.0 → 3.18.2, Dokka 2.0.0 → 2.2.0,
+  ZXing (tests only) 3.5.3 → 3.5.4, Gradle wrapper 9.6.0 → 9.8.0.
 - TR-03171 v0.9 (0xC9): `VdsSeal.Builder.build()` now enforces the
   encoder-side requirements of the TR and throws `IllegalArgumentException` if
   `PROFILE_URI` (0x03) or `CERTIFICATE_URI` (0x04) is missing, if `VALID_FROM` /
