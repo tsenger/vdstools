@@ -85,18 +85,18 @@ class ProfileConverterCommonTest {
         val profile = createProfile(createEntry(type = Asn1Type.BOOLEAN))
         val result = ProfileConverter.toVdsProfileDefinition(profile)
         val msg = result.messages[0]
-        assertEquals(MessageCoding.BYTE, msg.coding)
+        assertEquals(MessageCoding.BOOLEAN, msg.coding)
         assertEquals(1, msg.maxBytes)
     }
 
     @Test
     fun testIntegerLength1MappedToInteger() {
-        // length is a validation constraint only; the coding stays INTEGER regardless of length
+        // TR-03171 §4: length is to be ignored for INTEGER; maxBytes is the INTEGER coding limit
         val profile = createProfile(createEntry(type = Asn1Type.INTEGER, length = 1))
         val result = ProfileConverter.toVdsProfileDefinition(profile)
         val msg = result.messages[0]
         assertEquals(MessageCoding.INTEGER, msg.coding)
-        assertEquals(1, msg.maxBytes)
+        assertEquals(8, msg.maxBytes)
     }
 
     @Test
@@ -105,7 +105,7 @@ class ProfileConverterCommonTest {
         val result = ProfileConverter.toVdsProfileDefinition(profile)
         val msg = result.messages[0]
         assertEquals(MessageCoding.INTEGER, msg.coding)
-        assertEquals(255, msg.maxBytes)
+        assertEquals(8, msg.maxBytes)
     }
 
     @Test
@@ -114,7 +114,7 @@ class ProfileConverterCommonTest {
         val result = ProfileConverter.toVdsProfileDefinition(profile)
         val msg = result.messages[0]
         assertEquals(MessageCoding.INTEGER, msg.coding)
-        assertEquals(4, msg.maxBytes)
+        assertEquals(8, msg.maxBytes)
     }
 
     @Test
@@ -168,8 +168,8 @@ class ProfileConverterCommonTest {
         val profile = createProfile(createEntry(type = Asn1Type.DATE_TIME))
         val result = ProfileConverter.toVdsProfileDefinition(profile)
         val msg = result.messages[0]
-        assertEquals(MessageCoding.DATE_TIME, msg.coding)
-        assertEquals(6, msg.maxBytes)
+        assertEquals(MessageCoding.DATE_TIME_STRING, msg.coding)
+        assertEquals(14, msg.maxBytes)
     }
 
     @Test
@@ -249,6 +249,6 @@ class ProfileConverterCommonTest {
 
         val housing = definition.messages.first { it.name == "HOUSING_STATUS" }
         assertEquals(MessageCoding.INTEGER, housing.coding)
-        assertEquals(1, housing.maxBytes)
+        assertEquals(8, housing.maxBytes)
     }
 }

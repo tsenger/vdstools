@@ -127,4 +127,18 @@ class MessageValueCommonTest {
         assertEquals(400L, value.value)
         assertContentEquals(bytes, value.rawBytes)
     }
+
+    @Test
+    fun testFromBytes_BOOLEAN_decodesCorrectly() {
+        val value = MessageValue.fromBytes("ff".hexToByteArray(), MessageCoding.BOOLEAN)
+        assertIs<MessageValue.BooleanValue>(value)
+        assertTrue(value.value)
+        assertEquals("true", value.toString())
+        assertFalse((MessageValue.fromBytes("00".hexToByteArray(), MessageCoding.BOOLEAN) as MessageValue.BooleanValue).value)
+    }
+
+    @Test
+    fun testFromBytes_BOOLEAN_wrongLengthFallsBackToBytes() {
+        assertIs<MessageValue.BytesValue>(MessageValue.fromBytes("ff00".hexToByteArray(), MessageCoding.BOOLEAN))
+    }
 }

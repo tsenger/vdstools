@@ -39,6 +39,20 @@ sealed class MessageValue {
         override fun hashCode(): Int = 31 * value.hashCode() + rawBytes.contentHashCode()
     }
 
+    data class BooleanValue(val value: Boolean, override val rawBytes: ByteArray) : MessageValue() {
+        override val decoded: Boolean get() = value
+
+        override fun toString(): String = decoded.toString()
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is BooleanValue) return false
+            return value == other.value && rawBytes.contentEquals(other.rawBytes)
+        }
+
+        override fun hashCode(): Int = 31 * value.hashCode() + rawBytes.contentHashCode()
+    }
+
     data class StringValue(val value: String, override val rawBytes: ByteArray) : MessageValue() {
         override val decoded: String get() = value
 
@@ -205,12 +219,14 @@ sealed class MessageValue {
                     }
 
                     MessageCoding.INTEGER -> IntegerValue(DataEncoder.decodeInteger(bytes), bytes)
+                    MessageCoding.BOOLEAN -> BooleanValue(DataEncoder.decodeBoolean(bytes), bytes)
                     MessageCoding.C40 -> StringValue(DataEncoder.decodeC40(bytes), bytes)
                     MessageCoding.UTF8_STRING -> StringValue(bytes.decodeToString(), bytes)
                     MessageCoding.DATE -> DateValue(DataEncoder.decodeDate(bytes), bytes)
                     // TR-03171 v0.9: 8-byte YYYYMMDD UTF-8 string; decoded result is the same DateValue type
                     MessageCoding.DATE_STRING -> DateValue(DataEncoder.decodeDateString(bytes), bytes)
                     MessageCoding.DATE_TIME -> DateTimeValue(DataEncoder.decodeDateTime(bytes), bytes)
+                    MessageCoding.DATE_TIME_STRING -> DateTimeValue(DataEncoder.decodeDateTimeString(bytes), bytes)
                     MessageCoding.MASKED_DATE -> MaskedDateValue(
                         DataEncoder.decodeMaskedDate(bytes),
                         bytes

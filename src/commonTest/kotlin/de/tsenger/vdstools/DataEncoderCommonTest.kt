@@ -439,4 +439,45 @@ class DataEncoderCommonTest {
         assertEquals("0190", DataEncoder.encodeValueByCoding(MessageCoding.INTEGER, 400L).toHexString())
     }
 
+    @Test
+    fun testEncodeValueByCodingBoolean() {
+        // DER: TRUE is 0xFF, FALSE is 0x00
+        assertEquals("ff", DataEncoder.encodeValueByCoding(MessageCoding.BOOLEAN, true).toHexString())
+        assertEquals("00", DataEncoder.encodeValueByCoding(MessageCoding.BOOLEAN, false).toHexString())
+        assertEquals("ff", DataEncoder.encodeValueByCoding(MessageCoding.BOOLEAN, "true").toHexString())
+        assertEquals("00", DataEncoder.encodeValueByCoding(MessageCoding.BOOLEAN, "false").toHexString())
+    }
+
+    @Test
+    fun testEncodeValueByCodingBooleanInvalid() {
+        assertFailsWith<IllegalArgumentException> { DataEncoder.encodeValueByCoding(MessageCoding.BOOLEAN, "yes") }
+        assertFailsWith<IllegalArgumentException> { DataEncoder.encodeValueByCoding(MessageCoding.BOOLEAN, 1) }
+    }
+
+    @Test
+    fun testDecodeBoolean() {
+        assertTrue(DataEncoder.decodeBoolean("ff".hexToByteArray()))
+        assertFalse(DataEncoder.decodeBoolean("00".hexToByteArray()))
+        // BER: any non-zero value is TRUE
+        assertTrue(DataEncoder.decodeBoolean("01".hexToByteArray()))
+        assertFailsWith<IllegalArgumentException> { DataEncoder.decodeBoolean("0000".hexToByteArray()) }
+    }
+
+    @Test
+    fun testEncodeDateTimeString() {
+        // ASN.1 DATE-TIME basic format YYYYMMDDHHMMSS as 14-byte UTF-8 string
+        val bytes = DataEncoder.encodeDateTimeString(LocalDateTime.parse("1957-03-25T08:15:22"))
+        assertEquals("19570325081522", bytes.decodeToString())
+        assertContentEquals(bytes, DataEncoder.encodeValueByCoding(MessageCoding.DATE_TIME_STRING, "1957-03-25T08:15:22"))
+    }
+
+    @Test
+    fun testDecodeDateTimeString() {
+        val expected = LocalDateTime.parse("1957-03-25T08:15:22")
+        assertEquals(expected, DataEncoder.decodeDateTimeString("19570325081522".encodeToByteArray()))
+        // the 6-byte ICAO format is not accepted
+        assertFailsWith<IllegalArgumentException> { DataEncoder.decodeDateTimeString(DataEncoder.encodeDateTime(expected)) }
+        assertFailsWith<IllegalArgumentException> { DataEncoder.decodeDateTimeString("2025010108".encodeToByteArray()) }
+    }
+
 }

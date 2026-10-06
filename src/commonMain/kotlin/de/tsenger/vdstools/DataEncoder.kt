@@ -393,6 +393,15 @@ object DataEncoder {
     fun encodeInteger(value: String): ByteArray = encodeInteger(value.trim().toLong())
 
     /**
+     * Decodes the single content octet of an ASN.1 BOOLEAN ([MessageCoding.BOOLEAN]). BER-tolerant:
+     * 0x00 is `false`, any other value is `true` (DER would require 0xFF).
+     */
+    fun decodeBoolean(bytes: ByteArray): Boolean {
+        require(bytes.size == 1) { "BOOLEAN requires exactly one byte, got ${bytes.size}" }
+        return bytes[0].toInt() != 0
+    }
+
+    /**
      * Decodes a big-endian two's-complement byte sequence (ASN.1 INTEGER content octets) back to a
      * [Long]. Inverse of [encodeInteger]. Supports up to 8 bytes.
      */
@@ -577,6 +586,17 @@ object DataEncoder {
                 else -> throw IllegalArgumentException("INTEGER coding expects Int, Long or decimal String, got ${value!!::class.simpleName}")
             }
 
+            // DER: TRUE = 0xFF, FALSE = 0x00
+            MessageCoding.BOOLEAN -> when (value) {
+                is Boolean -> byteArrayOf(if (value) 0xFF.toByte() else 0x00)
+                is String -> byteArrayOf(
+                    if (value.trim().toBooleanStrictOrNull()
+                            ?: throw IllegalArgumentException("BOOLEAN coding expects 'true' or 'false', got '$value'")
+                    ) 0xFF.toByte() else 0x00
+                )
+                else -> throw IllegalArgumentException("BOOLEAN coding expects Boolean or String, got ${value!!::class.simpleName}")
+            }
+
             MessageCoding.MASKED_DATE -> encodeMaskedDate(value as String)
             MessageCoding.DATE -> when (value) {
                 is LocalDate -> encodeDate(value)
@@ -589,6 +609,12 @@ object DataEncoder {
                 is LocalDate -> encodeDateString(value)
                 is String -> encodeDateString(value)
                 else -> throw IllegalArgumentException("DATE_STRING coding expects LocalDate or String (yyyy-MM-dd), got ${value!!::class.simpleName}")
+            }
+            // TR-03171 v0.9: ASN.1 DATE-TIME as YYYYMMDDHHMMSS 14-byte UTF-8 string
+            MessageCoding.DATE_TIME_STRING -> when (value) {
+                is LocalDateTime -> encodeDateTimeString(value)
+                is String -> encodeDateTimeString(value)
+                else -> throw IllegalArgumentException("DATE_TIME_STRING coding expects LocalDateTime or String (yyyy-MM-ddTHH:mm:ss), got ${value!!::class.simpleName}")
             }
             MessageCoding.VALIDITY_DATES -> when (value) {
                 is MessageValue.ValidityDatesValue -> value.rawBytes
@@ -727,6 +753,48 @@ object DataEncoder {
         val month = s.substring(4, 6).toInt()
         val day = s.substring(6, 8).toInt()
         return LocalDate(year, month, day)
+    }
+
+    /**
+     * Encodes a [LocalDateTime] as a 14-byte UTF-8 string in `YYYYMMDDHHMMSS` order (ASN.1 DATE-TIME
+     * contents octets per X.690 8.26.4), used by BSI TR-03171 v0.9 profile fields of type `DATE-TIME`.
+     * Analogous to [encodeDateString] for `DATE`.
+     *
+     * Example: 2025-01-01T08:15:22 → `"20250101081522"`
+     *
+     * @throws IllegalArgumentException if the year is outside the 4-digit range (0000–9999).
+     */
+    fun encodeDateTimeString(localDateTime: LocalDateTime): ByteArray {
+        require(localDateTime.year in 0..9999) {
+            "DATE_TIME_STRING supports only 4-digit years (0000–9999), got ${localDateTime.year}"
+        }
+        return (encodeDateString(localDateTime.date).decodeToString() +
+                localDateTime.hour.toString().padStart(2, '0') +
+                localDateTime.minute.toString().padStart(2, '0') +
+                localDateTime.second.toString().padStart(2, '0')).encodeToByteArray()
+    }
+
+    /**
+     * Convenience overload that parses an ISO-8601 date-time string (`yyyy-MM-ddTHH:mm:ss`) before encoding.
+     */
+    fun encodeDateTimeString(dateTimeString: String): ByteArray =
+        encodeDateTimeString(LocalDateTime.parse(dateTimeString))
+
+    /**
+     * Decodes a 14-byte UTF-8 string in `YYYYMMDDHHMMSS` order back to a [LocalDateTime].
+     * Inverse of [encodeDateTimeString].
+     *
+     * @throws IllegalArgumentException if the byte array is not exactly 14 bytes or the
+     *   string does not represent a valid date-time.
+     */
+    fun decodeDateTimeString(dateTimeBytes: ByteArray): LocalDateTime {
+        require(dateTimeBytes.size == 14) { "DATE_TIME_STRING requires exactly 14 bytes, got ${dateTimeBytes.size}" }
+        val s = dateTimeBytes.decodeToString()
+        require(s.all { it in '0'..'9' }) { "DATE_TIME_STRING must contain only ASCII digits, got: $s" }
+        return LocalDateTime(
+            decodeDateString(dateTimeBytes.copyOfRange(0, 8)),
+            kotlinx.datetime.LocalTime(s.substring(8, 10).toInt(), s.substring(10, 12).toInt(), s.substring(12, 14).toInt())
+        )
     }
 
     @Deprecated("Use DerTlv.parseAll()", ReplaceWith("DerTlv.parseAll(rawBytes)", "de.tsenger.vdstools.asn1.DerTlv"))

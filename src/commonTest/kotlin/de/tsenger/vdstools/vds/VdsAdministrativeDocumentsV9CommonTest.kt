@@ -193,13 +193,15 @@ class VdsAdministrativeDocumentsV9CommonTest {
     @Test
     fun testV9MessageGroup_statusListIndexInMetadataList() {
         val group = VdsMessageGroup.Builder("TEST_V9_PROFILE")
-            .addMessage("STATUS_LIST_INDEX", byteArrayOf(0x06, 0x79, 0x32)) // 424242 decimal
+            .addMessage("STATUS_LIST_INDEX", 424242)
             .addMessage("SURNAME", "Mustermann")
             .build()
 
         val idx = group.metadataMessageList.firstOrNull { it.name == "STATUS_LIST_INDEX" }
         assertNotNull(idx, "STATUS_LIST_INDEX must be present in metadataMessageList")
-        assertEquals("067932", idx.value.toString())
+        // TR-03171 Tabelle 12: ASN.1 INTEGER, 424242 -> 0x067932
+        assertEquals("067932", idx.value.rawBytes.toHexString())
+        assertEquals("424242", idx.value.toString())
     }
 
     // -------------------------------------------------------------------------
@@ -458,8 +460,9 @@ class VdsAdministrativeDocumentsV9CommonTest {
 
         val statusIdx = seal.metadataMessageList.firstOrNull { it.name == "STATUS_LIST_INDEX" }
         assertNotNull(statusIdx, "STATUS_LIST_INDEX must be present in metadataMessageList")
-        // Raw bytes: 0x067932 = 424242 decimal
-        assertEquals("067932", statusIdx.value.toString())
+        // Raw bytes: 0x067932 = 424242 decimal (ASN.1 INTEGER)
+        assertIs<MessageValue.IntegerValue>(statusIdx.value)
+        assertEquals("424242", statusIdx.value.toString())
     }
 
     // --- Header parsing ---

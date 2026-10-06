@@ -20,6 +20,15 @@ enum class MessageCoding {
      */
     INTEGER,
 
+    /**
+     * ASN.1 BOOLEAN as a single content octet. Used by BSI TR-03171 profile fields of ASN.1 type
+     * `BOOLEAN`. Encodes DER-strict (`TRUE` = 0xFF, `FALSE` = 0x00); decodes BER-tolerant (any
+     * non-zero octet is `TRUE`).
+     *
+     * Accepts [Boolean] or the [String]s `"true"` / `"false"` as input. Decodes to [MessageValue.BooleanValue].
+     */
+    BOOLEAN,
+
     MASKED_DATE,
     DATE,
     DATE_TIME,
@@ -72,6 +81,18 @@ enum class MessageCoding {
      * Decodes to [MessageValue.DateValue].
      */
     DATE_STRING,
+
+    /**
+     * Date-time encoding as a 14-byte ASCII/UTF-8 string in `YYYYMMDDHHMMSS` order (contents octets
+     * of an ASN.1 DATE-TIME per X.690 8.26.4), used by BSI TR-03171 version 0.9 profile fields of type
+     * `DATE-TIME`. Analogous to [DATE_STRING] for `DATE`.
+     *
+     * This is distinct from [DATE_TIME], which uses a 6-byte binary encoding as defined by ICAO.
+     *
+     * Accepts [kotlinx.datetime.LocalDateTime] or an ISO-8601 string (`yyyy-MM-ddTHH:mm:ss`) as input.
+     * Decodes to [MessageValue.DateTimeValue].
+     */
+    DATE_TIME_STRING,
 
     UNKNOWN;
 

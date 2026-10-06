@@ -492,7 +492,7 @@
       {
         "name": "STATUS_LIST_INDEX",
         "tag": 6,
-        "coding": "BYTES",
+        "coding": "INTEGER",
         "required": false,
         "minBytes": 1,
         "maxBytes": 4

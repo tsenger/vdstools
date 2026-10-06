@@ -14,6 +14,24 @@ All notable changes to this project will be documented in this file.
   `IllegalArgumentException` if no profile is registered for the UUID. The
   existing `VdsSeal.Builder(documentType)` constructor (base document type or
   predefined profile name) is unchanged. Additive, non-breaking.
+- `MessageCoding.BOOLEAN` with `MessageValue.BooleanValue` for TR-03171 profile
+  fields of ASN.1 type `BOOLEAN`. Encodes DER-strict (`true` → `0xFF`, `false` →
+  `0x00`; accepts `Boolean` or `"true"`/`"false"`), decodes BER-tolerant (any
+  non-zero octet is `true`). Profiles parsed from XML now map `BOOLEAN` to this
+  coding instead of `BYTE`.
+- `MessageCoding.DATE_TIME_STRING` for the 14-byte `YYYYMMDDHHMMSS` UTF-8
+  encoding of ASN.1 DATE-TIME (X.690 8.26.4), analogous to `DATE_STRING` for
+  DATE. Accepts `LocalDateTime` or an ISO string (`yyyy-MM-ddTHH:mm:ss`), decodes
+  to `DateTimeValue`. TR-03171 XML profile entries of type `DATE-TIME` now map to
+  this coding (`maxBytes` 14) instead of the 6-byte ICAO `DATE_TIME`, so all XML
+  profile types are encoded per ASN.1/X.690.
+
+### Changed
+- TR-03171 v0.9: `STATUS_LIST_INDEX` (tag 0x06) is now coded as ASN.1 `INTEGER`
+  (previously `BYTES`) and decodes to `IntegerValue` (e.g. `424242` instead of
+  `067932`). Building expects `Int`, `Long` or a decimal `String`.
+- TR-03171 XML profiles: the `length` of `INTEGER` entries is ignored as
+  specified in TR-03171 §4; `maxBytes` is now always 8 (the INTEGER coding limit).
 
 ### Fixed
 - TR-03171 / DEZV seals: the certificate reference length in the ICAO version 4

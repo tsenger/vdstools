@@ -43,23 +43,26 @@ object ProfileConverter {
 
     private fun mapCoding(type: Asn1Type): MessageCoding {
         return when (type) {
-            Asn1Type.BOOLEAN -> MessageCoding.BYTE
-            // length is a validation constraint only; the coding is always the dedicated INTEGER coding
+            Asn1Type.BOOLEAN -> MessageCoding.BOOLEAN
+            // the coding is always the dedicated INTEGER coding, independent of length
             Asn1Type.INTEGER -> MessageCoding.INTEGER
             Asn1Type.OCTET_STRING -> MessageCoding.BYTES
             Asn1Type.UTF8String -> MessageCoding.UTF8_STRING
             // TR-03171 uses ASN.1 DATE as YYYYMMDD UTF-8 (8 bytes), not the 3-byte ICAO binary format
             Asn1Type.DATE -> MessageCoding.DATE_STRING
-            Asn1Type.DATE_TIME -> MessageCoding.DATE_TIME
+            // analogous to DATE: ASN.1 DATE-TIME per X.690 as YYYYMMDDHHMMSS UTF-8 (14 bytes), not the 6-byte ICAO format
+            Asn1Type.DATE_TIME -> MessageCoding.DATE_TIME_STRING
         }
     }
 
     private fun mapMaxLength(type: Asn1Type, length: Int?): Int {
         return when (type) {
             Asn1Type.BOOLEAN -> 1
+            // TR-03171 §4: length is to be ignored for INTEGER; 8 bytes is the INTEGER coding limit
+            Asn1Type.INTEGER -> 8
             // DATE_STRING is 8 bytes (YYYYMMDD as UTF-8), not 3 bytes like the ICAO binary format
             Asn1Type.DATE -> 8
-            Asn1Type.DATE_TIME -> 6
+            Asn1Type.DATE_TIME -> 14
             else -> length ?: 255
         }
     }
