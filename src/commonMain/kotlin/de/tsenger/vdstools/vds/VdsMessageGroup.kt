@@ -98,6 +98,8 @@ internal class VdsMessageGroup {
     /**
      * Resolves the extended message definition based on the UUID in the specified tag.
      * This method should be called after parsing for seal types that require UUID lookup.
+     * The lookup goes through [DataEncoder.vdsProfileResolver], together with the seal's
+     * `PROFILE_URI` if the seal type defines one.
      *
      * @param uuidTag The tag number containing the UUID (typically 0)
      */
@@ -106,8 +108,17 @@ internal class VdsMessageGroup {
         if (uuidTlv != null) {
             documentProfileUuid = uuidTlv.value
             metadataTags.add(uuidTag)
-            profileDefinition = DataEncoder.vdsProfileDefinitions.resolve(uuidTlv.value)
+            profileDefinition = DataEncoder.vdsProfileResolver.resolve(uuidTlv.value, profileUri())
         }
+    }
+
+    private fun profileUri(): String? {
+        val tag = try {
+            DataEncoder.vdsDocumentTypes.getMessageTag(vdsType, "PROFILE_URI")
+        } catch (_: IllegalArgumentException) {
+            return null
+        }
+        return derTlvList.find { it.tag.toInt() == tag }?.value?.decodeToString()
     }
 
     internal class Builder private constructor() {

@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- `VdsProfileResolver` and `DataEncoder.vdsProfileResolver`: a replaceable hook
+  that supplies the profile definition while parsing UUID-based seals (BSI
+  TR-03171). It receives the profile UUID (Tag 0x00) and the seal's
+  `PROFILE_URI` (Tag 0x03), so applications loading profiles at runtime can keep
+  profiles with the same UUID from different sources apart. The default
+  (`DataEncoder.defaultVdsProfileResolver`) looks the UUID up in
+  `vdsProfileDefinitions` as before; `resetToDefaults()` restores it.
+  Parsing only: building seals still uses `vdsProfileDefinitions` directly.
+  Additive, non-breaking.
+
 ## [0.19.0] - 2026-10-06
 
 ### Added

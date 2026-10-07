@@ -2,6 +2,7 @@ package de.tsenger.vdstools.vds
 
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.Signer
+import de.tsenger.vdstools.VdsProfileResolver
 import de.tsenger.vdstools.generic.MessageValue
 import kotlinx.datetime.LocalDate
 import kotlin.test.*
@@ -577,5 +578,38 @@ class VdsAdministrativeDocumentsV9CommonTest {
             .addMessage("VALID_TO", LocalDate(2025, 12, 31))
             .build(dummySigner)
         assertEquals(2, seal.metadataMessageList.count { it.name == "VALID_FROM" || it.name == "VALID_TO" })
+    }
+
+    // -------------------------------------------------------------------------
+    // Profile resolver hook
+    // -------------------------------------------------------------------------
+
+    @Test
+    fun testParse_customResolver_receivesUuidAndProfileUri() {
+        var receivedUuid: String? = null
+        var receivedUri: String? = null
+        DataEncoder.vdsProfileResolver = VdsProfileResolver { uuid, profileUri ->
+            receivedUuid = uuid.toHexString()
+            receivedUri = profileUri
+            DataEncoder.defaultVdsProfileResolver.resolve(uuid, profileUri)
+        }
+        val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.administrativeDocumentV9Basic) as VdsSeal
+        assertEquals(testUuidHex, receivedUuid)
+        assertEquals("example.com/profiles", receivedUri)
+        assertEquals("TEST_V9_PROFILE", seal.documentType)
+    }
+
+    @Test
+    fun testParse_customResolverReturningNull_leavesProfileUnresolved() {
+        DataEncoder.vdsProfileResolver = VdsProfileResolver { _, _ -> null }
+        val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.administrativeDocumentV9Basic) as VdsSeal
+        assertEquals("ADMINISTRATIVE_DOCUMENTS_V9", seal.documentType)
+    }
+
+    @Test
+    fun testResetToDefaults_restoresDefaultResolver() {
+        DataEncoder.vdsProfileResolver = VdsProfileResolver { _, _ -> null }
+        DataEncoder.resetToDefaults()
+        assertSame(DataEncoder.defaultVdsProfileResolver, DataEncoder.vdsProfileResolver)
     }
 }

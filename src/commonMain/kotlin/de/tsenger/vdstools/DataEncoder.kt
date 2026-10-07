@@ -115,6 +115,16 @@ object DataEncoder {
     var vdsProfileDefinitions: VdsProfileDefinitionRegistry = VdsProfileDefinitionRegistry(ResourceConstants.VDS_PROFILE_DEFINITIONS_JSON)
         internal set
 
+    /** Default [VdsProfileResolver]: looks the UUID up in [vdsProfileDefinitions], ignoring the profile URI. */
+    val defaultVdsProfileResolver = VdsProfileResolver { uuid, _ -> vdsProfileDefinitions.resolve(uuid) }
+
+    /**
+     * Resolves the profile definition while parsing UUID-based seals. Replace it to supply
+     * profiles by (UUID, profile URI); [resetToDefaults] restores [defaultVdsProfileResolver].
+     * Not used when building seals, which look profiles up in [vdsProfileDefinitions] directly.
+     */
+    var vdsProfileResolver: VdsProfileResolver = defaultVdsProfileResolver
+
     /**
      * Resets all registries to their default values using the embedded JSON resources.
      *
@@ -127,6 +137,7 @@ object DataEncoder {
             idbMessageTypes = IdbMessageTypeRegistry(ResourceConstants.IDB_MESSAGE_TYPES_JSON)
             idbDocumentTypes = IdbDocumentTypeRegistry(ResourceConstants.IDB_DOCUMENT_TYPES_JSON)
             vdsProfileDefinitions = VdsProfileDefinitionRegistry(ResourceConstants.VDS_PROFILE_DEFINITIONS_JSON)
+            vdsProfileResolver = defaultVdsProfileResolver
             logI(TAG,"Reset all registries to defaults")
         } catch (e: Exception) {
             logE(TAG,"Failed to initialize from embedded resources: ${e.message}")
