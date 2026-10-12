@@ -40,7 +40,7 @@ xmlutil-core = { module = "io.github.pdvrieze.xmlutil:core", version.ref = "xmlu
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 
 # JVM Specific
-bouncycastle-bcprov = { module = "org.bouncycastle:bcprov-jdk15to18", version.ref = "bouncycastle" }
+bouncycastle-bcprov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
 
 # Testing
 junit = { module = "junit:junit", version.ref = "junit" }

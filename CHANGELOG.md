@@ -15,6 +15,12 @@ All notable changes to this project will be documented in this file.
   Parsing only: building seals still uses `vdsProfileDefinitions` directly.
   Additive, non-breaking.
 
+### Changed
+- JVM: BouncyCastle dependency switched from `bcprov-jdk15to18` back to
+  `bcprov-jdk18on`, the main BouncyCastle line. Applications that add
+  `bcprov-jdk15to18` themselves should switch to `jdk18on` too (or exclude one
+  of them), otherwise both jars end up on the classpath with duplicate classes.
+
 ## [0.19.0] - 2026-10-06
 
 ### Added
