@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-10-12
+
 ### Added
 - `VdsProfileResolver` and `DataEncoder.vdsProfileResolver`: a replaceable hook
   that supplies the profile definition while parsing UUID-based seals (BSI
@@ -263,7 +265,8 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-[Unreleased]: https://github.com/tsenger/vdstools/compare/v0.19.0...HEAD
+[Unreleased]: https://github.com/tsenger/vdstools/compare/v0.20.0...HEAD
+[0.20.0]: https://github.com/tsenger/vdstools/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/tsenger/vdstools/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/tsenger/vdstools/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/tsenger/vdstools/compare/v0.16.0...v0.17.0
