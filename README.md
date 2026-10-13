@@ -4,16 +4,19 @@
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)  ![Maven Central Version](https://img.shields.io/maven-central/v/de.tsenger/vdstools?color=green) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/tsenger/vdstools/gradle.build.yml)
 
-This a Kotlin multiplatform (JVM and iOS) library to decode/verify and encode/sign Visible Digital Seals (VDS) as
-specified in
+This is a Kotlin multiplatform (JVM and iOS) library to decode/verify and encode/sign
+Visible Digital Seals (VDS) and ICAO Datastructure for Barcode (IDB) seals.
 
-- [BSI TR-03137 Part 1](https://www.bsi.bund.de/EN/Themen/Unternehmen-und-Organisationen/Standards-und-Zertifizierung/Technische-Richtlinien/TR-nach-Thema-sortiert/tr03137/tr-03137.html)
-- [ICAO Doc 9303 Part 13: Visible Digital Seals](https://www2023.icao.int/publications/Documents/9303_p13_cons_en.pdf)
-- [ICAO TR "VDS for Non-Electronic Documents"](https://www2023.icao.int/Security/FAL/TRIP/Documents/TR%20-%20Visible%20Digital%20Seals%20for%20Non-Electronic%20Documents%20V1.7.pdf)
+Supported specifications:
 
-It also fully supports encoding and decoding Seals defined in the new draft
-of [ICAO Datastructure for Barcode](https://www.icao.int/sites/default/files/TRIP/Publications/ICAO-TR-ICAO-Datastructure-for-Barcode.pdf).
-VDS and ICD barcodes can be parsed by a generic interface. An example is given in the following chapter.
+| Specification                                                                                                                                              | Scope                                                         | Format   |
+|------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------|----------|
+| [ICAO Doc 9303 Part 13](https://www.icao.int/sites/default/files/publications/DocSeries/9303_p13_cons_en.pdf)                                              | Visible Digital Seals for travel and non-electronic documents | VDS      |
+| [ICAO Datastructure for Barcode](https://www.icao.int/sites/default/files/TRIP/Publications/ICAO-TR-ICAO-Datastructure-for-Barcode.pdf) (draft)            | Successor barcode format to VDS                               | IDB      |
+| [BSI TR-03137 Part 1](https://www.bsi.bund.de/EN/Themen/Unternehmen-und-Organisationen/Standards-und-Zertifizierung/Technische-Richtlinien/TR-nach-Thema-sortiert/tr03137/tr-03137.html) | German profiles for official documents (older ones as VDS, newer ones as IDB) | VDS, IDB |
+| [BSI TR-03171](https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Publikationen/TechnischeRichtlinien/TR03171/BSI-TR-03171.html) v0.9 (German only)      | Digital seals for administrative documents (extended VDS header, UUID-based profiles) | VDS-based |
+
+VDS and IDB barcodes can be parsed by a generic interface. An example is given in the following chapter.
 
 VDS can be created with the help of this library or, if you want to try it out quickly, via the
 web [Sealgen](https://sealgen.tsenger.de) tool.
@@ -246,7 +249,6 @@ You will also find an example on how to generate a datamatrix image with the Zxi
 VdsTools uses a JSON-based configuration to define seal document types and their message encodings which follows the
 encoding based on BSI TR-03137.
 VDS data according to BSI TR-03171 are also supported and can be parsed from document profiles.
-However, the official profile definitions and certificates are not yet publicly available.
 You can load your own custom codings at runtime to support additional document types beyond the standard ones.
 
 ### Loading Custom Codings

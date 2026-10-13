@@ -43,7 +43,7 @@ description:
     longDescription: >+
       VdsTools ist eine Softwarebibliothek zum (De-)kodieren, Verifizieren und
       Signieren von visuellen digitalen Siegeln (VDS). Diese visuellen digitalen
-      Siegel finden sich auf offiziellen Regierungsdokumenten wie:
+      Siegel finden sich auf amtlichen Dokumenten wie:
 
 
       - Aufenthaltsgenehmigungen
@@ -56,6 +56,8 @@ description:
 
       - Visa
 
+      - Verwaltungsdokumente nach BSI TR-03171
+
       - ...und zukünftigen Profilen
 
 
@@ -66,13 +68,13 @@ description:
       implementiert die folgenden Spezifikationen:
 
 
-      - BSI TR-03137-1
-
       - ICAO Doc 9303-13: Sichtbare digitale Siegel
 
-      - ICAO TR „VDS für nicht-elektronische Dokumente"
-
       - ICAO-Datenstruktur für Barcodes
+
+      - BSI TR-03137-1
+
+      - BSI TR-03171
 
 
       Die Releases sind auf Maven Central verfügbar und lassen sich leicht in
@@ -87,7 +89,7 @@ description:
         Neue Siegel für die amtliche Dokumentenausstellung erstellen und
         signieren
       - Unterstützung für ICAO-IDB-Barcodes sowie klassische VDS-Barcodes
-      - Konform mit BSI TR-03137 und ICAO Doc 9303-13
+      - Konform mit BSI TR-03137, BSI TR-03171 und ICAO Doc 9303-13
       - 'Lauffähig auf iOS, Android, Windows, macOS und Linux'
     genericName: Bibliothek für Digitale Siegel
   en:
@@ -97,7 +99,7 @@ description:
     longDescription: >
       VdsTools is a software library for decoding, verifying, encoding, and
       signing Visible Digital Seals (VDS). These visual digital seals are found
-      on official government documents such as:
+      on official and administrative documents such as:
 
 
       - Residence permits
@@ -110,6 +112,8 @@ description:
 
       - Visas
 
+      - Administrative documents according to BSI TR-03171
+
       - ... and upcoming profiles
 
 
@@ -119,13 +123,13 @@ description:
       library). The library implements the following specifications:
 
 
-      - BSI TR-03137-1
-
       - ICAO Doc 9303-13: Visible Digital Seals
 
-      - ICAO TR "VDS for Non-Electronic Documents"
-
       - ICAO Datastructure for Barcode
+
+      - BSI TR-03137-1
+
+      - BSI TR-03171
 
 
       Releases are available on Maven Central for easy integration into own
@@ -137,6 +141,6 @@ description:
       - Cryptographically verify the authenticity and integrity of digital seals
       - Create and digitally sign new seals for official document issuance
       - Support for ICAO IDB barcodes in addition to traditional VDS barcodes
-      - Compliant with BSI TR-03137 and ICAO Doc 9303-13 standards
+      - Compliant with BSI TR-03137, BSI TR-03171 and ICAO Doc 9303-13 standards
       - 'Works on iOS, Android, Windows, macOS, and Linux'
     genericName: Digital Seal Verification Library
