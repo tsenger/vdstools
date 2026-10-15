@@ -294,6 +294,15 @@ class VdsSealCommonTest {
     }
 
     @Test
+    fun testGetMessageByNameIgnoresCase() {
+        val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.meldebescheinigung) as VdsSeal
+        assertEquals("Mustermann", seal.getMessageByName("FAMILYNAME")?.value.toString())
+        assertEquals("Mustermann", seal.getMessageByName("familyname")?.value.toString())
+        // the returned message keeps the name from the profile
+        assertEquals("familyName", seal.getMessageByName("FAMILYNAME")?.name)
+    }
+
+    @Test
     fun testMeldebescheinigung_newApi() {
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.meldebescheinigung) as VdsSeal
         assertNotNull(seal)

@@ -256,6 +256,12 @@ v0.9 → 0xC9):
 DataEncoder.loadVdsProfileDefinitionFromXml(xmlString)
 ```
 
+Message names and the document type name are taken verbatim from the definition. The bundled JSON registries use
+`UPPER_SNAKE_CASE` (e.g. `SURNAME`), while TR-03171 XML profiles use whatever the profile publisher chose for `<name>`
+and `<profileName>` (e.g. `familyName` or `Familienname`, document type `Meldebestätigung`); a profile without
+`<profileName>` gets its UUID as document type name. `getMessageByName()` ignores case. Tools that map message names
+to other languages should key their mapping on profile UUID and tag rather than on the name.
+
 You can load your own custom codings at runtime to support additional document types beyond the standard ones.
 
 ### Loading Custom Codings

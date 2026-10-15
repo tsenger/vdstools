@@ -22,6 +22,14 @@ All notable changes to this project will be documented in this file.
   `VdsProfileDefinitionRegistry` starts empty and has a no-arg constructor.
   0xC8/0xC9 seals can only be decoded after their profile has been loaded with
   `loadVdsProfileDefinitionFromXml()`.
+- **Breaking:** message and document type names of TR-03171 seals now come
+  verbatim from the XML profile, so the former `MELDEBESCHEINIGUNG` names change
+  (e.g. `SURNAME` → `familyName`, `FIRST_NAME` → `givenName`,
+  `MOVING_DATE` → `dateOfMoving`, document type `Meldebestätigung`). Date
+  fields of v0.8 profiles decode as `DateValue` instead of a string.
+- `getMessageByName()` (on `Seal`, `VdsMessageGroup`, `IdbMessageGroup` and
+  `Message`) now ignores case, matching the name lookup used when building
+  seals.
 - **Breaking:** `ProfileDto.versionTR` is now a `TrVersion` enum (`V0_8`,
   `V0_9`) instead of a `String`; `validFromPresent`/`validToPresent` are
   nullable (`null` for v0.8).

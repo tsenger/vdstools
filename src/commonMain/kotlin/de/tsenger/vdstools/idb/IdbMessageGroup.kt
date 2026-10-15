@@ -28,8 +28,9 @@ internal class IdbMessageGroup {
         return messageList.firstOrNull { it.tag == messageTag }
     }
 
+    /** Looks up a message by name, ignoring case (names come verbatim from the definition or profile). */
     fun getMessageByName(messageName: String): Message? {
-        return messageList.firstOrNull { it.name == messageName }
+        return messageList.firstOrNull { it.name.equals(messageName, ignoreCase = true) }
     }
 
     @Deprecated("Use getMessageByName(messageName) instead", ReplaceWith("getMessageByName(messageName)"))

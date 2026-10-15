@@ -52,6 +52,13 @@ class SealCommonTest {
     }
 
     @Test
+    fun testIdbGetMessageNameIgnoresCase() {
+        val seal = parser.parse(IcbRawStringsCommon.TemporaryPassport)
+        assertEquals(seal.getMessageByName("MRZ_TD3")?.value.toString(), seal.getMessageByName("mrz_td3")?.value.toString())
+        assertEquals("MRZ_TD3", seal.getMessageByName("mrz_td3")?.name)
+    }
+
+    @Test
     fun testIdbGetMessageName_newApi() {
         val seal = parser.parse(IcbRawStringsCommon.TemporaryPassport)
         val mrz = seal.getMessageByName("MRZ_TD3")?.value.toString()

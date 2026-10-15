@@ -21,8 +21,9 @@ class Message(
             DerTlv(tag.toByte(), value.rawBytes).encoded
         }
 
+    /** Looks up a sub-message by name, ignoring case. */
     fun getMessageByName(name: String): Message? {
-        return messageList.firstOrNull { it.name == name }
+        return messageList.firstOrNull { it.name.equals(name, ignoreCase = true) }
     }
 
     fun getMessageByTag(tag: Int): Message? {

@@ -156,6 +156,10 @@ class IdbMessageGroupCommonTest {
         val event = messageGroup.getMessageByName("PROOF_OF_VACCINATION")
             ?.getMessageByName("VACCINATION_EVENT")
         assertNotNull(event)
+        // name lookup ignores case, on the group and on sub-messages
+        val eventIgnoringCase = messageGroup.getMessageByName("proof_of_vaccination")?.getMessageByName("vaccination_event")
+        assertEquals(event.name, eventIgnoringCase?.name)
+        assertEquals(event.tag, eventIgnoringCase?.tag)
 
         // VACCINATION_EVENT should have sub-messages
         assertTrue(event.messageList.isNotEmpty(), "VACCINATION_EVENT should have sub-messages")

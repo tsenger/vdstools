@@ -81,8 +81,9 @@ internal class VdsMessageGroup {
             return result
         }
 
+    /** Looks up a message by name, ignoring case (names come verbatim from the definition or profile). */
     fun getMessageByName(messageName: String): Message? {
-        return messageList.firstOrNull { message: Message -> message.name == messageName }
+        return messageList.firstOrNull { message: Message -> message.name.equals(messageName, ignoreCase = true) }
     }
 
     fun getMessageByTag(messageTag: Int): Message? {
