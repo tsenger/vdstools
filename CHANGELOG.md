@@ -29,7 +29,9 @@ All notable changes to this project will be documented in this file.
   fields of v0.8 profiles decode as `DateValue` instead of a string.
 - `getMessageByName()` (on `Seal`, `VdsMessageGroup`, `IdbMessageGroup` and
   `Message`) now ignores case, matching the name lookup used when building
-  seals.
+  seals. Building IDB messages by name (`IdbMessageGroup.Builder`, including
+  sub-messages) and the name lookups of `IdbMessageTypeRegistry` ignore case as
+  well; an exact match still takes precedence.
 - **Breaking:** `ProfileDto.versionTR` is now a `TrVersion` enum (`V0_8`,
   `V0_9`) instead of a `String`; `validFromPresent`/`validToPresent` are
   nullable (`null` for v0.8).

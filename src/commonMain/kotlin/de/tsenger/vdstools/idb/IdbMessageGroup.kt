@@ -52,7 +52,7 @@ internal class IdbMessageGroup {
         val derTlvList: MutableList<DerTlv> = ArrayList(5)
 
         private fun resolveTag(name: String): Int {
-            val fromDefs = subMessageDefs?.firstOrNull { it.name == name }?.tag
+            val fromDefs = subMessageDefs?.firstOrNull { it.name.equals(name, ignoreCase = true) }?.tag
             if (fromDefs != null) return fromDefs
             return DataEncoder.idbMessageTypes.getMessageType(name) ?: 0
         }

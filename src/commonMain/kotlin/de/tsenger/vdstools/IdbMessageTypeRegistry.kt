@@ -69,7 +69,7 @@ class IdbMessageTypeRegistry(jsonString: String) : DefinitionRegistry {
      * @return The tag value, or `null` if the name is not registered
      */
     fun getMessageType(messageTypeName: String): Int? {
-        return messageTypesInverse[messageTypeName]?.tag
+        return findByName(messageTypeName)?.tag
     }
 
     /**
@@ -79,7 +79,7 @@ class IdbMessageTypeRegistry(jsonString: String) : DefinitionRegistry {
      * @return The [MessageCoding], or [MessageCoding.UNKNOWN] if the name is not registered
      */
     fun getMessageTypeCoding(messageTypeName: String): MessageCoding {
-        return messageTypesInverse[messageTypeName]?.coding ?: MessageCoding.UNKNOWN
+        return findByName(messageTypeName)?.coding ?: MessageCoding.UNKNOWN
     }
 
     /**
@@ -109,8 +109,13 @@ class IdbMessageTypeRegistry(jsonString: String) : DefinitionRegistry {
      * @return The [IdbMessageTypeDto], or `null` if the name is not registered
      */
     fun getMessageTypeDto(name: String): IdbMessageTypeDto? {
-        return messageTypesInverse[name]
+        return findByName(name)
     }
+
+    // exact match first, then ignoring case (consistent with getMessageByName)
+    private fun findByName(name: String): IdbMessageTypeDto? =
+        messageTypesInverse[name]
+            ?: messageTypesInverse.entries.firstOrNull { it.key.equals(name, ignoreCase = true) }?.value
 
     fun asResolver(): MessageDefinitionResolver = object : MessageDefinitionResolver {
         override fun resolveByTag(tag: String): MessageDefinition? {

@@ -5,6 +5,7 @@ import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generic.MessageCoding
 import kotlinx.io.IOException
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -254,5 +255,28 @@ class IdbMessageGroupCommonTest {
         val can = messageGroup.getMessageByName("CAN")
         assertNotNull(can)
         assertTrue(can.messageList.isEmpty(), "Non-container messages should have empty messages list")
+    }
+
+    @Test
+    fun testBuilderResolvesNamesIgnoringCase() {
+        fun build(sex: String, event: String, brand: String) = IdbMessageGroup.Builder()
+            .addMessage("PROOF_OF_VACCINATION") {
+                addMessage("UVCI", "01DE1234V1")
+                addMessage(sex, "M")
+                addMessage(event) {
+                    addMessage(brand, "COVAX")
+                }
+            }
+            .build()
+
+        // top-level names resolve via the registry, sub-message names via the parent's definitions
+        val upper = build("SEX", "VACCINATION_EVENT", "VACCINE_BRAND")
+        val lower = build("sex", "vaccination_event", "vaccine_brand")
+        assertContentEquals(upper.encoded, lower.encoded)
+        assertEquals(
+            "COVAX",
+            lower.getMessageByName("PROOF_OF_VACCINATION")?.getMessageByName("VACCINATION_EVENT")
+                ?.getMessageByName("VACCINE_BRAND")?.value.toString()
+        )
     }
 }
