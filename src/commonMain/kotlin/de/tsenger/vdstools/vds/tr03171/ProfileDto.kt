@@ -1,17 +1,21 @@
 package de.tsenger.vdstools.vds.tr03171
 
 /**
- * Parsed representation of a TR-03171 v0.9 document profile (the `<profile>` XML element).
+ * Parsed representation of a TR-03171 v0.8 or v0.9 document profile (the `<profile>` XML element).
  *
  * The metadata fields below are *not* encoded into the seal itself; they describe and
  * identify the profile. Only [profileNumber] additionally appears in the seal (Tag 0x00 of
- * the message zone). The actual seal content fields are described by [entries] (tags 0x0A–0xFE).
+ * the message zone). The actual seal content fields are described by [entries]
+ * (v0.8: tags 0x04–0xFE, v0.9: tags 0x0A–0xFE).
  */
 data class ProfileDto(
     /** UUIDv4 (32 uppercase hex chars, no dashes) uniquely identifying the profile. Mandatory. */
     val profileNumber: String,
-    /** Version of the Technical Guideline the profile conforms to (`versionTR`). Mandatory. */
-    val versionTR: String,
+    /**
+     * Version of the Technical Guideline the profile conforms to (`versionTR`).
+     * v0.8 profiles usually omit `versionTR`; a missing element is treated as [TrVersion.V0_8].
+     */
+    val versionTR: TrVersion,
     /** Human-readable profile name. Optional. */
     val profileName: String? = null,
     /** Organisational unit responsible for the profile. Optional. */
@@ -20,10 +24,13 @@ data class ProfileDto(
     val category: String? = null,
     /** One or more 14-digit LeiKa IDs separated by `;`. Optional. */
     val leikaID: String? = null,
-    /** Whether the validity start date (Tag 0x01) must be present in the seal. Mandatory. */
-    val validFromPresent: Boolean,
-    /** Whether the validity end date (Tag 0x02) must be present in the seal. Mandatory. */
-    val validToPresent: Boolean,
-    /** The seal's content fields (tags 0x0A–0xFE). */
+    /**
+     * Whether the validity start date (Tag 0x01) must be present in the seal. Mandatory in v0.9.
+     * `null` for v0.8, which has no such flag (validity is carried by the optional VALIDITY_DATES, Tag 0x01).
+     */
+    val validFromPresent: Boolean? = null,
+    /** Same as [validFromPresent] for the validity end date (Tag 0x02). */
+    val validToPresent: Boolean? = null,
+    /** The seal's content fields (v0.8: tags 0x04–0xFE, v0.9: tags 0x0A–0xFE). */
     val entries: List<ProfileEntryDto>
 )

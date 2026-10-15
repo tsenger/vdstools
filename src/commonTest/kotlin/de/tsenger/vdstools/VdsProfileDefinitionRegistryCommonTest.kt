@@ -1,34 +1,36 @@
 package de.tsenger.vdstools
 
+import de.tsenger.vdstools.generic.MessageCoding
+import de.tsenger.vdstools.vds.dto.MessageDto
+import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
 import kotlin.test.*
 
 @OptIn(ExperimentalStdlibApi::class)
 class VdsProfileDefinitionRegistryCommonTest {
 
-    private val testDefinitionsJson = """
-        [
-          {
-            "definitionId": "9a4223406d374ef99e2cf95e31a23846",
-            "definitionName": "MELDEBESCHEINIGUNG",
-            "baseDocumentType": "ADMINISTRATIVE_DOCUMENTS_V8",
-            "version": 1,
-            "messages": [
-              {"name": "SURNAME", "tag": 4, "coding": "UTF8_STRING", "required": true, "minBytes": 1, "maxBytes": 255}
-            ]
-          },
-          {
-            "definitionId": "550e8400e29b41d4a716446655440002",
-            "definitionName": "TEST_DEFINITION",
-            "baseDocumentType": "ADMINISTRATIVE_DOCUMENTS_V8",
-            "version": 1,
-            "messages": []
-          }
-        ]
-    """.trimIndent()
+    private val meldebescheinigung = VdsProfileDefinitionDto(
+        definitionId = "9a4223406d374ef99e2cf95e31a23846",
+        definitionName = "MELDEBESCHEINIGUNG",
+        baseDocumentType = "ADMINISTRATIVE_DOCUMENTS_V8",
+        version = 1,
+        messages = listOf(MessageDto("SURNAME", 4, MessageCoding.UTF8_STRING, true, 1, 255))
+    )
+
+    private val testDefinition = VdsProfileDefinitionDto(
+        definitionId = "550e8400e29b41d4a716446655440002",
+        definitionName = "TEST_DEFINITION",
+        baseDocumentType = "ADMINISTRATIVE_DOCUMENTS_V8",
+        version = 1
+    )
+
+    private fun createRegistry() = VdsProfileDefinitionRegistry().apply {
+        addDefinition(meldebescheinigung)
+        addDefinition(testDefinition)
+    }
 
     @Test
     fun testResolveByBytes() {
-        val registry = VdsProfileDefinitionRegistry(testDefinitionsJson)
+        val registry = createRegistry()
         val uuidBytes = "9a4223406d374ef99e2cf95e31a23846".hexToByteArray()
 
         val definition = registry.resolve(uuidBytes)
@@ -41,7 +43,7 @@ class VdsProfileDefinitionRegistryCommonTest {
 
     @Test
     fun testResolveByHexString() {
-        val registry = VdsProfileDefinitionRegistry(testDefinitionsJson)
+        val registry = createRegistry()
 
         val definition = registry.resolve("9a4223406d374ef99e2cf95e31a23846")
 
@@ -51,7 +53,7 @@ class VdsProfileDefinitionRegistryCommonTest {
 
     @Test
     fun testResolveByHexStringUppercase() {
-        val registry = VdsProfileDefinitionRegistry(testDefinitionsJson)
+        val registry = createRegistry()
 
         val definition = registry.resolve("9A4223406D374EF99E2CF95E31A23846")
 
@@ -61,7 +63,7 @@ class VdsProfileDefinitionRegistryCommonTest {
 
     @Test
     fun testResolveByHexStringWithDashes() {
-        val registry = VdsProfileDefinitionRegistry(testDefinitionsJson)
+        val registry = createRegistry()
 
         val definition = registry.resolve("9a422340-6d37-4ef9-9e2c-f95e31a23846")
 
@@ -71,7 +73,7 @@ class VdsProfileDefinitionRegistryCommonTest {
 
     @Test
     fun testResolveUnknownDefinition() {
-        val registry = VdsProfileDefinitionRegistry(testDefinitionsJson)
+        val registry = createRegistry()
         val unknownUuid = "00000000000000000000000000000000".hexToByteArray()
 
         val definition = registry.resolve(unknownUuid)
@@ -81,7 +83,7 @@ class VdsProfileDefinitionRegistryCommonTest {
 
     @Test
     fun testResolveInvalidUuidLength() {
-        val registry = VdsProfileDefinitionRegistry(testDefinitionsJson)
+        val registry = createRegistry()
         val shortUuid = "9a422340".hexToByteArray()
 
         val definition = registry.resolve(shortUuid)
@@ -91,7 +93,7 @@ class VdsProfileDefinitionRegistryCommonTest {
 
     @Test
     fun testAvailableDefinitions() {
-        val registry = VdsProfileDefinitionRegistry(testDefinitionsJson)
+        val registry = createRegistry()
 
         val definitions = registry.availableDefinitions
 
@@ -102,7 +104,7 @@ class VdsProfileDefinitionRegistryCommonTest {
 
     @Test
     fun testAvailableDefinitionUuids() {
-        val registry = VdsProfileDefinitionRegistry(testDefinitionsJson)
+        val registry = createRegistry()
 
         val uuids = registry.availableDefinitionUuids
 
@@ -113,7 +115,7 @@ class VdsProfileDefinitionRegistryCommonTest {
 
     @Test
     fun testResolveSecondDefinition() {
-        val registry = VdsProfileDefinitionRegistry(testDefinitionsJson)
+        val registry = createRegistry()
         val uuidBytes = "550e8400e29b41d4a716446655440002".hexToByteArray()
 
         val definition = registry.resolve(uuidBytes)
@@ -123,8 +125,8 @@ class VdsProfileDefinitionRegistryCommonTest {
     }
 
     @Test
-    fun testEmptyDefinitionsJson() {
-        val registry = VdsProfileDefinitionRegistry("[]")
+    fun testNewRegistryIsEmpty() {
+        val registry = VdsProfileDefinitionRegistry()
 
         assertTrue(registry.availableDefinitions.isEmpty())
         assertTrue(registry.availableDefinitionUuids.isEmpty())
@@ -132,7 +134,7 @@ class VdsProfileDefinitionRegistryCommonTest {
 
     @Test
     fun testDefinitionMessages() {
-        val registry = VdsProfileDefinitionRegistry(testDefinitionsJson)
+        val registry = createRegistry()
         val uuidBytes = "9a4223406d374ef99e2cf95e31a23846".hexToByteArray()
 
         val definition = registry.resolve(uuidBytes)
@@ -141,5 +143,16 @@ class VdsProfileDefinitionRegistryCommonTest {
         assertEquals(1, definition.messages.size)
         assertEquals("SURNAME", definition.messages[0].name)
         assertEquals(4, definition.messages[0].tag)
+    }
+
+    @Test
+    fun testAddDefinitionWithSameUuidReplacesOldName() {
+        val registry = createRegistry()
+        registry.addDefinition(meldebescheinigung.copy(definitionName = "Meldebestätigung"))
+
+        assertEquals("Meldebestätigung", registry.resolve("9a4223406d374ef99e2cf95e31a23846")?.definitionName)
+        assertNotNull(registry.resolveByName("Meldebestätigung"))
+        assertNull(registry.resolveByName("MELDEBESCHEINIGUNG"))
+        assertEquals(2, registry.availableDefinitions.size)
     }
 }

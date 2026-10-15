@@ -3,7 +3,6 @@ package de.tsenger.vdstools
 import de.tsenger.vdstools.internal.logD
 import de.tsenger.vdstools.internal.logW
 import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
-import kotlinx.serialization.json.Json
 
 /**
  * Registry for extended message definitions based on UUID lookup.
@@ -16,29 +15,14 @@ import kotlinx.serialization.json.Json
  * This extends the limited 256-value space of Document Feature Definition Reference in the header
  * by using UUIDs in the message zone for dynamic definition registration.
  *
- * @param jsonString JSON content containing extended message definitions
+ * The registry starts empty; definitions are added from TR-03171 XML document profiles via
+ * [DataEncoder.loadVdsProfileDefinitionFromXml].
  */
 @OptIn(ExperimentalStdlibApi::class)
-class VdsProfileDefinitionRegistry(jsonString: String) : DefinitionRegistry {
+class VdsProfileDefinitionRegistry {
     private val tag = this::class.simpleName ?: ""
-    private var definitionsByUuid: Map<String, VdsProfileDefinitionDto>
-    private var definitionsByName: Map<String, VdsProfileDefinitionDto>
-
-    companion object {
-        private val json = Json { ignoreUnknownKeys = true }
-    }
-
-    init {
-        val definitionList: List<VdsProfileDefinitionDto> = json.decodeFromString(jsonString)
-        definitionsByUuid = definitionList.associateBy { it.definitionId.lowercase() }
-        definitionsByName = definitionList.associateBy { it.definitionName }
-        logD(tag,"Loaded ${definitionsByUuid.size} VDS profile definitions")
-    }
-
-    override fun addEntriesFromJson(jsonString: String) {
-        val newDtos = json.decodeFromString<List<VdsProfileDefinitionDto>>(jsonString)
-        newDtos.forEach { addDefinition(it) }
-    }
+    private var definitionsByUuid: Map<String, VdsProfileDefinitionDto> = emptyMap()
+    private var definitionsByName: Map<String, VdsProfileDefinitionDto> = emptyMap()
 
     /**
      * Resolves an extended message definition based on the UUID bytes.
@@ -93,7 +77,14 @@ class VdsProfileDefinitionRegistry(jsonString: String) : DefinitionRegistry {
      * @param definition The definition to add
      */
     fun addDefinition(definition: VdsProfileDefinitionDto) {
-        definitionsByUuid = definitionsByUuid + (definition.definitionId.lowercase() to definition)
+        val uuid = definition.definitionId.lowercase()
+        val replaced = definitionsByUuid[uuid]
+        if (replaced != null) {
+            logW(tag, "Replacing definition ${replaced.definitionName} for UUID: $uuid")
+            // drop the old name so it no longer resolves to the replaced definition
+            definitionsByName = definitionsByName - replaced.definitionName
+        }
+        definitionsByUuid = definitionsByUuid + (uuid to definition)
         definitionsByName = definitionsByName + (definition.definitionName to definition)
         logD(tag,"Added definition: ${definition.definitionName} (${definition.definitionId})")
     }
@@ -101,7 +92,7 @@ class VdsProfileDefinitionRegistry(jsonString: String) : DefinitionRegistry {
     /**
      * Resolves an extended message definition by its definition name.
      *
-     * @param definitionName The definition name (e.g., "MELDEBESCHEINIGUNG")
+     * @param definitionName The definition name (e.g., "Meldebestätigung")
      * @return The matching VdsProfileDefinitionDto, or null if no definition matches
      */
     fun resolveByName(definitionName: String): VdsProfileDefinitionDto? {

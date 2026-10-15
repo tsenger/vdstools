@@ -34,8 +34,9 @@ import okio.*
  * These types use a two-stage lookup: the header's `documentRef` points to a base type
  * (`ADMINISTRATIVE_DOCUMENTS_V8` for TR-03171 v0.8 / 0xC8, or `ADMINISTRATIVE_DOCUMENTS_V9`
  * for TR-03171 v0.9 / 0xC9), and Tag 0 of the message zone carries a 16-byte UUID
- * (Dokumentenprofilnummer) that identifies the actual profile in
- * `VdsProfileDefinitions.json`. V9 seals additionally reserve tags 0x01–0x06 in the
+ * (Dokumentenprofilnummer) that identifies the actual profile. These profiles are not bundled;
+ * they are loaded at runtime from TR-03171 XML document profiles via
+ * [loadVdsProfileDefinitionFromXml]. V9 seals additionally reserve tags 0x01–0x06 in the
  * message zone for standard metadata (validity dates, profile URI, certificate URI, etc.).
  *
  * ## IDB – ICAO Datastructure for Barcode (ICAO TR-IDB)
@@ -50,7 +51,6 @@ import okio.*
  * | File | Standard | Registry | Purpose |
  * |---|---|---|---|
  * | `VdsDocumentTypes.json` | VDS | [vdsDocumentTypes] | Document type profiles: `documentRef` ↔ name ↔ messages |
- * | `VdsProfileDefinitions.json` | VDS | [vdsProfileDefinitions] | UUID-based profile definitions for administrative documents |
  * | `IdbMessageTypes.json` | IDB | [idbMessageTypes] | IDB message type definitions: tag ↔ name ↔ coding |
  * | `IdbGermanDocumentTypes.json` | IDB | [idbDocumentTypes] | Document types: tag ↔ name ↔ expected messages |
  *
@@ -65,7 +65,6 @@ import okio.*
  * DataEncoder.replaceCustomVdsDocumentTypes(myJsonString)
  * DataEncoder.replaceCustomIdbMessageTypes(myJsonString)
  * DataEncoder.replaceCustomIdbDocumentTypes(myJsonString)
- * DataEncoder.replaceCustomVdsProfileDefinitions(myJsonString)
  *
  * // Or from a file (resolved via readTextResource):
  * DataEncoder.replaceCustomVdsDocumentTypesFromFile("my_vds_document_types.json")
@@ -74,10 +73,8 @@ import okio.*
  * DataEncoder.addCustomVdsDocumentTypes(myJsonString)
  * DataEncoder.addCustomIdbMessageTypes(myJsonString)
  * DataEncoder.addCustomIdbDocumentTypes(myJsonString)
- * DataEncoder.addCustomVdsProfileDefinitions(myJsonString)
  *
- * // For VDS profile definitions, individual profiles can also be added without
- * // replacing the entire registry (supports JSON and TR-03171 XML format):
+ * // TR-03171 administrative document profiles (UUID-based) are added from XML:
  * DataEncoder.loadVdsProfileDefinitionFromXml(xmlString)
  *
  * // Revert all registries to the embedded defaults:
@@ -95,7 +92,7 @@ object DataEncoder {
 
     /**
      * Base VDS document type for TR-03171 v0.9 administrative document seals
-     * (document category 0xC9 / documentRef 0x01C9). Default for newly loaded profiles.
+     * (document category 0xC9 / documentRef 0x01C9).
      */
     const val ADMINISTRATIVE_DOCUMENTS_V9 = "ADMINISTRATIVE_DOCUMENTS_V9"
 
@@ -111,8 +108,8 @@ object DataEncoder {
     var idbDocumentTypes: IdbDocumentTypeRegistry = IdbDocumentTypeRegistry(ResourceConstants.IDB_DOCUMENT_TYPES_JSON)
         internal set
 
-    /** UUID-based profile definitions for administrative documents */
-    var vdsProfileDefinitions: VdsProfileDefinitionRegistry = VdsProfileDefinitionRegistry(ResourceConstants.VDS_PROFILE_DEFINITIONS_JSON)
+    /** UUID-based profile definitions for administrative documents, loaded via [loadVdsProfileDefinitionFromXml] */
+    var vdsProfileDefinitions: VdsProfileDefinitionRegistry = VdsProfileDefinitionRegistry()
         internal set
 
     /** Default [VdsProfileResolver]: looks the UUID up in [vdsProfileDefinitions], ignoring the profile URI. */
@@ -136,7 +133,7 @@ object DataEncoder {
             vdsDocumentTypes = VdsDocumentTypeRegistry(ResourceConstants.VDS_DOCUMENT_TYPES_JSON)
             idbMessageTypes = IdbMessageTypeRegistry(ResourceConstants.IDB_MESSAGE_TYPES_JSON)
             idbDocumentTypes = IdbDocumentTypeRegistry(ResourceConstants.IDB_DOCUMENT_TYPES_JSON)
-            vdsProfileDefinitions = VdsProfileDefinitionRegistry(ResourceConstants.VDS_PROFILE_DEFINITIONS_JSON)
+            vdsProfileDefinitions = VdsProfileDefinitionRegistry()
             vdsProfileResolver = defaultVdsProfileResolver
             logI(TAG,"Reset all registries to defaults")
         } catch (e: Exception) {
@@ -178,17 +175,6 @@ object DataEncoder {
         logI(TAG,"Replaced IdbDocumentTypes registry")
     }
 
-    /**
-     * Replaces the VDS Profile Definitions registry entirely with custom JSON.
-     *
-     * @param jsonString Custom VdsProfileDefinitions JSON content
-     * @throws Exception if JSON is invalid
-     */
-    fun replaceCustomVdsProfileDefinitions(jsonString: String) {
-        vdsProfileDefinitions = VdsProfileDefinitionRegistry(jsonString)
-        logI(TAG,"Replaced VdsProfileDefinitions registry")
-    }
-
     @Throws(FileNotFoundException::class)
     fun replaceCustomVdsDocumentTypesFromFile(fileName: String) {
         replaceCustomVdsDocumentTypes(readTextResource(fileName))
@@ -202,11 +188,6 @@ object DataEncoder {
     @Throws(FileNotFoundException::class)
     fun replaceCustomIdbDocumentTypesFromFile(fileName: String) {
         replaceCustomIdbDocumentTypes(readTextResource(fileName))
-    }
-
-    @Throws(FileNotFoundException::class)
-    fun replaceCustomVdsProfileDefinitionsFromFile(fileName: String) {
-        replaceCustomVdsProfileDefinitions(readTextResource(fileName))
     }
 
     /**
@@ -258,33 +239,18 @@ object DataEncoder {
     }
 
     /**
-     * Merges custom VDS Profile Definitions into the existing registry. Existing entries
-     * with the same definitionId are replaced; all other defaults are preserved.
-     *
-     * @param jsonString Custom VdsProfileDefinitions JSON content
-     */
-    fun addCustomVdsProfileDefinitions(jsonString: String) {
-        vdsProfileDefinitions.addEntriesFromJson(jsonString)
-        logI(TAG,"Added custom VdsProfileDefinitions entries")
-    }
-
-    @Throws(FileNotFoundException::class)
-    fun addCustomVdsProfileDefinitionsFromFile(fileName: String) {
-        addCustomVdsProfileDefinitions(readTextResource(fileName))
-    }
-
-    /**
      * Loads a VDS profile definition from an XML document profile (BSI TR-03171).
      *
      * The XML profile is parsed and converted to a [de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto],
-     * which is then added to the existing registry without replacing other definitions.
+     * which is then added to the existing registry without replacing other definitions. A definition
+     * with the same UUID is replaced.
      *
-     * Profiles loaded this way are always TR-03171 v0.9 and are carried by
-     * [ADMINISTRATIVE_DOCUMENTS_V9] (document category 0xC9). This is the runtime entry point
-     * for registering profiles fetched at runtime (e.g. via REST); once registered, seals
-     * referencing the profile's UUID (Tag 0x00) can be decoded.
+     * TR-03171 v0.8 profiles (no or `0.8` `versionTR`) are carried by [ADMINISTRATIVE_DOCUMENTS_V8]
+     * (document category 0xC8), v0.9 profiles by [ADMINISTRATIVE_DOCUMENTS_V9] (document category 0xC9).
+     * This is the only way to register UUID-based profiles; no profiles are bundled. Once registered,
+     * seals referencing the profile's UUID (Tag 0x00) can be built and decoded.
      *
-     * @param xmlString XML content conforming to the DocProfileSchema TR-03171 v0.9.
+     * @param xmlString XML document profile conforming to TR-03171 v0.8 or v0.9.
      * @throws IllegalArgumentException if the XML is invalid or fails validation.
      */
     fun loadVdsProfileDefinitionFromXml(xmlString: String) {

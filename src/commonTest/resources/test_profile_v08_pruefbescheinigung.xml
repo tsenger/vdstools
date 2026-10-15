@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Fictitious TR-03171 v0.8 test profile, not an official document profile. -->
+<profile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="TR03171DocProfileSchema.xsd">
+    <profileNumber>B22A8387A2604B7591C08E5E8F0E0206</profileNumber>
+    <profileName>Prüfbescheinigung</profileName>
+    <creator>Test Issuer</creator>
+    <entry tag="4" optional="false">
+        <name>pruefstelle</name>
+        <description>Prüfstelle</description>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="5" optional="false">
+        <name>pruefdatum</name>
+        <description>Datum der Prüfung</description>
+        <type>DATE</type>
+    </entry>
+    <entry tag="6" optional="false">
+        <name>nachname</name>
+        <description>Nachname</description>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="7" optional="false">
+        <name>vorname</name>
+        <description>Vorname</description>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="8" optional="false">
+        <name>geburtsdatum</name>
+        <description>Geburtsdatum</description>
+        <length>10</length>
+        <type>UTF8String</type> <!-- Format: dd.MM.yyyy -->
+    </entry>
+    <entry tag="9" optional="false">
+        <name>geburtsort</name>
+        <description>Geburtsort</description>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="10" optional="false">
+        <name>pruefungsart</name>
+        <description>Art der Prüfung</description>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="11" optional="true">
+        <name>anzahlVersuche</name>
+        <description>Anzahl der Prüfungsversuche</description>
+        <type>INTEGER</type>
+    </entry>
+    <entry tag="12" optional="false">
+        <name>aktenzeichen</name>
+        <description>Aktenzeichen</description>
+        <length>20</length>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="13" optional="false">
+        <name>ergebnis</name>
+        <description>Prüfungsergebnis</description>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="14" optional="false">
+        <name>bemerkung</name>
+        <description>Bemerkung</description>
+        <type>UTF8String</type>
+    </entry>
+</profile>

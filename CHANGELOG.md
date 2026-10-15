@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- `DataEncoder.loadVdsProfileDefinitionFromXml()` also reads BSI TR-03171
+  **v0.8** XML document profiles (no or `0.8` `versionTR`, entry tags 4–254,
+  no `validFromPresent`/`validToPresent`). They are carried by
+  `ADMINISTRATIVE_DOCUMENTS_V8` (0xC8); v0.9 profiles stay on
+  `ADMINISTRATIVE_DOCUMENTS_V9` (0xC9). The type mapping is the same for both
+  versions. Unknown `versionTR` values are rejected.
+- Registering a profile with an already registered UUID now logs a warning and
+  removes the replaced profile's name from the name lookup.
+
+### Changed
+- **Breaking:** TR-03171 profiles are defined only via XML. The bundled
+  `VdsProfileDefinitions.json` (with `MELDEBESCHEINIGUNG`) and the JSON API for
+  profiles (`addCustomVdsProfileDefinitions[FromFile]`,
+  `replaceCustomVdsProfileDefinitions[FromFile]`) are removed;
+  `VdsProfileDefinitionRegistry` starts empty and has a no-arg constructor.
+  0xC8/0xC9 seals can only be decoded after their profile has been loaded with
+  `loadVdsProfileDefinitionFromXml()`.
+- **Breaking:** `ProfileDto.versionTR` is now a `TrVersion` enum (`V0_8`,
+  `V0_9`) instead of a `String`; `validFromPresent`/`validToPresent` are
+  nullable (`null` for v0.8).
+
 ## [0.20.0] - 2026-10-12
 
 ### Added

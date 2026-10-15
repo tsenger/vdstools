@@ -6,6 +6,13 @@ import nl.adaptivity.xmlutil.xmlStreaming
 
 object ProfileXmlParser {
 
+    /**
+     * Parses and validates a TR-03171 document profile. Both v0.8 (no or `0.8` `versionTR`, entry tags
+     * 4–254) and v0.9 (`versionTR` `0.9`, entry tags 10–254, `validFromPresent`/`validToPresent` mandatory)
+     * are supported.
+     *
+     * @throws IllegalArgumentException if the XML is invalid or fails validation.
+     */
     fun parse(xmlString: String): ProfileDto {
         val reader = xmlStreaming.newReader(xmlString)
         val profile = parseProfile(reader)
@@ -52,13 +59,13 @@ object ProfileXmlParser {
 
         return ProfileDto(
             profileNumber = requireNotNull(profileNumber) { "profileNumber is required" },
-            versionTR = requireNotNull(versionTR) { "versionTR is required" },
+            versionTR = parseTrVersion(versionTR),
             profileName = profileName,
             creator = creator,
             category = category,
             leikaID = leikaID,
-            validFromPresent = requireNotNull(validFromPresent) { "validFromPresent is required" },
-            validToPresent = requireNotNull(validToPresent) { "validToPresent is required" },
+            validFromPresent = validFromPresent,
+            validToPresent = validToPresent,
             entries = entries
         )
     }
@@ -98,6 +105,15 @@ object ProfileXmlParser {
             type = requireNotNull(type) { "entry/type is required" },
             defaultValue = defaultValue
         )
+    }
+
+    // v0.8 profiles usually have no <versionTR> element at all
+    private fun parseTrVersion(value: String?): TrVersion {
+        return when (value?.trim()) {
+            null, "0.8" -> TrVersion.V0_8
+            "0.9" -> TrVersion.V0_9
+            else -> throw IllegalArgumentException("Unsupported versionTR: $value (expected 0.8 or 0.9)")
+        }
     }
 
     private fun parseAsn1Type(value: String): Asn1Type {
@@ -145,21 +161,33 @@ object ProfileXmlParser {
         require(profile.profileNumber.matches(Regex("[0-9A-F]{32}"))) {
             "profileNumber must be 32 uppercase hex characters"
         }
-        require(profile.versionTR.isNotBlank()) { "versionTR must not be blank" }
         if (profile.leikaID != null) {
             require(profile.leikaID.matches(Regex("\\d{14}(;\\d{14})*"))) {
                 "leikaID must be one or more 14-digit numeric IDs separated by ';'"
             }
         }
         require(profile.entries.isNotEmpty()) { "At least one entry required" }
-        // Tags 0x00-0x09 are reserved (metadata 0x00-0x06, future use 0x07-0x09);
-        // profile entries use 0x0A-0xFE (10-254), giving at most 245 entries.
-        require(profile.entries.size <= 245) { "Maximum 245 entries allowed" }
+
+        // v0.8: tags 0x00-0x03 are reserved for metadata, profile entries use 0x04-0xFE (4-254).
+        // v0.9: tags 0x00-0x09 are reserved (metadata 0x00-0x06, future use 0x07-0x09),
+        // profile entries use 0x0A-0xFE (10-254).
+        val tagRange = when (profile.versionTR) {
+            TrVersion.V0_8 -> 4..254
+            TrVersion.V0_9 -> 10..254
+        }
+        if (profile.versionTR == TrVersion.V0_9) {
+            requireNotNull(profile.validFromPresent) { "validFromPresent is required" }
+            requireNotNull(profile.validToPresent) { "validToPresent is required" }
+        }
+        val maxEntries = tagRange.last - tagRange.first + 1
+        require(profile.entries.size <= maxEntries) { "Maximum $maxEntries entries allowed" }
 
         val tags = profile.entries.map { it.tag }
         require(tags.distinct().size == tags.size) { "Duplicate tags found" }
         profile.entries.forEach { entry ->
-            require(entry.tag in 10..254) { "Tag ${entry.tag} out of range 10-254 (0x0A-0xFE)" }
+            require(entry.tag in tagRange) {
+                "Tag ${entry.tag} out of range ${tagRange.first}-${tagRange.last} for TR-03171 ${profile.versionTR}"
+            }
         }
     }
 }

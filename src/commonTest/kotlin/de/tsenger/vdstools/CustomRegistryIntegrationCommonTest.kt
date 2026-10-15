@@ -17,25 +17,6 @@ class CustomRegistryIntegrationCommonTest {
         DataEncoder.resetToDefaults()
     }
 
-    // --- VdsProfileDefinitions (JSON) ---
-
-    @Test
-    fun testCustomVdsProfileDefinitionsUsedDuringSealParsing() {
-        DataEncoder.replaceCustomVdsProfileDefinitionsFromFile("CustomVdsProfileDefinitions.json")
-
-        val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.meldebescheinigung) as VdsSeal
-
-        // Custom definition maps same UUID to "MY_CUSTOM_DOCUMENT"
-        assertEquals("MY_CUSTOM_DOCUMENT", seal.documentType)
-        assertEquals("ADMINISTRATIVE_DOCUMENTS_V8", seal.baseDocumentType)
-
-        // Messages should still decode correctly (same structure)
-        assertEquals("Mustermann", seal.getMessageByName("SURNAME")?.value.toString())
-        assertEquals("Dr.", seal.getMessageByName("ACADEMIC_DEGREE")?.value.toString())
-        assertEquals("Erika", seal.getMessageByName("FIRST_NAME")?.value.toString())
-        assertEquals("20250414", seal.getMessageByName("MOVING_DATE")?.value.toString())
-    }
-
     // --- VdsDocumentTypes ---
 
     @Test
@@ -209,34 +190,5 @@ class CustomRegistryIntegrationCommonTest {
         // New entries also accessible
         assertEquals("CUSTOM1_DOCUMENT", DataEncoder.idbDocumentTypes.getDocumentType(1))
         assertEquals("CUSTOM2_DOCUMENT", DataEncoder.idbDocumentTypes.getDocumentType(2))
-    }
-
-    @Test
-    fun addCustomVdsProfileDefinitions_keepsExistingEntries() {
-        val newUuid = "aaaabbbbccccddddaaaabbbbccccdddd"
-        val json = """[{
-            "definitionId": "$newUuid",
-            "definitionName": "NEW_DOCUMENT",
-            "baseDocumentType": "ADMINISTRATIVE_DOCUMENTS_V8",
-            "version": 1,
-            "messages": []
-        }]"""
-
-        DataEncoder.addCustomVdsProfileDefinitions(json)
-
-        // Default MELDEBESCHEINIGUNG is still there
-        val defaultDef = DataEncoder.vdsProfileDefinitions.resolve("9a4223406d374ef99e2cf95e31a23846")
-        assertEquals("MELDEBESCHEINIGUNG", defaultDef?.definitionName)
-        // New definition also accessible
-        assertEquals("NEW_DOCUMENT", DataEncoder.vdsProfileDefinitions.resolve(newUuid)?.definitionName)
-    }
-
-    @Test
-    fun addCustomVdsProfileDefinitions_overwritesOnConflict() {
-        // CustomVdsProfileDefinitions.json maps the same UUID as MELDEBESCHEINIGUNG to MY_CUSTOM_DOCUMENT
-        DataEncoder.addCustomVdsProfileDefinitionsFromFile("CustomVdsProfileDefinitions.json")
-
-        val def = DataEncoder.vdsProfileDefinitions.resolve("9a4223406d374ef99e2cf95e31a23846")
-        assertEquals("MY_CUSTOM_DOCUMENT", def?.definitionName)
     }
 }

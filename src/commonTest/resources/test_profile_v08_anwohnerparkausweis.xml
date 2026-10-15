@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Fictitious TR-03171 v0.8 test profile, not an official document profile. -->
+<profile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="TR03171DocProfileSchema.xsd">
+    <profileNumber>A3621EDAEF4548AFA571ECDE56B4F393</profileNumber>
+    <profileName>Anwohnerparkausweis</profileName>
+    <creator>Test Issuer</creator>
+    <entry tag="4" optional="false">
+        <name>kennzeichen</name>
+        <description>Amtliches Kennzeichen</description>
+        <length>12</length>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="5" optional="false">
+        <name>parkzone</name>
+        <description>Parkzone</description>
+        <length>4</length>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="6" optional="false">
+        <name>strasse</name>
+        <description>Straße</description>
+        <type>UTF8String</type>
+    </entry>
+    <entry tag="7" optional="false">
+        <name>gueltigAb</name>
+        <description>Gültig ab</description>
+        <type>DATE</type>
+    </entry>
+    <entry tag="8" optional="false">
+        <name>gueltigBis</name>
+        <description>Gültig bis</description>
+        <type>DATE</type>
+    </entry>
+    <entry tag="9" optional="true">
+        <name>fahrzeugklasse</name>
+        <description>Fahrzeugklasse</description>
+        <type>INTEGER</type>
+    </entry>
+    <entry tag="10" optional="true">
+        <name>hinweis</name>
+        <description>Hinweis</description>
+        <type>UTF8String</type>
+    </entry>
+</profile>

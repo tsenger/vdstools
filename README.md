@@ -14,7 +14,7 @@ Supported specifications:
 | [ICAO Doc 9303 Part 13](https://www.icao.int/sites/default/files/publications/DocSeries/9303_p13_cons_en.pdf)                                              | Visible Digital Seals for travel and non-electronic documents | VDS      |
 | [ICAO Datastructure for Barcode](https://www.icao.int/sites/default/files/TRIP/Publications/ICAO-TR-ICAO-Datastructure-for-Barcode.pdf) (draft)            | Successor barcode format to VDS                               | IDB      |
 | [BSI TR-03137 Part 1](https://www.bsi.bund.de/EN/Themen/Unternehmen-und-Organisationen/Standards-und-Zertifizierung/Technische-Richtlinien/TR-nach-Thema-sortiert/tr03137/tr-03137.html) | German profiles for official documents (older ones as VDS, newer ones as IDB) | VDS, IDB |
-| [BSI TR-03171](https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Publikationen/TechnischeRichtlinien/TR03171/BSI-TR-03171.html) v0.9 (German only)      | Digital seals for administrative documents (extended VDS header, UUID-based profiles) | VDS-based |
+| [BSI TR-03171](https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Publikationen/TechnischeRichtlinien/TR03171/BSI-TR-03171.html) v0.8, v0.9 (German only)      | Digital seals for administrative documents (extended VDS header, UUID-based profiles) | VDS-based |
 
 VDS and IDB barcodes can be parsed by a generic interface. An example is given in the following chapter.
 
@@ -248,7 +248,14 @@ You will also find an example on how to generate a datamatrix image with the Zxi
 
 VdsTools uses a JSON-based configuration to define seal document types and their message encodings which follows the
 encoding based on BSI TR-03137.
-VDS data according to BSI TR-03171 are also supported and can be parsed from document profiles.
+VDS data according to BSI TR-03171 are also supported. Their UUID-based document profiles are not bundled and not
+defined in JSON; they are loaded at runtime from TR-03171 XML document profiles (v0.8 → document category 0xC8,
+v0.9 → 0xC9):
+
+```kotlin
+DataEncoder.loadVdsProfileDefinitionFromXml(xmlString)
+```
+
 You can load your own custom codings at runtime to support additional document types beyond the standard ones.
 
 ### Loading Custom Codings
@@ -305,10 +312,6 @@ DataEncoder.replaceCustomIdbMessageTypes(jsonString)
 // IDB document types
 DataEncoder.addCustomIdbDocumentTypes(jsonString)
 DataEncoder.replaceCustomIdbDocumentTypes(jsonString)
-
-// VDS profile definitions (VDS administrative documents)
-DataEncoder.addCustomVdsProfileDefinitions(jsonString)
-DataEncoder.replaceCustomVdsProfileDefinitions(jsonString)
 
 // Revert all registries to embedded defaults:
 DataEncoder.resetToDefaults()

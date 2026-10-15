@@ -342,22 +342,6 @@ class DataEncoderCommonTest {
     }
 
     @Test
-    fun testLoadCustomVdsProfileDefinitionsFromFile_success() {
-        DataEncoder.replaceCustomVdsProfileDefinitionsFromFile("CustomVdsProfileDefinitions.json")
-        // Verify that registry was loaded by checking a known definition
-        val definition = DataEncoder.vdsProfileDefinitions.resolve("9a4223406d374ef99e2cf95e31a23846")
-        assertNotNull(definition)
-        assertEquals("MY_CUSTOM_DOCUMENT", definition.definitionName)
-    }
-
-    @Test
-    fun testLoadCustomVdsProfileDefinitionsFromFile_fileNotFound() {
-        assertFailsWith<FileNotFoundException> {
-            DataEncoder.replaceCustomVdsProfileDefinitionsFromFile("NonExistentFile.json")
-        }
-    }
-
-    @Test
     fun testGetIdbExpectedMessagesByTag() {
         val messages = DataEncoder.idbDocumentTypes.getExpectedMessages(1) // SUBSTITUTE_IDENTITY_DOCUMENT
         assertEquals(4, messages.size)

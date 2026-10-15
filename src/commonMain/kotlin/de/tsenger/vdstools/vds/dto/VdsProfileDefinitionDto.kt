@@ -7,13 +7,13 @@ import kotlinx.serialization.Serializable
  *
  * Extended message definitions allow for a two-stage lookup process as specified in TR-03171:
  * 1. The documentRef in the header determines the base type (e.g., ADMINISTRATIVE_DOCUMENTS_V8)
- * 2. The UUID in Tag 0 (Dokumentenprofilnummer) determines the specific definition (e.g., MELDEBESCHEINIGUNG)
+ * 2. The UUID in Tag 0 (Dokumentenprofilnummer) determines the specific definition (e.g., Meldebestätigung)
  *
  * This extends the limited 256-value space of Document Feature Definition Reference in the header
  * by using UUIDs in the message zone for dynamic profile registration.
  *
  * @property definitionId UUID as hex string without dashes (32 characters)
- * @property definitionName The effective vdsType name (e.g., "MELDEBESCHEINIGUNG")
+ * @property definitionName The effective vdsType name (e.g., "Meldebestätigung")
  * @property baseDocumentType Link to the base type in VdsDocumentTypes.json
  * @property version Definition version
  * @property messages Definition-specific messages (base type messages are inherited)
