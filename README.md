@@ -125,8 +125,9 @@ when (seal.sealType) {
 ## Metadata messages (administrative documents)
 
 Some seal types use a two-stage lookup: the header's `documentRef` points to a base type (e.g.
-`ADMINISTRATIVE_DOCUMENTS`), and the first tags of the message zone carry administrative metadata
-(e.g. the document profile UUID at tag 0, validity dates at tag 1) rather than user-visible content.
+`ADMINISTRATIVE_DOCUMENTS_V8` or `ADMINISTRATIVE_DOCUMENTS_V9`), and the first tags of the message zone carry
+administrative metadata (e.g. the document profile UUID at tag 0, validity dates at tag 1) rather than user-visible
+content.
 
 These tags are declared as `metadataTagList` in `VdsDocumentTypes.json` and are automatically separated
 from the regular `messageList` during parsing. They are only accessible via `metadataMessageList`.
@@ -137,7 +138,7 @@ val seal: Seal = SealParser().parse(rawString)
 // Regular user-visible messages (metadata tags are excluded)
 val messageList = seal.messageList
 
-// Metadata messages (e.g. DOC_PROFILE_NUMBER, VALIDITY_DATES)
+// Metadata messages (e.g. DOC_PROFILE_NUMBER, VALIDITY_DATES for v0.8, VALID_FROM/PROFILE_URI for v0.9)
 val metadataList = seal.metadataMessageList
 for (message in metadataList) {
     println("${message.name} (tag ${message.tag}) -> ${message.value}")
@@ -145,7 +146,7 @@ for (message in metadataList) {
 
 // Check if the seal has any metadata at all
 if (seal.metadataMessageList.isNotEmpty()) {
-    // access a specific metadata message by name
+    // access a specific metadata message by name (v0.8)
     val validity = seal.metadataMessageList.firstOrNull { it.name == "VALIDITY_DATES" }
     val v = validity?.value as? MessageValue.ValidityDatesValue
     println("valid from ${v?.validFrom} to ${v?.validTo}")
@@ -155,8 +156,9 @@ if (seal.metadataMessageList.isNotEmpty()) {
 To check at the type level which tags are configured as metadata (without a concrete seal instance):
 
 ```kotlin
-DataEncoder.vdsDocumentTypes.getMetadataTags("ADMINISTRATIVE_DOCUMENTS") // → {0, 1, 2, 3}
-DataEncoder.vdsDocumentTypes.getMetadataTags("RESIDENT_PERMIT")          // → {} (no metadata tags)
+DataEncoder.vdsDocumentTypes.getMetadataTags("ADMINISTRATIVE_DOCUMENTS_V8") // → {0, 1, 2, 3}
+DataEncoder.vdsDocumentTypes.getMetadataTags("ADMINISTRATIVE_DOCUMENTS_V9") // → {0, 1, 2, 3, 4, 5, 6}
+DataEncoder.vdsDocumentTypes.getMetadataTags("RESIDENCE_PERMIT")            // → {} (no metadata tags)
 ```
 
 Regular document types have no `metadataTagList` configured, so their `metadataMessageList` is
@@ -261,6 +263,41 @@ Message names and the document type name are taken verbatim from the definition.
 and `<profileName>` (e.g. `familyName` or `Familienname`, document type `Meldebestätigung`); a profile without
 `<profileName>` gets its UUID as document type name. `getMessageByName()` ignores case. Tools that map message names
 to other languages should key their mapping on profile UUID and tag rather than on the name.
+
+A profile is identified by its UUID **and** its TR-03171 version: an issuer may keep the UUID (and the name) when moving
+a profile from v0.8 to v0.9, and both can be loaded side by side. Parsing picks the profile matching the seal's
+document category (0xC8 → v0.8, 0xC9 → v0.9) automatically. Building by profile name or UUID works as long as it is
+registered for only one version; otherwise pass the version:
+
+```kotlin
+// Unique name → same as for any other document type
+val seal = VdsSeal.Builder("Meldebestätigung")
+    .issuingCountry("D<<")
+    .signerIdentifier("DEZV")
+    .certificateReference("00112233445566778899AABBCCDDEEFF00112233")
+    .addMessage("familyName", "Mustermann")
+    .build(signer)
+
+// UUID registered for v0.8 and v0.9 → select the version (throws IllegalArgumentException if ambiguous)
+val sealV9 = VdsSeal.Builder.forProfileUuid("9a4223406d374ef99e2cf95e31a23846", TrVersion.V0_9)
+    .issuingCountry("D<<")
+    .signerIdentifier("DEZV")
+    .certificateReference("00112233445566778899AABBCCDDEEFF00112233")
+    .addMessage("PROFILE_URI", "example.com/profiles")      // mandatory for v0.9
+    .addMessage("CERTIFICATE_URI", "example.com/certs")     // mandatory for v0.9
+    .addMessage("familyName", "Mustermann")
+    .build(signer)
+```
+
+Applications that manage profiles themselves (e.g. several sources publishing the same UUID) can replace the lookup
+used while parsing. The resolver receives the UUID (tag 0x00), the `PROFILE_URI` (tag 0x03, always `null` for v0.8)
+and the base document type from the header:
+
+```kotlin
+DataEncoder.vdsProfileResolver = VdsProfileResolver { uuid, profileUri, baseDocumentType ->
+    myProfileStore.find(uuid, profileUri, baseDocumentType)  // or fall back to DataEncoder.defaultVdsProfileResolver
+}
+```
 
 You can load your own custom codings at runtime to support additional document types beyond the standard ones.
 

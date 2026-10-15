@@ -585,30 +585,33 @@ class VdsAdministrativeDocumentsV9CommonTest {
     // -------------------------------------------------------------------------
 
     @Test
-    fun testParse_customResolver_receivesUuidAndProfileUri() {
+    fun testParse_customResolver_receivesUuidProfileUriAndBaseType() {
         var receivedUuid: String? = null
         var receivedUri: String? = null
-        DataEncoder.vdsProfileResolver = VdsProfileResolver { uuid, profileUri ->
+        var receivedBaseType: String? = null
+        DataEncoder.vdsProfileResolver = VdsProfileResolver { uuid, profileUri, baseDocumentType ->
             receivedUuid = uuid.toHexString()
             receivedUri = profileUri
-            DataEncoder.defaultVdsProfileResolver.resolve(uuid, profileUri)
+            receivedBaseType = baseDocumentType
+            DataEncoder.defaultVdsProfileResolver.resolve(uuid, profileUri, baseDocumentType)
         }
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.administrativeDocumentV9Basic) as VdsSeal
         assertEquals(testUuidHex, receivedUuid)
         assertEquals("example.com/profiles", receivedUri)
+        assertEquals(DataEncoder.ADMINISTRATIVE_DOCUMENTS_V9, receivedBaseType)
         assertEquals("TEST_V9_PROFILE", seal.documentType)
     }
 
     @Test
     fun testParse_customResolverReturningNull_leavesProfileUnresolved() {
-        DataEncoder.vdsProfileResolver = VdsProfileResolver { _, _ -> null }
+        DataEncoder.vdsProfileResolver = VdsProfileResolver { _, _, _ -> null }
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.administrativeDocumentV9Basic) as VdsSeal
         assertEquals("ADMINISTRATIVE_DOCUMENTS_V9", seal.documentType)
     }
 
     @Test
     fun testResetToDefaults_restoresDefaultResolver() {
-        DataEncoder.vdsProfileResolver = VdsProfileResolver { _, _ -> null }
+        DataEncoder.vdsProfileResolver = VdsProfileResolver { _, _, _ -> null }
         DataEncoder.resetToDefaults()
         assertSame(DataEncoder.defaultVdsProfileResolver, DataEncoder.vdsProfileResolver)
     }

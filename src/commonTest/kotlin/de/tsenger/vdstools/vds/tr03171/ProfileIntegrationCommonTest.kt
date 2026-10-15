@@ -42,7 +42,7 @@ class ProfileIntegrationCommonTest {
 
         DataEncoder.loadVdsProfileDefinitionFromXml(xml)
 
-        val definition = DataEncoder.vdsProfileDefinitions.resolve("aabbccdd11223344aabbccdd11223344")
+        val definition = DataEncoder.vdsProfileDefinitions.resolve("aabbccdd11223344aabbccdd11223344", DataEncoder.ADMINISTRATIVE_DOCUMENTS_V9)
 
         assertNotNull(definition)
         assertEquals("TEST_XML_PROFILE", definition.definitionName)
@@ -75,15 +75,15 @@ class ProfileIntegrationCommonTest {
 
         DataEncoder.loadVdsProfileDefinitionFromXml(xml)
 
-        val existing = DataEncoder.vdsProfileDefinitions.resolve("9a4223406d374ef99e2cf95e31a23846")
+        val existing = DataEncoder.vdsProfileDefinitions.resolve("9a4223406d374ef99e2cf95e31a23846", DataEncoder.ADMINISTRATIVE_DOCUMENTS_V8)
         assertEquals(TestProfiles.MELDEBESTAETIGUNG, existing?.definitionName)
-        val newDef = DataEncoder.vdsProfileDefinitions.resolve("aabbccdd11223344aabbccdd11223344")
+        val newDef = DataEncoder.vdsProfileDefinitions.resolve("aabbccdd11223344aabbccdd11223344", DataEncoder.ADMINISTRATIVE_DOCUMENTS_V9)
         assertEquals("NEW_PROFILE", newDef?.definitionName)
     }
 
     @Test
     fun testNoProfilesBundled() {
-        assertTrue(DataEncoder.vdsProfileDefinitions.availableDefinitionUuids.isEmpty())
+        assertTrue(DataEncoder.vdsProfileDefinitions.definitions.isEmpty())
     }
 
     @Test
@@ -99,7 +99,7 @@ class ProfileIntegrationCommonTest {
             val (uuid, entryCount, lastTag) = expected
             DataEncoder.loadVdsProfileDefinitionFromXml(readTextResource(fileName))
 
-            val definition = DataEncoder.vdsProfileDefinitions.resolve(uuid)
+            val definition = DataEncoder.vdsProfileDefinitions.resolve(uuid, DataEncoder.ADMINISTRATIVE_DOCUMENTS_V8)
             assertNotNull(definition, fileName)
             assertEquals(DataEncoder.ADMINISTRATIVE_DOCUMENTS_V8, definition.baseDocumentType, fileName)
             assertEquals(entryCount, definition.messages.size, fileName)

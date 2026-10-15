@@ -22,10 +22,7 @@ object ProfileConverter {
             definitionId = profile.profileNumber.lowercase(),
             // profileName is optional — fall back to the (mandatory) profile number
             definitionName = profile.profileName ?: profile.profileNumber,
-            baseDocumentType = when (profile.versionTR) {
-                TrVersion.V0_8 -> DataEncoder.ADMINISTRATIVE_DOCUMENTS_V8
-                TrVersion.V0_9 -> DataEncoder.ADMINISTRATIVE_DOCUMENTS_V9
-            },
+            baseDocumentType = profile.versionTR.baseDocumentType,
             version = 1,
             validFromPresent = profile.validFromPresent,
             validToPresent = profile.validToPresent,

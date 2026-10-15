@@ -8,6 +8,9 @@ import kotlin.test.*
 @OptIn(ExperimentalStdlibApi::class)
 class VdsProfileDefinitionRegistryCommonTest {
 
+    private val V8 = DataEncoder.ADMINISTRATIVE_DOCUMENTS_V8
+    private val V9 = DataEncoder.ADMINISTRATIVE_DOCUMENTS_V9
+
     private val meldebescheinigung = VdsProfileDefinitionDto(
         definitionId = "9a4223406d374ef99e2cf95e31a23846",
         definitionName = "MELDEBESCHEINIGUNG",
@@ -33,7 +36,7 @@ class VdsProfileDefinitionRegistryCommonTest {
         val registry = createRegistry()
         val uuidBytes = "9a4223406d374ef99e2cf95e31a23846".hexToByteArray()
 
-        val definition = registry.resolve(uuidBytes)
+        val definition = registry.resolve(uuidBytes, V8)
 
         assertNotNull(definition)
         assertEquals("MELDEBESCHEINIGUNG", definition.definitionName)
@@ -45,7 +48,7 @@ class VdsProfileDefinitionRegistryCommonTest {
     fun testResolveByHexString() {
         val registry = createRegistry()
 
-        val definition = registry.resolve("9a4223406d374ef99e2cf95e31a23846")
+        val definition = registry.resolve("9a4223406d374ef99e2cf95e31a23846", V8)
 
         assertNotNull(definition)
         assertEquals("MELDEBESCHEINIGUNG", definition.definitionName)
@@ -55,7 +58,7 @@ class VdsProfileDefinitionRegistryCommonTest {
     fun testResolveByHexStringUppercase() {
         val registry = createRegistry()
 
-        val definition = registry.resolve("9A4223406D374EF99E2CF95E31A23846")
+        val definition = registry.resolve("9A4223406D374EF99E2CF95E31A23846", V8)
 
         assertNotNull(definition)
         assertEquals("MELDEBESCHEINIGUNG", definition.definitionName)
@@ -65,7 +68,7 @@ class VdsProfileDefinitionRegistryCommonTest {
     fun testResolveByHexStringWithDashes() {
         val registry = createRegistry()
 
-        val definition = registry.resolve("9a422340-6d37-4ef9-9e2c-f95e31a23846")
+        val definition = registry.resolve("9a422340-6d37-4ef9-9e2c-f95e31a23846", V8)
 
         assertNotNull(definition)
         assertEquals("MELDEBESCHEINIGUNG", definition.definitionName)
@@ -76,7 +79,7 @@ class VdsProfileDefinitionRegistryCommonTest {
         val registry = createRegistry()
         val unknownUuid = "00000000000000000000000000000000".hexToByteArray()
 
-        val definition = registry.resolve(unknownUuid)
+        val definition = registry.resolve(unknownUuid, V8)
 
         assertNull(definition)
     }
@@ -86,16 +89,16 @@ class VdsProfileDefinitionRegistryCommonTest {
         val registry = createRegistry()
         val shortUuid = "9a422340".hexToByteArray()
 
-        val definition = registry.resolve(shortUuid)
+        val definition = registry.resolve(shortUuid, V8)
 
         assertNull(definition)
     }
 
     @Test
-    fun testAvailableDefinitions() {
+    fun testDefinitionNames() {
         val registry = createRegistry()
 
-        val definitions = registry.availableDefinitions
+        val definitions = registry.definitions.map { it.definitionName }
 
         assertEquals(2, definitions.size)
         assertTrue(definitions.contains("MELDEBESCHEINIGUNG"))
@@ -103,10 +106,10 @@ class VdsProfileDefinitionRegistryCommonTest {
     }
 
     @Test
-    fun testAvailableDefinitionUuids() {
+    fun testDefinitionUuids() {
         val registry = createRegistry()
 
-        val uuids = registry.availableDefinitionUuids
+        val uuids = registry.definitions.map { it.definitionId }
 
         assertEquals(2, uuids.size)
         assertTrue(uuids.contains("9a4223406d374ef99e2cf95e31a23846"))
@@ -118,7 +121,7 @@ class VdsProfileDefinitionRegistryCommonTest {
         val registry = createRegistry()
         val uuidBytes = "550e8400e29b41d4a716446655440002".hexToByteArray()
 
-        val definition = registry.resolve(uuidBytes)
+        val definition = registry.resolve(uuidBytes, V8)
 
         assertNotNull(definition)
         assertEquals("TEST_DEFINITION", definition.definitionName)
@@ -128,8 +131,7 @@ class VdsProfileDefinitionRegistryCommonTest {
     fun testNewRegistryIsEmpty() {
         val registry = VdsProfileDefinitionRegistry()
 
-        assertTrue(registry.availableDefinitions.isEmpty())
-        assertTrue(registry.availableDefinitionUuids.isEmpty())
+        assertTrue(registry.definitions.isEmpty())
     }
 
     @Test
@@ -137,7 +139,7 @@ class VdsProfileDefinitionRegistryCommonTest {
         val registry = createRegistry()
         val uuidBytes = "9a4223406d374ef99e2cf95e31a23846".hexToByteArray()
 
-        val definition = registry.resolve(uuidBytes)
+        val definition = registry.resolve(uuidBytes, V8)
 
         assertNotNull(definition)
         assertEquals(1, definition.messages.size)
@@ -150,9 +152,36 @@ class VdsProfileDefinitionRegistryCommonTest {
         val registry = createRegistry()
         registry.addDefinition(meldebescheinigung.copy(definitionName = "Meldebestätigung"))
 
-        assertEquals("Meldebestätigung", registry.resolve("9a4223406d374ef99e2cf95e31a23846")?.definitionName)
-        assertNotNull(registry.resolveByName("Meldebestätigung"))
-        assertNull(registry.resolveByName("MELDEBESCHEINIGUNG"))
-        assertEquals(2, registry.availableDefinitions.size)
+        assertEquals("Meldebestätigung", registry.resolve("9a4223406d374ef99e2cf95e31a23846", V8)?.definitionName)
+        assertNotNull(registry.resolveByName("Meldebestätigung", V8))
+        assertNull(registry.resolveByName("MELDEBESCHEINIGUNG", V8))
+        assertEquals(2, registry.definitions.size)
+    }
+
+    @Test
+    fun testSameUuidForV8AndV9IsKeptSeparately() {
+        val registry = createRegistry()
+        val v9 = meldebescheinigung.copy(baseDocumentType = V9, messages = emptyList())
+        registry.addDefinition(v9)
+
+        assertEquals(3, registry.definitions.size)
+        assertEquals(1, registry.resolve("9a4223406d374ef99e2cf95e31a23846", V8)?.messages?.size)
+        assertSame(v9, registry.resolve("9a4223406d374ef99e2cf95e31a23846", V9))
+        assertEquals(1, registry.resolveByName("MELDEBESCHEINIGUNG", V8)?.messages?.size)
+        assertSame(v9, registry.resolveByName("MELDEBESCHEINIGUNG", V9))
+    }
+
+    @Test
+    fun testResolveUniqueFailsForUuidOrNameInSeveralBaseTypes() {
+        val registry = createRegistry()
+        assertSame(meldebescheinigung, registry.resolveUnique("9a4223406d374ef99e2cf95e31a23846"))
+        assertSame(meldebescheinigung, registry.resolveByNameUnique("MELDEBESCHEINIGUNG"))
+
+        registry.addDefinition(meldebescheinigung.copy(baseDocumentType = V9))
+
+        assertFailsWith<IllegalArgumentException> { registry.resolveUnique("9a4223406d374ef99e2cf95e31a23846") }
+        assertFailsWith<IllegalArgumentException> { registry.resolveByNameUnique("MELDEBESCHEINIGUNG") }
+        assertSame(testDefinition, registry.resolveUnique("550e8400e29b41d4a716446655440002"))
+        assertNull(registry.resolveUnique("00000000000000000000000000000000"))
     }
 }

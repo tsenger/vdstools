@@ -11,10 +11,30 @@ All notable changes to this project will be documented in this file.
   `ADMINISTRATIVE_DOCUMENTS_V8` (0xC8); v0.9 profiles stay on
   `ADMINISTRATIVE_DOCUMENTS_V9` (0xC9). The type mapping is the same for both
   versions. Unknown `versionTR` values are rejected.
-- Registering a profile with an already registered UUID now logs a warning and
-  removes the replaced profile's name from the name lookup.
+- Registering a profile with an already registered UUID and TR-03171 version
+  now logs a warning and removes the replaced profile's name from the name
+  lookup.
+- `VdsSeal.Builder.forProfileUuid(profileUuid, trVersion)`: optional
+  `TrVersion` to select the profile when its UUID is registered for both v0.8
+  and v0.9. Without it, the UUID must be registered for only one version.
+- `TrVersion.baseDocumentType` (`ADMINISTRATIVE_DOCUMENTS_V8` /
+  `ADMINISTRATIVE_DOCUMENTS_V9`).
 
 ### Changed
+- **Breaking:** `VdsProfileDefinitionRegistry` is keyed by (UUID,
+  `baseDocumentType`) instead of UUID alone, so a v0.8 and a v0.9 profile with
+  the same UUID (and name) can be registered side by side; a 0xC8 seal is
+  decoded with the v0.8 profile, a 0xC9 seal with the v0.9 profile.
+  `resolve(uuid)` becomes `resolve(uuid, baseDocumentType)` (ByteArray and hex
+  string), `resolveByName(name)` becomes `resolveByName(name, baseDocumentType)`,
+  and `availableDefinitions` / `availableDefinitionUuids` are replaced by
+  `definitions: List<VdsProfileDefinitionDto>`.
+- **Breaking:** `VdsProfileResolver.resolve(uuid, profileUri)` becomes
+  `resolve(uuid, profileUri, baseDocumentType)`; the base document type comes
+  from the seal header. Custom resolvers must add the parameter.
+- `VdsSeal.Builder(profileName)` and `forProfileUuid(uuid)` without a version
+  throw `IllegalArgumentException` if the name or UUID is registered for both
+  v0.8 and v0.9.
 - **Breaking:** TR-03171 profiles are defined only via XML. The bundled
   `VdsProfileDefinitions.json` (with `MELDEBESCHEINIGUNG`) and the JSON API for
   profiles (`addCustomVdsProfileDefinitions[FromFile]`,

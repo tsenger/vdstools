@@ -8,6 +8,7 @@ import de.tsenger.vdstools.internal.logV
 import de.tsenger.vdstools.Signer
 import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generic.*
+import de.tsenger.vdstools.vds.tr03171.TrVersion
 import kotlinx.datetime.LocalDate
 import okio.Buffer
 
@@ -170,15 +171,23 @@ class VdsSeal : Seal {
             /**
              * Builds a seal for a BSI TR-03171 document profile identified by its UUID. The profile
              * must be registered beforehand (e.g. via [DataEncoder.loadVdsProfileDefinitionFromXml]).
-             * Unlike [Builder] by name, this resolves the profile by its unique UUID, so several
-             * profiles may share the same profile name without ambiguity.
+             * Unlike [Builder] by name, this resolves the profile by its UUID, so several profiles may
+             * share the same profile name without ambiguity. A UUID may be registered for both TR-03171
+             * v0.8 and v0.9; then [trVersion] selects the profile (and thus document category 0xC8/0xC9).
              *
              * @param profileUuid the profile UUID (32 hex chars, dashes ignored, case-insensitive)
-             * @throws IllegalArgumentException if no profile is registered for the UUID
+             * @param trVersion the TR-03171 version of the profile; may be omitted if the UUID is
+             *   registered for only one version
+             * @throws IllegalArgumentException if no profile is registered for the UUID (and version),
+             *   or if [trVersion] is omitted and the UUID is registered for several versions
              */
-            fun forProfileUuid(profileUuid: String): Builder {
-                val profileDefinition = DataEncoder.vdsProfileDefinitions.resolve(profileUuid)
-                    ?: throw IllegalArgumentException("No TR-03171 profile registered for UUID: $profileUuid")
+            fun forProfileUuid(profileUuid: String, trVersion: TrVersion? = null): Builder {
+                val registry = DataEncoder.vdsProfileDefinitions
+                val profileDefinition = (if (trVersion == null) registry.resolveUnique(profileUuid)
+                else registry.resolve(profileUuid, trVersion.baseDocumentType))
+                    ?: throw IllegalArgumentException(
+                        "No TR-03171 profile registered for UUID: $profileUuid" + (trVersion?.let { " ($it)" } ?: "")
+                    )
                 return Builder(VdsHeader.Builder(profileDefinition), VdsMessageGroup.Builder(profileDefinition))
             }
         }

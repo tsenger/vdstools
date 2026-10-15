@@ -112,12 +112,14 @@ object DataEncoder {
     var vdsProfileDefinitions: VdsProfileDefinitionRegistry = VdsProfileDefinitionRegistry()
         internal set
 
-    /** Default [VdsProfileResolver]: looks the UUID up in [vdsProfileDefinitions], ignoring the profile URI. */
-    val defaultVdsProfileResolver = VdsProfileResolver { uuid, _ -> vdsProfileDefinitions.resolve(uuid) }
+    /** Default [VdsProfileResolver]: looks (UUID, base type) up in [vdsProfileDefinitions], ignoring the profile URI. */
+    val defaultVdsProfileResolver = VdsProfileResolver { uuid, _, baseDocumentType ->
+        vdsProfileDefinitions.resolve(uuid, baseDocumentType)
+    }
 
     /**
      * Resolves the profile definition while parsing UUID-based seals. Replace it to supply
-     * profiles by (UUID, profile URI); [resetToDefaults] restores [defaultVdsProfileResolver].
+     * profiles by (UUID, profile URI, base type); [resetToDefaults] restores [defaultVdsProfileResolver].
      * Not used when building seals, which look profiles up in [vdsProfileDefinitions] directly.
      */
     var vdsProfileResolver: VdsProfileResolver = defaultVdsProfileResolver
