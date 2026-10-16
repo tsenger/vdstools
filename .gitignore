@@ -54,3 +54,6 @@ build/generated/kotlin/resourceConstants/
 /src/commonTest/kotlin/de/tsenger/vdstools/sandbox/
 
 /.sync_*
+
+# Local, non-public test material
+src/commonTest/resources/testdaten/
