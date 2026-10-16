@@ -81,8 +81,9 @@ internal class VdsMessageGroup {
             return result
         }
 
+    /** Looks up a message by name, ignoring case (names come verbatim from the definition or profile). */
     fun getMessageByName(messageName: String): Message? {
-        return messageList.firstOrNull { message: Message -> message.name == messageName }
+        return messageList.firstOrNull { message: Message -> message.name.equals(messageName, ignoreCase = true) }
     }
 
     fun getMessageByTag(messageTag: Int): Message? {
@@ -99,7 +100,7 @@ internal class VdsMessageGroup {
      * Resolves the extended message definition based on the UUID in the specified tag.
      * This method should be called after parsing for seal types that require UUID lookup.
      * The lookup goes through [DataEncoder.vdsProfileResolver], together with the seal's
-     * `PROFILE_URI` if the seal type defines one.
+     * `PROFILE_URI` if the seal type defines one and the base type ([vdsType]).
      *
      * @param uuidTag The tag number containing the UUID (typically 0)
      */
@@ -108,7 +109,7 @@ internal class VdsMessageGroup {
         if (uuidTlv != null) {
             documentProfileUuid = uuidTlv.value
             metadataTags.add(uuidTag)
-            profileDefinition = DataEncoder.vdsProfileResolver.resolve(uuidTlv.value, profileUri())
+            profileDefinition = DataEncoder.vdsProfileResolver.resolve(uuidTlv.value, profileUri(), vdsType)
         }
     }
 
@@ -136,7 +137,7 @@ internal class VdsMessageGroup {
             val docRef = DataEncoder.vdsDocumentTypes.getDocumentRef(vdsType)
             if (docRef == null) {
                 // Not a base type — try resolving as a predefined extended definition name
-                val extDef = DataEncoder.vdsProfileDefinitions.resolveByName(vdsType)
+                val extDef = DataEncoder.vdsProfileDefinitions.resolveByNameUnique(vdsType)
                 if (extDef != null) {
                     profileDefinition = extDef
                     baseVdsType = extDef.baseDocumentType

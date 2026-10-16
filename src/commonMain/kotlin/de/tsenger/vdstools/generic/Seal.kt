@@ -6,6 +6,11 @@ abstract class Seal {
     abstract val signerCertReference: String?
     abstract val signingDate: LocalDate?
 
+    /**
+     * Looks up a message by name, ignoring case. Names are taken verbatim from the definition:
+     * the bundled JSON registries use `UPPER_SNAKE_CASE` (e.g. `SURNAME`), TR-03171 XML profiles
+     * use whatever the profile's `<name>` says (e.g. `familyName` or `Familienname`).
+     */
     abstract fun getMessageByName(name: String): Message?
     abstract fun getMessageByTag(tag: Int): Message?
 

@@ -8,21 +8,21 @@ import de.tsenger.vdstools.vds.dto.MessageDto
 object ProfileConverter {
 
     /**
-     * Converts a parsed TR-03171 v0.9 XML profile to a [VdsProfileDefinitionDto] that can be
+     * Converts a parsed TR-03171 XML profile to a [VdsProfileDefinitionDto] that can be
      * registered in the [de.tsenger.vdstools.VdsProfileDefinitionRegistry].
      *
-     * Profiles parsed from XML are always TR-03171 v0.9 and are therefore carried by
-     * [DataEncoder.ADMINISTRATIVE_DOCUMENTS_V9] (document category 0xC9). Legacy 0xC8 seals are
-     * decoded via the bundled JSON profile definitions, not through this converter.
+     * v0.8 profiles are carried by [DataEncoder.ADMINISTRATIVE_DOCUMENTS_V8] (document category 0xC8),
+     * v0.9 profiles by [DataEncoder.ADMINISTRATIVE_DOCUMENTS_V9] (document category 0xC9). The type
+     * mapping is the same for both versions.
      *
      * @param profile The parsed profile DTO from [ProfileXmlParser].
      */
     fun toVdsProfileDefinition(profile: ProfileDto): VdsProfileDefinitionDto {
         return VdsProfileDefinitionDto(
             definitionId = profile.profileNumber.lowercase(),
-            // profileName is optional in v0.9 — fall back to the (mandatory) profile number
+            // profileName is optional — fall back to the (mandatory) profile number
             definitionName = profile.profileName ?: profile.profileNumber,
-            baseDocumentType = DataEncoder.ADMINISTRATIVE_DOCUMENTS_V9,
+            baseDocumentType = profile.versionTR.baseDocumentType,
             version = 1,
             validFromPresent = profile.validFromPresent,
             validToPresent = profile.validToPresent,

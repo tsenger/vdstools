@@ -24,14 +24,14 @@ class ProfileXmlParserCommonTest {
         val profile = ProfileXmlParser.parse(xml)
 
         assertEquals("9A4223406D374EF99E2CF95E31A23846", profile.profileNumber)
-        assertEquals("0.9", profile.versionTR)
+        assertEquals(TrVersion.V0_9, profile.versionTR)
         // profileName and creator are optional in v0.9
         assertNull(profile.profileName)
         assertNull(profile.creator)
         assertNull(profile.category)
         assertNull(profile.leikaID)
-        assertFalse(profile.validFromPresent)
-        assertFalse(profile.validToPresent)
+        assertEquals(false, profile.validFromPresent)
+        assertEquals(false, profile.validToPresent)
         assertEquals(1, profile.entries.size)
     }
 
@@ -65,13 +65,13 @@ class ProfileXmlParserCommonTest {
 
         val profile = ProfileXmlParser.parse(xml)
 
-        assertEquals("0.9", profile.versionTR)
+        assertEquals(TrVersion.V0_9, profile.versionTR)
         assertEquals("FULL", profile.profileName)
         assertEquals("BSI", profile.creator)
         assertEquals("Meldewesen", profile.category)
         assertEquals("99123456789012", profile.leikaID)
-        assertTrue(profile.validFromPresent)
-        assertTrue(profile.validToPresent)
+        assertEquals(true, profile.validFromPresent)
+        assertEquals(true, profile.validToPresent)
         assertEquals(2, profile.entries.size)
 
         val entry1 = profile.entries[0]
@@ -188,11 +188,53 @@ class ProfileXmlParserCommonTest {
     }
 
     @Test
-    fun testMissingVersionTrThrows() {
+    fun testMissingVersionTrIsV08() {
+        // v0.8 profiles have neither versionTR nor validFromPresent/validToPresent
         val xml = """
             <?xml version="1.0" encoding="UTF-8"?>
             <profile>
                 <profileNumber>9A4223406D374EF99E2CF95E31A23846</profileNumber>
+                <entry tag="4">
+                    <name>F1</name>
+                    <description>D</description>
+                    <type>UTF8String</type>
+                </entry>
+            </profile>
+        """.trimIndent()
+
+        val profile = ProfileXmlParser.parse(xml)
+
+        assertEquals(TrVersion.V0_8, profile.versionTR)
+        assertNull(profile.validFromPresent)
+        assertNull(profile.validToPresent)
+        assertEquals(4, profile.entries[0].tag)
+    }
+
+    @Test
+    fun testExplicitVersionTr08() {
+        val xml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <profile>
+                <profileNumber>9A4223406D374EF99E2CF95E31A23846</profileNumber>
+                <versionTR>0.8</versionTR>
+                <entry tag="4">
+                    <name>F1</name>
+                    <description>D</description>
+                    <type>UTF8String</type>
+                </entry>
+            </profile>
+        """.trimIndent()
+
+        assertEquals(TrVersion.V0_8, ProfileXmlParser.parse(xml).versionTR)
+    }
+
+    @Test
+    fun testUnknownVersionTrThrows() {
+        val xml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <profile>
+                <profileNumber>9A4223406D374EF99E2CF95E31A23846</profileNumber>
+                <versionTR>1.0</versionTR>
                 <validFromPresent>false</validFromPresent>
                 <validToPresent>false</validToPresent>
                 <entry tag="10">
@@ -207,6 +249,27 @@ class ProfileXmlParserCommonTest {
             ProfileXmlParser.parse(xml)
         }
         assertTrue(exception.message!!.contains("versionTR"))
+    }
+
+    @Test
+    fun testV08TagBelowRangeThrows() {
+        // Tags 0x00-0x03 are reserved for metadata in v0.8
+        val xml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <profile>
+                <profileNumber>9A4223406D374EF99E2CF95E31A23846</profileNumber>
+                <entry tag="3">
+                    <name>F1</name>
+                    <description>D</description>
+                    <type>UTF8String</type>
+                </entry>
+            </profile>
+        """.trimIndent()
+
+        val exception = assertFailsWith<IllegalArgumentException> {
+            ProfileXmlParser.parse(xml)
+        }
+        assertTrue(exception.message!!.contains("Tag 3 out of range"))
     }
 
     @Test
@@ -365,6 +428,26 @@ class ProfileXmlParserCommonTest {
 
         assertFailsWith<Exception> {
             ProfileXmlParser.parse(xml)
+        }
+    }
+
+    @Test
+    fun testMalformedXmlThrowsIllegalArgumentException() {
+        val wellFormed = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <profile>
+                <profileNumber>9A4223406D374EF99E2CF95E31A23846</profileNumber>
+                <entry tag="4"><name>FIELD1</name><description>A field</description><type>UTF8String</type></entry>
+            </profile>
+        """.trimIndent()
+        val malformed = listOf(
+            wellFormed.substring(0, wellFormed.length / 2),          // truncated: unexpected EOF
+            wellFormed.replace("</entry>", ""),                      // mismatched end tag
+            wellFormed.replace("<name>", "<name attr=>"),            // broken attribute
+            "not xml at all <<<",
+        )
+        malformed.forEach { xml ->
+            assertFailsWith<IllegalArgumentException>(xml) { ProfileXmlParser.parse(xml) }
         }
     }
 }

@@ -4,6 +4,64 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- `DataEncoder.loadVdsProfileDefinitionFromXml()` also reads BSI TR-03171
+  **v0.8** XML document profiles (no or `0.8` `versionTR`, entry tags 4–254,
+  no `validFromPresent`/`validToPresent`). They are carried by
+  `ADMINISTRATIVE_DOCUMENTS_V8` (0xC8); v0.9 profiles stay on
+  `ADMINISTRATIVE_DOCUMENTS_V9` (0xC9). The type mapping is the same for both
+  versions. Unknown `versionTR` values are rejected.
+- Registering a profile with an already registered UUID and TR-03171 version
+  now logs a warning and removes the replaced profile's name from the name
+  lookup.
+- `VdsSeal.Builder.forProfileUuid(profileUuid, trVersion)`: optional
+  `TrVersion` to select the profile when its UUID is registered for both v0.8
+  and v0.9. Without it, the UUID must be registered for only one version.
+- `TrVersion.baseDocumentType` (`ADMINISTRATIVE_DOCUMENTS_V8` /
+  `ADMINISTRATIVE_DOCUMENTS_V9`).
+
+### Changed
+- **Breaking:** `VdsProfileDefinitionRegistry` is keyed by (UUID,
+  `baseDocumentType`) instead of UUID alone, so a v0.8 and a v0.9 profile with
+  the same UUID (and name) can be registered side by side; a 0xC8 seal is
+  decoded with the v0.8 profile, a 0xC9 seal with the v0.9 profile.
+  `resolve(uuid)` becomes `resolve(uuid, baseDocumentType)` (ByteArray and hex
+  string), `resolveByName(name)` becomes `resolveByName(name, baseDocumentType)`,
+  and `availableDefinitions` / `availableDefinitionUuids` are replaced by
+  `definitions: List<VdsProfileDefinitionDto>`.
+- **Breaking:** `VdsProfileResolver.resolve(uuid, profileUri)` becomes
+  `resolve(uuid, profileUri, baseDocumentType)`; the base document type comes
+  from the seal header. Custom resolvers must add the parameter.
+- `VdsSeal.Builder(profileName)` and `forProfileUuid(uuid)` without a version
+  throw `IllegalArgumentException` if the name or UUID is registered for both
+  v0.8 and v0.9.
+- **Breaking:** TR-03171 profiles are defined only via XML. The bundled
+  `VdsProfileDefinitions.json` (with `MELDEBESCHEINIGUNG`) and the JSON API for
+  profiles (`addCustomVdsProfileDefinitions[FromFile]`,
+  `replaceCustomVdsProfileDefinitions[FromFile]`) are removed;
+  `VdsProfileDefinitionRegistry` starts empty and has a no-arg constructor.
+  0xC8/0xC9 seals can only be decoded after their profile has been loaded with
+  `loadVdsProfileDefinitionFromXml()`.
+- **Breaking:** message and document type names of TR-03171 seals now come
+  verbatim from the XML profile, so the former `MELDEBESCHEINIGUNG` names change
+  (e.g. `SURNAME` → `familyName`, `FIRST_NAME` → `givenName`,
+  `MOVING_DATE` → `dateOfMoving`, document type `Meldebestätigung`). Date
+  fields of v0.8 profiles decode as `DateValue` instead of a string.
+- `getMessageByName()` (on `Seal`, `VdsMessageGroup`, `IdbMessageGroup` and
+  `Message`) now ignores case, matching the name lookup used when building
+  seals. Building IDB messages by name (`IdbMessageGroup.Builder`, including
+  sub-messages) and the name lookups of `IdbMessageTypeRegistry` ignore case as
+  well; an exact match still takes precedence.
+- **Breaking:** `ProfileDto.versionTR` is now a `TrVersion` enum (`V0_8`,
+  `V0_9`) instead of a `String`; `validFromPresent`/`validToPresent` are
+  nullable (`null` for v0.8).
+
+### Fixed
+- `loadVdsProfileDefinitionFromXml()` / `ProfileXmlParser.parse()` now throw
+  `IllegalArgumentException` for malformed XML (e.g. truncated input), as
+  documented. Previously the XML reader's `XmlException` or
+  `IllegalStateException` ("Unexpected EOF") escaped.
+
 ## [0.20.0] - 2026-10-12
 
 ### Added

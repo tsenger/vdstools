@@ -5,6 +5,7 @@ import de.tsenger.vdstools.idb.IcbRawStringsCommon
 import de.tsenger.vdstools.idb.IdbSeal
 import de.tsenger.vdstools.vds.VdsRawBytesCommon
 import de.tsenger.vdstools.vds.VdsSeal
+import de.tsenger.vdstools.vds.tr03171.TestProfiles
 import kotlin.test.*
 
 private val parser = SealParser()
@@ -48,6 +49,13 @@ class SealCommonTest {
         assertEquals(
             "PPD<<FOLKS<<TALLULAH<<<<<<<<<<<<<<<<<<<<<<<<\n3113883489D<<9709155F1601013<<<<<<<<<<<<<<04", mrz
         )
+    }
+
+    @Test
+    fun testIdbGetMessageNameIgnoresCase() {
+        val seal = parser.parse(IcbRawStringsCommon.TemporaryPassport)
+        assertEquals(seal.getMessageByName("MRZ_TD3")?.value.toString(), seal.getMessageByName("mrz_td3")?.value.toString())
+        assertEquals("MRZ_TD3", seal.getMessageByName("mrz_td3")?.name)
     }
 
     @Test
@@ -335,10 +343,12 @@ class SealCommonTest {
 
     @Test
     fun testBaseDokumentTypeNotNull() {
+        DataEncoder.resetToDefaults()
+        TestProfiles.loadMeldebestaetigung()
         val rawString = DataEncoder.encodeBase256(VdsRawBytesCommon.meldebescheinigung)
         val seal = parser.parse(rawString)
         assertNotNull(seal)
-        assertEquals("MELDEBESCHEINIGUNG", seal.documentType)
+        assertEquals(TestProfiles.MELDEBESTAETIGUNG, seal.documentType)
         assertEquals("ADMINISTRATIVE_DOCUMENTS_V8", seal.baseDocumentType)
     }
 

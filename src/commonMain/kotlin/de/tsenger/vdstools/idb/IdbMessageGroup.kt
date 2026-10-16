@@ -28,8 +28,9 @@ internal class IdbMessageGroup {
         return messageList.firstOrNull { it.tag == messageTag }
     }
 
+    /** Looks up a message by name, ignoring case (names come verbatim from the definition or profile). */
     fun getMessageByName(messageName: String): Message? {
-        return messageList.firstOrNull { it.name == messageName }
+        return messageList.firstOrNull { it.name.equals(messageName, ignoreCase = true) }
     }
 
     @Deprecated("Use getMessageByName(messageName) instead", ReplaceWith("getMessageByName(messageName)"))
@@ -51,7 +52,7 @@ internal class IdbMessageGroup {
         val derTlvList: MutableList<DerTlv> = ArrayList(5)
 
         private fun resolveTag(name: String): Int {
-            val fromDefs = subMessageDefs?.firstOrNull { it.name == name }?.tag
+            val fromDefs = subMessageDefs?.firstOrNull { it.name.equals(name, ignoreCase = true) }?.tag
             if (fromDefs != null) return fromDefs
             return DataEncoder.idbMessageTypes.getMessageType(name) ?: 0
         }

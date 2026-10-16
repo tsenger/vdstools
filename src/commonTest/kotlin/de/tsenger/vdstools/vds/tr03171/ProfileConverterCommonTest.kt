@@ -4,6 +4,7 @@ import de.tsenger.vdstools.generic.MessageCoding
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ProfileConverterCommonTest {
@@ -11,7 +12,7 @@ class ProfileConverterCommonTest {
     private fun createProfile(vararg entries: ProfileEntryDto): ProfileDto {
         return ProfileDto(
             profileNumber = "9A4223406D374EF99E2CF95E31A23846",
-            versionTR = "0.9",
+            versionTR = TrVersion.V0_9,
             profileName = "TEST_PROFILE",
             creator = "Test",
             validFromPresent = false,
@@ -51,18 +52,27 @@ class ProfileConverterCommonTest {
     }
 
     @Test
-    fun testBaseDocumentTypeIsAlwaysV9() {
-        // Profiles parsed from XML are always TR-03171 v0.9 (0xC9)
+    fun testBaseDocumentTypeV9() {
         val profile = createProfile(createEntry())
         val result = ProfileConverter.toVdsProfileDefinition(profile)
         assertEquals("ADMINISTRATIVE_DOCUMENTS_V9", result.baseDocumentType)
     }
 
     @Test
+    fun testBaseDocumentTypeV8() {
+        val profile = createProfile(createEntry(tag = 4))
+            .copy(versionTR = TrVersion.V0_8, validFromPresent = null, validToPresent = null)
+        val result = ProfileConverter.toVdsProfileDefinition(profile)
+        assertEquals("ADMINISTRATIVE_DOCUMENTS_V8", result.baseDocumentType)
+        assertNull(result.validFromPresent)
+        assertNull(result.validToPresent)
+    }
+
+    @Test
     fun testProfileNameFallsBackToProfileNumberWhenAbsent() {
         val profile = ProfileDto(
             profileNumber = "9A4223406D374EF99E2CF95E31A23846",
-            versionTR = "0.9",
+            versionTR = TrVersion.V0_9,
             profileName = null,
             creator = null,
             validFromPresent = false,

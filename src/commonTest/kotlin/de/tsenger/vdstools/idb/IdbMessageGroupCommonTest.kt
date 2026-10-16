@@ -5,6 +5,7 @@ import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generic.MessageCoding
 import kotlinx.io.IOException
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -156,6 +157,10 @@ class IdbMessageGroupCommonTest {
         val event = messageGroup.getMessageByName("PROOF_OF_VACCINATION")
             ?.getMessageByName("VACCINATION_EVENT")
         assertNotNull(event)
+        // name lookup ignores case, on the group and on sub-messages
+        val eventIgnoringCase = messageGroup.getMessageByName("proof_of_vaccination")?.getMessageByName("vaccination_event")
+        assertEquals(event.name, eventIgnoringCase?.name)
+        assertEquals(event.tag, eventIgnoringCase?.tag)
 
         // VACCINATION_EVENT should have sub-messages
         assertTrue(event.messageList.isNotEmpty(), "VACCINATION_EVENT should have sub-messages")
@@ -250,5 +255,28 @@ class IdbMessageGroupCommonTest {
         val can = messageGroup.getMessageByName("CAN")
         assertNotNull(can)
         assertTrue(can.messageList.isEmpty(), "Non-container messages should have empty messages list")
+    }
+
+    @Test
+    fun testBuilderResolvesNamesIgnoringCase() {
+        fun build(sex: String, event: String, brand: String) = IdbMessageGroup.Builder()
+            .addMessage("PROOF_OF_VACCINATION") {
+                addMessage("UVCI", "01DE1234V1")
+                addMessage(sex, "M")
+                addMessage(event) {
+                    addMessage(brand, "COVAX")
+                }
+            }
+            .build()
+
+        // top-level names resolve via the registry, sub-message names via the parent's definitions
+        val upper = build("SEX", "VACCINATION_EVENT", "VACCINE_BRAND")
+        val lower = build("sex", "vaccination_event", "vaccine_brand")
+        assertContentEquals(upper.encoded, lower.encoded)
+        assertEquals(
+            "COVAX",
+            lower.getMessageByName("PROOF_OF_VACCINATION")?.getMessageByName("VACCINATION_EVENT")
+                ?.getMessageByName("VACCINE_BRAND")?.value.toString()
+        )
     }
 }

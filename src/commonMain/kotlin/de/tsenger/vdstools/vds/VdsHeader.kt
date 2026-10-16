@@ -215,7 +215,7 @@ internal class VdsHeader {
                 this.docTypeCat = (docRef and 0xFF).toByte()
             } else {
                 // Try resolving as an extended definition name
-                val profileDef = DataEncoder.vdsProfileDefinitions.resolveByName(vdsType)
+                val profileDef = DataEncoder.vdsProfileDefinitions.resolveByNameUnique(vdsType)
                 if (profileDef != null) {
                     applyBaseDocumentRef(profileDef.baseDocumentType)
                 }

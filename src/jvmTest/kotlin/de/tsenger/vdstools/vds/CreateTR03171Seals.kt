@@ -6,6 +6,7 @@ import com.google.zxing.client.j2se.MatrixToImageWriter
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.EcdsaSigner
 import de.tsenger.vdstools.generic.MessageValue
+import de.tsenger.vdstools.vds.tr03171.TestProfiles
 import kotlinx.datetime.LocalDate
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey
 import org.bouncycastle.jce.provider.BouncyCastleProvider
@@ -14,6 +15,7 @@ import java.io.FileInputStream
 import java.nio.file.FileSystems
 import java.security.KeyStore
 import java.security.Security
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -22,9 +24,15 @@ import kotlin.test.assertNull
 
 class CreateTR03171Seals {
 
+    @BeforeTest
+    fun setUp() {
+        DataEncoder.resetToDefaults()
+        TestProfiles.loadMeldebestaetigung()
+    }
+
     @Test
     fun headerBuilderResolvesExtendedDefinitionToBaseDocumentRef() {
-        val header = VdsHeader.Builder("MELDEBESCHEINIGUNG")
+        val header = VdsHeader.Builder(TestProfiles.MELDEBESTAETIGUNG)
             .setIssuingCountry("D<<")
             .setSignerIdentifier("DEZV")
             .setCertificateReference("00112233445566778899AABBCCDDEEFF00112233")
@@ -72,9 +80,9 @@ class CreateTR03171Seals {
         )
         assertEquals("ADMINISTRATIVE_DOCUMENTS_V8", header.vdsType)
 
-        val messageGroup = VdsMessageGroup.Builder("MELDEBESCHEINIGUNG")
-            .addMessage("SURNAME", "Leiermann")
-            .addMessage("FIRST_NAME", "Lorenzo")
+        val messageGroup = VdsMessageGroup.Builder(TestProfiles.MELDEBESTAETIGUNG)
+            .addMessage("familyName", "Leiermann")
+            .addMessage("givenName", "Lorenzo")
             .build()
 
         assertEquals("Leiermann", messageGroup.getMessage(4).toString())
@@ -89,8 +97,8 @@ class CreateTR03171Seals {
 
         val vdsSeal = VdsSeal(header, messageGroup, signer)
 
-        assertEquals("MELDEBESCHEINIGUNG", vdsSeal.documentType)
-        assertEquals("Lorenzo", vdsSeal.getMessage("FIRST_NAME").toString())
+        assertEquals(TestProfiles.MELDEBESTAETIGUNG, vdsSeal.documentType)
+        assertEquals("Lorenzo", vdsSeal.getMessage("givenName").toString())
         assertNull(vdsSeal.getMessage(0))
 
         val encodedSealBytes = vdsSeal.encoded
@@ -101,12 +109,12 @@ class CreateTR03171Seals {
 
     @Test
     fun messageGroupBuilderWithValidityDates() {
-        val messageGroup = VdsMessageGroup.Builder("MELDEBESCHEINIGUNG")
+        val messageGroup = VdsMessageGroup.Builder(TestProfiles.MELDEBESTAETIGUNG)
             .addMessage(
                 "VALIDITY_DATES",
                 MessageValue.ValidityDatesValue.of(LocalDate(2025, 1, 1), LocalDate(2025, 12, 31))
             )
-            .addMessage("SURNAME", "Leiermann")
+            .addMessage("familyName", "Leiermann")
             .build()
 
         // VALIDITY_DATES (tag 1) is a base-type metadata tag → only in metadataMessageList
@@ -119,14 +127,14 @@ class CreateTR03171Seals {
         assertEquals(LocalDate(2025, 12, 31), validityValue.validTo)
 
         // Verify surname still works
-        assertEquals("Leiermann", messageGroup.getMessage("SURNAME").toString())
+        assertEquals("Leiermann", messageGroup.getMessage("familyName").toString())
     }
 
     @Test
     fun messageGroupBuilderWithOnlyValidFrom() {
-        val messageGroup = VdsMessageGroup.Builder("MELDEBESCHEINIGUNG")
+        val messageGroup = VdsMessageGroup.Builder(TestProfiles.MELDEBESTAETIGUNG)
             .addMessage("VALIDITY_DATES", MessageValue.ValidityDatesValue.of(LocalDate(2025, 6, 1), null))
-            .addMessage("SURNAME", "Müller")
+            .addMessage("familyName", "Müller")
             .build()
 
         // VALIDITY_DATES (tag 1) is a base-type metadata tag → only in metadataMessageList
@@ -144,7 +152,7 @@ class CreateTR03171Seals {
 
     /**
      * Profile definition for v0.9 JVM tests. The UUID is intentionally different from the
-     * Meldebescheinigung UUID so the two profiles do not interfere.
+     * Meldebestätigung UUID so the two profiles do not interfere.
      */
     private val v9ProfileXml = """
         <?xml version="1.0" encoding="UTF-8"?>

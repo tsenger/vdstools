@@ -3,7 +3,6 @@ package de.tsenger.vdstools
 import de.tsenger.vdstools.internal.logD
 import de.tsenger.vdstools.internal.logW
 import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
-import kotlinx.serialization.json.Json
 
 /**
  * Registry for extended message definitions based on UUID lookup.
@@ -11,111 +10,127 @@ import kotlinx.serialization.json.Json
  * This class enables a two-stage lookup process for seals with UUID-based definitions
  * as specified in TR-03171:
  * 1. The documentRef in the header determines the base type (e.g., ADMINISTRATIVE_DOCUMENTS_V8)
- * 2. The UUID from Tag 0 (Dokumentenprofilnummer) is used to look up the specific definition
+ * 2. The UUID from Tag 0 (Dokumentenprofilnummer) together with that base type is used to look up
+ *    the specific definition. The same UUID may be registered once per base type (TR-03171 v0.8
+ *    and v0.9 profiles sharing a UUID are not interchangeable).
  *
  * This extends the limited 256-value space of Document Feature Definition Reference in the header
  * by using UUIDs in the message zone for dynamic definition registration.
  *
- * @param jsonString JSON content containing extended message definitions
+ * The registry starts empty; definitions are added from TR-03171 XML document profiles via
+ * [DataEncoder.loadVdsProfileDefinitionFromXml].
  */
 @OptIn(ExperimentalStdlibApi::class)
-class VdsProfileDefinitionRegistry(jsonString: String) : DefinitionRegistry {
+class VdsProfileDefinitionRegistry {
     private val tag = this::class.simpleName ?: ""
-    private var definitionsByUuid: Map<String, VdsProfileDefinitionDto>
-    private var definitionsByName: Map<String, VdsProfileDefinitionDto>
-
-    companion object {
-        private val json = Json { ignoreUnknownKeys = true }
-    }
-
-    init {
-        val definitionList: List<VdsProfileDefinitionDto> = json.decodeFromString(jsonString)
-        definitionsByUuid = definitionList.associateBy { it.definitionId.lowercase() }
-        definitionsByName = definitionList.associateBy { it.definitionName }
-        logD(tag,"Loaded ${definitionsByUuid.size} VDS profile definitions")
-    }
-
-    override fun addEntriesFromJson(jsonString: String) {
-        val newDtos = json.decodeFromString<List<VdsProfileDefinitionDto>>(jsonString)
-        newDtos.forEach { addDefinition(it) }
-    }
+    // keyed by (UUID, baseDocumentType): a profile UUID may be registered once per TR-03171 version
+    private var definitionsByKey: Map<Pair<String, String>, VdsProfileDefinitionDto> = emptyMap()
+    // keyed by (definitionName, baseDocumentType)
+    private var definitionsByName: Map<Pair<String, String>, VdsProfileDefinitionDto> = emptyMap()
 
     /**
-     * Resolves an extended message definition based on the UUID bytes.
+     * Resolves a profile definition by UUID bytes and base document type.
      *
      * @param uuidBytes 16-byte UUID from Tag 0
+     * @param baseDocumentType e.g. [DataEncoder.ADMINISTRATIVE_DOCUMENTS_V8] or [DataEncoder.ADMINISTRATIVE_DOCUMENTS_V9]
      * @return The matching VdsProfileDefinitionDto, or null if no definition matches
      */
-    fun resolve(uuidBytes: ByteArray): VdsProfileDefinitionDto? {
+    fun resolve(uuidBytes: ByteArray, baseDocumentType: String): VdsProfileDefinitionDto? {
         if (uuidBytes.size != 16) {
             logW(tag,"Invalid UUID length: expected 16 bytes, got ${uuidBytes.size}")
             return null
         }
-        val uuidHex = uuidBytes.toHexString().lowercase()
-        val definition = definitionsByUuid[uuidHex]
+        return lookup(uuidBytes.toHexString().lowercase(), baseDocumentType)
+    }
+
+    /**
+     * Resolves a profile definition by UUID hex string and base document type.
+     *
+     * @param uuidHex UUID as hex string (32 characters, dashes ignored, case-insensitive)
+     * @param baseDocumentType e.g. [DataEncoder.ADMINISTRATIVE_DOCUMENTS_V8] or [DataEncoder.ADMINISTRATIVE_DOCUMENTS_V9]
+     * @return The matching VdsProfileDefinitionDto, or null if no definition matches
+     */
+    fun resolve(uuidHex: String, baseDocumentType: String): VdsProfileDefinitionDto? {
+        val normalizedUuid = normalizeUuid(uuidHex) ?: return null
+        return lookup(normalizedUuid, baseDocumentType)
+    }
+
+    private fun lookup(uuid: String, baseDocumentType: String): VdsProfileDefinitionDto? {
+        val definition = definitionsByKey[uuid to baseDocumentType]
         if (definition != null) {
-            logD(tag,"Resolved definition: ${definition.definitionName} for UUID: $uuidHex")
+            logD(tag,"Resolved definition: ${definition.definitionName} for UUID: $uuid ($baseDocumentType)")
         } else {
-            logD(tag,"No definition found for UUID: $uuidHex")
+            logD(tag,"No definition found for UUID: $uuid ($baseDocumentType)")
         }
         return definition
     }
 
-    /**
-     * Resolves an extended message definition based on the UUID hex string.
-     *
-     * @param uuidHex UUID as hex string (32 characters, without dashes)
-     * @return The matching VdsProfileDefinitionDto, or null if no definition matches
-     */
-    fun resolve(uuidHex: String): VdsProfileDefinitionDto? {
+    private fun normalizeUuid(uuidHex: String): String? {
         val normalizedUuid = uuidHex.lowercase().replace("-", "")
         if (normalizedUuid.length != 32) {
             logW(tag,"Invalid UUID hex length: expected 32 characters, got ${normalizedUuid.length}")
             return null
         }
-        val definition = definitionsByUuid[normalizedUuid]
-        if (definition != null) {
-            logD(tag,"Resolved definition: ${definition.definitionName} for UUID: $normalizedUuid")
-        } else {
-            logD(tag,"No definition found for UUID: $normalizedUuid")
-        }
-        return definition
+        return normalizedUuid
     }
 
     /**
-     * Gets all available definition names.
-     *
-     * @return List of all registered definition names
-     */
-    /**
-     * Adds or replaces an extended message definition in the registry.
+     * Adds or replaces a profile definition. A definition with the same UUID and base document type
+     * is replaced; the same UUID with another base document type is kept as a separate entry.
      *
      * @param definition The definition to add
      */
     fun addDefinition(definition: VdsProfileDefinitionDto) {
-        definitionsByUuid = definitionsByUuid + (definition.definitionId.lowercase() to definition)
-        definitionsByName = definitionsByName + (definition.definitionName to definition)
-        logD(tag,"Added definition: ${definition.definitionName} (${definition.definitionId})")
+        val key = definition.definitionId.lowercase() to definition.baseDocumentType
+        val replaced = definitionsByKey[key]
+        if (replaced != null) {
+            logW(tag, "Replacing definition ${replaced.definitionName} for UUID: ${key.first} (${key.second})")
+            // drop the old name so it no longer resolves to the replaced definition
+            val replacedNameKey = replaced.definitionName to replaced.baseDocumentType
+            if (definitionsByName[replacedNameKey] == replaced) definitionsByName = definitionsByName - replacedNameKey
+        }
+        definitionsByKey = definitionsByKey + (key to definition)
+        definitionsByName = definitionsByName + ((definition.definitionName to definition.baseDocumentType) to definition)
+        logD(tag,"Added definition: ${definition.definitionName} (${definition.definitionId}, ${definition.baseDocumentType})")
     }
 
     /**
-     * Resolves an extended message definition by its definition name.
+     * Resolves a profile definition by its definition name within a base document type. If several
+     * profiles of that base type share the name, the last registered one wins.
      *
-     * @param definitionName The definition name (e.g., "MELDEBESCHEINIGUNG")
+     * @param definitionName The definition name (e.g., "Meldebestätigung")
+     * @param baseDocumentType e.g. [DataEncoder.ADMINISTRATIVE_DOCUMENTS_V8] or [DataEncoder.ADMINISTRATIVE_DOCUMENTS_V9]
      * @return The matching VdsProfileDefinitionDto, or null if no definition matches
      */
-    fun resolveByName(definitionName: String): VdsProfileDefinitionDto? {
-        return definitionsByName[definitionName]
+    fun resolveByName(definitionName: String, baseDocumentType: String): VdsProfileDefinitionDto? {
+        return definitionsByName[definitionName to baseDocumentType]
     }
 
-    val availableDefinitions: List<String>
-        get() = definitionsByUuid.values.map { it.definitionName }
+    /**
+     * Resolves a profile by UUID regardless of base document type.
+     * @throws IllegalArgumentException if the UUID is registered for more than one base document type
+     */
+    internal fun resolveUnique(uuidHex: String): VdsProfileDefinitionDto? {
+        val normalizedUuid = normalizeUuid(uuidHex) ?: return null
+        return unique(definitionsByKey.filterKeys { it.first == normalizedUuid }.values, "UUID $normalizedUuid")
+    }
 
     /**
-     * Gets all available definition UUIDs.
-     *
-     * @return List of all registered definition UUIDs (as lowercase hex strings)
+     * Resolves a profile by name regardless of base document type.
+     * @throws IllegalArgumentException if the name is registered for more than one base document type
      */
-    val availableDefinitionUuids: List<String>
-        get() = definitionsByUuid.keys.toList()
+    internal fun resolveByNameUnique(definitionName: String): VdsProfileDefinitionDto? =
+        unique(definitionsByName.filterKeys { it.first == definitionName }.values, "'$definitionName'")
+
+    private fun unique(matches: Collection<VdsProfileDefinitionDto>, what: String): VdsProfileDefinitionDto? {
+        require(matches.size <= 1) {
+            "TR-03171 profile $what is registered for several base document types " +
+                "(${matches.joinToString { it.baseDocumentType }}); use VdsSeal.Builder.forProfileUuid(uuid, trVersion)"
+        }
+        return matches.firstOrNull()
+    }
+
+    /** All registered profile definitions; each carries its UUID, name and base document type. */
+    val definitions: List<VdsProfileDefinitionDto>
+        get() = definitionsByKey.values.toList()
 }
