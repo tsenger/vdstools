@@ -430,4 +430,24 @@ class ProfileXmlParserCommonTest {
             ProfileXmlParser.parse(xml)
         }
     }
+
+    @Test
+    fun testMalformedXmlThrowsIllegalArgumentException() {
+        val wellFormed = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <profile>
+                <profileNumber>9A4223406D374EF99E2CF95E31A23846</profileNumber>
+                <entry tag="4"><name>FIELD1</name><description>A field</description><type>UTF8String</type></entry>
+            </profile>
+        """.trimIndent()
+        val malformed = listOf(
+            wellFormed.substring(0, wellFormed.length / 2),          // truncated: unexpected EOF
+            wellFormed.replace("</entry>", ""),                      // mismatched end tag
+            wellFormed.replace("<name>", "<name attr=>"),            // broken attribute
+            "not xml at all <<<",
+        )
+        malformed.forEach { xml ->
+            assertFailsWith<IllegalArgumentException>(xml) { ProfileXmlParser.parse(xml) }
+        }
+    }
 }

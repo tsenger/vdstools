@@ -14,8 +14,14 @@ object ProfileXmlParser {
      * @throws IllegalArgumentException if the XML is invalid or fails validation.
      */
     fun parse(xmlString: String): ProfileDto {
-        val reader = xmlStreaming.newReader(xmlString)
-        val profile = parseProfile(reader)
+        val profile = try {
+            parseProfile(xmlStreaming.newReader(xmlString))
+        } catch (e: IllegalArgumentException) {
+            throw e
+        } catch (e: Exception) {
+            // malformed XML: the xmlutil reader throws XmlException or IllegalStateException (e.g. "Unexpected EOF")
+            throw IllegalArgumentException("Malformed TR-03171 XML profile: ${e.message}", e)
+        }
         validate(profile)
         return profile
     }

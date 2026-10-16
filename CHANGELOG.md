@@ -56,6 +56,12 @@ All notable changes to this project will be documented in this file.
   `V0_9`) instead of a `String`; `validFromPresent`/`validToPresent` are
   nullable (`null` for v0.8).
 
+### Fixed
+- `loadVdsProfileDefinitionFromXml()` / `ProfileXmlParser.parse()` now throw
+  `IllegalArgumentException` for malformed XML (e.g. truncated input), as
+  documented. Previously the XML reader's `XmlException` or
+  `IllegalStateException` ("Unexpected EOF") escaped.
+
 ## [0.20.0] - 2026-10-12
 
 ### Added
