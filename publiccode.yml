@@ -1,8 +1,8 @@
 publiccodeYmlVersion: '0.4'
 name: VdsTools
 url: 'https://gitlab.opencode.de/OC000117583753/vdstools'
-releaseDate: '2026-10-12'
-softwareVersion: 0.20.0
+releaseDate: '2026-10-18'
+softwareVersion: 0.21.0
 softwareType: library
 logo: Logo_vdstools.svg
 platforms:

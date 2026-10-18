@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.21.0] - 2026-10-18
+
 ### Added
 - `DataEncoder.loadVdsProfileDefinitionFromXml()` also reads BSI TR-03171
   **v0.8** XML document profiles (no or `0.8` `versionTR`, entry tags 4–254,
@@ -344,7 +346,8 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-[Unreleased]: https://github.com/tsenger/vdstools/compare/v0.20.0...HEAD
+[Unreleased]: https://github.com/tsenger/vdstools/compare/v0.21.0...HEAD
+[0.21.0]: https://github.com/tsenger/vdstools/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/tsenger/vdstools/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/tsenger/vdstools/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/tsenger/vdstools/compare/v0.17.0...v0.18.0
