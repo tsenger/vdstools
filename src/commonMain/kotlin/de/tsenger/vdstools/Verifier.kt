@@ -93,8 +93,6 @@ class Verifier(
 
         val ecdsaVerify = ecPubKey.signatureVerifier(digest = digest, ECDSA.SignatureFormat.RAW)
 
-        ecdsaVerify.tryVerifySignatureBlocking(messageBytes, signatureBytes)
-
         return if (ecdsaVerify.tryVerifySignatureBlocking(messageBytes, signatureBytes)) {
             Result.SignatureValid
         } else {
