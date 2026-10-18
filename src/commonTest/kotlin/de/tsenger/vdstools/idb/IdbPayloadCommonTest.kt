@@ -215,4 +215,19 @@ class IdbPayloadCommonTest {
             "Signer certificate tag should not be present when certificate is null"
         )
     }
+
+    @Test
+    fun testFromByteArray_signedFlagWithoutSignature() {
+        // signed header (12 bytes) and message group, signature removed
+        val rawBytes = "6abc010504030201009b5d8861120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf".hexToByteArray()
+        assertFailsWith<IllegalArgumentException> { fromByteArray(rawBytes, true) }
+    }
+
+    @Test
+    fun testFromByteArray_unsignedFlagWithSignature() {
+        // unsigned header (2 bytes) and message group, followed by a signature
+        val rawBytes =
+            "6abc61120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf7f3824bbbb332f562a94f487db623b8db55c4a65b9cf532a959843a6a34e117f56343a94d5e187f28262943d84579af46d44804cf6328fa523c7".hexToByteArray()
+        assertFailsWith<IllegalArgumentException> { fromByteArray(rawBytes, false) }
+    }
 }

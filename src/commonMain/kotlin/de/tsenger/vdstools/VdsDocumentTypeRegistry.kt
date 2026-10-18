@@ -395,14 +395,6 @@ class VdsDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
         return MessageResolver.resolve(derTlv, asResolver(vdsType, profileDefinition))
     }
 
-    @Deprecated("Use resolveMessage()", ReplaceWith("resolveMessage(vdsType, derTlv)"))
-    fun encodeDerTlv(vdsType: String, derTlv: DerTlv): Message? =
-        resolveMessage(vdsType, derTlv)
-
-    @Deprecated("Use resolveMessage()", ReplaceWith("resolveMessage(vdsType, profileDefinition, derTlv)"))
-    fun encodeDerTlv(vdsType: String, profileDefinition: VdsProfileDefinitionDto?, derTlv: DerTlv): Message? =
-        resolveMessage(vdsType, profileDefinition, derTlv)
-
     override fun addEntriesFromJson(jsonString: String) {
         val newDtos = json.decodeFromString<List<VdsDocumentTypeDto>>(jsonString)
         for (dto in newDtos) {

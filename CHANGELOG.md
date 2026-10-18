@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.21.0] - 2026-10-18
+
 ### Added
 - `DataEncoder.loadVdsProfileDefinitionFromXml()` also reads BSI TR-03171
   **v0.8** XML document profiles (no or `0.8` `versionTR`, entry tags 4–254,
@@ -55,6 +57,27 @@ All notable changes to this project will be documented in this file.
 - **Breaking:** `ProfileDto.versionTR` is now a `TrVersion` enum (`V0_8`,
   `V0_9`) instead of a `String`; `validFromPresent`/`validToPresent` are
   nullable (`null` for v0.8).
+- **Breaking:** parsing an IDB seal whose barcode flag does not match its
+  payload now throws `IllegalArgumentException`: a signed flag (`B`/`D`)
+  without signature, or an unsigned flag (`A`/`C`) with a signature.
+  Previously such seals were decoded and the signature silently ignored or
+  missing.
+
+### Removed
+- **Breaking:** deprecated functions removed (use the replacement named in
+  their former `@Deprecated` annotation):
+  - `getMessage(name: String)` / `getMessage(tag: Int)` on `Seal`,
+    `VdsMessageGroup` and `IdbMessageGroup` → `getMessageByName()` /
+    `getMessageByTag()`
+  - `VdsDocumentTypeRegistry.encodeDerTlv()` → `resolveMessage()`
+  - `DataEncoder.parseDerTLvs()` → `DerTlv.parseAll()`
+  - `Verifier(VdsSeal, …)` / `Verifier(IdbSeal, …)` → `Verifier(Seal, …)`.
+    Existing calls compile unchanged and now use `Verifier(Seal, …)`, which
+    throws `IllegalArgumentException` for a seal without signature (e.g. an
+    unsigned IDB seal) instead of verifying an empty signature.
+- `TR03171DocProfileSchema.xsd` is no longer shipped as a resource. It was never
+  used for validation (`ProfileXmlParser` checks the constraints itself) and
+  only described v0.9 profiles.
 
 ### Fixed
 - `loadVdsProfileDefinitionFromXml()` / `ProfileXmlParser.parse()` now throw
@@ -323,7 +346,8 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-[Unreleased]: https://github.com/tsenger/vdstools/compare/v0.20.0...HEAD
+[Unreleased]: https://github.com/tsenger/vdstools/compare/v0.21.0...HEAD
+[0.21.0]: https://github.com/tsenger/vdstools/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/tsenger/vdstools/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/tsenger/vdstools/compare/v0.18.0...v0.19.0
 [0.18.0]: https://github.com/tsenger/vdstools/compare/v0.17.0...v0.18.0

@@ -52,6 +52,13 @@ internal class IdbPayload(
                 }
             }
             if (idbMessageGroup == null) throw IllegalArgumentException("Didn't found a Message!")
+            // The barcode flag must match the content, so a seal is never silently decoded with an ignored or missing signature
+            if (isSigned && idbSignature == null) {
+                throw IllegalArgumentException("Barcode flag indicates a signed seal, but no signature was found!")
+            }
+            if (!isSigned && idbSignature != null) {
+                throw IllegalArgumentException("Barcode flag indicates an unsigned seal, but a signature was found!")
+            }
 
             return IdbPayload(idbHeader, idbMessageGroup, idbSignerCertificate, idbSignature)
         }

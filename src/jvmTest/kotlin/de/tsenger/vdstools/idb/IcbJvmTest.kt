@@ -26,11 +26,11 @@ class IcbJvmTest {
         assertEquals(4, numberOfMessages)
         assertEquals(
             "AID<<KOEPPENIK<<JONATHAN<GERALD<<<<<\n2L1T3QPB04D<<8506210M2604239<<<<<<<8",
-            icb.getMessage("MRZ_TD2")?.value.toString()
+            icb.getMessageByName("MRZ_TD2")?.value.toString()
         )
-        assertEquals("2026-04-23", icb.getMessage("EXPIRY_DATE")?.value.toString())
-        assertEquals(1, (icb.getMessage("NATIONAL_DOCUMENT_IDENTIFIER")?.value as? MessageValue.ByteValue)?.value)
-        assertEquals(996, icb.getMessage("FACE_IMAGE")?.value?.rawBytes?.size)
+        assertEquals("2026-04-23", icb.getMessageByName("EXPIRY_DATE")?.value.toString())
+        assertEquals(1, (icb.getMessageByName("NATIONAL_DOCUMENT_IDENTIFIER")?.value as? MessageValue.ByteValue)?.value)
+        assertEquals(996, icb.getMessageByName("FACE_IMAGE")?.value?.rawBytes?.size)
 
         val cert = keystore.getCertificate("utts5b") as X509Certificate
         val digest = MessageDigest.getInstance("SHA-1")
@@ -77,16 +77,16 @@ class IcbJvmTest {
         val numberOfMessages = icb.payLoad.idbMessageGroup.messageList.size
         assertEquals(4, numberOfMessages)
 
-        val etdBytes = icb.getMessage("EMERGENCY_TRAVEL_DOCUMENT")?.value?.rawBytes
+        val etdBytes = icb.getMessageByName("EMERGENCY_TRAVEL_DOCUMENT")?.value?.rawBytes
         assertNotNull(etdBytes)
         val mrz = VdsMessageGroup.fromByteArray(etdBytes, "EMERGENCY_TRAVEL_DOCUMENT")
-            .getMessage("MRZ")?.value.toString()
+            .getMessageByName("MRZ")?.value.toString()
         assertEquals(
             "PUD<<KOEPPENIK<<JONATHAN<GERALD<<<<<\n2L1T3QPB04D<<8506210M2604239<<<<<<<8", mrz
         )
-        assertEquals("2026-04-23", icb.getMessage("EXPIRY_DATE")?.value.toString())
-        assertEquals(2, (icb.getMessage("NATIONAL_DOCUMENT_IDENTIFIER")?.value as? MessageValue.ByteValue)?.value)
-        assertEquals(996, icb.getMessage("FACE_IMAGE")?.value?.rawBytes?.size)
+        assertEquals("2026-04-23", icb.getMessageByName("EXPIRY_DATE")?.value.toString())
+        assertEquals(2, (icb.getMessageByName("NATIONAL_DOCUMENT_IDENTIFIER")?.value as? MessageValue.ByteValue)?.value)
+        assertEquals(996, icb.getMessageByName("FACE_IMAGE")?.value?.rawBytes?.size)
 
         val cert = keystore.getCertificate("utts5b") as X509Certificate
         val verifier = Verifier(icb, cert.publicKey.encoded, "brainpoolP256r1")
@@ -127,13 +127,13 @@ class IcbJvmTest {
         val numberOfMessages = icb.payLoad.idbMessageGroup.messageList.size
         assertEquals(4, numberOfMessages)
 
-        val mrz = icb.getMessage(8)?.value.toString()
+        val mrz = icb.getMessageByTag(8)?.value.toString()
         assertEquals(
             "PPD<<FOLKS<<TALLULAH<<<<<<<<<<<<<<<<<<<<<<<<\n3113883489D<<9709155F1601013<<<<<<<<<<<<<<04", mrz
         )
-        assertEquals("2027-01-31", icb.getMessage("EXPIRY_DATE")?.value.toString())
-        assertEquals(6, (icb.getMessage("NATIONAL_DOCUMENT_IDENTIFIER")?.value as? MessageValue.ByteValue)?.value)
-        assertEquals(998, icb.getMessage("FACE_IMAGE")?.value?.rawBytes?.size)
+        assertEquals("2027-01-31", icb.getMessageByName("EXPIRY_DATE")?.value.toString())
+        assertEquals(6, (icb.getMessageByName("NATIONAL_DOCUMENT_IDENTIFIER")?.value as? MessageValue.ByteValue)?.value)
+        assertEquals(998, icb.getMessageByName("FACE_IMAGE")?.value?.rawBytes?.size)
 
         val cert = keystore.getCertificate("utts5b") as X509Certificate
         val verifier = Verifier(icb, cert.publicKey.encoded, "brainpoolP256r1")
@@ -171,13 +171,13 @@ class IcbJvmTest {
         val numberOfMessages = icb.payLoad.idbMessageGroup.messageList.size
         assertEquals(4, numberOfMessages)
 
-        val mrz = icb.getMessage(0x81)?.value.toString()
+        val mrz = icb.getMessageByTag(0x81)?.value.toString()
         assertEquals(
             "AUD<<MANNSENS<<MANNY<<<<<<<<<<<<<<<<\n6525845096USA7008038M2201018<<<<<<06", mrz
         )
-        assertEquals("ABC123456DEF", icb.getMessage(0x83)?.value.toString())
-        assertEquals(0x0D, (icb.getMessage(0x86)?.value as? MessageValue.ByteValue)?.value)
-        assertEquals(996, icb.getMessage(0x80)?.value?.rawBytes?.size)
+        assertEquals("ABC123456DEF", icb.getMessageByTag(0x83)?.value.toString())
+        assertEquals(0x0D, (icb.getMessageByTag(0x86)?.value as? MessageValue.ByteValue)?.value)
+        assertEquals(996, icb.getMessageByTag(0x80)?.value?.rawBytes?.size)
 
         val cert = keystore.getCertificate("utts5b") as X509Certificate
         val verifier = Verifier(icb, cert.publicKey.encoded, "brainpoolP256r1")
@@ -215,13 +215,13 @@ class IcbJvmTest {
         val numberOfMessages = icb.payLoad.idbMessageGroup.messageList.size
         assertEquals(4, numberOfMessages)
 
-        val mrz = icb.getMessage(0x81)?.value.toString()
+        val mrz = icb.getMessageByTag(0x81)?.value.toString()
         assertEquals(
             "ABD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018T2506012", mrz
         )
-        assertEquals("123456789", icb.getMessage(0x82)?.value.toString())
-        assertEquals("ABC123456DEF", icb.getMessage(0x83)?.value.toString())
-        assertEquals(0x0E, (icb.getMessage(0x86)?.value as? MessageValue.ByteValue)?.value)
+        assertEquals("123456789", icb.getMessageByTag(0x82)?.value.toString())
+        assertEquals("ABC123456DEF", icb.getMessageByTag(0x83)?.value.toString())
+        assertEquals(0x0E, (icb.getMessageByTag(0x86)?.value as? MessageValue.ByteValue)?.value)
 
 
         val cert = keystore.getCertificate("utts5b") as X509Certificate
@@ -261,9 +261,9 @@ class IcbJvmTest {
         val numberOfMessages = icb.payLoad.idbMessageGroup.messageList.size
         assertEquals(3, numberOfMessages)
 
-        assertEquals("123456789", icb.getMessage(0x82)?.value.toString())
-        assertEquals("ABC123456DEF", icb.getMessage(0x83)?.value.toString())
-        assertEquals(0x10, (icb.getMessage(0x86)?.value as? MessageValue.ByteValue)?.value)
+        assertEquals("123456789", icb.getMessageByTag(0x82)?.value.toString())
+        assertEquals("ABC123456DEF", icb.getMessageByTag(0x83)?.value.toString())
+        assertEquals(0x10, (icb.getMessageByTag(0x86)?.value as? MessageValue.ByteValue)?.value)
 
         val cert = keystore.getCertificate("utts5b") as X509Certificate
         val verifier = Verifier(icb, cert.publicKey.encoded, "brainpoolP256r1")
@@ -297,13 +297,13 @@ class IcbJvmTest {
         val numberOfMessages = icb.payLoad.idbMessageGroup.messageList.size
         assertEquals(4, numberOfMessages)
 
-        assertEquals(996, icb.getMessage(0x80)?.value?.rawBytes?.size)
+        assertEquals(996, icb.getMessageByTag(0x80)?.value?.rawBytes?.size)
         assertEquals(
             "AGD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<\n6525845096USA7008038M2201018T2506012",
-            icb.getMessage(0x81)?.value.toString()
+            icb.getMessageByTag(0x81)?.value.toString()
         )
-        assertEquals("ABCDEFGHI", icb.getMessage(0x82)?.value.toString())
-        assertEquals(0x11, (icb.getMessage(0x86)?.value as? MessageValue.ByteValue)?.value)
+        assertEquals("ABCDEFGHI", icb.getMessageByTag(0x82)?.value.toString())
+        assertEquals(0x11, (icb.getMessageByTag(0x86)?.value as? MessageValue.ByteValue)?.value)
 
         val cert = keystore.getCertificate("utts5b") as X509Certificate
         val verifier = Verifier(icb, cert.publicKey.encoded, "brainpoolP256r1")
@@ -346,11 +346,11 @@ class IcbJvmTest {
             "AZD<<5W1ETCGE25<<<<<<<<<<<<<<<\n" +
                     "8703123F2908258CHL<<<<<<<<<<<4\n" +
                     "BORIC<<BRYAN<<<<<<<<<<<<<<<<<<",
-            icb.getMessage(0x07)?.value.toString()
+            icb.getMessageByTag(0x07)?.value.toString()
         )
-        assertEquals("5W1ETCGE2", icb.getMessage(0x82)?.value.toString())
-        assertEquals("ABCDEFGHI", icb.getMessage(0x85)?.value.toString())
-        assertEquals(0x12, (icb.getMessage(0x86)?.value as? MessageValue.ByteValue)?.value)
+        assertEquals("5W1ETCGE2", icb.getMessageByTag(0x82)?.value.toString())
+        assertEquals("ABCDEFGHI", icb.getMessageByTag(0x85)?.value.toString())
+        assertEquals(0x12, (icb.getMessageByTag(0x86)?.value as? MessageValue.ByteValue)?.value)
 
         val cert = keystore.getCertificate("utts5b") as X509Certificate
         val verifier = Verifier(icb, cert.publicKey.encoded, "brainpoolP256r1")
