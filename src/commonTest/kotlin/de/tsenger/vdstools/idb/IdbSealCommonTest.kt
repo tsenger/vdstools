@@ -1,6 +1,7 @@
 package de.tsenger.vdstools.idb
 
 
+import de.tsenger.vdstools.Verifier
 import kotlin.test.*
 
 
@@ -145,6 +146,13 @@ class IdbSealCommonTest {
         )
     }
 
+
+    @Test
+    fun testUnsignedSeal_hasNoSignatureInfo_andVerifierRejectsIt() {
+        val icb = IdbSeal.fromString("RDB1ANK6GCEQFCCYLDMVTWS23NN5YXG5LXPF5X27Q") as IdbSeal
+        assertNull(icb.signatureInfo)
+        assertFailsWith<IllegalArgumentException> { Verifier(icb, byteArrayOf(), "brainpoolP256r1") }
+    }
 
     @Test
     fun testFromString_invalid_BarcodeIdentifier() {

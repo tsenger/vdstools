@@ -55,6 +55,12 @@ All notable changes to this project will be documented in this file.
 - **Breaking:** `ProfileDto.versionTR` is now a `TrVersion` enum (`V0_8`,
   `V0_9`) instead of a `String`; `validFromPresent`/`validToPresent` are
   nullable (`null` for v0.8).
+- **Breaking:** parsing an IDB seal whose barcode flag does not match its
+  payload now throws `IllegalArgumentException`: a signed flag (`B`/`D`)
+  without signature, or an unsigned flag (`A`/`C`) with a signature.
+  Previously such seals were decoded and the signature silently ignored or
+  missing.
+
 ### Removed
 - **Breaking:** deprecated functions removed (use the replacement named in
   their former `@Deprecated` annotation):

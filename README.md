@@ -209,9 +209,14 @@ val encodedSealBytes = vdsSeal.encoded
 
 ### IDB
 
-IDB seals can be unsigned (e.g. for test fixtures) or signed. Use `build()` for unsigned and
-`build(signer)` for signed. The signature algorithm is derived automatically from the signer's
-key size.
+IDB seals can be signed or unsigned, as allowed by ICAO Doc 9303-13; the barcode flag says which
+(`IdbSeal.isSigned`). Use `build()` for unsigned and `build(signer)` for signed. The signature
+algorithm is derived automatically from the signer's key size.
+
+An unsigned seal proves nothing about its origin or integrity, and anyone can turn a signed seal into
+an unsigned one with the same content. Applications must therefore not accept an unsigned seal where
+a signed one is expected. When parsing, a barcode flag that does not match the payload (signed flag
+without signature, or unsigned flag with signature) is rejected with an `IllegalArgumentException`.
 
 ```kotlin
 import de.tsenger.vdstools.DataEncoder
