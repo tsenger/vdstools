@@ -55,6 +55,10 @@ All notable changes to this project will be documented in this file.
 - **Breaking:** `ProfileDto.versionTR` is now a `TrVersion` enum (`V0_8`,
   `V0_9`) instead of a `String`; `validFromPresent`/`validToPresent` are
   nullable (`null` for v0.8).
+### Removed
+- `TR03171DocProfileSchema.xsd` is no longer shipped as a resource. It was never
+  used for validation (`ProfileXmlParser` checks the constraints itself) and
+  only described v0.9 profiles.
 
 ### Fixed
 - `loadVdsProfileDefinitionFromXml()` / `ProfileXmlParser.parse()` now throw
