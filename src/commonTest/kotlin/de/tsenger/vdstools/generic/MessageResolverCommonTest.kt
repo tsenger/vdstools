@@ -44,12 +44,11 @@ class MessageResolverCommonTest {
         assertTrue(seal.messageList[0].value is MessageValue.MrzValue)
     }
 
-    @Suppress("DEPRECATION")
     @Test
-    fun testDeprecatedEncodeDerTlvStillWorks() {
+    fun testResolveMessage() {
         val mrzBytes = DataEncoder.encodeC40("I<GBRSUPAMANN<<MARY<<<<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06")
         val derTlv = DerTlv(0x02.toByte(), mrzBytes)
-        val message = DataEncoder.vdsDocumentTypes.encodeDerTlv("EMERGENCY_TRAVEL_DOCUMENT", derTlv)
+        val message = DataEncoder.vdsDocumentTypes.resolveMessage("EMERGENCY_TRAVEL_DOCUMENT", derTlv)
         assertNotNull(message)
         assertEquals("MRZ", message.name)
     }

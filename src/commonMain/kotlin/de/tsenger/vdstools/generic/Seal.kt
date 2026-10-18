@@ -14,12 +14,6 @@ abstract class Seal {
     abstract fun getMessageByName(name: String): Message?
     abstract fun getMessageByTag(tag: Int): Message?
 
-    @Deprecated("Use getMessageByName(name) instead", ReplaceWith("getMessageByName(name)"))
-    fun getMessage(name: String): Message? = getMessageByName(name)
-
-    @Deprecated("Use getMessageByTag(tag) instead", ReplaceWith("getMessageByTag(tag)"))
-    fun getMessage(tag: Int): Message? = getMessageByTag(tag)
-
     abstract val sealType: SealType
     abstract val documentType: String
 

@@ -90,12 +90,6 @@ internal class VdsMessageGroup {
         return messageList.firstOrNull { message: Message -> message.tag == messageTag }
     }
 
-    @Deprecated("Use getMessageByName(messageName) instead", ReplaceWith("getMessageByName(messageName)"))
-    fun getMessage(messageName: String): Message? = getMessageByName(messageName)
-
-    @Deprecated("Use getMessageByTag(messageTag) instead", ReplaceWith("getMessageByTag(messageTag)"))
-    fun getMessage(messageTag: Int): Message? = getMessageByTag(messageTag)
-
     /**
      * Resolves the extended message definition based on the UUID in the specified tag.
      * This method should be called after parsing for seal types that require UUID lookup.

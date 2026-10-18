@@ -1,7 +1,6 @@
 package de.tsenger.vdstools
 
 
-import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.internal.logD
 import de.tsenger.vdstools.internal.logE
 import de.tsenger.vdstools.internal.logI
@@ -775,10 +774,6 @@ object DataEncoder {
             kotlinx.datetime.LocalTime(s.substring(8, 10).toInt(), s.substring(10, 12).toInt(), s.substring(12, 14).toInt())
         )
     }
-
-    @Deprecated("Use DerTlv.parseAll()", ReplaceWith("DerTlv.parseAll(rawBytes)", "de.tsenger.vdstools.asn1.DerTlv"))
-    @Throws(IllegalArgumentException::class)
-    fun parseDerTLvs(rawBytes: ByteArray): List<DerTlv> = DerTlv.parseAll(rawBytes)
 
     private fun toUnsignedInt(value: Byte): Int {
         return (value.toInt() and 0x7F) + (if (value < 0) 128 else 0)

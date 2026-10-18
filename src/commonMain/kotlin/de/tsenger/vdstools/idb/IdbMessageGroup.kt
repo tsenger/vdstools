@@ -33,12 +33,6 @@ internal class IdbMessageGroup {
         return messageList.firstOrNull { it.name.equals(messageName, ignoreCase = true) }
     }
 
-    @Deprecated("Use getMessageByName(messageName) instead", ReplaceWith("getMessageByName(messageName)"))
-    fun getMessage(messageName: String): Message? = getMessageByName(messageName)
-
-    @Deprecated("Use getMessageByTag(messageTag) instead", ReplaceWith("getMessageByTag(messageTag)"))
-    fun getMessage(messageTag: Int): Message? = getMessageByTag(messageTag)
-
     val encoded: ByteArray
         get() {
             val messages = Buffer()

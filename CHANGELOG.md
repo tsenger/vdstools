@@ -56,6 +56,17 @@ All notable changes to this project will be documented in this file.
   `V0_9`) instead of a `String`; `validFromPresent`/`validToPresent` are
   nullable (`null` for v0.8).
 ### Removed
+- **Breaking:** deprecated functions removed (use the replacement named in
+  their former `@Deprecated` annotation):
+  - `getMessage(name: String)` / `getMessage(tag: Int)` on `Seal`,
+    `VdsMessageGroup` and `IdbMessageGroup` → `getMessageByName()` /
+    `getMessageByTag()`
+  - `VdsDocumentTypeRegistry.encodeDerTlv()` → `resolveMessage()`
+  - `DataEncoder.parseDerTLvs()` → `DerTlv.parseAll()`
+  - `Verifier(VdsSeal, …)` / `Verifier(IdbSeal, …)` → `Verifier(Seal, …)`.
+    Existing calls compile unchanged and now use `Verifier(Seal, …)`, which
+    throws `IllegalArgumentException` for a seal without signature (e.g. an
+    unsigned IDB seal) instead of verifying an empty signature.
 - `TR03171DocProfileSchema.xsd` is no longer shipped as a resource. It was never
   used for validation (`ProfileXmlParser` checks the constraints itself) and
   only described v0.9 profiles.

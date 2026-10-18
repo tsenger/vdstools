@@ -85,7 +85,7 @@ class CreateTR03171Seals {
             .addMessage("givenName", "Lorenzo")
             .build()
 
-        assertEquals("Leiermann", messageGroup.getMessage(4).toString())
+        assertEquals("Leiermann", messageGroup.getMessageByTag(4).toString())
         assertEquals(
             "00109a4223406d374ef99e2cf95e31a2384604094c656965726d616e6e06074c6f72656e7a6f",
             messageGroup.encoded.toHexString()
@@ -98,8 +98,8 @@ class CreateTR03171Seals {
         val vdsSeal = VdsSeal(header, messageGroup, signer)
 
         assertEquals(TestProfiles.MELDEBESTAETIGUNG, vdsSeal.documentType)
-        assertEquals("Lorenzo", vdsSeal.getMessage("givenName").toString())
-        assertNull(vdsSeal.getMessage(0))
+        assertEquals("Lorenzo", vdsSeal.getMessageByName("givenName").toString())
+        assertNull(vdsSeal.getMessageByTag(0))
 
         val encodedSealBytes = vdsSeal.encoded
         println("Encoded seal bytes: ${encodedSealBytes.toHexString()}")
@@ -127,7 +127,7 @@ class CreateTR03171Seals {
         assertEquals(LocalDate(2025, 12, 31), validityValue.validTo)
 
         // Verify surname still works
-        assertEquals("Leiermann", messageGroup.getMessage("familyName").toString())
+        assertEquals("Leiermann", messageGroup.getMessageByName("familyName").toString())
     }
 
     @Test
