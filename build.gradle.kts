@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "de.tsenger"
-version = "0.21.0"
+version = "0.21.1"
 description = "Kotlin multiplatform library to encode/sign and decode/verify Visible Digital Seals"
 
 repositories {

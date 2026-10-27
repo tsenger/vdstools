@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.21.1] - 2026-10-27
+
 ### Fixed
 - ECDSA with P-521 (secp521r1): `VdsSeal.signatureInfo.signatureAlgorithm` is
   now `SHA512_WITH_ECDSA` for 132-byte signatures (was `""`), `EcdsaSigner`
@@ -362,7 +364,8 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-[Unreleased]: https://github.com/tsenger/vdstools/compare/v0.21.0...HEAD
+[Unreleased]: https://github.com/tsenger/vdstools/compare/v0.21.1...HEAD
+[0.21.1]: https://github.com/tsenger/vdstools/compare/v0.21.0...v0.21.1
 [0.21.0]: https://github.com/tsenger/vdstools/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/tsenger/vdstools/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/tsenger/vdstools/compare/v0.18.0...v0.19.0
