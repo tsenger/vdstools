@@ -1,10 +1,16 @@
 package de.tsenger.vdstools.vds
 
 import de.tsenger.vdstools.DataEncoder
+import de.tsenger.vdstools.EcdsaSigner
+import de.tsenger.vdstools.Signer
+import de.tsenger.vdstools.Verifier
 import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.generic.SealParser
 import de.tsenger.vdstools.generic.SealType
 import de.tsenger.vdstools.vds.tr03171.TestProfiles
+import dev.whyoleg.cryptography.CryptographyProvider
+import dev.whyoleg.cryptography.algorithms.EC
+import dev.whyoleg.cryptography.algorithms.ECDSA
 import kotlinx.datetime.LocalDate
 import okio.Buffer
 import kotlin.test.*
@@ -463,5 +469,48 @@ class VdsSealCommonTest {
 
     }
 
+    private fun buildResidencePermit(signer: Signer): VdsSeal = VdsSeal.Builder("RESIDENCE_PERMIT")
+        .issuingCountry("D<<")
+        .signerIdentifier("DETS")
+        .certificateReference("32")
+        .addMessage("MRZ", "ATD<<RESIDORCE<<ROLAND<<<<<<<<<<<<<<6525845096USA7008038M2201018<<<<<<06")
+        .addMessage("PASSPORT_NUMBER", "UFO001979")
+        .build(signer)
 
+    @Test
+    fun testSignatureInfo_P521() {
+        val keyPair = CryptographyProvider.Default.get(ECDSA).keyPairGenerator(EC.Curve.P521).generateKeyBlocking()
+        val signer = EcdsaSigner(keyPair.privateKey.encodeToByteArrayBlocking(EC.PrivateKey.Format.DER), "secp521r1")
+
+        val parsed = SealParser().parse(buildResidencePermit(signer).encoded)
+
+        val signatureInfo = parsed.signatureInfo
+        assertNotNull(signatureInfo)
+        assertEquals(132, signatureInfo.plainSignatureBytes.size)
+        assertEquals("SHA512_WITH_ECDSA", signatureInfo.signatureAlgorithm)
+
+        val publicKey = keyPair.publicKey.encodeToByteArrayBlocking(EC.PublicKey.Format.DER)
+        assertEquals(Verifier.Result.SignatureValid, Verifier(parsed, publicKey, "secp521r1").verify())
+    }
+
+    @Test
+    fun testSignatureInfo_algorithmBySignatureLength() {
+        val expected = mapOf(
+            56 to "SHA224_WITH_ECDSA",  // P-224, brainpoolP224r1
+            64 to "SHA256_WITH_ECDSA",  // P-256, brainpoolP256r1
+            80 to "SHA384_WITH_ECDSA",  // brainpoolP320r1
+            96 to "SHA384_WITH_ECDSA",  // P-384, brainpoolP384r1
+            128 to "SHA512_WITH_ECDSA", // brainpoolP512r1
+            132 to "SHA512_WITH_ECDSA", // P-521
+            100 to null,                // no known curve
+        )
+        for ((signatureLength, algorithm) in expected) {
+            val signer = object : Signer {
+                override val fieldSize = signatureLength * 4
+                override fun sign(data: ByteArray) = ByteArray(signatureLength)
+            }
+            val parsed = SealParser().parse(buildResidencePermit(signer).encoded)
+            assertEquals(algorithm, parsed.signatureInfo?.signatureAlgorithm, "signature length $signatureLength")
+        }
+    }
 }

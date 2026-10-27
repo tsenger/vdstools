@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.21.1] - 2026-10-27
+
+### Fixed
+- ECDSA with P-521 (secp521r1): `VdsSeal.signatureInfo.signatureAlgorithm` is
+  now `SHA512_WITH_ECDSA` for 132-byte signatures (was `""`), `EcdsaSigner`
+  accepts P-521 keys (`fieldSize` 521, signs with SHA-512) instead of throwing
+  `IllegalArgumentException`, and `Verifier` verifies P-521 signatures with
+  SHA-512 instead of returning `VerifyError`.
+
+### Changed
+- The curve size is now taken from an explicit list of component lengths
+  (28, 32, 40, 48, 64, 66 bytes → 224, 256, 320, 384, 512, 521 bits) instead of
+  value ranges. For any other length, `VdsSeal.signatureInfo.signatureAlgorithm`
+  is `null` (was `""` or a guessed hash), `EcdsaSigner` throws
+  `IllegalArgumentException` and `Verifier.verify()` returns `VerifyError`.
+  Results for P-224/P-256/P-384 and brainpoolP224r1 to brainpoolP512r1 are
+  unchanged.
+
 ## [0.21.0] - 2026-10-18
 
 ### Added
@@ -346,7 +364,8 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-[Unreleased]: https://github.com/tsenger/vdstools/compare/v0.21.0...HEAD
+[Unreleased]: https://github.com/tsenger/vdstools/compare/v0.21.1...HEAD
+[0.21.1]: https://github.com/tsenger/vdstools/compare/v0.21.0...v0.21.1
 [0.21.0]: https://github.com/tsenger/vdstools/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/tsenger/vdstools/compare/v0.19.0...v0.20.0
 [0.19.0]: https://github.com/tsenger/vdstools/compare/v0.18.0...v0.19.0

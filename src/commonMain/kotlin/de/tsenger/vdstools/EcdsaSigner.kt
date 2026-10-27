@@ -1,5 +1,6 @@
 package de.tsenger.vdstools
 
+import de.tsenger.vdstools.internal.ecFieldBitSize
 import de.tsenger.vdstools.internal.logE
 import dev.whyoleg.cryptography.algorithms.*
 import dev.whyoleg.cryptography.algorithms.EC.Curve
@@ -19,24 +20,21 @@ class EcdsaSigner(privKeyBytes: ByteArray, curveName: String) : Signer {
         val ecdsa = provider.get(ECDSA)
         val keyDecoder = ecdsa.privateKeyDecoder(Curve(curveName))
         ecPrivKey = keyDecoder.decodeFromByteArrayBlocking(DER, privKeyBytes)
-        fieldSize = ecPrivKey.encodeToByteArrayBlocking(RAW).size * 8
-        if (fieldSize !in 224..512) {
-            logE(tag, "Bit length of Field is out of defined value: $fieldSize")
-            throw IllegalArgumentException(
-                "Bit length of Field is out of defined value (224 to 512 bits): $fieldSize"
-            )
+        val keyLength = ecPrivKey.encodeToByteArrayBlocking(RAW).size
+        fieldSize = ecFieldBitSize(keyLength) ?: run {
+            logE(tag, "No supported curve for private key length: $keyLength bytes")
+            throw IllegalArgumentException("No supported curve for private key length: $keyLength bytes")
         }
     }
 
     override fun sign(data: ByteArray): ByteArray {
         // Signature depends on the curves bit length according to BSI TR-03116-2
         // 2024-10-20: even more precise Doc9309-13 chapter 2.4
-        val digest = when (fieldSize) {
-            in Int.MIN_VALUE..224 -> SHA224
-            in 225..256 -> SHA256
-            in 257..384 -> SHA384
-            in 385..512 -> SHA512
-            else -> throw IllegalArgumentException("Ungültige fieldSize: $fieldSize")
+        val digest = when {
+            fieldSize <= 224 -> SHA224
+            fieldSize <= 256 -> SHA256
+            fieldSize <= 384 -> SHA384
+            else -> SHA512
         }
         val ecdsaSign = this.ecPrivKey.signatureGenerator(digest = digest, ECDSA.SignatureFormat.RAW)
         return ecdsaSign.generateSignatureBlocking(data)

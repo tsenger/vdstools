@@ -2,6 +2,7 @@ package de.tsenger.vdstools
 
 import de.tsenger.vdstools.generic.Seal
 import de.tsenger.vdstools.generic.SignatureInfo
+import de.tsenger.vdstools.internal.ecFieldBitSize
 import de.tsenger.vdstools.internal.logE
 import de.tsenger.vdstools.internal.logV
 import dev.whyoleg.cryptography.algorithms.*
@@ -50,8 +51,8 @@ class Verifier(
     }
 
 
-    private val fieldSize: Int
-        get() = (ecPubKey.encodeToByteArrayBlocking(RAW).size - 1) * 4
+    private val fieldSize: Int?
+        get() = ecFieldBitSize((ecPubKey.encodeToByteArrayBlocking(RAW).size - 1) / 2)
 
     init {
 
@@ -66,15 +67,16 @@ class Verifier(
         // Signature Algorithm is selected based on the field bit length of the curve
         // as defined in ICAO9303 p13 ch2.4
 
-        val digest = when (fieldSize) {
-            in Int.MIN_VALUE..224 -> SHA224
-            in 225..256 -> SHA256
-            in 257..384 -> SHA384
-            in 385..512 -> SHA512
-            else -> {
-                logE(tag, "Bit length of Field is out of defined value: $fieldSize")
+        val fieldSize = fieldSize
+        val digest = when {
+            fieldSize == null -> {
+                logE(tag, "No supported curve for public key length")
                 return Result.VerifyError
             }
+            fieldSize <= 224 -> SHA224
+            fieldSize <= 256 -> SHA256
+            fieldSize <= 384 -> SHA384
+            else -> SHA512
         }
 
         val ecdsaVerify = ecPubKey.signatureVerifier(digest = digest, ECDSA.SignatureFormat.RAW)
