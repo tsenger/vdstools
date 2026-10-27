@@ -2,6 +2,7 @@ package de.tsenger.vdstools.vds
 
 
 import de.tsenger.vdstools.DataEncoder
+import de.tsenger.vdstools.internal.ecFieldBitSize
 import de.tsenger.vdstools.internal.logD
 import de.tsenger.vdstools.internal.logE
 import de.tsenger.vdstools.internal.logV
@@ -113,13 +114,13 @@ class VdsSeal : Seal {
     override val signatureInfo: SignatureInfo?
         get() {
             if (signatureBytes.isEmpty()) return null
-            val fieldSize = signatureBytes.size * 4
-            val signatureAlgorithm = when (fieldSize) {
-                in Int.MIN_VALUE..224 -> "SHA224_WITH_ECDSA"
-                in 225..256 -> "SHA256_WITH_ECDSA"
-                in 257..384 -> "SHA384_WITH_ECDSA"
-                in 385..512 -> "SHA512_WITH_ECDSA"
-                else -> ""
+            val fieldSize = if (signatureBytes.size % 2 == 0) ecFieldBitSize(signatureBytes.size / 2) else null
+            val signatureAlgorithm = when {
+                fieldSize == null -> null
+                fieldSize <= 224 -> "SHA224_WITH_ECDSA"
+                fieldSize <= 256 -> "SHA256_WITH_ECDSA"
+                fieldSize <= 384 -> "SHA384_WITH_ECDSA"
+                else -> "SHA512_WITH_ECDSA"
             }
             return SignatureInfo(
                 plainSignatureBytes = signatureBytes,

@@ -8,7 +8,6 @@ import dev.whyoleg.cryptography.algorithms.ECDSA
 import dev.whyoleg.cryptography.random.CryptographyRandom
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 
 @OptIn(ExperimentalStdlibApi::class)
 class SignerCommonTest {
@@ -45,19 +44,19 @@ class SignerCommonTest {
     }
 
     @Test
-    //(expected = Exception::class)
     fun testSign_521() {
         val provider = CryptographyProvider.Default
         val ecdsa = provider.get(ECDSA)
         val keyPairGenerator = ecdsa.keyPairGenerator(EC.Curve.P521)
         val pair: ECDSA.KeyPair = keyPairGenerator.generateKeyBlocking()
 
-        assertFailsWith<IllegalArgumentException> {
-            EcdsaSigner(
-                pair.privateKey.encodeToByteArrayBlocking(DER),
-                "secp521r1"
-            )
-        }
+        val dataBytes = CryptographyRandom.nextBytes(64)
+
+        val signer = EcdsaSigner(pair.privateKey.encodeToByteArrayBlocking(DER), "secp521r1")
+        val signatureBytes: ByteArray = signer.sign(dataBytes)
+        println("Signature: " + signatureBytes.toHexString())
+        assertEquals(521, signer.fieldSize)
+        assertEquals(132, signatureBytes.size)
     }
 
 

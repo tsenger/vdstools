@@ -7,7 +7,6 @@ import dev.whyoleg.cryptography.algorithms.ECDSA
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 
 
 @OptIn(ExperimentalStdlibApi::class)
@@ -99,13 +98,11 @@ class SignerIosTest {
         val dataBytes = ByteArray(128)
         Random(5).nextBytes(dataBytes)
 
-        assertFailsWith<IllegalArgumentException> {
-            EcdsaSigner(
-                keyPair.privateKey.encodeToByteArrayBlocking(EC.PrivateKey.Format.DER),
-                "secp521r1"
-            )
-        }
-
+        val signer = EcdsaSigner(keyPair.privateKey.encodeToByteArrayBlocking(EC.PrivateKey.Format.DER), "secp521r1")
+        val signatureBytes: ByteArray = signer.sign(dataBytes)
+        println("Signature: " + signatureBytes.toHexString())
+        assertEquals(521, signer.fieldSize)
+        assertEquals(132, signatureBytes.size)
     }
 
 }
