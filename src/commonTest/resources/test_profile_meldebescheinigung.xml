@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Fictitious TR-03171 v0.9 test profile, not an official document profile. -->
 <profile>
     <profileNumber>9A4223406D374EF99E2CF95E31A23846</profileNumber>
     <versionTR>0.9</versionTR>
     <profileName>MELDEBESCHEINIGUNG</profileName>
-    <creator>BSI</creator>
+    <creator>tsenger.de</creator>
     <category>Meldewesen</category>
     <leikaID>99123456789012</leikaID>
     <validFromPresent>false</validFromPresent>

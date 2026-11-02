@@ -4,7 +4,7 @@
          xsi:noNamespaceSchemaLocation="TR03171DocProfileSchema.xsd">
     <profileNumber>D8C5E329263B4DAFB55308EF7CAB8E64</profileNumber>
     <profileName>Bibliotheksausweis</profileName>
-    <creator>Test Issuer</creator>
+    <creator>tsenger.de</creator>
     <entry tag="4" optional="false">
         <name>ausweisnummer</name>
         <description>Ausweisnummer</description>
