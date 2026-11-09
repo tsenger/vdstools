@@ -68,6 +68,16 @@ if (messageValue is MessageValue.MrzValue) {
     println(messageValue?.rawBytes?.toHexString())
 }
 
+// Duration of stay of an ICAO visa (3 bytes days/months/years, ICAO 9303-13)
+val stay = seal.getMessageByName("DURATION_OF_STAY")?.value
+if (stay is MessageValue.DurationOfStayValue) {
+    when (stay.kind) {
+        MessageValue.DurationOfStayValue.Kind.DURATION ->
+            println("${stay.years} years, ${stay.months} months, ${stay.days} days") // toString(): "1y 6m 15d"
+        else -> println(stay.kind) // UNTIL_VALID_TO, DETERMINED_AT_ENTRY or TRANSIT_WITHOUT_ENTRY
+    }
+}
+
 // SignatureInfo contains all signature relevant data
 val signatureInfo: SignatureInfo? = seal.signatureInfo
 println("Signing date: ${signatureInfo?.signingDate}")
@@ -461,7 +471,7 @@ To include this library to your Gradle build add this dependency:
 
 ```groovy
 dependencies {
-    implementation 'de.tsenger:vdstools:0.21.1'
+    implementation 'de.tsenger:vdstools:0.22.0'
 }
 ```
 
@@ -474,6 +484,6 @@ To include this library to your Maven build add this dependency:
 <dependency>
     <groupId>de.tsenger</groupId>
     <artifactId>vdstools</artifactId>
-    <version>0.21.1</version>
+    <version>0.22.0</version>
 </dependency>
 ```

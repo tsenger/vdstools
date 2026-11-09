@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-11-09
+
+### Added
+- `MessageValue.DurationOfStayValue` and `MessageCoding.DURATION_OF_STAY` for
+  the duration of stay of ICAO visas (ICAO Doc 9303-13, tag 0x04, three
+  unsigned bytes days/months/years). `kind` distinguishes the reserved triples
+  `000000` (`UNTIL_VALID_TO`), `FFFFFF` (`DETERMINED_AT_ENTRY`) and `FEFEFE`
+  (`TRANSIT_WITHOUT_ENTRY`) from a regular `DURATION` with `days`, `months`
+  and `years`. `toString()` is neutral and not localized (`30d`, `1y 6m 15d`,
+  or the kind name). `DurationOfStayValue.of(...)` creates values for encoding.
+
+### Changed
+- **Behavior change:** `DURATION_OF_STAY` in the VDS `VISA` and the IDB `VISA`
+  message definitions now uses coding `DURATION_OF_STAY` instead of `BYTES`.
+  Its value is a `DurationOfStayValue` instead of a `BytesValue`, and
+  `toString()` returns e.g. `160d` instead of the hex string `a00000`.
+  `rawBytes` is unchanged. A value that is not exactly three bytes long still
+  decodes to `BytesValue` (hex). When building seals, a 3-byte `ByteArray` is
+  still accepted. `DURATION_OF_STAY` in `DIGITAL_TRAVEL_AUTHORIZATION` (C40,
+  2 bytes) is not affected.
+
 ## [0.21.1] - 2026-10-27
 
 ### Fixed
@@ -364,7 +385,8 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-[Unreleased]: https://github.com/tsenger/vdstools/compare/v0.21.1...HEAD
+[Unreleased]: https://github.com/tsenger/vdstools/compare/v0.22.0...HEAD
+[0.22.0]: https://github.com/tsenger/vdstools/compare/v0.21.1...v0.22.0
 [0.21.1]: https://github.com/tsenger/vdstools/compare/v0.21.0...v0.21.1
 [0.21.0]: https://github.com/tsenger/vdstools/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/tsenger/vdstools/compare/v0.19.0...v0.20.0

@@ -141,4 +141,102 @@ class MessageValueCommonTest {
     fun testFromBytes_BOOLEAN_wrongLengthFallsBackToBytes() {
         assertIs<MessageValue.BytesValue>(MessageValue.fromBytes("ff00".hexToByteArray(), MessageCoding.BOOLEAN))
     }
+
+    // -------------------------------------------------------------------------
+    // DURATION_OF_STAY — ICAO 9303-13 visa, 3 unsigned bytes days/months/years
+    // -------------------------------------------------------------------------
+
+    private fun duration(hex: String) =
+        assertIs<MessageValue.DurationOfStayValue>(MessageValue.fromBytes(hex.hexToByteArray(), MessageCoding.DURATION_OF_STAY))
+
+    @Test
+    fun testFromBytes_DURATION_OF_STAY_untilValidTo() {
+        val v = duration("000000")
+        assertEquals(MessageValue.DurationOfStayValue.Kind.UNTIL_VALID_TO, v.kind)
+        assertEquals("UNTIL_VALID_TO", v.toString())
+        assertEquals("000000", v.rawBytes.toHexString())
+    }
+
+    @Test
+    fun testFromBytes_DURATION_OF_STAY_determinedAtEntry() {
+        val v = duration("ffffff")
+        assertEquals(MessageValue.DurationOfStayValue.Kind.DETERMINED_AT_ENTRY, v.kind)
+        assertEquals("DETERMINED_AT_ENTRY", v.toString())
+        assertEquals("ffffff", v.rawBytes.toHexString())
+    }
+
+    @Test
+    fun testFromBytes_DURATION_OF_STAY_transitWithoutEntry() {
+        val v = duration("fefefe")
+        assertEquals(MessageValue.DurationOfStayValue.Kind.TRANSIT_WITHOUT_ENTRY, v.kind)
+        assertEquals("TRANSIT_WITHOUT_ENTRY", v.toString())
+    }
+
+    @Test
+    fun testFromBytes_DURATION_OF_STAY_daysOnly() {
+        val v = duration("1e0000")
+        assertEquals(MessageValue.DurationOfStayValue.Kind.DURATION, v.kind)
+        assertEquals(30, v.days)
+        assertEquals(0, v.months)
+        assertEquals(0, v.years)
+        assertEquals("30d", v.toString())
+        assertEquals("30d", v.decoded)
+    }
+
+    @Test
+    fun testFromBytes_DURATION_OF_STAY_mixed() {
+        val v = duration("0f0601")
+        assertEquals(15, v.days)
+        assertEquals(6, v.months)
+        assertEquals(1, v.years)
+        assertEquals("1y 6m 15d", v.toString())
+    }
+
+    @Test
+    fun testFromBytes_DURATION_OF_STAY_unsignedBytes() {
+        val v = duration("a00010")
+        assertEquals(MessageValue.DurationOfStayValue.Kind.DURATION, v.kind)
+        assertEquals(160, v.days)
+        assertEquals(0, v.months)
+        assertEquals(16, v.years)
+        assertEquals("16y 160d", v.toString())
+    }
+
+    @Test
+    fun testFromBytes_DURATION_OF_STAY_partialReservedPatternIsDuration() {
+        val v = duration("ff0000")
+        assertEquals(MessageValue.DurationOfStayValue.Kind.DURATION, v.kind)
+        assertEquals(255, v.days)
+        assertEquals(0, v.months)
+        assertEquals(0, v.years)
+        assertEquals("255d", v.toString())
+    }
+
+    @Test
+    fun testFromBytes_DURATION_OF_STAY_wrongLengthFallsBackToBytes() {
+        val short = MessageValue.fromBytes("1e00".hexToByteArray(), MessageCoding.DURATION_OF_STAY)
+        assertIs<MessageValue.BytesValue>(short)
+        assertEquals("1e00", short.toString())
+        val long = MessageValue.fromBytes("1e000000".hexToByteArray(), MessageCoding.DURATION_OF_STAY)
+        assertIs<MessageValue.BytesValue>(long)
+        assertEquals("1e000000", long.toString())
+        assertIs<MessageValue.BytesValue>(MessageValue.fromBytes(ByteArray(0), MessageCoding.DURATION_OF_STAY))
+    }
+
+    @Test
+    fun testDurationOfStayValue_ofRoundTrip() {
+        val v = MessageValue.DurationOfStayValue.of(days = 15, months = 6, years = 1)
+        assertEquals("0f0601", v.rawBytes.toHexString())
+        assertEquals(v, duration("0f0601"))
+        assertEquals("fefefe", MessageValue.DurationOfStayValue.of(MessageValue.DurationOfStayValue.Kind.TRANSIT_WITHOUT_ENTRY).rawBytes.toHexString())
+        assertFailsWith<IllegalArgumentException> { MessageValue.DurationOfStayValue.of(255, 255, 255) }
+        assertFailsWith<IllegalArgumentException> { MessageValue.DurationOfStayValue.of(256, 0, 0) }
+    }
+
+    @Test
+    fun testEncodeValueByCoding_DURATION_OF_STAY() {
+        val v = MessageValue.DurationOfStayValue.of(days = 30, months = 0, years = 0)
+        assertEquals("1e0000", DataEncoder.encodeValueByCoding(MessageCoding.DURATION_OF_STAY, v).toHexString())
+        assertEquals("a00000", DataEncoder.encodeValueByCoding(MessageCoding.DURATION_OF_STAY, "a00000".hexToByteArray()).toHexString())
+    }
 }
