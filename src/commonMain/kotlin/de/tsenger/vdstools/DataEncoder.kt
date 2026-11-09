@@ -599,6 +599,11 @@ object DataEncoder {
                 is ByteArray -> value
                 else -> throw IllegalArgumentException("VALIDITY_DATES coding expects ValidityDatesValue or ByteArray, got ${value!!::class.simpleName}")
             }
+            MessageCoding.DURATION_OF_STAY -> when (value) {
+                is MessageValue.DurationOfStayValue -> value.rawBytes
+                is ByteArray -> value
+                else -> throw IllegalArgumentException("DURATION_OF_STAY coding expects DurationOfStayValue or ByteArray, got ${value!!::class.simpleName}")
+            }
             MessageCoding.DATE_TIME -> when (value) {
                 is LocalDateTime -> encodeDateTime(value)
                 is String -> encodeDateTime(value)

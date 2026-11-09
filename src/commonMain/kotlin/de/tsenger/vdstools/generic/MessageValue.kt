@@ -185,6 +185,122 @@ sealed class MessageValue {
         }
     }
 
+    /**
+     * Duration of stay of an ICAO visa (ICAO Doc 9303-13, visa message tag 0x04), encoded as exactly
+     * three unsigned bytes `days, months, years`.
+     *
+     * The triples `00 00 00`, `FF FF FF` and `FE FE FE` are reserved and map to the special [Kind]s
+     * [Kind.UNTIL_VALID_TO], [Kind.DETERMINED_AT_ENTRY] and [Kind.TRANSIT_WITHOUT_ENTRY]. Every other
+     * triple is a [Kind.DURATION] whose length is the sum of [days], [months] and [years], counted from
+     * the date of entry.
+     *
+     * [days], [months] and [years] are only meaningful for [Kind.DURATION]; for the special kinds they
+     * are 0 (the raw bytes stay available via [rawBytes]).
+     *
+     * [toString] is a neutral, non-localized representation: e.g. `30d`, `1y 6m 15d`, or the
+     * [Kind] name for the special kinds. Localized display is up to the application.
+     */
+    data class DurationOfStayValue(
+        val kind: Kind,
+        val days: Int,
+        val months: Int,
+        val years: Int,
+        override val rawBytes: ByteArray
+    ) : MessageValue() {
+
+        enum class Kind {
+            /** `00 00 00`: the MRZ "valid until" date is the last day the holder may stay in the country. */
+            UNTIL_VALID_TO,
+
+            /**
+             * `FF FF FF`: "valid until" is the last day entry may be requested at the border; the
+             * duration of stay is determined by the authorities at entry.
+             */
+            DETERMINED_AT_ENTRY,
+
+            /** `FE FE FE`: transit visa without permission to enter the transit country. */
+            TRANSIT_WITHOUT_ENTRY,
+
+            /** Regular duration: [days] + [months] + [years] from the date of entry. */
+            DURATION
+        }
+
+        override val decoded: String get() = toString()
+
+        override fun toString(): String {
+            if (kind != Kind.DURATION) return kind.name
+            return buildList {
+                if (years != 0) add("${years}y")
+                if (months != 0) add("${months}m")
+                if (days != 0) add("${days}d")
+            }.joinToString(" ")
+        }
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is DurationOfStayValue) return false
+            return kind == other.kind && days == other.days && months == other.months &&
+                    years == other.years && rawBytes.contentEquals(other.rawBytes)
+        }
+
+        override fun hashCode(): Int {
+            var result = kind.hashCode()
+            result = 31 * result + days
+            result = 31 * result + months
+            result = 31 * result + years
+            result = 31 * result + rawBytes.contentHashCode()
+            return result
+        }
+
+        companion object {
+            /**
+             * Creates a regular [Kind.DURATION] value. Each component must be in 0..255, and the
+             * resulting triple must not be one of the reserved triples.
+             */
+            fun of(days: Int, months: Int, years: Int): DurationOfStayValue {
+                require(days in 0..255 && months in 0..255 && years in 0..255) {
+                    "days, months and years must each be in 0..255"
+                }
+                val value = parse(byteArrayOf(days.toByte(), months.toByte(), years.toByte()))
+                require(value.kind == Kind.DURATION) {
+                    "($days, $months, $years) is a reserved triple; use of(Kind) instead"
+                }
+                return value
+            }
+
+            /** Creates a value for one of the special kinds (not [Kind.DURATION]). */
+            fun of(kind: Kind): DurationOfStayValue {
+                val b = when (kind) {
+                    Kind.UNTIL_VALID_TO -> 0x00
+                    Kind.DETERMINED_AT_ENTRY -> 0xFF
+                    Kind.TRANSIT_WITHOUT_ENTRY -> 0xFE
+                    Kind.DURATION -> throw IllegalArgumentException("Use of(days, months, years) for Kind.DURATION")
+                }.toByte()
+                return DurationOfStayValue(kind, 0, 0, 0, byteArrayOf(b, b, b))
+            }
+
+            /**
+             * Parses the three-byte encoding.
+             *
+             * @throws IllegalArgumentException if [bytes] is not exactly three bytes long.
+             */
+            fun parse(bytes: ByteArray): DurationOfStayValue {
+                require(bytes.size == 3) { "expected three bytes for duration of stay, got ${bytes.size}" }
+                val d = bytes[0].toInt() and 0xFF
+                val m = bytes[1].toInt() and 0xFF
+                val y = bytes[2].toInt() and 0xFF
+                val kind = when {
+                    d == 0x00 && m == 0x00 && y == 0x00 -> Kind.UNTIL_VALID_TO
+                    d == 0xFF && m == 0xFF && y == 0xFF -> Kind.DETERMINED_AT_ENTRY
+                    d == 0xFE && m == 0xFE && y == 0xFE -> Kind.TRANSIT_WITHOUT_ENTRY
+                    else -> Kind.DURATION
+                }
+                return if (kind == Kind.DURATION) DurationOfStayValue(kind, d, m, y, bytes)
+                else DurationOfStayValue(kind, 0, 0, 0, bytes)
+            }
+        }
+    }
+
     @OptIn(ExperimentalStdlibApi::class)
     data class BytesValue(override val rawBytes: ByteArray) : MessageValue() {
         override val decoded: String get() = rawBytes.toHexString()
@@ -249,6 +365,7 @@ sealed class MessageValue {
                     }
 
                     MessageCoding.VALIDITY_DATES -> ValidityDatesValue.parse(bytes)
+                    MessageCoding.DURATION_OF_STAY -> DurationOfStayValue.parse(bytes)
                     MessageCoding.BYTES, MessageCoding.SUB_MESSAGES, MessageCoding.UNKNOWN -> BytesValue(bytes)
                 }
             } catch (e: Exception) {

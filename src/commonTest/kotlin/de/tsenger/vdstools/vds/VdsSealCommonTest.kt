@@ -172,6 +172,13 @@ class VdsSealCommonTest {
         assertEquals(
             "a00000", seal.getMessageByName("DURATION_OF_STAY")?.value?.rawBytes?.toHexString()
         )
+        val duration = seal.getMessageByName("DURATION_OF_STAY")?.value
+        assertIs<MessageValue.DurationOfStayValue>(duration)
+        assertEquals(MessageValue.DurationOfStayValue.Kind.DURATION, duration.kind)
+        assertEquals(160, duration.days)
+        assertEquals(0, duration.months)
+        assertEquals(0, duration.years)
+        assertEquals("160d", duration.toString())
         assertNull(seal.getMessageByName("NUMBER_OF_ENTRIES"))
     }
 
@@ -186,6 +193,13 @@ class VdsSealCommonTest {
         assertEquals(
             "a00000", seal.getMessageByName("DURATION_OF_STAY")?.value?.rawBytes?.toHexString()
         )
+        val duration = seal.getMessageByName("DURATION_OF_STAY")?.value
+        assertIs<MessageValue.DurationOfStayValue>(duration)
+        assertEquals(MessageValue.DurationOfStayValue.Kind.DURATION, duration.kind)
+        assertEquals(160, duration.days)
+        assertEquals(0, duration.months)
+        assertEquals(0, duration.years)
+        assertEquals("160d", duration.toString())
         assertNull(seal.getMessageByName("NUMBER_OF_ENTRIES"))
     }
 

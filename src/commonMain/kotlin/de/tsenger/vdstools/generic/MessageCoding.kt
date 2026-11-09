@@ -94,6 +94,16 @@ enum class MessageCoding {
      */
     DATE_TIME_STRING,
 
+    /**
+     * Duration of stay of an ICAO visa (ICAO Doc 9303-13, visa message tag 0x04): exactly three
+     * unsigned bytes `days, months, years`, with the reserved triples `000000`, `FFFFFF` and `FEFEFE`.
+     *
+     * Accepts [MessageValue.DurationOfStayValue] or a 3-byte [ByteArray] as input.
+     * Decodes to [MessageValue.DurationOfStayValue]; falls back to [MessageValue.BytesValue] if the
+     * value is not exactly three bytes long.
+     */
+    DURATION_OF_STAY,
+
     UNKNOWN;
 
     companion object {

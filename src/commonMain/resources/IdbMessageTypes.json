@@ -33,7 +33,7 @@
       {
         "name": "DURATION_OF_STAY",
         "tag": 4,
-        "coding": "BYTES",
+        "coding": "DURATION_OF_STAY",
         "required": true,
         "minBytes": 3,
         "maxBytes": 3
