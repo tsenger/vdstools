@@ -7,6 +7,7 @@ import kotlinx.io.IOException
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -283,6 +284,32 @@ class IdbMessageGroupCommonTest {
         assertEquals(MessageCoding.UNKNOWN, unknown.coding)
         assertContentEquals(unknownChild.value, unknown.value.rawBytes)
         assertTrue(unknown.messageList.isEmpty(), "unknown sub-tag must not be parsed as a container")
+    }
+
+    @Test
+    fun testBuilderRejectsTopLevelNameInsideContainer() {
+        // CAN is a top-level message type (tag 9), not a sub-message of VISA
+        assertFailsWith<IllegalArgumentException> {
+            IdbMessageGroup.Builder().addMessage("VISA") { addMessage("CAN", "654321") }
+        }
+    }
+
+    @Test
+    fun testBuilderRejectsUnknownSubMessageTag() {
+        // VISA defines sub-tags 1–7; 0x08 must not take the coding of top-level MRZ_TD3
+        assertFailsWith<IllegalArgumentException> {
+            IdbMessageGroup.Builder().addMessage("VISA") { addMessage(0x08, "abcd".hexToByteArray()) }
+        }
+    }
+
+    @Test
+    fun testBuilderRejectsUnknownSubContainerTag() {
+        // EMERGENCY_TRAVEL_DOCUMENT defines only sub-tag 2; 0x01 must not become a nested VISA container
+        assertFailsWith<IllegalArgumentException> {
+            IdbMessageGroup.Builder().addMessage("EMERGENCY_TRAVEL_DOCUMENT") {
+                addMessage(0x01) { addMessage("VISA_TYPE", "aa".hexToByteArray()) }
+            }
+        }
     }
 
     @Test

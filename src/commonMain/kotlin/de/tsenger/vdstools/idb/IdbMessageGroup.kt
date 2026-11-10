@@ -42,31 +42,36 @@ internal class IdbMessageGroup {
             return DerTlv(TAG, messages.readByteArray()).encoded
         }
 
+    /**
+     * Builds a message group, or with [subMessageDefs] the content of a container message.
+     * Inside a container only the container's own definitions apply; the registry holds
+     * top-level message types, whose tags overlap with sub-message tags.
+     */
     internal class Builder(private val subMessageDefs: List<MessageDto>? = null) {
         val derTlvList: MutableList<DerTlv> = ArrayList(5)
 
         private fun resolveTag(name: String): Int {
-            val fromDefs = subMessageDefs?.firstOrNull { it.name.equals(name, ignoreCase = true) }?.tag
-            if (fromDefs != null) return fromDefs
+            if (subMessageDefs != null) {
+                return subMessageDefs.firstOrNull { it.name.equals(name, ignoreCase = true) }?.tag
+                    ?: throw IllegalArgumentException("Unknown sub-message '$name' for this container")
+            }
             return DataEncoder.idbMessageTypes.getMessageType(name) ?: 0
         }
 
         private fun resolveCoding(name: String, tag: Int): MessageCoding {
-            val fromDefs = subMessageDefs?.firstOrNull { it.tag == tag }?.coding
-            if (fromDefs != null) return fromDefs
+            if (subMessageDefs != null) return subMessageDefs.firstOrNull { it.tag == tag }?.coding ?: MessageCoding.UNKNOWN
             return DataEncoder.idbMessageTypes.getMessageTypeCoding(name)
         }
 
         private fun resolveChildDefs(name: String, tag: Int): List<MessageDto>? {
-            val fromDefs = subMessageDefs?.firstOrNull { it.tag == tag }?.messages
-            if (!fromDefs.isNullOrEmpty()) return fromDefs
+            if (subMessageDefs != null) return subMessageDefs.firstOrNull { it.tag == tag }?.messages
             return DataEncoder.idbMessageTypes.getMessageTypeDto(tag)?.messages
         }
 
         @Throws(IllegalArgumentException::class)
         fun <T> addMessage(tag: Int, value: T): Builder {
-            val coding = subMessageDefs?.firstOrNull { it.tag == tag }?.coding
-                ?: DataEncoder.idbMessageTypes.getMessageTypeCoding(tag)
+            val coding = if (subMessageDefs != null) subMessageDefs.firstOrNull { it.tag == tag }?.coding ?: MessageCoding.UNKNOWN
+                else DataEncoder.idbMessageTypes.getMessageTypeCoding(tag)
             val content = DataEncoder.encodeValueByCoding(coding, value, tag)
             derTlvList.add(DerTlv(tag.toByte(), content))
             return this
@@ -95,8 +100,10 @@ internal class IdbMessageGroup {
         }
 
         fun addMessage(tag: Int, block: Builder.() -> Unit): Builder {
-            val childDefs = subMessageDefs?.firstOrNull { it.tag == tag }?.messages
-                ?: DataEncoder.idbMessageTypes.getMessageTypeDto(tag)?.messages
+            val childDefs = if (subMessageDefs != null) {
+                subMessageDefs.firstOrNull { it.tag == tag }?.messages
+                    ?: throw IllegalArgumentException("Unknown sub-message tag $tag for this container")
+            } else DataEncoder.idbMessageTypes.getMessageTypeDto(tag)?.messages
             val childBuilder = Builder(childDefs)
             childBuilder.block()
             val childBytes = Buffer()
