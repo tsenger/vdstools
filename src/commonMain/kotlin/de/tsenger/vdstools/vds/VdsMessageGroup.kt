@@ -113,6 +113,7 @@ internal class VdsMessageGroup {
             }
             val tags = derTlvList.map { it.tag.toInt() and 0xFF }.toSet()
             findings += Tr03171Conformance.check(vdsType, tags, profileDefinition)
+            profileDefinition?.let { findings += Tr03171Conformance.checkLengths(messageList, it) }
         }
         for (message in metadataMessageList.filter { it.isRaw }) {
             findings += if (message.coding == MessageCoding.UNKNOWN) FormatFinding.ReservedTag(listOf(message.tag))

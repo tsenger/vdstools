@@ -34,12 +34,19 @@ class VdsFormatFindingsCommonTest {
             <entry tag="11" optional="true">
                 <name>NOTE</name>
                 <description>Bemerkung</description>
+                <length>6</length>
                 <type>UTF8String</type>
             </entry>
             <entry tag="13" optional="true">
                 <name>BIRTH_DATE</name>
                 <description>Geburtsdatum</description>
                 <type>DATE</type>
+            </entry>
+            <entry tag="14" optional="true">
+                <name>CODE</name>
+                <description>Code</description>
+                <length>2</length>
+                <type>OCTET_STRING</type>
             </entry>
         </profile>
     """.trimIndent()
@@ -133,6 +140,32 @@ class VdsFormatFindingsCommonTest {
         val seal = seal("c9", tlv(0, registeredUuid), profileUri, certificateUri, surname, utf8(0x0D, "20251231"))
 
         assertFalse(seal.messageList.single { it.tag == 0x0D }.isRaw)
+        assertEquals(emptyList(), seal.formatFindings)
+    }
+
+    @Test
+    fun utf8LengthIsCountedInCharacters() {
+        // NOTE has <length>6</length>: "Müller" is 6 characters (7 bytes) and fits, "Müllers" does not
+        val fits = seal("c9", tlv(0, registeredUuid), profileUri, certificateUri, surname, utf8(0x0B, "Müller"))
+        assertEquals(emptyList(), fits.formatFindings)
+
+        val tooLong = seal("c9", tlv(0, registeredUuid), profileUri, certificateUri, surname, utf8(0x0B, "Müllers"))
+        val finding = tooLong.formatFindings.single()
+        assertEquals(FormatFinding.LengthExceeded(listOf(0x0B), "NOTE", 7, 6), finding)
+        assertEquals(Category.WRONG_FORMAT, finding.category)
+    }
+
+    @Test
+    fun octetStringLengthIsCountedInBytes() {
+        // CODE has <length>2</length>
+        val seal = seal("c9", tlv(0, registeredUuid), profileUri, certificateUri, surname, tlv(0x0E, "010203"))
+        assertEquals(listOf(FormatFinding.LengthExceeded(listOf(0x0E), "CODE", 3, 2)), seal.formatFindings)
+    }
+
+    @Test
+    fun fieldWithoutExplicitLength_isNotLengthChecked() {
+        // SURNAME has no <length>; the converter's default limit is not a profile requirement
+        val seal = seal("c9", tlv(0, registeredUuid), profileUri, certificateUri, utf8(0x0A, "x".repeat(300)))
         assertEquals(emptyList(), seal.formatFindings)
     }
 

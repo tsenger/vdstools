@@ -8,9 +8,15 @@ All notable changes to this project will be documented in this file.
 - `Seal.formatFindings`: findings of the format validation (ICAO Doc 9303-13
   Appendix D, step 1), without judgement. `FormatFinding` subtypes
   `UnknownTag`, `ReservedTag`, `UnknownDocumentType`, `ProfileNotFound`,
-  `MissingRequired`, `NotAllowed`, `DecodeFailed` and `MalformedSubMessages`, each with a
-  `category` (`UNKNOWN_FEATURE`, `WRONG_FORMAT`, `UNDETERMINED`) and a
-  `tagPath`. Signature and certificate are not covered.
+  `MissingRequired`, `NotAllowed`, `LengthExceeded`, `DecodeFailed` and
+  `MalformedSubMessages`, each with a `category` (`UNKNOWN_FEATURE`,
+  `WRONG_FORMAT`, `UNDETERMINED`) and a `tagPath`. Checked are TR-03171 seals
+  (required fields, `VALID_FROM`/`VALID_TO` presence, explicit `<length>` of
+  UTF8String in characters and OCTET STRING in bytes) and German IDB seals
+  (message types of the national document type per BSI TR-03137 chapters
+  12–17). Signature and certificate are not covered.
+- `MessageDto.maxLength`: the explicit maximum length of a TR-03171 profile
+  entry (`<length>` of UTF8String and OCTET STRING), null otherwise.
 - `Message.isRaw`: true if the message's value holds uninterpreted raw bytes
   instead of a decoded value: for tags without definition (see Changed) and
   for defined messages whose bytes cannot be decoded with their coding (e.g.

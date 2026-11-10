@@ -107,14 +107,36 @@ class IdbSeal : Seal {
         }
 
     override val formatFindings: List<FormatFinding>
-        get() {
-            val findings = mutableListOf<FormatFinding>()
-            val docTypeId = (getMessageByTag(0x86)?.value as? MessageValue.ByteValue)?.value
-            if (docTypeId != null && DataEncoder.idbDocumentTypes.getDocumentType(docTypeId) == "UNKNOWN") {
-                findings += FormatFinding.UnknownDocumentType(docTypeId)
-            }
-            return findings + payLoad.idbMessageGroup.formatFindings()
+        get() = nationalDocumentTypeFindings() + payLoad.idbMessageGroup.formatFindings()
+
+    /**
+     * Checks the messages against the German national document type (tag 0x86, BSI TR-03137
+     * chapters 12–17): all its message types are required, others are not allowed. Tag 0x86 is a
+     * German national message type, so seals of other countries are not checked.
+     */
+    private fun nationalDocumentTypeFindings(): List<FormatFinding> {
+        if (issuingCountry != "D") return emptyList()
+        val docTypeId = (getMessageByTag(0x86)?.value as? MessageValue.ByteValue)?.value ?: return emptyList()
+        if (DataEncoder.idbDocumentTypes.getDocumentType(docTypeId) == "UNKNOWN") {
+            return listOf(FormatFinding.UnknownDocumentType(docTypeId))
         }
+        val expected = DataEncoder.idbDocumentTypes.getExpectedMessages(docTypeId)
+        if (expected.isEmpty()) return emptyList()
+        val present = messageList.filter { !it.isRaw }
+        val findings = mutableListOf<FormatFinding>()
+        for (ref in expected.filter { it.required }) {
+            if (present.none { it.name.equals(ref.name, ignoreCase = true) }) {
+                val tag = DataEncoder.idbMessageTypes.getMessageType(ref.name)
+                findings += FormatFinding.MissingRequired(listOfNotNull(tag), ref.name)
+            }
+        }
+        for (message in present) {
+            if (expected.none { it.name.equals(message.name, ignoreCase = true) }) {
+                findings += FormatFinding.NotAllowed(listOf(message.tag), message.name)
+            }
+        }
+        return findings
+    }
 
     @OptIn(ExperimentalStdlibApi::class)
     override val signatureInfo: SignatureInfo?

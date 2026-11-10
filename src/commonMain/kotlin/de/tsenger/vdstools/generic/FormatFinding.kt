@@ -72,6 +72,16 @@ sealed class FormatFinding {
         override val category get() = Category.WRONG_FORMAT
     }
 
+    /**
+     * A message is longer than its definition allows. [length] and [maxLength] are characters for
+     * text and bytes otherwise.
+     */
+    data class LengthExceeded(
+        override val tagPath: List<Int>, val name: String, val length: Int, val maxLength: Int
+    ) : FormatFinding() {
+        override val category get() = Category.WRONG_FORMAT
+    }
+
     /** The content of a container message cannot be split into its sub-messages. */
     data class MalformedSubMessages(override val tagPath: List<Int>, val name: String) : FormatFinding() {
         override val category get() = Category.WRONG_FORMAT

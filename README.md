@@ -203,10 +203,11 @@ Each `FormatFinding` has a `category` following Appendix D and a `tagPath` (empt
 |---|---|---|
 | `UnknownTag` | `UNKNOWN_FEATURE` | a tag that neither document type nor profile defines (its message `isRaw`) |
 | `ReservedTag` | `UNKNOWN_FEATURE` | a reserved metadata tag, e.g. TR-03171 v0.9 tags `0x07`–`0x09` |
-| `UnknownDocumentType` | `UNDETERMINED` | VDS document reference or IDB national document identifier not known |
+| `UnknownDocumentType` | `UNDETERMINED` | VDS document reference or (German IDB seals) national document identifier not known |
 | `ProfileNotFound` | `UNDETERMINED` | TR-03171 profile not available; content tags are then not checked |
-| `MissingRequired` | `WRONG_FORMAT` | TR-03171: required tag or profile field missing |
-| `NotAllowed` | `WRONG_FORMAT` | TR-03171: `VALID_FROM`/`VALID_TO` present although the profile forbids it |
+| `MissingRequired` | `WRONG_FORMAT` | TR-03171: required tag or profile field missing; German IDB seals: message type of the national document type (TR-03137 chapters 12–17) missing |
+| `NotAllowed` | `WRONG_FORMAT` | TR-03171: `VALID_FROM`/`VALID_TO` present although the profile forbids it; German IDB seals: known message type that does not belong to the national document type |
+| `LengthExceeded` | `WRONG_FORMAT` | TR-03171: value longer than the profile entry's explicit `<length>` (characters for UTF8String, bytes for OCTET STRING) |
 | `DecodeFailed` | `WRONG_FORMAT` | a defined message whose bytes cannot be decoded with its coding (its message `isRaw`) |
 | `MalformedSubMessages` | `WRONG_FORMAT` | IDB container content is no valid DER-TLV sequence |
 
@@ -215,7 +216,8 @@ val findings = seal.formatFindings
 if (findings.any { it.category == FormatFinding.Category.WRONG_FORMAT }) println("not conforming: $findings")
 ```
 
-Required fields and lengths of the ICAO base types are not checked yet.
+Required fields and lengths of the ICAO base types are not checked yet. The national document type of IDB seals
+(tag `0x86`) is only checked for seals issued by Germany, since it is a German national message type.
 
 ## Build a barcode
 

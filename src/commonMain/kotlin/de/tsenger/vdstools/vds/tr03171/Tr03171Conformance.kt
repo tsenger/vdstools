@@ -2,11 +2,14 @@ package de.tsenger.vdstools.vds.tr03171
 
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.generic.FormatFinding
+import de.tsenger.vdstools.generic.Message
+import de.tsenger.vdstools.generic.MessageCoding
 import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
 
 /**
- * TR-03171 presence rules for the message zone, shared by decoding (reported as [FormatFinding]s)
- * and encoding (enforced by the builder).
+ * TR-03171 rules for the message zone. The presence rules ([check]) are shared by decoding
+ * (reported as [FormatFinding]s) and encoding (enforced by the builder); the length rules
+ * ([checkLengths]) are only reported when decoding.
  */
 internal object Tr03171Conformance {
 
@@ -29,6 +32,24 @@ internal object Tr03171Conformance {
         profile?.messages?.filter { it.required && it.tag !in tags }
             ?.forEach { findings += FormatFinding.MissingRequired(listOf(it.tag), it.name) }
         return findings
+    }
+
+    /**
+     * Checks the decoded [messages] against the explicit maximum lengths of the [profile]'s entries
+     * (TR-03171 §4): characters for UTF8String, bytes for OCTET STRING. Raw messages are skipped.
+     */
+    fun checkLengths(messages: List<Message>, profile: VdsProfileDefinitionDto): List<FormatFinding> {
+        val maxLengths = profile.messages.filter { it.maxLength != null }.associate { it.tag to it.maxLength!! }
+        return messages.filter { !it.isRaw && it.tag in maxLengths }.mapNotNull { message ->
+            val maxLength = maxLengths.getValue(message.tag)
+            val length = if (message.coding == MessageCoding.UTF8_STRING) {
+                message.value.toString().let { text -> text.length - text.count { it.isLowSurrogate() } }
+            } else {
+                message.value.rawBytes.size
+            }
+            if (length > maxLength) FormatFinding.LengthExceeded(listOf(message.tag), message.name, length, maxLength)
+            else null
+        }
     }
 
     /** Human-readable text of a finding from [check], for exception messages. */
