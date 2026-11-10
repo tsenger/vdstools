@@ -369,9 +369,10 @@ class SealCommonTest {
         assertNotNull(visa)
         assertEquals(4, visa.messageList.size)
         assertEquals(
-            "P<D<<GARCIA<<EVELYN<<<<<<<<<<<<<<<<<<<<<<<<<\nB870L41688D<<8108108F3507050",
-            visa.getMessageByName("MRZ_MRVA").toString()
+            "V<D<<MUSTERMANN<<ERIKA<<<<<<<<<<<<<<\nT000007366D<<6408120F3012310",
+            visa.getMessageByName("MRZ_MRVB").toString()
         )
+        assertEquals("90d", visa.getMessageByName("DURATION_OF_STAY").toString())
         for (message in visa.messageList) {
             println("${message.name}: ${message.value}")
         }

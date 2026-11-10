@@ -26,16 +26,10 @@ class IdbFormatFindingsCommonTest {
             IcbRawStringsCommon.CertifyingPermanentResidence,
             IcbRawStringsCommon.FrontierWorkerPermit,
             IcbRawStringsCommon.SupplementarySheetResidencePermit,
+            IcbRawStringsCommon.Visa,
         )) {
             assertEquals(emptyList(), SealParser().parse(raw).formatFindings, raw)
         }
-    }
-
-    @Test
-    fun visaFixture_hasInvalidDurationOfStay() {
-        // The fixture encodes DURATION_OF_STAY with one byte (0x90); three bytes days/months/years are required.
-        val findings = SealParser().parse(IcbRawStringsCommon.Visa).formatFindings
-        assertEquals(listOf(FormatFinding.DecodeFailed(listOf(0x01, 0x04), "DURATION_OF_STAY")), findings)
     }
 
     @Test
