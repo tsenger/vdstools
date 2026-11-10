@@ -18,6 +18,7 @@ import java.security.KeyStore
 import java.security.Security
 import kotlin.io.path.createParentDirectories
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 @OptIn(ExperimentalStdlibApi::class)
@@ -127,9 +128,10 @@ class IdbBuilder {
 
         val icb = createBuilder()
             .addMessage(0x82, "123456789")
-            .addMessage(0x83, "ABC123456DEF")
+            .addMessage(0x85, "ABC123456")
             .addMessage(0x86, 0x10)
             .build(getSigner())
+        assertEquals(emptyList(), icb.formatFindings)
 
         generateDmBarcode(icb.rawString, "CertifyingPermanentResidence.png")
         writeIcbDataFile(icb, "CertifyingPermanentResidence")
