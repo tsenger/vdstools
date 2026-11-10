@@ -114,9 +114,16 @@ internal class VdsMessageGroup {
             val tags = derTlvList.map { it.tag.toInt() and 0xFF }.toSet()
             findings += Tr03171Conformance.check(vdsType, tags, profileDefinition)
         }
-        metadataMessageList.filter { it.isRaw }.mapTo(findings) { FormatFinding.ReservedTag(listOf(it.tag)) }
-        if (!needsProfile || profileDefinition != null) {
-            messageList.filter { it.isRaw }.mapTo(findings) { FormatFinding.UnknownTag(listOf(it.tag)) }
+        for (message in metadataMessageList.filter { it.isRaw }) {
+            findings += if (message.coding == MessageCoding.UNKNOWN) FormatFinding.ReservedTag(listOf(message.tag))
+            else FormatFinding.DecodeFailed(listOf(message.tag), message.name)
+        }
+        for (message in messageList.filter { it.isRaw }) {
+            if (message.coding != MessageCoding.UNKNOWN) {
+                findings += FormatFinding.DecodeFailed(listOf(message.tag), message.name)
+            } else if (!needsProfile || profileDefinition != null) {
+                findings += FormatFinding.UnknownTag(listOf(message.tag))
+            }
         }
         return findings
     }

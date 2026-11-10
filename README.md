@@ -182,7 +182,9 @@ they appear in `messageList` (or `metadataMessageList` for a metadata tag) as ra
 (`0x0A`), with a `MessageValue.BytesValue`. vdstools does not interpret these bytes. This applies to VDS and IDB
 seals, including sub-messages of IDB container messages.
 
-`Message.isRaw` tells whether a message's value is such uninterpreted raw data:
+`Message.isRaw` tells whether a message's value is such uninterpreted raw data. This is also the case for a defined
+message whose bytes cannot be decoded with its coding (e.g. an invalid date): it keeps its name, but its value is a
+`BytesValue`.
 
 ```kotlin
 for (message in seal.messageList) {
@@ -205,6 +207,7 @@ Each `FormatFinding` has a `category` following Appendix D and a `tagPath` (empt
 | `ProfileNotFound` | `UNDETERMINED` | TR-03171 profile not available; content tags are then not checked |
 | `MissingRequired` | `WRONG_FORMAT` | TR-03171: required tag or profile field missing |
 | `NotAllowed` | `WRONG_FORMAT` | TR-03171: `VALID_FROM`/`VALID_TO` present although the profile forbids it |
+| `DecodeFailed` | `WRONG_FORMAT` | a defined message whose bytes cannot be decoded with its coding (its message `isRaw`) |
 | `MalformedSubMessages` | `WRONG_FORMAT` | IDB container content is no valid DER-TLV sequence |
 
 ```kotlin

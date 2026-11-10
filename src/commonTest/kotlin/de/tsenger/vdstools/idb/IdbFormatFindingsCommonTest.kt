@@ -26,10 +26,16 @@ class IdbFormatFindingsCommonTest {
             IcbRawStringsCommon.CertifyingPermanentResidence,
             IcbRawStringsCommon.FrontierWorkerPermit,
             IcbRawStringsCommon.SupplementarySheetResidencePermit,
-            IcbRawStringsCommon.Visa,
         )) {
             assertEquals(emptyList(), SealParser().parse(raw).formatFindings, raw)
         }
+    }
+
+    @Test
+    fun visaFixture_hasInvalidDurationOfStay() {
+        // The fixture encodes DURATION_OF_STAY with one byte (0x90); three bytes days/months/years are required.
+        val findings = SealParser().parse(IcbRawStringsCommon.Visa).formatFindings
+        assertEquals(listOf(FormatFinding.DecodeFailed(listOf(0x01, 0x04), "DURATION_OF_STAY")), findings)
     }
 
     @Test
@@ -53,6 +59,27 @@ class IdbFormatFindingsCommonTest {
 
         assertEquals(listOf("0x08", "VISA_TYPE"), parsed.messageList.map { it.name })
         assertEquals(listOf(FormatFinding.UnknownTag(listOf(0x01, 0x08))), seal(visa).formatFindings)
+    }
+
+    @Test
+    fun undecodableSubMessage_isDecodeFailedAndRaw() {
+        // VISA DURATION_OF_STAY (sub-tag 0x04) needs exactly three bytes
+        val visa = tlv(0x01, tlv(0x04, "0102").encoded.toHexString())
+        val seal = seal(visa)
+
+        val duration = seal.messageList.single().messageList.single()
+        assertEquals("DURATION_OF_STAY", duration.name)
+        assertTrue(duration.isRaw)
+        assertEquals(listOf(FormatFinding.DecodeFailed(listOf(0x01, 0x04), "DURATION_OF_STAY")), seal.formatFindings)
+    }
+
+    @Test
+    fun bytesCodedMessagesAndContainers_areNotRaw() {
+        // EF_CARD_ACCESS is defined as BYTES; VISA is a container whose interpretation is its sub-messages
+        val seal = seal(tlv(0x0A, "aabb"), tlv(0x01, tlv(0x06, "aa").encoded.toHexString()))
+
+        assertEquals(listOf(false, false), seal.messageList.map { it.isRaw })
+        assertEquals(emptyList(), seal.formatFindings)
     }
 
     @Test

@@ -36,6 +36,11 @@ class VdsFormatFindingsCommonTest {
                 <description>Bemerkung</description>
                 <type>UTF8String</type>
             </entry>
+            <entry tag="13" optional="true">
+                <name>BIRTH_DATE</name>
+                <description>Geburtsdatum</description>
+                <type>DATE</type>
+            </entry>
         </profile>
     """.trimIndent()
 
@@ -106,6 +111,29 @@ class VdsFormatFindingsCommonTest {
         val finding = seal.formatFindings.single()
         assertEquals(FormatFinding.UnknownTag(listOf(0x0C)), finding)
         assertEquals(Category.UNKNOWN_FEATURE, finding.category)
+    }
+
+    @Test
+    fun undecodableProfileField_isDecodeFailedAndRaw() {
+        // BIRTH_DATE (tag 0x0D) is a DATE: 8 UTF-8 digits YYYYMMDD; month 13 cannot be decoded
+        val seal = seal("c9", tlv(0, registeredUuid), profileUri, certificateUri, surname, utf8(0x0D, "20251301"))
+
+        val birthDate = seal.messageList.single { it.tag == 0x0D }
+        assertEquals("BIRTH_DATE", birthDate.name)
+        assertTrue(birthDate.isRaw)
+        assertEquals("3230323531333031", birthDate.value.toString())
+
+        val finding = seal.formatFindings.single()
+        assertEquals(FormatFinding.DecodeFailed(listOf(0x0D), "BIRTH_DATE"), finding)
+        assertEquals(Category.WRONG_FORMAT, finding.category)
+    }
+
+    @Test
+    fun decodableProfileField_isNotRaw() {
+        val seal = seal("c9", tlv(0, registeredUuid), profileUri, certificateUri, surname, utf8(0x0D, "20251231"))
+
+        assertFalse(seal.messageList.single { it.tag == 0x0D }.isRaw)
+        assertEquals(emptyList(), seal.formatFindings)
     }
 
     @Test

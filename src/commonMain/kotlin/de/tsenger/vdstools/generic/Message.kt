@@ -11,12 +11,14 @@ class Message(
     val messageList: List<Message> = emptyList()
 ) {
     /**
-     * True if [value] holds the uninterpreted raw bytes of this message instead of a decoded value.
-     * Currently this is the case when no definition exists for its tag; the name is then the tag
-     * in hex (e.g. `0x0A`).
+     * True if [value] holds the uninterpreted raw bytes of this message instead of a decoded value:
+     * either no definition exists for its tag (the name is then the tag in hex, e.g. `0x0A`), or
+     * the bytes cannot be decoded with the coding of its definition. A message defined as plain
+     * bytes, and a container message (whose interpretation are its sub-messages), is not raw.
      */
     val isRaw: Boolean
-        get() = coding == MessageCoding.UNKNOWN
+        get() = coding == MessageCoding.UNKNOWN || (value is MessageValue.BytesValue
+                && coding != MessageCoding.BYTES && coding != MessageCoding.SUB_MESSAGES)
 
     val encoded: ByteArray
         get() = if (messageList.isNotEmpty()) {

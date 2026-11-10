@@ -64,6 +64,14 @@ sealed class FormatFinding {
         override val category get() = Category.WRONG_FORMAT
     }
 
+    /**
+     * A message whose bytes cannot be decoded with the coding its definition prescribes, e.g. an
+     * invalid date; its value is raw ([Message.isRaw]).
+     */
+    data class DecodeFailed(override val tagPath: List<Int>, val name: String) : FormatFinding() {
+        override val category get() = Category.WRONG_FORMAT
+    }
+
     /** The content of a container message cannot be split into its sub-messages. */
     data class MalformedSubMessages(override val tagPath: List<Int>, val name: String) : FormatFinding() {
         override val category get() = Category.WRONG_FORMAT

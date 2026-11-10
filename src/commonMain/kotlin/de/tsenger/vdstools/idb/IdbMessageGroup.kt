@@ -42,7 +42,8 @@ internal class IdbMessageGroup {
             for (message in messages) {
                 val path = parentPath + message.tag
                 if (message.isRaw) {
-                    findings += FormatFinding.UnknownTag(path)
+                    findings += if (message.coding == MessageCoding.UNKNOWN) FormatFinding.UnknownTag(path)
+                    else FormatFinding.DecodeFailed(path, message.name)
                 } else if (message.coding == MessageCoding.SUB_MESSAGES && message.messageList.isEmpty()
                     && message.value.rawBytes.isNotEmpty()
                 ) {

@@ -8,12 +8,15 @@ All notable changes to this project will be documented in this file.
 - `Seal.formatFindings`: findings of the format validation (ICAO Doc 9303-13
   Appendix D, step 1), without judgement. `FormatFinding` subtypes
   `UnknownTag`, `ReservedTag`, `UnknownDocumentType`, `ProfileNotFound`,
-  `MissingRequired`, `NotAllowed` and `MalformedSubMessages`, each with a
+  `MissingRequired`, `NotAllowed`, `DecodeFailed` and `MalformedSubMessages`, each with a
   `category` (`UNKNOWN_FEATURE`, `WRONG_FORMAT`, `UNDETERMINED`) and a
   `tagPath`. Signature and certificate are not covered.
 - `Message.isRaw`: true if the message's value holds uninterpreted raw bytes
-  instead of a decoded value, currently for tags without definition (see
-  Changed). `Message.coding` stays internal.
+  instead of a decoded value: for tags without definition (see Changed) and
+  for defined messages whose bytes cannot be decoded with their coding (e.g.
+  an invalid date). Such a decode failure already fell back to `BytesValue`
+  before, but silently; it is now reported as `FormatFinding.DecodeFailed`.
+  `Message.coding` stays internal.
 
 ### Changed
 - **Behavior change:** tags that neither the document type nor the resolved
