@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- IDB: a sub-message tag that the enclosing container does not define is no
+  longer looked up in the top-level message type registry. Before, e.g. an
+  unknown sub-tag `0x08` inside `VISA` was decoded as `MRZ_TD3` (MRZ coding),
+  and an unknown sub-tag `0x01` inside `EMERGENCY_TRAVEL_DOCUMENT` was parsed
+  as a nested `VISA` container. Such sub-messages are now returned raw with
+  name `UNKNOWN`, coding `UNKNOWN` and a `BytesValue`, like unknown top-level
+  messages.
+- **Behavior change:** the IDB sub-message builder (`IdbSeal.Builder` sub-message
+  blocks) no longer falls back to the top-level message type registry either.
+  Adding a name or tag that the container does not define now throws
+  `IllegalArgumentException`, as on top level. Before, e.g. `addMessage("CAN", …)`
+  inside `VISA` silently encoded tag `0x09` as C40, and an unknown sub-tag got
+  the coding of the top-level message with the same tag.
+
 ## [0.22.0] - 2026-11-09
 
 ### Added
