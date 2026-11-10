@@ -167,12 +167,20 @@ To check at the type level which tags are configured as metadata (without a conc
 
 ```kotlin
 DataEncoder.vdsDocumentTypes.getMetadataTags("ADMINISTRATIVE_DOCUMENTS_V8") // → {0, 1, 2, 3}
-DataEncoder.vdsDocumentTypes.getMetadataTags("ADMINISTRATIVE_DOCUMENTS_V9") // → {0, 1, 2, 3, 4, 5, 6}
+DataEncoder.vdsDocumentTypes.getMetadataTags("ADMINISTRATIVE_DOCUMENTS_V9") // → {0, 1, …, 9} (0x07–0x09 reserved)
 DataEncoder.vdsDocumentTypes.getMetadataTags("RESIDENCE_PERMIT")            // → {} (no metadata tags)
 ```
 
 Regular document types have no `metadataTagList` configured, so their `metadataMessageList` is
 always empty and all tags appear in `messageList` as usual.
+
+## Unknown tags
+
+A seal may contain tags that neither the document type nor the resolved profile defines (ICAO Doc 9303-13 §2.3:
+unknown tags MAY be present), e.g. a TR-03171 seal whose profile is not available. Such tags are not dropped:
+they appear in `messageList` (or `metadataMessageList` for a metadata tag) as raw bytes, named by their tag
+(`0x0A`), with a `MessageValue.BytesValue`. vdstools does not interpret these bytes. This applies to VDS and IDB
+seals, including sub-messages of IDB container messages.
 
 ## Build a barcode
 

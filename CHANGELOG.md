@@ -4,14 +4,29 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- **Behavior change:** tags that neither the document type nor the resolved
+  profile defines are no longer dropped (ICAO Doc 9303-13 §2.3: unknown tags MAY
+  be present). They are returned raw, named by their tag (e.g. `0x0A`), with
+  coding `UNKNOWN` and a `BytesValue`; the bytes are not interpreted.
+  - VDS `messageList`: before, only seals of an unknown document type returned
+    unknown tags (then with coding `BYTES`). Now every document type does, e.g.
+    the content tags of a TR-03171 seal whose profile is not available, or a tag
+    that the resolved profile does not define.
+  - VDS `metadataMessageList`: undefined metadata tags (e.g. the reserved TR-03171
+    v0.9 tags `0x07`–`0x09`) are returned raw as well.
+  - IDB: unknown messages and sub-messages are now named by their tag (`0x50`)
+    instead of `UNKNOWN`.
+  - The dissection labels such tags with their name (`0x0A`) instead of
+    `Unknown (0x0A)`.
+
 ### Fixed
 - IDB: a sub-message tag that the enclosing container does not define is no
   longer looked up in the top-level message type registry. Before, e.g. an
   unknown sub-tag `0x08` inside `VISA` was decoded as `MRZ_TD3` (MRZ coding),
   and an unknown sub-tag `0x01` inside `EMERGENCY_TRAVEL_DOCUMENT` was parsed
-  as a nested `VISA` container. Such sub-messages are now returned raw with
-  name `UNKNOWN`, coding `UNKNOWN` and a `BytesValue`, like unknown top-level
-  messages.
+  as a nested `VISA` container. Such sub-messages are now returned raw, like
+  unknown top-level messages (see Changed).
 - **Behavior change:** the IDB sub-message builder (`IdbSeal.Builder` sub-message
   blocks) no longer falls back to the top-level message type registry either.
   Adding a name or tag that the container does not define now throws

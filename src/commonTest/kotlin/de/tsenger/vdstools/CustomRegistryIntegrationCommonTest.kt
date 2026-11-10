@@ -125,8 +125,8 @@ class CustomRegistryIntegrationCommonTest {
         val messages = seal.messageList
         assertEquals(1, messages.size)
         assertEquals(0x04, messages[0].tag)
-        // Tag 4 is not in custom types -> "UNKNOWN"
-        assertEquals("UNKNOWN", messages[0].name)
+        // Tag 4 is not in custom types -> raw, named by its tag
+        assertEquals("0x04", messages[0].name)
     }
 
     // --- addCustom*: merge tests ---

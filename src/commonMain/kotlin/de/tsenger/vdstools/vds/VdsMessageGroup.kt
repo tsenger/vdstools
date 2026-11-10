@@ -4,7 +4,7 @@ import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.MessageCoding
-import de.tsenger.vdstools.generic.MessageValue
+import de.tsenger.vdstools.generic.MessageResolver
 import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
 import okio.Buffer
 
@@ -51,35 +51,20 @@ internal class VdsMessageGroup {
 
     val messageList: List<Message>
         /**
-         * @return a list of all decoded Messages, using extended message definition-aware lookup if available.
-         * Metadata tags (e.g. UUID tag) are excluded.
-         * For unknown document types, messages are returned as raw bytes with names like "TAG02".
+         * @return all messages except metadata tags (e.g. the UUID tag), in seal order, decoded via
+         * the resolved profile definition and the base type. A tag that neither defines is returned
+         * raw with a name like "0x0A" and coding [MessageCoding.UNKNOWN] (ICAO Doc 9303-13 §2.3:
+         * unknown tags may be present).
          */
-        get() {
-            val messageList: MutableList<Message> = ArrayList()
-            for (derTlv in derTlvList) {
-                if (derTlv.tag.toInt() in metadataTags) continue
-                val tag = derTlv.tag.toInt() and 0xFF
-                val message = DataEncoder.vdsDocumentTypes.resolveMessage(vdsType, profileDefinition, derTlv)
-                    ?: if (vdsType == VdsHeader.UNKNOWN_TYPE) {
-                        Message(tag, "0x${tag.toString(16).uppercase().padStart(2, '0')}", MessageCoding.BYTES,
-                            MessageValue.BytesValue(derTlv.value))
-                    } else null
-                message?.let { messageList.add(it) }
-            }
-            return messageList
-        }
+        get() = derTlvList.filter { it.tag.toInt() !in metadataTags }.map(::resolve)
 
+    /** The metadata tags of [messageList], resolved the same way. */
     val metadataMessageList: List<Message>
-        get() {
-            val result: MutableList<Message> = ArrayList()
-            for (derTlv in derTlvList) {
-                if (derTlv.tag.toInt() !in metadataTags) continue
-                DataEncoder.vdsDocumentTypes.resolveMessage(vdsType, profileDefinition, derTlv)
-                    ?.let { result.add(it) }
-            }
-            return result
-        }
+        get() = derTlvList.filter { it.tag.toInt() in metadataTags }.map(::resolve)
+
+    private fun resolve(derTlv: DerTlv): Message =
+        DataEncoder.vdsDocumentTypes.resolveMessage(vdsType, profileDefinition, derTlv)
+            ?: MessageResolver.unresolved(derTlv)
 
     /** Looks up a message by name, ignoring case (names come verbatim from the definition or profile). */
     fun getMessageByName(messageName: String): Message? {
