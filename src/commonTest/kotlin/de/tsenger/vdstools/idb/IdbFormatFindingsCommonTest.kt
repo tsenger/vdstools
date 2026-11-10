@@ -33,26 +33,13 @@ class IdbFormatFindingsCommonTest {
             IcbRawStringsCommon.TemporaryPassport,
             IcbRawStringsCommon.ArrivalAttestation,
             IcbRawStringsCommon.ProvisionalResidenceDocument,
+            IcbRawStringsCommon.CertifyingPermanentResidence,
             IcbRawStringsCommon.FrontierWorkerPermit,
             IcbRawStringsCommon.SupplementarySheetResidencePermit,
             IcbRawStringsCommon.Visa,
         )) {
             assertEquals(emptyList(), SealParser().parse(raw).formatFindings, raw)
         }
-    }
-
-    @Test
-    fun certifyingPermanentResidenceFixture_doesNotMatchTr03137Table11() {
-        // The fixture encodes AZR (0x83) instead of DOCUMENT_NUMBER (0x85); TR-03137 V3.0 Table 11
-        // requires 0x82, 0x85 and 0x86 and no other message types.
-        val findings = SealParser().parse(IcbRawStringsCommon.CertifyingPermanentResidence).formatFindings
-        assertEquals(
-            listOf(
-                FormatFinding.MissingRequired(listOf(0x85), "DOCUMENT_NUMBER"),
-                FormatFinding.NotAllowed(listOf(0x83), "AZR"),
-            ),
-            findings
-        )
     }
 
     @Test
