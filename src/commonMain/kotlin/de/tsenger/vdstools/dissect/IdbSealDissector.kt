@@ -74,9 +74,8 @@ private fun IdbSeal.buildIdbMessageGroupDissection(
     val innerSpans = scanTlvs(innerBytes, baseOffset = innerAbsoluteOffset)
 
     val children = innerSpans.map { inner ->
-        val label = payLoad.idbMessageGroup.messageList
-            .firstOrNull { it.tag == (inner.tag and 0xFF) }?.name
-            ?: "Unknown (0x${inner.tag.toHex()})"
+        // Every TLV of the message group is a message (raw ones named "0x0A")
+        val label = payLoad.idbMessageGroup.messageList.first { it.tag == (inner.tag and 0xFF) }.name
         FieldDissection(
             label, inner.range, listOf(
                 FieldDissection("Tag (0x${inner.tag.toHex()})", inner.tagRange),

@@ -21,7 +21,17 @@ abstract class Seal {
         get() = null
     open val documentProfileUuid: ByteArray?
         get() = null
+    /**
+     * All messages of the seal in seal order, except metadata messages ([metadataMessageList]).
+     * A tag without definition is not dropped but returned raw ([Message.isRaw]), named by its tag
+     * (e.g. `0x0A`); the same applies to a value that cannot be decoded with its coding.
+     */
     abstract val messageList: List<Message>
+
+    /**
+     * Messages of the tags a document type declares as metadata (e.g. the TR-03171 profile number
+     * and URIs), resolved like [messageList]. Empty for document types without metadata tags.
+     */
     open val metadataMessageList: List<Message>
         get() = emptyList()
     abstract val issuingCountry: String
