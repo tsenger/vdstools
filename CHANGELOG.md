@@ -18,6 +18,11 @@ All notable changes to this project will be documented in this file.
   `IllegalArgumentException`, as on top level. Before, e.g. `addMessage("CAN", …)`
   inside `VISA` silently encoded tag `0x09` as C40, and an unknown sub-tag got
   the coding of the top-level message with the same tag.
+- `ADMINISTRATIVE_DOCUMENTS_V9` (TR-03171 v0.9): the metadata tags now cover
+  `0x00`–`0x09` instead of `0x00`–`0x06`. TR-03171 v0.9 reserves `0x07`–`0x09`
+  for future metadata; content data uses `0x0A`–`0xFE` only. `getMetadataTags`
+  and `VdsMessageGroup.metadataTags` reflect the full range, so a reserved tag
+  in a seal is never treated as content data.
 
 ## [0.22.0] - 2026-11-09
 

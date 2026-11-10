@@ -324,13 +324,13 @@ class VdsAdministrativeDocumentsV9CommonTest {
     // -------------------------------------------------------------------------
 
     @Test
-    fun testV9MetadataTagSet_containsAll7Tags() {
+    fun testV9MetadataTagSet_containsAllMetadataTags() {
         val group = VdsMessageGroup.Builder("TEST_V9_PROFILE")
             .addMessage("SURNAME", "Mustermann")
             .build()
 
-        // Tags 0x00–0x06 are reserved as metadata in TR-03171 v0.9 §3.2
-        assertEquals(setOf(0, 1, 2, 3, 4, 5, 6), group.metadataTags)
+        // Tags 0x00–0x09 are metadata per TR-03171 v0.9 §3.2/§4 (0x07–0x09 reserved for future use)
+        assertEquals((0..9).toSet(), group.metadataTags)
     }
 
     // -------------------------------------------------------------------------
