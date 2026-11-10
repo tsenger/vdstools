@@ -130,13 +130,18 @@ internal class IdbMessageGroup {
         private fun parseMessage(derTlv: DerTlv, subMessageDefs: List<MessageDto>?): Message {
             val tagInt = derTlv.tag.toInt() and 0xFF
 
+            // Inside a container only the container's own definitions apply; the registry
+            // holds top-level message types, whose tags overlap with sub-message tags.
             val msgDef = subMessageDefs?.firstOrNull { it.tag == tagInt }
-            val name = msgDef?.name ?: DataEncoder.idbMessageTypes.getMessageType(tagInt)
-            val coding = msgDef?.coding ?: DataEncoder.idbMessageTypes.getMessageTypeCoding(name)
+            val isSubMessage = subMessageDefs != null
+            val name = msgDef?.name
+                ?: if (isSubMessage) "UNKNOWN" else DataEncoder.idbMessageTypes.getMessageType(tagInt)
+            val coding = msgDef?.coding
+                ?: if (isSubMessage) MessageCoding.UNKNOWN else DataEncoder.idbMessageTypes.getMessageTypeCoding(name)
             val value = MessageValue.fromBytes(derTlv.value, coding)
 
             val childDefs = msgDef?.messages
-                ?: DataEncoder.idbMessageTypes.getMessageTypeDto(tagInt)?.messages
+                ?: if (isSubMessage) null else DataEncoder.idbMessageTypes.getMessageTypeDto(tagInt)?.messages
             val subMessages = if (!childDefs.isNullOrEmpty() && coding == MessageCoding.SUB_MESSAGES) {
                 val expectedTags = childDefs.map { it.tag.toByte() }.toSet()
                 val firstByte = derTlv.value.firstOrNull()

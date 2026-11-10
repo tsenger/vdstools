@@ -246,6 +246,46 @@ class IdbMessageGroupCommonTest {
     }
 
     @Test
+    fun testUnknownSubMessageTagIsNotResolvedViaTopLevelRegistry() {
+        // VISA defines sub-tags 1–7; sub-tag 0x08 is unknown inside VISA
+        // (but 0x08 is MRZ_TD3 on top level, which must not leak into the container)
+        val visaContent = DerTlv(0x06, "aa".hexToByteArray()).encoded +
+                DerTlv(0x08, "abcd".hexToByteArray()).encoded
+        val messageGroup = IdbMessageGroup(listOf(DerTlv(0x01, visaContent)))
+
+        val visa = messageGroup.getMessageByName("VISA")
+        assertNotNull(visa)
+        assertEquals(listOf("VISA_TYPE", "UNKNOWN"), visa.messageList.map { it.name })
+        val unknown = visa.getMessageByTag(0x08)
+        assertNotNull(unknown)
+        assertEquals(MessageCoding.UNKNOWN, unknown.coding)
+        assertContentEquals("abcd".hexToByteArray(), unknown.value.rawBytes)
+        assertTrue(unknown.messageList.isEmpty())
+    }
+
+    @Test
+    fun testUnknownSubMessageTagIsNotParsedAsTopLevelContainer() {
+        // EMERGENCY_TRAVEL_DOCUMENT defines only sub-tag 2 (MRZ); sub-tag 0x01 is unknown inside it
+        // (but 0x01 is the VISA container on top level, which must not be parsed recursively)
+        val etd = IdbMessageGroup.Builder()
+            .addMessage("EMERGENCY_TRAVEL_DOCUMENT") {
+                addMessage("MRZ", "PPD<<FOLKS<<TALLULAH<<<<<<<<<<<<<<<<<<<<<<<<\n3113883489D<<9709155F1601013<<<<<<<<<<<<<<04")
+            }
+            .build().messageList.first()
+        val unknownChild = DerTlv(0x01, DerTlv(0x06, "aa".hexToByteArray()).encoded)
+        val messageGroup = IdbMessageGroup(listOf(DerTlv(0x02, etd.value.rawBytes + unknownChild.encoded)))
+
+        val parsedEtd = messageGroup.getMessageByName("EMERGENCY_TRAVEL_DOCUMENT")
+        assertNotNull(parsedEtd)
+        assertEquals(listOf("MRZ", "UNKNOWN"), parsedEtd.messageList.map { it.name })
+        val unknown = parsedEtd.getMessageByTag(0x01)
+        assertNotNull(unknown)
+        assertEquals(MessageCoding.UNKNOWN, unknown.coding)
+        assertContentEquals(unknownChild.value, unknown.value.rawBytes)
+        assertTrue(unknown.messageList.isEmpty(), "unknown sub-tag must not be parsed as a container")
+    }
+
+    @Test
     fun testVdsMessagesHaveEmptySubMessages() {
         // Non-container messages should have empty messages list
         val messageGroup = IdbMessageGroup.Builder()

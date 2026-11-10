@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- IDB: a sub-message tag that the enclosing container does not define is no
+  longer looked up in the top-level message type registry. Before, e.g. an
+  unknown sub-tag `0x08` inside `VISA` was decoded as `MRZ_TD3` (MRZ coding),
+  and an unknown sub-tag `0x01` inside `EMERGENCY_TRAVEL_DOCUMENT` was parsed
+  as a nested `VISA` container. Such sub-messages are now returned raw with
+  name `UNKNOWN`, coding `UNKNOWN` and a `BytesValue`, like unknown top-level
+  messages.
+
 ## [0.22.0] - 2026-11-09
 
 ### Added
