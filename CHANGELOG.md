@@ -8,13 +8,22 @@ All notable changes to this project will be documented in this file.
 - `Seal.formatFindings`: findings of the format validation (ICAO Doc 9303-13
   Appendix D, step 1), without judgement. `FormatFinding` subtypes
   `UnknownTag`, `ReservedTag`, `UnknownDocumentType`, `ProfileNotFound`,
-  `MissingRequired`, `NotAllowed`, `LengthExceeded`, `DecodeFailed` and
+  `MissingRequired`, `NotAllowed`, `InvalidLength`, `DecodeFailed` and
   `MalformedSubMessages`, each with a `category` (`UNKNOWN_FEATURE`,
-  `WRONG_FORMAT`, `UNDETERMINED`) and a `tagPath`. Checked are TR-03171 seals
-  (required fields, `VALID_FROM`/`VALID_TO` presence, explicit `<length>` of
-  UTF8String in characters and OCTET STRING in bytes) and German IDB seals
-  (message types of the national document type per BSI TR-03137 chapters
-  12–17). Signature and certificate are not covered.
+  `WRONG_FORMAT`, `UNDETERMINED`) and a `tagPath`. Unknown tags, decode
+  failures and unknown document types are reported for all seals. Required
+  messages and lengths are checked where the definitions are verified against
+  their specification: the VDS types with a `specification` (ICAO visa and
+  ETD, BSI TR-03137-1 V3.0 types), TR-03171 profiles (explicit `<length>` of
+  UTF8String in characters, OCTET STRING in bytes) and German IDB seals
+  (national document type per BSI TR-03137 chapters 12–17). Signature and
+  certificate are not covered.
+- `VdsDocumentTypeDto.specification`, `additionalFeaturesAllowed` and
+  `requiredOneOf`: the specification a document type's definitions were
+  verified against (only then are required messages and lengths checked),
+  whether undefined tags are allowed, and groups of tags of which one is
+  required. Set in `VdsDocumentTypes.json` for the ICAO visa and ETD and the
+  BSI TR-03137-1 V3.0 types.
 - `MessageDto.maxLength`: the explicit maximum length of a TR-03171 profile
   entry (`<length>` of UTF8String and OCTET STRING), null otherwise.
 - `Message.isRaw`: true if the message's value holds uninterpreted raw bytes
@@ -45,6 +54,10 @@ All notable changes to this project will be documented in this file.
   violations in one exception message; decoding and encoding share its rules.
 
 ### Fixed
+- `VdsDocumentTypes.json`, `VISA`: `MRZ_MRVA` and `MRZ_MRVB` are no longer
+  both marked as required, and `NUMBER_OF_ENTRIES` is optional (ICAO Doc
+  9303-7 §9.1.3). A visa needs the MRZ of either an MRV-A or an MRV-B
+  (`requiredOneOf`).
 - IDB: a sub-message tag that the enclosing container does not define is no
   longer looked up in the top-level message type registry. Before, e.g. an
   unknown sub-tag `0x08` inside `VISA` was decoded as `MRZ_TD3` (MRZ coding),

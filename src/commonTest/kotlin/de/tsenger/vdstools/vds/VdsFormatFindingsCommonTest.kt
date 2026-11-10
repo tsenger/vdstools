@@ -151,7 +151,7 @@ class VdsFormatFindingsCommonTest {
 
         val tooLong = seal("c9", tlv(0, registeredUuid), profileUri, certificateUri, surname, utf8(0x0B, "Müllers"))
         val finding = tooLong.formatFindings.single()
-        assertEquals(FormatFinding.LengthExceeded(listOf(0x0B), "NOTE", 7, 6), finding)
+        assertEquals(FormatFinding.InvalidLength(listOf(0x0B), "NOTE", 7, null, 6), finding)
         assertEquals(Category.WRONG_FORMAT, finding.category)
     }
 
@@ -159,7 +159,7 @@ class VdsFormatFindingsCommonTest {
     fun octetStringLengthIsCountedInBytes() {
         // CODE has <length>2</length>
         val seal = seal("c9", tlv(0, registeredUuid), profileUri, certificateUri, surname, tlv(0x0E, "010203"))
-        assertEquals(listOf(FormatFinding.LengthExceeded(listOf(0x0E), "CODE", 3, 2)), seal.formatFindings)
+        assertEquals(listOf(FormatFinding.InvalidLength(listOf(0x0E), "CODE", 3, null, 2)), seal.formatFindings)
     }
 
     @Test

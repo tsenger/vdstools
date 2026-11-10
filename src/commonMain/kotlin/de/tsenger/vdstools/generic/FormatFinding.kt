@@ -73,11 +73,12 @@ sealed class FormatFinding {
     }
 
     /**
-     * A message is longer than its definition allows. [length] and [maxLength] are characters for
-     * text and bytes otherwise.
+     * A message is shorter or longer than its definition allows. [length], [minLength] and
+     * [maxLength] are characters for TR-03171 UTF8String profile entries and bytes otherwise;
+     * a null bound is not specified.
      */
-    data class LengthExceeded(
-        override val tagPath: List<Int>, val name: String, val length: Int, val maxLength: Int
+    data class InvalidLength(
+        override val tagPath: List<Int>, val name: String, val length: Int, val minLength: Int?, val maxLength: Int?
     ) : FormatFinding() {
         override val category get() = Category.WRONG_FORMAT
     }

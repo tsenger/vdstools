@@ -6,6 +6,7 @@ import de.tsenger.vdstools.generic.FormatFinding
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.MessageCoding
 import de.tsenger.vdstools.generic.MessageResolver
+import de.tsenger.vdstools.vds.dto.VdsDocumentTypeDto
 import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
 import de.tsenger.vdstools.vds.tr03171.Tr03171Conformance
 import okio.Buffer
@@ -115,6 +116,8 @@ internal class VdsMessageGroup {
             findings += Tr03171Conformance.check(vdsType, tags, profileDefinition)
             profileDefinition?.let { findings += Tr03171Conformance.checkLengths(messageList, it) }
         }
+        val specifiedType = registry.findDocumentTypeDto(vdsType)?.takeIf { it.specification != null }
+        if (specifiedType != null) findings += specificationFindings(specifiedType)
         for (message in metadataMessageList.filter { it.isRaw }) {
             findings += if (message.coding == MessageCoding.UNKNOWN) FormatFinding.ReservedTag(listOf(message.tag))
             else FormatFinding.DecodeFailed(listOf(message.tag), message.name)
@@ -122,8 +125,35 @@ internal class VdsMessageGroup {
         for (message in messageList.filter { it.isRaw }) {
             if (message.coding != MessageCoding.UNKNOWN) {
                 findings += FormatFinding.DecodeFailed(listOf(message.tag), message.name)
+            } else if (specifiedType?.additionalFeaturesAllowed == false) {
+                findings += FormatFinding.NotAllowed(listOf(message.tag), message.name)
             } else if (!needsProfile || profileDefinition != null) {
                 findings += FormatFinding.UnknownTag(listOf(message.tag))
+            }
+        }
+        return findings
+    }
+
+    /**
+     * Required messages and lengths of a document type whose definitions are verified against its
+     * specification ([VdsDocumentTypeDto.specification]). Lengths are bytes; raw messages are skipped.
+     */
+    private fun specificationFindings(docType: VdsDocumentTypeDto): List<FormatFinding> {
+        val tags = derTlvList.map { it.tag.toInt() and 0xFF }.toSet()
+        val findings = mutableListOf<FormatFinding>()
+        docType.messages.filter { it.required && it.tag !in tags }
+            .forEach { findings += FormatFinding.MissingRequired(listOf(it.tag), it.name) }
+        for (group in docType.requiredOneOf.filter { group -> group.none { it in tags } }) {
+            val names = group.map { tag -> docType.messages.firstOrNull { it.tag == tag }?.name ?: "$tag" }
+            findings += FormatFinding.MissingRequired(emptyList(), names.joinToString(" or "))
+        }
+        for (message in messageList.filter { !it.isRaw }) {
+            val definition = docType.messages.firstOrNull { it.tag == message.tag } ?: continue
+            val length = message.value.rawBytes.size
+            if (length < definition.minBytes || length > definition.maxBytes) {
+                findings += FormatFinding.InvalidLength(
+                    listOf(message.tag), message.name, length, definition.minBytes, definition.maxBytes
+                )
             }
         }
         return findings

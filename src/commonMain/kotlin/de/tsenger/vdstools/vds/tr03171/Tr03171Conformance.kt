@@ -47,7 +47,7 @@ internal object Tr03171Conformance {
             } else {
                 message.value.rawBytes.size
             }
-            if (length > maxLength) FormatFinding.LengthExceeded(listOf(message.tag), message.name, length, maxLength)
+            if (length > maxLength) FormatFinding.InvalidLength(listOf(message.tag), message.name, length, null, maxLength)
             else null
         }
     }

@@ -205,9 +205,9 @@ Each `FormatFinding` has a `category` following Appendix D and a `tagPath` (empt
 | `ReservedTag` | `UNKNOWN_FEATURE` | a reserved metadata tag, e.g. TR-03171 v0.9 tags `0x07`–`0x09` |
 | `UnknownDocumentType` | `UNDETERMINED` | VDS document reference or (German IDB seals) national document identifier not known |
 | `ProfileNotFound` | `UNDETERMINED` | TR-03171 profile not available; content tags are then not checked |
-| `MissingRequired` | `WRONG_FORMAT` | TR-03171: required tag or profile field missing; German IDB seals: message type of the national document type (TR-03137 chapters 12–17) missing |
-| `NotAllowed` | `WRONG_FORMAT` | TR-03171: `VALID_FROM`/`VALID_TO` present although the profile forbids it; German IDB seals: known message type that does not belong to the national document type |
-| `LengthExceeded` | `WRONG_FORMAT` | TR-03171: value longer than the profile entry's explicit `<length>` (characters for UTF8String, bytes for OCTET STRING) |
+| `MissingRequired` | `WRONG_FORMAT` | a required message is missing (see below which document types are checked) |
+| `NotAllowed` | `WRONG_FORMAT` | a message the specification forbids: TR-03171 `VALID_FROM`/`VALID_TO` against the profile, an undefined tag in a VDS type that forbids additional features, a known message type that does not belong to a German IDB document type |
+| `InvalidLength` | `WRONG_FORMAT` | a value shorter or longer than its definition allows |
 | `DecodeFailed` | `WRONG_FORMAT` | a defined message whose bytes cannot be decoded with its coding (its message `isRaw`) |
 | `MalformedSubMessages` | `WRONG_FORMAT` | IDB container content is no valid DER-TLV sequence |
 
@@ -216,8 +216,15 @@ val findings = seal.formatFindings
 if (findings.any { it.category == FormatFinding.Category.WRONG_FORMAT }) println("not conforming: $findings")
 ```
 
-Required fields and lengths of the ICAO base types are not checked yet. The national document type of IDB seals
-(tag `0x86`) is only checked for seals issued by Germany, since it is a German national message type.
+Required messages and lengths are only checked where the definitions are verified against their specification:
+
+- VDS document types with a `specification` in `VdsDocumentTypes.json`: the ICAO visa (Doc 9303-7 §9.1, MRZ of MRV-A
+  or MRV-B), the ICAO emergency travel document (Doc 9303-8 §6.1) and the BSI TR-03137-1 V3.0 types (arrival
+  attestation, social insurance card, residence permit, supplementary sheet, address stickers). Lengths are bytes.
+- TR-03171 seals: required profile entries, `VALID_FROM`/`VALID_TO` presence, explicit `<length>` of UTF8String
+  (characters) and OCTET STRING (bytes) profile entries.
+- German IDB seals: message types of the national document type (tag `0x86`, BSI TR-03137 chapters 12–17). Seals of
+  other countries are not checked, since `0x86` is a German national message type.
 
 ## Build a barcode
 
