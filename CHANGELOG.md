@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- `Message.isRaw`: true if the message's value holds uninterpreted raw bytes
+  instead of a decoded value, currently for tags without definition (see
+  Changed). `Message.coding` stays internal.
+
 ### Changed
 - **Behavior change:** tags that neither the document type nor the resolved
   profile defines are no longer dropped (ICAO Doc 9303-13 §2.3: unknown tags MAY

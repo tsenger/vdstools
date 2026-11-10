@@ -182,6 +182,15 @@ they appear in `messageList` (or `metadataMessageList` for a metadata tag) as ra
 (`0x0A`), with a `MessageValue.BytesValue`. vdstools does not interpret these bytes. This applies to VDS and IDB
 seals, including sub-messages of IDB container messages.
 
+`Message.isRaw` tells whether a message's value is such uninterpreted raw data:
+
+```kotlin
+for (message in seal.messageList) {
+    if (message.isRaw) println("${message.name}: ${message.value.rawBytes.toHexString()} (not interpreted)")
+    else println("${message.name}: ${message.value}")
+}
+```
+
 ## Build a barcode
 
 The library follows a symmetric design:
