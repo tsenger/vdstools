@@ -4,6 +4,7 @@ package de.tsenger.vdstools.idb
 import de.tsenger.vdstools.Base32
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.Signer
+import de.tsenger.vdstools.generic.FormatFinding
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.generic.Seal
@@ -103,6 +104,16 @@ class IdbSeal : Seal {
     override val messageList: List<Message>
         get() = payLoad.idbMessageGroup.messageList.map { idbMessage ->
             Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value, idbMessage.messageList)
+        }
+
+    override val formatFindings: List<FormatFinding>
+        get() {
+            val findings = mutableListOf<FormatFinding>()
+            val docTypeId = (getMessageByTag(0x86)?.value as? MessageValue.ByteValue)?.value
+            if (docTypeId != null && DataEncoder.idbDocumentTypes.getDocumentType(docTypeId) == "UNKNOWN") {
+                findings += FormatFinding.UnknownDocumentType(docTypeId)
+            }
+            return findings + payLoad.idbMessageGroup.formatFindings()
         }
 
     @OptIn(ExperimentalStdlibApi::class)

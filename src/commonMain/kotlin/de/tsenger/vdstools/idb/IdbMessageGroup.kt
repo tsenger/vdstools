@@ -2,6 +2,7 @@ package de.tsenger.vdstools.idb
 
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.asn1.DerTlv
+import de.tsenger.vdstools.generic.FormatFinding
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.MessageCoding
 import de.tsenger.vdstools.generic.MessageResolver
@@ -32,6 +33,26 @@ internal class IdbMessageGroup {
     /** Looks up a message by name, ignoring case (names come verbatim from the definition or profile). */
     fun getMessageByName(messageName: String): Message? {
         return messageList.firstOrNull { it.name.equals(messageName, ignoreCase = true) }
+    }
+
+    /** Format findings of the messages and sub-messages (see [FormatFinding]). */
+    fun formatFindings(): List<FormatFinding> {
+        val findings = mutableListOf<FormatFinding>()
+        fun walk(messages: List<Message>, parentPath: List<Int>) {
+            for (message in messages) {
+                val path = parentPath + message.tag
+                if (message.isRaw) {
+                    findings += FormatFinding.UnknownTag(path)
+                } else if (message.coding == MessageCoding.SUB_MESSAGES && message.messageList.isEmpty()
+                    && message.value.rawBytes.isNotEmpty()
+                ) {
+                    findings += FormatFinding.MalformedSubMessages(path, message.name)
+                }
+                walk(message.messageList, path)
+            }
+        }
+        walk(messageList, emptyList())
+        return findings
     }
 
     val encoded: ByteArray
@@ -153,17 +174,12 @@ internal class IdbMessageGroup {
             }
             val value = MessageValue.fromBytes(derTlv.value, coding)
 
+            // Content that is no valid DER-TLV sequence yields no sub-messages (reported as
+            // FormatFinding.MalformedSubMessages); an unknown sub-tag is returned raw.
             val subMessages = if (childDefs.isNotEmpty() && coding == MessageCoding.SUB_MESSAGES) {
-                val expectedTags = childDefs.map { it.tag.toByte() }.toSet()
-                val firstByte = derTlv.value.firstOrNull()
-                if (firstByte != null && firstByte in expectedTags) {
-                    try {
-                        val childTlvs = DerTlv.parseAll(derTlv.value)
-                        childTlvs.map { childTlv -> parseMessage(childTlv, childDefs) }
-                    } catch (_: Exception) {
-                        emptyList()
-                    }
-                } else {
+                try {
+                    DerTlv.parseAll(derTlv.value).map { childTlv -> parseMessage(childTlv, childDefs) }
+                } catch (_: Exception) {
                     emptyList()
                 }
             } else {

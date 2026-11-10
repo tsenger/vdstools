@@ -2,10 +2,12 @@ package de.tsenger.vdstools.vds
 
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.asn1.DerTlv
+import de.tsenger.vdstools.generic.FormatFinding
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.MessageCoding
 import de.tsenger.vdstools.generic.MessageResolver
 import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
+import de.tsenger.vdstools.vds.tr03171.Tr03171Conformance
 import okio.Buffer
 
 
@@ -92,6 +94,33 @@ internal class VdsMessageGroup {
         }
     }
 
+    /**
+     * Format findings of this message group (see [FormatFinding]). Without a resolved profile the
+     * content tags cannot be checked, so they are covered by [FormatFinding.ProfileNotFound] alone.
+     */
+    @OptIn(ExperimentalStdlibApi::class)
+    fun formatFindings(): List<FormatFinding> {
+        val registry = DataEncoder.vdsDocumentTypes
+        val findings = mutableListOf<FormatFinding>()
+        val needsProfile = registry.requiresProfileLookup(vdsType)
+        if (needsProfile) {
+            if (profileDefinition == null) {
+                findings += FormatFinding.ProfileNotFound(documentProfileUuid?.toHexString()?.uppercase(), profileUri())
+            }
+            val uuidTag = registry.getUuidMessageTag(vdsType)
+            if (derTlvList.none { it.tag.toInt() == uuidTag }) {
+                findings += FormatFinding.MissingRequired(listOf(uuidTag), registry.getMessageName(vdsType, null, uuidTag))
+            }
+            val tags = derTlvList.map { it.tag.toInt() and 0xFF }.toSet()
+            findings += Tr03171Conformance.check(vdsType, tags, profileDefinition)
+        }
+        metadataMessageList.filter { it.isRaw }.mapTo(findings) { FormatFinding.ReservedTag(listOf(it.tag)) }
+        if (!needsProfile || profileDefinition != null) {
+            messageList.filter { it.isRaw }.mapTo(findings) { FormatFinding.UnknownTag(listOf(it.tag)) }
+        }
+        return findings
+    }
+
     private fun profileUri(): String? {
         val tag = try {
             DataEncoder.vdsDocumentTypes.getMessageTag(vdsType, "PROFILE_URI")
@@ -158,22 +187,9 @@ internal class VdsMessageGroup {
         fun requireTr03171Conformance() {
             if (baseVdsType != DataEncoder.ADMINISTRATIVE_DOCUMENTS_V9) return
             val tags = derTlvList.map { it.tag.toInt() and 0xFF }.toSet()
-            require(3 in tags) { "TR-03171: PROFILE_URI (tag 0x03) is mandatory" }
-            require(4 in tags) { "TR-03171: CERTIFICATE_URI (tag 0x04) is mandatory" }
-            val definition = profileDefinition ?: return
-            requireDatePresence("VALID_FROM", 1, definition.validFromPresent, tags)
-            requireDatePresence("VALID_TO", 2, definition.validToPresent, tags)
-            val missing = definition.messages.filter { it.required && it.tag !in tags }.map { it.name }
-            require(missing.isEmpty()) {
-                "TR-03171: profile '${definition.definitionName}' requires missing field(s): ${missing.joinToString()}"
-            }
-        }
-
-        private fun requireDatePresence(name: String, tag: Int, mustBePresent: Boolean?, tags: Set<Int>) {
-            if (mustBePresent == null) return
-            require((tag in tags) == mustBePresent) {
-                if (mustBePresent) "TR-03171: $name (tag 0x0$tag) is required by the profile"
-                else "TR-03171: $name (tag 0x0$tag) must not be present according to the profile"
+            val violations = Tr03171Conformance.check(baseVdsType, tags, profileDefinition)
+            require(violations.isEmpty()) {
+                "TR-03171: " + violations.joinToString("; ", transform = Tr03171Conformance::describe)
             }
         }
 

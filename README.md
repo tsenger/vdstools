@@ -191,6 +191,29 @@ for (message in seal.messageList) {
 }
 ```
 
+## Format findings
+
+`Seal.formatFindings` lists what the format validation noticed (ICAO Doc 9303-13 Appendix D, step 1), without
+judgement: vdstools reports, the application decides how to rate it. **Signature and certificate are not covered.**
+Each `FormatFinding` has a `category` following Appendix D and a `tagPath` (empty if it concerns no single tag):
+
+| Finding | Category | When |
+|---|---|---|
+| `UnknownTag` | `UNKNOWN_FEATURE` | a tag that neither document type nor profile defines (its message `isRaw`) |
+| `ReservedTag` | `UNKNOWN_FEATURE` | a reserved metadata tag, e.g. TR-03171 v0.9 tags `0x07`–`0x09` |
+| `UnknownDocumentType` | `UNDETERMINED` | VDS document reference or IDB national document identifier not known |
+| `ProfileNotFound` | `UNDETERMINED` | TR-03171 profile not available; content tags are then not checked |
+| `MissingRequired` | `WRONG_FORMAT` | TR-03171: required tag or profile field missing |
+| `NotAllowed` | `WRONG_FORMAT` | TR-03171: `VALID_FROM`/`VALID_TO` present although the profile forbids it |
+| `MalformedSubMessages` | `WRONG_FORMAT` | IDB container content is no valid DER-TLV sequence |
+
+```kotlin
+val findings = seal.formatFindings
+if (findings.any { it.category == FormatFinding.Category.WRONG_FORMAT }) println("not conforming: $findings")
+```
+
+Required fields and lengths of the ICAO base types are not checked yet.
+
 ## Build a barcode
 
 The library follows a symmetric design:

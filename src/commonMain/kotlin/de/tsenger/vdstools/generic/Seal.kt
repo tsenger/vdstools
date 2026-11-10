@@ -27,6 +27,13 @@ abstract class Seal {
     abstract val issuingCountry: String
     abstract val signatureInfo: SignatureInfo?
 
+    /**
+     * Findings of the format validation (ICAO Doc 9303-13 Appendix D, step 1), without judgement.
+     * Empty if nothing was noticed. Signature and certificate are not covered.
+     */
+    open val formatFindings: List<FormatFinding>
+        get() = emptyList()
+
     open val signedBytes: ByteArray?
         get() = signatureInfo?.signedBytes
     abstract val encoded: ByteArray

@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- `Seal.formatFindings`: findings of the format validation (ICAO Doc 9303-13
+  Appendix D, step 1), without judgement. `FormatFinding` subtypes
+  `UnknownTag`, `ReservedTag`, `UnknownDocumentType`, `ProfileNotFound`,
+  `MissingRequired`, `NotAllowed` and `MalformedSubMessages`, each with a
+  `category` (`UNKNOWN_FEATURE`, `WRONG_FORMAT`, `UNDETERMINED`) and a
+  `tagPath`. Signature and certificate are not covered.
 - `Message.isRaw`: true if the message's value holds uninterpreted raw bytes
   instead of a decoded value, currently for tags without definition (see
   Changed). `Message.coding` stays internal.
@@ -24,6 +30,10 @@ All notable changes to this project will be documented in this file.
     instead of `UNKNOWN`.
   - The dissection labels such tags with their name (`0x0A`) instead of
     `Unknown (0x0A)`.
+- IDB container messages are split into sub-messages even if the first
+  sub-tag is unknown. Before, such a container had no sub-messages at all.
+- The TR-03171 builder check (`requireTr03171Conformance`) now reports all
+  violations in one exception message; decoding and encoding share its rules.
 
 ### Fixed
 - IDB: a sub-message tag that the enclosing container does not define is no
