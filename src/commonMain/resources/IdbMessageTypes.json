@@ -557,6 +557,7 @@
   {
     "name": "FACE_IMAGE",
     "tag": 128,
+    "country": "D",
     "coding": "BYTES",
     "minBytes": 900,
     "maxBytes": 1000
@@ -564,6 +565,7 @@
   {
     "name": "MRZ_TD2",
     "tag": 129,
+    "country": "D",
     "coding": "MRZ",
     "minBytes": 48,
     "maxBytes": 48
@@ -571,6 +573,7 @@
   {
     "name": "DOCUMENT_REFERENCE",
     "tag": 130,
+    "country": "D",
     "coding": "C40",
     "minBytes": 6,
     "maxBytes": 6
@@ -578,6 +581,7 @@
   {
     "name": "AZR",
     "tag": 131,
+    "country": "D",
     "coding": "C40",
     "minBytes": 8,
     "maxBytes": 8
@@ -585,6 +589,7 @@
   {
     "name": "EXPIRY_DATE",
     "tag": 132,
+    "country": "D",
     "coding": "MASKED_DATE",
     "minBytes": 4,
     "maxBytes": 4
@@ -592,6 +597,7 @@
   {
     "name": "DOCUMENT_NUMBER",
     "tag": 133,
+    "country": "D",
     "coding": "C40",
     "minBytes": 6,
     "maxBytes": 6
@@ -599,6 +605,7 @@
   {
     "name": "NATIONAL_DOCUMENT_IDENTIFIER",
     "tag": 134,
+    "country": "D",
     "coding": "BYTE",
     "minBytes": 1,
     "maxBytes": 1

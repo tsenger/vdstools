@@ -1,5 +1,7 @@
 package de.tsenger.vdstools
 
+import de.tsenger.vdstools.internal.normalizeCountry
+import de.tsenger.vdstools.internal.selectForCountry
 import de.tsenger.vdstools.idb.dto.IdbDocumentTypeDto
 import de.tsenger.vdstools.idb.dto.IdbMessageTypeRef
 import kotlinx.serialization.json.Json
@@ -19,33 +21,42 @@ import kotlinx.serialization.json.Json
  */
 class IdbDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
     private var documentTypeDtoList: List<IdbDocumentTypeDto> = emptyList()
-    private val documentTypes: HashMap<Int, IdbDocumentTypeDto> = HashMap()
-    private val documentTypesInverse: HashMap<String, IdbDocumentTypeDto> = HashMap()
 
     companion object {
         private val json = Json { ignoreUnknownKeys = true }
     }
 
     init {
-        documentTypeDtoList = json.decodeFromString(jsonString)
-        for (documentTypeDto in documentTypeDtoList) {
-            documentTypes[documentTypeDto.tag] = documentTypeDto
-            documentTypesInverse[documentTypeDto.name] = documentTypeDto
-
-        }
+        addEntriesFromJson(jsonString)
     }
 
+    /**
+     * Adds document types. An entry replaces any entry with the same name, and any entry with the same
+     * tag **and** country.
+     */
     override fun addEntriesFromJson(jsonString: String) {
         val newDtos = json.decodeFromString<List<IdbDocumentTypeDto>>(jsonString)
         for (dto in newDtos) {
-            documentTypes[dto.tag] = dto
-            documentTypesInverse[dto.name] = dto
+            val country = dto.country?.let(::normalizeCountry)
+            documentTypeDtoList = documentTypeDtoList.filter {
+                it.name != dto.name && !(it.tag == dto.tag && it.country?.let(::normalizeCountry) == country)
+            } + dto
         }
     }
 
+    /**
+     * The national document type for a `NATIONAL_DOCUMENT_IDENTIFIER` value read from a seal of
+     * [issuingCountry]: that country's type first, then one without country, then the type of another
+     * country if only one defines it. Null if none or ambiguous.
+     */
+    internal fun findDocumentType(tag: Int, issuingCountry: String?): IdbDocumentTypeDto? =
+        selectForCountry(documentTypeDtoList.filter { it.tag == tag }, issuingCountry) { it.country }
+
+    private fun findByName(name: String): IdbDocumentTypeDto? = documentTypeDtoList.lastOrNull { it.name == name }
+
     /** Returns the names of all registered national document types. */
     fun availableDocumentTypes(): Set<String> {
-        return documentTypes.values.map { it.name }.toSet()
+        return documentTypeDtoList.map { it.name }.toSet()
     }
 
     /**
@@ -54,8 +65,11 @@ class IdbDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
      * @param tag The numeric tag value of the `NATIONAL_DOCUMENT_IDENTIFIER` message
      * @return The document type name, or `"UNKNOWN"` if the tag is not registered
      */
-    fun getDocumentType(tag: Int): String {
-        return documentTypes[tag]?.name ?: "UNKNOWN"
+    fun getDocumentType(tag: Int): String = getDocumentType(tag, null)
+
+    /** As [getDocumentType], for a seal of [issuingCountry] (see [findDocumentType]). */
+    fun getDocumentType(tag: Int, issuingCountry: String?): String {
+        return findDocumentType(tag, issuingCountry)?.name ?: "UNKNOWN"
     }
 
     /**
@@ -65,7 +79,7 @@ class IdbDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
      * @return The tag value, or `null` if the name is not registered
      */
     fun getDocumentType(name: String): Int? {
-        return documentTypesInverse[name]?.tag
+        return findByName(name)?.tag
     }
 
     /**
@@ -77,8 +91,11 @@ class IdbDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
      * @param tag The numeric tag value of the `NATIONAL_DOCUMENT_IDENTIFIER` message
      * @return List of expected message type references, empty if the tag is not registered or has no messages defined
      */
-    fun getExpectedMessages(tag: Int): List<IdbMessageTypeRef> {
-        return documentTypes[tag]?.messages ?: emptyList()
+    fun getExpectedMessages(tag: Int): List<IdbMessageTypeRef> = getExpectedMessages(tag, null)
+
+    /** As [getExpectedMessages], for a seal of [issuingCountry] (see [findDocumentType]). */
+    fun getExpectedMessages(tag: Int, issuingCountry: String?): List<IdbMessageTypeRef> {
+        return findDocumentType(tag, issuingCountry)?.messages ?: emptyList()
     }
 
     /**
@@ -88,7 +105,7 @@ class IdbDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
      * @return List of expected message type references, empty if the name is not registered or has no messages defined
      */
     fun getExpectedMessages(name: String): List<IdbMessageTypeRef> {
-        return documentTypesInverse[name]?.messages ?: emptyList()
+        return findByName(name)?.messages ?: emptyList()
     }
 
 }

@@ -1,5 +1,7 @@
 package de.tsenger.vdstools.idb
 
+import de.tsenger.vdstools.internal.normalizeCountry
+import de.tsenger.vdstools.idb.dto.IdbMessageTypeDto
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generic.FormatFinding
@@ -14,9 +16,18 @@ import okio.Buffer
  * The message group of an IDB seal. Its messages are decoded with the IDB message types when the
  * group is created (parsed or built); message types loaded or replaced later do not change it.
  */
-internal class IdbMessageGroup(private val derTlvList: List<DerTlv>) {
+internal class IdbMessageGroup(private val derTlvList: List<DerTlv>, issuingCountry: String? = null) {
 
-    val messageList: List<Message> = derTlvList.map { derTlv -> parseMessage(derTlv, null) }
+    /** The message type of each top-level message for the seal's country (null: no definition). */
+    private val topLevelDefinitions: List<IdbMessageTypeDto?> =
+        derTlvList.map { DataEncoder.idbMessageTypes.getMessageTypeDto(it.tag.toInt() and 0xFF, issuingCountry) }
+
+    val messageList: List<Message> = derTlvList.mapIndexed { i, derTlv -> parseMessage(derTlv, null, topLevelDefinitions[i]) }
+
+    /** Tag and country of each top-level message decoded with a national message type. */
+    internal val nationalDefinitions: List<Pair<Int, String>> = derTlvList.indices.mapNotNull { i ->
+        topLevelDefinitions[i]?.country?.let { (derTlvList[i].tag.toInt() and 0xFF) to normalizeCountry(it) }
+    }
 
     fun getMessageByTag(messageTag: Int): Message? {
         return messageList.firstOrNull { it.tag == messageTag }
@@ -130,8 +141,8 @@ internal class IdbMessageGroup(private val derTlvList: List<DerTlv>) {
             return this
         }
 
-        fun build(): IdbMessageGroup {
-            return IdbMessageGroup(derTlvList.toList())
+        fun build(issuingCountry: String? = null): IdbMessageGroup {
+            return IdbMessageGroup(derTlvList.toList(), issuingCountry)
         }
     }
 
@@ -139,7 +150,7 @@ internal class IdbMessageGroup(private val derTlvList: List<DerTlv>) {
         const val TAG: Byte = 0x61
 
         @Throws(IllegalArgumentException::class)
-        fun fromByteArray(rawBytes: ByteArray): IdbMessageGroup {
+        fun fromByteArray(rawBytes: ByteArray, issuingCountry: String? = null): IdbMessageGroup {
             require(rawBytes[0] == TAG) {
                 "IdbMessageGroup shall have tag ${
                     TAG.toString(16).padStart(2, '0').uppercase()
@@ -147,10 +158,13 @@ internal class IdbMessageGroup(private val derTlvList: List<DerTlv>) {
             }
             val valueBytes = DerTlv.fromByteArray(rawBytes)?.value ?: ByteArray(0)
             val derTlvList = DerTlv.parseAll(valueBytes)
-            return IdbMessageGroup(derTlvList)
+            return IdbMessageGroup(derTlvList, issuingCountry)
         }
 
-        private fun parseMessage(derTlv: DerTlv, subMessageDefs: List<MessageDto>?): Message {
+        /** [topLevelDefinition] is the message type of a top-level message; unused inside a container. */
+        private fun parseMessage(
+            derTlv: DerTlv, subMessageDefs: List<MessageDto>?, topLevelDefinition: IdbMessageTypeDto? = null
+        ): Message {
             val tagInt = derTlv.tag.toInt() and 0xFF
 
             // Inside a container only the container's own definitions apply; the registry
@@ -163,7 +177,7 @@ internal class IdbMessageGroup(private val derTlvList: List<DerTlv>) {
                 val msgDef = subMessageDefs.firstOrNull { it.tag == tagInt } ?: return MessageResolver.unresolved(derTlv)
                 name = msgDef.name; coding = msgDef.coding; childDefs = msgDef.messages
             } else {
-                val dto = DataEncoder.idbMessageTypes.getMessageTypeDto(tagInt) ?: return MessageResolver.unresolved(derTlv)
+                val dto = topLevelDefinition ?: return MessageResolver.unresolved(derTlv)
                 name = dto.name; coding = dto.coding; childDefs = dto.messages
             }
             val value = MessageValue.fromBytes(derTlv.value, coding)

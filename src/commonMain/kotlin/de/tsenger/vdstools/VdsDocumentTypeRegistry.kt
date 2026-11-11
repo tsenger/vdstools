@@ -10,6 +10,7 @@ import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
 import de.tsenger.vdstools.internal.logW
 import de.tsenger.vdstools.internal.normalizeCountry
+import de.tsenger.vdstools.internal.selectForCountry
 import de.tsenger.vdstools.vds.dto.VdsDocumentTypeDto
 import kotlinx.serialization.json.Json
 
@@ -96,10 +97,7 @@ class VdsDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
 
     internal fun findDocumentTypeForSeal(docRef: Int, issuingCountry: String?): VdsDocumentTypeDto? {
         val candidates = documentTypeDtoList.filter { it.documentRef.isNotEmpty() && it.documentRef.toInt(16) == docRef }
-        val country = issuingCountry?.let(::normalizeCountry)
-        candidates.lastOrNull { it.country != null && normalizeCountry(it.country!!) == country }?.let { return it }
-        candidates.lastOrNull { it.country == null }?.let { return it }
-        return candidates.singleOrNull()
+        return selectForCountry(candidates, issuingCountry) { it.country }
     }
 
     /**

@@ -1,5 +1,7 @@
 package de.tsenger.vdstools
 
+import de.tsenger.vdstools.internal.normalizeCountry
+import de.tsenger.vdstools.internal.selectForCountry
 import de.tsenger.vdstools.generic.MessageCoding
 import de.tsenger.vdstools.generic.MessageDefinition
 import de.tsenger.vdstools.generic.MessageDefinitionResolver
@@ -23,7 +25,6 @@ import kotlinx.serialization.json.Json
  */
 class IdbMessageTypeRegistry(jsonString: String) : DefinitionRegistry {
     private var messageTypeDtoList: List<IdbMessageTypeDto> = emptyList()
-    private val messageTypes: HashMap<Int, IdbMessageTypeDto> = HashMap()
     private val messageTypesInverse: HashMap<String, IdbMessageTypeDto> = HashMap()
 
     companion object {
@@ -31,25 +32,28 @@ class IdbMessageTypeRegistry(jsonString: String) : DefinitionRegistry {
     }
 
     init {
-        messageTypeDtoList = json.decodeFromString(jsonString)
-        for (messageTypeDto in messageTypeDtoList) {
-            messageTypes[messageTypeDto.tag] = messageTypeDto
-            messageTypesInverse[messageTypeDto.name] = messageTypeDto
-
-        }
+        addEntriesFromJson(jsonString)
     }
 
+    /**
+     * Adds message types. An entry replaces any entry with the same name, and any entry with the same
+     * tag **and** country (an entry without country does not replace a national type of another name).
+     */
     override fun addEntriesFromJson(jsonString: String) {
         val newDtos = json.decodeFromString<List<IdbMessageTypeDto>>(jsonString)
         for (dto in newDtos) {
-            messageTypes[dto.tag] = dto
-            messageTypesInverse[dto.name] = dto
+            val country = dto.country?.let(::normalizeCountry)
+            messageTypeDtoList = messageTypeDtoList.filter {
+                it.name != dto.name && !(it.tag == dto.tag && it.country?.let(::normalizeCountry) == country)
+            } + dto
         }
+        messageTypesInverse.clear()
+        messageTypeDtoList.forEach { messageTypesInverse[it.name] = it }
     }
 
     /** Returns the names of all registered IDB message types. */
     fun availableMessageTypes(): Set<String> {
-        return messageTypes.values.map { it.name }.toSet()
+        return messageTypeDtoList.map { it.name }.toSet()
     }
 
     /**
@@ -59,7 +63,7 @@ class IdbMessageTypeRegistry(jsonString: String) : DefinitionRegistry {
      * @return The message type name, or `"UNKNOWN"` if the tag is not registered
      */
     fun getMessageType(tag: Int): String {
-        return messageTypes[tag]?.name ?: "UNKNOWN"
+        return getMessageTypeDto(tag)?.name ?: "UNKNOWN"
     }
 
     /**
@@ -89,7 +93,7 @@ class IdbMessageTypeRegistry(jsonString: String) : DefinitionRegistry {
      * @return The [MessageCoding], or [MessageCoding.UNKNOWN] if the tag is not registered
      */
     fun getMessageTypeCoding(messageTypeTag: Int): MessageCoding {
-        return messageTypes[messageTypeTag]?.coding ?: MessageCoding.UNKNOWN
+        return getMessageTypeDto(messageTypeTag)?.coding ?: MessageCoding.UNKNOWN
     }
 
     /**
@@ -98,9 +102,16 @@ class IdbMessageTypeRegistry(jsonString: String) : DefinitionRegistry {
      * @param tag The numeric tag of the message type
      * @return The [IdbMessageTypeDto], or `null` if the tag is not registered
      */
-    fun getMessageTypeDto(tag: Int): IdbMessageTypeDto? {
-        return messageTypes[tag]
-    }
+    fun getMessageTypeDto(tag: Int): IdbMessageTypeDto? = getMessageTypeDto(tag, null)
+
+    /**
+     * Returns the message type for a tag read from a seal of [issuingCountry]: the national type of that
+     * country first, then an ICAO type, then the national type of another country if only one defines it.
+     *
+     * @return The [IdbMessageTypeDto], or `null` if the tag is not registered or several other countries define it
+     */
+    fun getMessageTypeDto(tag: Int, issuingCountry: String?): IdbMessageTypeDto? =
+        selectForCountry(messageTypeDtoList.filter { it.tag == tag }, issuingCountry) { it.country }
 
     /**
      * Returns the full DTO for a given message type name.

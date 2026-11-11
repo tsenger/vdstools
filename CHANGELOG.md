@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- National definitions: optional `country` on `VdsDocumentTypeDto`,
+  `IdbMessageTypeDto` and `IdbDocumentTypeDto`; the bundled German types carry
+  `D`. Lookups for a seal's issuing country: `getVdsType(docRef, country)`,
+  `getMessageTypeDto(tag, country)`, `getDocumentType(tag, country)`,
+  `getExpectedMessages(tag, country)`.
+- `FormatFinding.ForeignNationalDefinition` (`UNDETERMINED`): a document type
+  or IDB message was read with the national definition of another country.
 - `VdsSeal.Builder.forProfile(definition)`: builds a TR-03171 seal for a profile
   the caller supplies (e.g. from its own profile store) without registering it.
 - `Seal.formatFindings`: findings of the format validation (ICAO Doc 9303-13
@@ -39,6 +46,17 @@ All notable changes to this project will be documented in this file.
   be decoded stays defined.
 
 ### Changed
+- **Behavior change:** seals are read with the definitions of their issuing
+  country first, then international ones, then a unique national definition
+  of another country, reported as `ForeignNationalDefinition`. The BSI specimen
+  seals (issued by `UTO`) thus get this finding. IDB seals of other countries
+  with tag `0x86` are now checked against the national document type, too
+  (before only German seals). Codes are compared without C40 fillers (`D<<`,
+  `D  ` and `D` are equal).
+- **Behavior change:** `addCustom*` replaces an entry with the same name, or
+  with the same key **and** country. A custom entry without `country` no longer
+  replaces a bundled German type of another name; it applies to all other
+  countries.
 - TR-03171 v0.9: the mandatory `PROFILE_URI` and `CERTIFICATE_URI` now come
   from the base type definition in `VdsDocumentTypes.json` (verified against
   BSI TR-03171 V0.9 §3.2, `specification` set) instead of code. The URIs and

@@ -212,7 +212,8 @@ Each `FormatFinding` has a `category` following Appendix D and a `tagPath` (empt
 |---|---|---|
 | `UnknownTag` | `UNKNOWN_FEATURE` | a tag that neither document type nor profile defines (its message `isRaw`) |
 | `ReservedTag` | `UNKNOWN_FEATURE` | a reserved metadata tag, e.g. TR-03171 v0.9 tags `0x07`–`0x09` |
-| `UnknownDocumentType` | `UNDETERMINED` | VDS document reference or (German IDB seals) national document identifier not known |
+| `UnknownDocumentType` | `UNDETERMINED` | VDS document reference or IDB national document identifier not known |
+| `ForeignNationalDefinition` | `UNDETERMINED` | read with the national definition of another country (see [National definitions](#national-definitions)) |
 | `ProfileNotFound` | `UNDETERMINED` | TR-03171 profile not available; content tags are then not checked |
 | `MissingRequired` | `WRONG_FORMAT` | a required message is missing (see below which document types are checked) |
 | `NotAllowed` | `WRONG_FORMAT` | a message the specification forbids: TR-03171 `VALID_FROM`/`VALID_TO` against the profile, an undefined tag in a VDS type that forbids additional features, a known message type that does not belong to a German IDB document type |
@@ -235,8 +236,19 @@ Required messages and lengths are only checked where the definitions are verifie
   `PROFILE_URI` and `CERTIFICATE_URI` required, fixed date lengths), required profile entries, `VALID_FROM`/`VALID_TO`
   presence as the profile demands, explicit `<length>` of UTF8String (characters) and OCTET STRING (bytes) profile
   entries. The v0.8 base type is not verified (no specification at hand).
-- German IDB seals: message types of the national document type (tag `0x86`, BSI TR-03137 chapters 12–17). Seals of
-  other countries are not checked, since `0x86` is a German national message type.
+- IDB seals with a national document type (tag `0x86`, German types per BSI TR-03137 chapters 12–17): message types of
+  that document type.
+
+### National definitions
+
+National document types (an even VDS document type category, ICAO Doc 9303-13 §3.1.1) and national IDB message types
+(e.g. `0x80`–`0x86`, BSI TR-03137 §11.2.2) belong to a country: the bundled German ones carry `"country": "D"`, ICAO
+ones no country. A seal is read with the definition of its issuing country first, then an international one, then the
+national definition of another country if exactly one country defines it. The last case is reported as
+`ForeignNationalDefinition(tagPath, country)`, e.g. for the BSI specimen seals, which are issued by `UTO` (ICAO Doc
+9303-3: Utopia for sample documents). If several other countries define it, nothing is guessed: the VDS document type
+is unknown, the IDB message raw. The issuing country of a built seal is always the one you set; the definition only
+describes the content.
 
 ## Build a barcode
 
@@ -403,7 +415,8 @@ There are two strategies for providing custom definitions:
 
 - **`replaceCustom*`** – replaces the entire registry with your JSON. The built-in defaults are no longer available.
 - **`addCustom*`** – merges your entries into the existing registry. Built-in defaults are preserved; entries with the
-  same key (e.g. `documentRef`) are overwritten by your version.
+  same name, or the same key and country (e.g. `documentRef` and `country`), are overwritten by your version. An entry
+  without `country` is international; it does not replace a national entry of another name.
 
 Load definitions (including TR-03171 profiles) before parsing or building. A seal binds its document type, profile
 and message definitions when it is parsed or built; definitions loaded or replaced afterwards do not change it, so

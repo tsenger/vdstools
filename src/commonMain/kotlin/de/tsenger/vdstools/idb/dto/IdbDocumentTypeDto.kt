@@ -30,10 +30,12 @@ data class IdbMessageTypeRef(
  * @property tag The numeric value of the `NATIONAL_DOCUMENT_IDENTIFIER` (tag 0x86)
  * @property messages The IDB message types expected in the message group for this document type.
  *   Empty if the expected message combination is not defined.
+ * @property country Country whose national document types this belongs to (e.g. `D`), null if not national.
  */
 @Serializable
 data class IdbDocumentTypeDto(
     val name: String,
     val tag: Int,
     val messages: List<IdbMessageTypeRef> = emptyList(),
+    val country: String? = null,
 )

@@ -1,5 +1,6 @@
 package de.tsenger.vdstools.idb
 
+import de.tsenger.vdstools.internal.normalizeCountry
 
 import de.tsenger.vdstools.Base32
 import de.tsenger.vdstools.DataEncoder
@@ -105,7 +106,7 @@ class IdbSeal : Seal {
     private fun bindDocumentType(): String {
         val docTypeId = (getMessageByTag(0x86)?.value as? MessageValue.ByteValue)?.value
         return if (docTypeId != null) {
-            DataEncoder.idbDocumentTypes.getDocumentType(docTypeId)
+            DataEncoder.idbDocumentTypes.getDocumentType(docTypeId, issuingCountry)
         } else messageList.joinToString(", ") { it.name }
     }
 
@@ -116,22 +117,29 @@ class IdbSeal : Seal {
         }
 
     override val formatFindings: List<FormatFinding>
-        get() = nationalFindings + payLoad.idbMessageGroup.formatFindings()
+        get() = foreignDefinitionFindings() + nationalFindings + payLoad.idbMessageGroup.formatFindings()
+
+    /** Top-level messages decoded with a national message type of another country than the issuing one. */
+    private fun foreignDefinitionFindings(): List<FormatFinding> {
+        val country = normalizeCountry(issuingCountry)
+        return payLoad.idbMessageGroup.nationalDefinitions
+            .filter { (_, definitionCountry) -> definitionCountry != country }
+            .map { (tag, definitionCountry) -> FormatFinding.ForeignNationalDefinition(listOf(tag), definitionCountry) }
+    }
 
     /**
-     * Checks the messages against the German national document type (tag 0x86, BSI TR-03137
-     * chapters 12–17): all its message types are required, others are not allowed. Tag 0x86 is a
-     * German national message type, so seals of other countries are not checked.
+     * Checks the messages against the national document type (tag 0x86, e.g. BSI TR-03137 chapters
+     * 12–17): all its message types are required, others are not allowed. The document type is looked
+     * up for the seal's country like the message types (see [ForeignNationalDefinition][FormatFinding.ForeignNationalDefinition]).
      */
     private fun nationalDocumentTypeFindings(): List<FormatFinding> {
-        if (issuingCountry != "D") return emptyList()
         val messages = messageList
         val docTypeId = (messages.firstOrNull { it.tag == 0x86 }?.value as? MessageValue.ByteValue)?.value
             ?: return emptyList()
-        if (DataEncoder.idbDocumentTypes.getDocumentType(docTypeId) == "UNKNOWN") {
+        if (DataEncoder.idbDocumentTypes.getDocumentType(docTypeId, issuingCountry) == "UNKNOWN") {
             return listOf(FormatFinding.UnknownDocumentType(docTypeId))
         }
-        val expected = DataEncoder.idbDocumentTypes.getExpectedMessages(docTypeId)
+        val expected = DataEncoder.idbDocumentTypes.getExpectedMessages(docTypeId, issuingCountry)
         if (expected.isEmpty()) return emptyList()
         val present = messages.filter { it.isDefined }
         val findings = mutableListOf<FormatFinding>()
@@ -208,14 +216,14 @@ class IdbSeal : Seal {
 
         fun build(): IdbSeal {
             val header = IdbHeader(countryIdentifier)
-            val payload = IdbPayload(header, messageBuilder.build(), null, null)
+            val payload = IdbPayload(header, messageBuilder.build(countryIdentifier), null, null)
             return IdbSeal(isSigned = false, isZipped = compress, barcodePayload = payload)
         }
 
         fun build(signer: Signer): IdbSeal {
             val algo = IdbSignatureAlgorithm.fromFieldSize(signer.fieldSize)
             val header = IdbHeader(countryIdentifier, algo, certificateReference, signingDate)
-            val msgGroup = messageBuilder.build()
+            val msgGroup = messageBuilder.build(countryIdentifier)
             val sigBytes = signer.sign(header.encoded + msgGroup.encoded)
             val cert = signerCertBytes?.let { IdbSignerCertificate(it) }
             val payload = IdbPayload(header, msgGroup, cert, IdbSignature(sigBytes))
