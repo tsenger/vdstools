@@ -43,9 +43,15 @@ All notable changes to this project will be documented in this file.
   from the base type definition in `VdsDocumentTypes.json` (verified against
   BSI TR-03171 V0.9 §3.2, `specification` set) instead of code. The URIs and
   `STATUS_LIST_INDEX` have no maximum length there (`maxBytes` 0), as the TR
-  gives none; the former 255 / 4 bytes were not from the TR. The builder check
-  (`requireTr03171Conformance`) now uses the same findings as reading, so it
-  also rejects wrong lengths and undecodable values.
+  gives none; the former 255 / 4 bytes were not from the TR.
+- **Behavior change:** `VdsSeal.Builder.build()` applies the same rules as
+  reading: it throws `IllegalArgumentException` if the seal would have
+  `WRONG_FORMAT` findings. This covers the VDS types with a `specification`
+  (missing required message, wrong length, e.g. a social insurance card without
+  `FIRST_NAME`) and TR-03171 profiles of both versions (before, only v0.9
+  required profile entries were enforced, and no lengths). The message starts
+  with "Invalid seal content (<type>):" instead of "TR-03171:" and lists all
+  violations.
 - **Behavior change:** `VdsSeal.Builder(name)` throws if several registered
   TR-03171 profiles have that name (e.g. two versions of a changed profile with
   new UUIDs). Before, the last registered one was used silently. Use
@@ -73,8 +79,8 @@ All notable changes to this project will be documented in this file.
     `Unknown (0x0A)`.
 - IDB container messages are split into sub-messages even if the first
   sub-tag is unknown. Before, such a container had no sub-messages at all.
-- The TR-03171 builder check (`requireTr03171Conformance`) now reports all
-  violations in one exception message; decoding and encoding share its rules.
+- The VDS builder check reports all violations in one exception message;
+  decoding and encoding share its rules.
 - **Behavior change:** a `UTF8_STRING` message with invalid UTF-8 bytes is no
   longer decoded with U+FFFD replacement characters. Its value is now the raw
   `BytesValue` (`isRaw`), reported as `FormatFinding.DecodeFailed`.

@@ -251,6 +251,11 @@ The library follows a symmetric design:
 
 Both builders follow the same Kotlin fluent style: chain configuration calls, then call `build()`.
 
+`VdsSeal.Builder.build()` checks the seal with the same rules as reading (see [Format findings](#format-findings)) and
+throws an `IllegalArgumentException` listing every `WRONG_FORMAT` violation, e.g. a missing required message or a wrong
+length. Document types without a verified `specification` are not checked for required messages and lengths.
+`IdbSeal.Builder` does not check yet.
+
 ### VDS
 
 VDS seals are always signed. The only way to create one is via `VdsSeal.Builder.build(signer)`:

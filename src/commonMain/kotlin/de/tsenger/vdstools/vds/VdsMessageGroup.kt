@@ -187,17 +187,28 @@ internal class VdsMessageGroup(
         }
 
         /**
-         * Enforces BSI TR-03171 v0.9 (document category 0xC9) when building: the group to be built must
-         * have no [FormatFinding.Category.WRONG_FORMAT] findings, i.e. the same rules as when reading
-         * (mandatory metadata of the base type, VALID_FROM / VALID_TO as the profile demands, required
-         * profile entries, lengths). No-op for all other document types.
+         * Enforces the same rules when building as when reading: the group to be built must have no
+         * [FormatFinding.Category.WRONG_FORMAT] findings, e.g. a missing required message or a wrong
+         * length of a document type verified against its specification, or a TR-03171 profile violation.
          */
         @Throws(IllegalArgumentException::class)
-        fun requireTr03171Conformance() {
-            if (baseVdsType != DataEncoder.ADMINISTRATIVE_DOCUMENTS_V9) return
+        fun requireValidFormat() {
             val violations = build().formatFindings().filter { it.category == FormatFinding.Category.WRONG_FORMAT }
             require(violations.isEmpty()) {
-                "TR-03171: " + violations.joinToString("; ", transform = Tr03171Conformance::describe)
+                "Invalid seal content ($vdsType): " + violations.joinToString("; ", transform = ::describe)
+            }
+        }
+
+        /** Human-readable text of a finding, for the exception message of [requireValidFormat]. */
+        private fun describe(finding: FormatFinding): String {
+            val tag = finding.tagPath.lastOrNull()?.let { " (tag 0x" + it.toString(16).uppercase().padStart(2, '0') + ")" } ?: ""
+            return when (finding) {
+                is FormatFinding.MissingRequired -> "${finding.name}$tag is required"
+                is FormatFinding.NotAllowed -> "${finding.name}$tag must not be present"
+                is FormatFinding.DecodeFailed -> "${finding.name}$tag cannot be decoded"
+                is FormatFinding.InvalidLength -> "${finding.name}$tag has length ${finding.length}, allowed " +
+                        "${finding.minLength ?: 0}..${finding.maxLength ?: "unlimited"}"
+                else -> finding.toString()
             }
         }
 

@@ -7,9 +7,8 @@ import de.tsenger.vdstools.generic.MessageCoding
 import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
 
 /**
- * TR-03171 rules for the message zone. The presence rules ([check]) are shared by decoding
- * (reported as [FormatFinding]s) and encoding (enforced by the builder); the length rules
- * ([checkLengths]) are only reported when decoding.
+ * TR-03171 rules for the message zone that depend on the profile, reported as [FormatFinding]s.
+ * The builder enforces them through the same findings.
  */
 internal object Tr03171Conformance {
 
@@ -46,16 +45,6 @@ internal object Tr03171Conformance {
             }
             if (length > maxLength) FormatFinding.InvalidLength(listOf(message.tag), message.name, length, null, maxLength)
             else null
-        }
-    }
-
-    /** Human-readable text of a finding from [check], for exception messages. */
-    fun describe(finding: FormatFinding): String {
-        val tag = finding.tagPath.lastOrNull()?.toString(16)?.uppercase()?.padStart(2, '0')
-        return when (finding) {
-            is FormatFinding.MissingRequired -> "${finding.name} (tag 0x$tag) is required"
-            is FormatFinding.NotAllowed -> "${finding.name} (tag 0x$tag) must not be present"
-            else -> finding.toString()
         }
     }
 

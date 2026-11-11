@@ -194,7 +194,7 @@ class VdsSeal : Seal {
         fun <T> addMessage(name: String, value: T) = apply { messageBuilder.addMessage(name, value) }
 
         fun build(signer: Signer): VdsSeal {
-            messageBuilder.requireTr03171Conformance()
+            messageBuilder.requireValidFormat()
             return VdsSeal(headerBuilder.build(), messageBuilder.build(), signer)
         }
 

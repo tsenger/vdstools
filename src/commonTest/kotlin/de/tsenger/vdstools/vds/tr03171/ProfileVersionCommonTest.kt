@@ -47,8 +47,17 @@ class ProfileVersionCommonTest {
         .signerIdentifier("DEZV")
         .certificateReference("00112233445566778899AABBCCDDEEFF00112233")
 
+    // all non-optional entries of the v0.8 profile: the builder rejects a seal that reading reports as incomplete
     private fun buildV08Seal(): ByteArray = VdsSeal.Builder.forProfileUuid(uuid, TrVersion.V0_8).withHeader()
         .addMessage("familyName", "Mustermann")
+        .addMessage("dateOfBirth", "12.08.1964")
+        .addMessage("street", "Heidestraße")
+        .addMessage("streetNumber", "17")
+        .addMessage("postalCode", "51147")
+        .addMessage("city", "Köln")
+        .addMessage("dateOfMoving", "2025-04-14")
+        .addMessage("typeOfResidence", 1L)
+        .addMessage("dateOfRegistration", "2025-05-04")
         .build(dummySigner).encoded
 
     private fun buildV09Seal(): ByteArray = VdsSeal.Builder.forProfileUuid(uuid, TrVersion.V0_9).withHeader()
