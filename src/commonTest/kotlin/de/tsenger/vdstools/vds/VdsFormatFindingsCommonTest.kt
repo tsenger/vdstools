@@ -82,6 +82,7 @@ class VdsFormatFindingsCommonTest {
 
     @Test
     fun knownTypeFixtures_haveNoFindings() {
+        // specimens issued by UTO are read with the German national types: only that is reported
         val fixtures = mapOf(
             "residentPermit" to VdsRawBytesCommon.residentPermit,
             "addressStickerId" to VdsRawBytesCommon.addressStickerId,
@@ -95,7 +96,10 @@ class VdsFormatFindingsCommonTest {
             "ankunftsnwPapier2" to VdsRawBytesCommon.ankunftsnwPapier2,
         )
         for ((name, raw) in fixtures) {
-            assertEquals(emptyList(), (VdsSeal.fromByteArray(raw) as VdsSeal).formatFindings, name)
+            val seal = VdsSeal.fromByteArray(raw) as VdsSeal
+            val expected = if (seal.issuingCountry == "UTO" && seal.documentType !in setOf("VISA", "EMERGENCY_TRAVEL_DOCUMENT"))
+                listOf(FormatFinding.ForeignNationalDefinition(emptyList(), "D")) else emptyList()
+            assertEquals(expected, seal.formatFindings, name)
         }
     }
 

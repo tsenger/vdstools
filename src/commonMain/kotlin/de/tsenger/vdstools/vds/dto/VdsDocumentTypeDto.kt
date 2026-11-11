@@ -19,6 +19,9 @@ import kotlinx.serialization.Serializable
  *   such tags are then reported as not allowed instead of unknown. Only effective with [specification].
  * @property requiredOneOf Groups of tags of which at least one must be present, e.g. `[[1, 2]]` for
  *   the MRZ of an MRV-A or MRV-B visa. Only effective with [specification].
+ * @property country Issuing country of a national document type (e.g. `D`), null for an international
+ *   (ICAO) type. A seal is read with the type of its own country first, then an international one, then
+ *   a unique national type of another country (reported as `FormatFinding.ForeignNationalDefinition`).
  */
 @Serializable
 data class VdsDocumentTypeDto(
@@ -32,4 +35,5 @@ data class VdsDocumentTypeDto(
     var specification: String? = null,
     var additionalFeaturesAllowed: Boolean = true,
     var requiredOneOf: List<List<Int>> = emptyList(),
+    var country: String? = null,
 )

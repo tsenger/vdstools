@@ -30,6 +30,9 @@ internal class VdsMessageGroup(
 
     private val requiresProfile = documentTypeDto?.uuidMessageLookup == true
 
+    /** Country of the bound national document type, null for an international type or unknown type. */
+    internal val documentTypeCountry: String? get() = documentTypeDto?.country
+
     /** The document profile UUID (UUID tag, usually 0) of a seal whose type requires a profile, else null. */
     val documentProfileUuid: ByteArray? =
         if (requiresProfile) derTlvList.find { it.tag.toInt() == documentTypeDto!!.uuidMessageTag }?.value else null

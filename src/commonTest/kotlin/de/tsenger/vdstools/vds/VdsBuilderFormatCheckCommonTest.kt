@@ -21,7 +21,7 @@ class VdsBuilderFormatCheckCommonTest {
         DataEncoder.resetToDefaults()
     }
 
-    private fun socialInsuranceCard() = VdsSeal.Builder("SOCIAL_INSURANCE_CARD")
+    private fun socialInsuranceCard() = VdsSeal.Builder("SOCIAL_INSURANCE_CARD").issuingCountry("D<<")
         .addMessage("SOCIAL_INSURANCE_NUMBER", "65170839J003")
         .addMessage("SURNAME", "Mustermann")
 

@@ -6,6 +6,7 @@ import de.tsenger.vdstools.internal.ecFieldBitSize
 import de.tsenger.vdstools.internal.logD
 import de.tsenger.vdstools.internal.logE
 import de.tsenger.vdstools.internal.logV
+import de.tsenger.vdstools.internal.normalizeCountry
 import de.tsenger.vdstools.Signer
 import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generic.*
@@ -161,11 +162,18 @@ class VdsSeal : Seal {
         }
 
     override val formatFindings: List<FormatFinding>
-        get() = if (vdsHeader.vdsType == VdsHeader.UNKNOWN_TYPE) {
+        get() = if (vdsMessageGroup.vdsType == VdsHeader.UNKNOWN_TYPE) {
             listOf(FormatFinding.UnknownDocumentType(vdsHeader.documentRef))
         } else {
-            vdsMessageGroup.formatFindings()
+            foreignDefinitionFindings() + vdsMessageGroup.formatFindings()
         }
+
+    /** The document type is a national type of another country than the seal's issuing country. */
+    private fun foreignDefinitionFindings(): List<FormatFinding> {
+        val country = vdsMessageGroup.documentTypeCountry ?: return emptyList()
+        return if (normalizeCountry(country) == normalizeCountry(issuingCountry)) emptyList()
+        else listOf(FormatFinding.ForeignNationalDefinition(emptyList(), normalizeCountry(country)))
+    }
 
     class Builder private constructor(
         private val headerBuilder: VdsHeader.Builder,

@@ -9,6 +9,7 @@ import de.tsenger.vdstools.generic.MessageResolver
 import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
 import de.tsenger.vdstools.internal.logW
+import de.tsenger.vdstools.internal.normalizeCountry
 import de.tsenger.vdstools.vds.dto.VdsDocumentTypeDto
 import kotlinx.serialization.json.Json
 
@@ -30,7 +31,6 @@ class VdsDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
     private var documentTypeDtoList: List<VdsDocumentTypeDto>
 
     private val vdsTypes: MutableMap<String, Int> = HashMap()
-    private val vdsTypesReverse: MutableMap<Int, String> = HashMap()
     private val vdsMessages: MutableSet<String> = mutableSetOf()
 
     companion object {
@@ -38,15 +38,15 @@ class VdsDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
     }
 
     init {
-        this.documentTypeDtoList = json.decodeFromString(jsonString)
-        populateMappings()
+        this.documentTypeDtoList = emptyList()
+        addEntriesFromJson(jsonString)
     }
 
     private fun populateMappings() {
+        vdsTypes.clear()
         for ((documentType, documentRef, _, messages) in documentTypeDtoList) {
             if (documentType != "" && documentRef != "") {
                 vdsTypes[documentType] = documentRef.toInt(16)
-                vdsTypesReverse[documentRef.toInt(16)] = documentType
             }
             messages.forEach { vdsMessages.add(it.name) }
         }
@@ -76,13 +76,30 @@ class VdsDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
     }
 
     /**
-     * Returns the VDS type name for a given document reference number.
+     * Returns the VDS type name for a given document reference number, regardless of country (see the
+     * overload with issuing country).
      *
      * @param docRef The document reference number
-     * @return The VDS type name, or null if the reference is not found
+     * @return The VDS type name, or null if the reference is not found or ambiguous
      */
-    fun getVdsType(docRef: Int): String? {
-        return vdsTypesReverse[docRef]
+    fun getVdsType(docRef: Int): String? = getVdsType(docRef, null)
+
+    /**
+     * Returns the VDS type name for a document reference read from a seal of [issuingCountry]: the
+     * national type of that country first, then an international (ICAO) type, then the national type
+     * of another country if exactly one country defines it.
+     *
+     * @return The VDS type name, or null if the reference is not found or several other countries define it
+     */
+    fun getVdsType(docRef: Int, issuingCountry: String?): String? =
+        findDocumentTypeForSeal(docRef, issuingCountry)?.documentType
+
+    internal fun findDocumentTypeForSeal(docRef: Int, issuingCountry: String?): VdsDocumentTypeDto? {
+        val candidates = documentTypeDtoList.filter { it.documentRef.isNotEmpty() && it.documentRef.toInt(16) == docRef }
+        val country = issuingCountry?.let(::normalizeCountry)
+        candidates.lastOrNull { it.country != null && normalizeCountry(it.country!!) == country }?.let { return it }
+        candidates.lastOrNull { it.country == null }?.let { return it }
+        return candidates.singleOrNull()
     }
 
     /**
@@ -395,17 +412,23 @@ class VdsDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
         return MessageResolver.resolve(derTlv, asResolver(vdsType, profileDefinition))
     }
 
+    /**
+     * Adds document types. An entry replaces any entry with the same name, and any entry with the same
+     * document reference **and** country (an entry without country does not replace a national type of
+     * another name). Names thus stay unique; they identify the type when building.
+     */
     override fun addEntriesFromJson(jsonString: String) {
         val newDtos = json.decodeFromString<List<VdsDocumentTypeDto>>(jsonString)
+        var list = documentTypeDtoList
         for (dto in newDtos) {
-            documentTypeDtoList = documentTypeDtoList.filter { it.documentRef != dto.documentRef } + dto
-            if (dto.documentType != "" && dto.documentRef != "") {
-                vdsTypes[dto.documentType] = dto.documentRef.toInt(16)
-                vdsTypesReverse[dto.documentRef.toInt(16)] = dto.documentType
-            }
-            dto.messages.forEach { vdsMessages.add(it.name) }
+            val key = key(dto)
+            list = list.filter { key(it) != key && it.documentType != dto.documentType } + dto
         }
+        documentTypeDtoList = list
+        populateMappings()
     }
+
+    private fun key(dto: VdsDocumentTypeDto) = dto.documentRef.lowercase() to dto.country?.let(::normalizeCountry)
 
     /** The document type definition of [vdsType], or null if it is not registered. */
     internal fun findDocumentTypeDto(vdsType: String): VdsDocumentTypeDto? =
