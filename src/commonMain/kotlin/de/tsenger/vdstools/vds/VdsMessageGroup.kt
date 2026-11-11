@@ -6,6 +6,7 @@ import de.tsenger.vdstools.generic.FormatFinding
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.MessageCoding
 import de.tsenger.vdstools.generic.MessageResolver
+import de.tsenger.vdstools.generic.requireNoWrongFormat
 import de.tsenger.vdstools.vds.dto.VdsDocumentTypeDto
 import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
 import de.tsenger.vdstools.vds.tr03171.Tr03171Conformance
@@ -195,25 +196,7 @@ internal class VdsMessageGroup(
          * length of a document type verified against its specification, or a TR-03171 profile violation.
          */
         @Throws(IllegalArgumentException::class)
-        fun requireValidFormat() {
-            val violations = build().formatFindings().filter { it.category == FormatFinding.Category.WRONG_FORMAT }
-            require(violations.isEmpty()) {
-                "Invalid seal content ($vdsType): " + violations.joinToString("; ", transform = ::describe)
-            }
-        }
-
-        /** Human-readable text of a finding, for the exception message of [requireValidFormat]. */
-        private fun describe(finding: FormatFinding): String {
-            val tag = finding.tagPath.lastOrNull()?.let { " (tag 0x" + it.toString(16).uppercase().padStart(2, '0') + ")" } ?: ""
-            return when (finding) {
-                is FormatFinding.MissingRequired -> "${finding.name}$tag is required"
-                is FormatFinding.NotAllowed -> "${finding.name}$tag must not be present"
-                is FormatFinding.DecodeFailed -> "${finding.name}$tag cannot be decoded"
-                is FormatFinding.InvalidLength -> "${finding.name}$tag has length ${finding.length}, allowed " +
-                        "${finding.minLength ?: 0}..${finding.maxLength ?: "unlimited"}"
-                else -> finding.toString()
-            }
-        }
+        fun requireValidFormat() = requireNoWrongFormat(vdsType, build().formatFindings())
 
         /**
          * Builds the group and binds its definitions. With a profile, its UUID is prepended as the

@@ -11,6 +11,7 @@ import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.generic.Seal
 import de.tsenger.vdstools.generic.SealType
 import de.tsenger.vdstools.generic.SignatureInfo
+import de.tsenger.vdstools.generic.requireNoWrongFormat
 import de.tsenger.vdstools.idb.dto.IdbDocumentTypeDto
 import de.tsenger.vdstools.internal.logW
 import kotlinx.datetime.LocalDate
@@ -261,16 +262,31 @@ class IdbSeal : Seal {
             return builder.build()
         }
 
+        /**
+         * Builds an unsigned seal. It is checked with the same rules as reading (see [Seal.formatFindings]).
+         *
+         * @throws IllegalArgumentException if the seal would have `WRONG_FORMAT` findings, e.g. a missing
+         *   required message or a wrong length of a verified message type; all are listed in the message
+         */
         fun build(): IdbSeal {
             val header = IdbHeader(countryIdentifier)
             val payload = IdbPayload(header, buildMessageGroup(), null, null)
-            return IdbSeal(isSigned = false, isZipped = compress, barcodePayload = payload)
+            return IdbSeal(isSigned = false, isZipped = compress, barcodePayload = payload).also {
+                requireNoWrongFormat(documentType?.name ?: "IDB", it.formatFindings)
+            }
         }
 
+        /**
+         * Builds a signed seal. It is checked like [build] before it is signed.
+         *
+         * @throws IllegalArgumentException if the seal would have `WRONG_FORMAT` findings
+         */
         fun build(signer: Signer): IdbSeal {
             val algo = IdbSignatureAlgorithm.fromFieldSize(signer.fieldSize)
             val header = IdbHeader(countryIdentifier, algo, certificateReference, signingDate)
             val msgGroup = buildMessageGroup()
+            val unsigned = IdbSeal(isSigned = false, isZipped = compress, barcodePayload = IdbPayload(header, msgGroup, null, null))
+            requireNoWrongFormat(documentType?.name ?: "IDB", unsigned.formatFindings)
             val sigBytes = signer.sign(header.encoded + msgGroup.encoded)
             val cert = signerCertBytes?.let { IdbSignerCertificate(it) }
             val payload = IdbPayload(header, msgGroup, cert, IdbSignature(sigBytes))

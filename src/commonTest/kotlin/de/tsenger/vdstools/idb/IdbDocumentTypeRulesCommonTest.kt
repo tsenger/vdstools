@@ -2,7 +2,6 @@ package de.tsenger.vdstools.idb
 
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.generic.FormatFinding
-import de.tsenger.vdstools.generic.SealParser
 import kotlin.test.*
 
 /**
@@ -22,10 +21,7 @@ class IdbDocumentTypeRulesCommonTest {
         DataEncoder.resetToDefaults()
     }
 
-    private fun seal(block: IdbSeal.Builder.() -> Unit): IdbSeal {
-        val built = IdbSeal.Builder().countryIdentifier("D<<").apply(block).build()
-        return SealParser().parse(built.rawString) as IdbSeal
-    }
+    private fun seal(block: IdbMessageGroup.Builder.() -> Unit) = uncheckedIdbSeal("D<<", block)
 
     @Test
     fun bundledGermanTypes_areVerifiedAndClosed() {

@@ -104,6 +104,12 @@ All notable changes to this project will be documented in this file.
   required profile entries were enforced, and no lengths). The message starts
   with "Invalid seal content (<type>):" instead of "TR-03171:" and lists all
   violations.
+- **Behavior change:** `IdbSeal.Builder.build()` and `build(signer)` apply the
+  same rules as reading, before signing: they throw `IllegalArgumentException`
+  if the seal would have `WRONG_FORMAT` findings (missing required message,
+  message not allowed by the national document type, wrong length of a
+  verified message type, e.g. a face image outside 900–1000 bytes). The
+  message starts with "Invalid seal content (<document type or IDB>):".
 - **Behavior change:** `VdsSeal.Builder(name)` throws if several registered
   TR-03171 profiles have that name (e.g. two versions of a changed profile with
   new UUIDs). Before, the last registered one was used silently. Use

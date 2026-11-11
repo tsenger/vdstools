@@ -53,7 +53,7 @@ class IdbCountryLookupCommonTest {
     @Test
     fun specimenSeal_isCheckedAgainstTheGermanDocumentType() {
         // Certifying Permanent Residence (0x10): 0x82, 0x85, 0x86 required
-        val seal = seal("UTO") {
+        val seal = uncheckedIdbSeal("UTO") {
             addMessage("DOCUMENT_REFERENCE", "ABC123456")
             addMessage("NATIONAL_DOCUMENT_IDENTIFIER", 0x10)
         }
@@ -75,7 +75,7 @@ class IdbCountryLookupCommonTest {
     @Test
     fun ownCountryIsPreferred() {
         addFrenchPhoto()
-        val photo = byteArrayOf(1, 2, 3)
+        val photo = ByteArray(950)  // BSI TR-03137: face image 900–1000 bytes
 
         assertEquals("FR_PHOTO", seal("F<<") { addMessage("FR_PHOTO", photo) }.messageList.single().name)
         assertEquals("FACE_IMAGE", seal("D<<") { addMessage("FACE_IMAGE", photo) }.messageList.single().name)
@@ -104,7 +104,7 @@ class IdbCountryLookupCommonTest {
         assertEquals("FR_CODE", french.messageList.single().name)
         assertEquals(emptyList(), french.formatFindings)
 
-        val photo = byteArrayOf(1, 2, 3)
+        val photo = ByteArray(950)
         val german = seal("D<<") { addMessage(0x80, photo) }
         assertEquals("FACE_IMAGE", german.messageList.single().name)
         assertContentEquals(photo, german.messageList.single().value.rawBytes)

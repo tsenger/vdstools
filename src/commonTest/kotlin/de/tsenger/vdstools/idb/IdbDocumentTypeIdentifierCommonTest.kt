@@ -59,7 +59,7 @@ class IdbDocumentTypeIdentifierCommonTest {
     fun documentTypeIsCheckedForTheCountryOfTheIdentifier() {
         // tag 1 exists for D (SUBSTITUTE_IDENTITY_DOCUMENT) and F (FR_TITRE)
         addFrenchDocumentTypes()
-        val seal = seal("F<<") { addMessage("FR_DOCUMENT_TYPE", 1) }
+        val seal = uncheckedIdbSeal("F<<") { addMessage("FR_DOCUMENT_TYPE", 1) }
         assertEquals("FR_TITRE", seal.documentType)
         assertEquals(listOf(FormatFinding.MissingRequired(listOf(0x91), "FR_NUMBER")), seal.formatFindings)
     }
