@@ -14,6 +14,10 @@ All notable changes to this project will be documented in this file.
   carries the national document type (bundled: BSI TR-03137 `0x86`), instead
   of tag `0x86` in code. The document type is looked up for that message
   type's country, so other countries can bring their own tag and types.
+- `IdbMessageTypeDto.specification`: IDB message types verified against a
+  specification report a value outside `minBytes`/`maxBytes` as
+  `FormatFinding.InvalidLength` when read. Set for the national types
+  `0x80`–`0x86` (BSI TR-03137-1 V3.0 §11.2.2, e.g. face image 900–1000 bytes).
 - `IdbDocumentTypeDto.specification` and `additionalMessagesAllowed`, like
   for VDS document types. Set for the 18 German types (verified against BSI
   TR-03137-1 V3.0 §12.2.2–§17.2.2, no other message types allowed).
@@ -72,10 +76,9 @@ All notable changes to this project will be documented in this file.
   with the definitions of the issuing country (`addMessage(tag, …)` for a tag
   that several countries define). Unknown names or values that do not fit the
   coding are thus reported by `build()` instead of `addMessage()`.
-- **Breaking:** `IdbMessageTypeDto.minBytes` and `maxBytes` are removed, and
-  the bundled IDB message types no longer carry `minBytes`, `maxBytes` or
-  sub-message `required`. Nothing read them, and they were not verified against
-  ICAO TR-IDB. Such keys in custom JSON are ignored.
+- The bundled ICAO IDB message types no longer carry `minBytes`, `maxBytes`
+  or sub-message `required`. Nothing read them, and they were not verified
+  against ICAO TR-IDB.
 - **Breaking:** the bundled definition files are split by specification:
   `icao-9303/`, `icao-idb/`, `bsi-tr-03137/` and `bsi-tr-03171/`, each with a
   `spec.json` that sets the `country` of its entries

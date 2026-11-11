@@ -236,6 +236,9 @@ Required messages and lengths are only checked where the definitions are verifie
   `PROFILE_URI` and `CERTIFICATE_URI` required, fixed date lengths), required profile entries, `VALID_FROM`/`VALID_TO`
   presence as the profile demands, explicit `<length>` of UTF8String (characters) and OCTET STRING (bytes) profile
   entries. The v0.8 base type is not verified (no specification at hand).
+- IDB message types with a `specification`: the national types `0x80`–`0x86` (BSI TR-03137-1 V3.0 §11.2.2, e.g. face
+  image 900–1000 bytes). Lengths are encoded bytes (C40: 3 characters in 2 bytes, an MRZ-TD2 of 72 characters is 48
+  bytes). The ICAO message types are not verified yet.
 - IDB national document types with a `specification` (the German types, BSI TR-03137-1 V3.0 §12.2.2–§17.2.2): their
   required message types, and with `"additionalMessagesAllowed": false` no other message types.
 

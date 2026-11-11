@@ -2,37 +2,58 @@
   {
     "name": "FACE_IMAGE",
     "tag": 128,
-    "coding": "BYTES"
+    "coding": "BYTES",
+    "specification": "BSI TR-03137-1 V3.0 §11.2.2",
+    "minBytes": 900,
+    "maxBytes": 1000
   },
   {
     "name": "MRZ_TD2",
     "tag": 129,
-    "coding": "MRZ"
+    "coding": "MRZ",
+    "specification": "BSI TR-03137-1 V3.0 §11.2.2",
+    "minBytes": 48,
+    "maxBytes": 48
   },
   {
     "name": "DOCUMENT_REFERENCE",
     "tag": 130,
-    "coding": "C40"
+    "coding": "C40",
+    "specification": "BSI TR-03137-1 V3.0 §11.2.2",
+    "minBytes": 6,
+    "maxBytes": 6
   },
   {
     "name": "AZR",
     "tag": 131,
-    "coding": "C40"
+    "coding": "C40",
+    "specification": "BSI TR-03137-1 V3.0 §11.2.2",
+    "minBytes": 8,
+    "maxBytes": 8
   },
   {
     "name": "EXPIRY_DATE",
     "tag": 132,
-    "coding": "MASKED_DATE"
+    "coding": "MASKED_DATE",
+    "specification": "BSI TR-03137-1 V3.0 §11.2.2",
+    "minBytes": 4,
+    "maxBytes": 4
   },
   {
     "name": "DOCUMENT_NUMBER",
     "tag": 133,
-    "coding": "C40"
+    "coding": "C40",
+    "specification": "BSI TR-03137-1 V3.0 §11.2.2",
+    "minBytes": 6,
+    "maxBytes": 6
   },
   {
     "name": "NATIONAL_DOCUMENT_IDENTIFIER",
     "tag": 134,
     "coding": "BYTE",
+    "specification": "BSI TR-03137-1 V3.0 §11.2.2",
+    "minBytes": 1,
+    "maxBytes": 1,
     "identifiesDocumentType": true
   }
 ]

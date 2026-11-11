@@ -61,7 +61,20 @@ internal class IdbMessageGroup(private val derTlvList: List<DerTlv>, issuingCoun
             }
         }
         walk(messageList, emptyList())
+        findings += lengthFindings()
         return findings
+    }
+
+    /** Lengths of top-level messages whose message type is verified against a specification. */
+    private fun lengthFindings(): List<FormatFinding> = messageList.indices.mapNotNull { i ->
+        val definition = topLevelDefinitions[i]?.takeIf { it.specification != null } ?: return@mapNotNull null
+        val message = messageList[i]
+        if (message.isRaw) return@mapNotNull null
+        val length = message.value.rawBytes.size
+        val maxBytes = definition.maxBytes.takeIf { it > 0 }
+        if (length < definition.minBytes || (maxBytes != null && length > maxBytes)) {
+            FormatFinding.InvalidLength(listOf(message.tag), message.name, length, definition.minBytes, maxBytes)
+        } else null
     }
 
     val encoded: ByteArray
