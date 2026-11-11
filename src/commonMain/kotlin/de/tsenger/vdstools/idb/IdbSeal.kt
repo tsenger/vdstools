@@ -138,16 +138,16 @@ class IdbSeal : Seal {
 
     /**
      * Checks the messages against the national document type (see [documentTypeReference], e.g.
-     * BSI TR-03137 chapters 12–17): all its message types are required, others are not allowed.
+     * BSI TR-03137 chapters 12–17), only if it is verified against a `specification`: required message
+     * types are missing, others are not allowed if `additionalMessagesAllowed` is false.
      */
     private fun nationalDocumentTypeFindings(): List<FormatFinding> {
         val messages = messageList
         val (docTypeId, country) = documentTypeReference() ?: return emptyList()
-        if (DataEncoder.idbDocumentTypes.getDocumentType(docTypeId, country) == "UNKNOWN") {
-            return listOf(FormatFinding.UnknownDocumentType(docTypeId))
-        }
-        val expected = DataEncoder.idbDocumentTypes.getExpectedMessages(docTypeId, country)
-        if (expected.isEmpty()) return emptyList()
+        val documentType = DataEncoder.idbDocumentTypes.findDocumentType(docTypeId, country)
+            ?: return listOf(FormatFinding.UnknownDocumentType(docTypeId))
+        if (documentType.specification == null) return emptyList()
+        val expected = documentType.messages
         val present = messages.filter { it.isDefined }
         val findings = mutableListOf<FormatFinding>()
         for (ref in expected.filter { it.required }) {
@@ -156,6 +156,7 @@ class IdbSeal : Seal {
                 findings += FormatFinding.MissingRequired(listOfNotNull(tag), ref.name)
             }
         }
+        if (documentType.additionalMessagesAllowed) return findings
         for (message in present) {
             if (expected.none { it.name.equals(message.name, ignoreCase = true) }) {
                 findings += FormatFinding.NotAllowed(listOf(message.tag), message.name)

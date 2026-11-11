@@ -14,6 +14,9 @@ All notable changes to this project will be documented in this file.
   carries the national document type (bundled: BSI TR-03137 `0x86`), instead
   of tag `0x86` in code. The document type is looked up for that message
   type's country, so other countries can bring their own tag and types.
+- `IdbDocumentTypeDto.specification` and `additionalMessagesAllowed`, like
+  for VDS document types. Set for the 18 German types (verified against BSI
+  TR-03137-1 V3.0 §12.2.2–§17.2.2, no other message types allowed).
 - `FormatFinding.ForeignNationalDefinition` (`UNDETERMINED`): a document type
   or IDB message was read with the national definition of another country.
 - `VdsSeal.Builder.forProfile(definition)`: builds a TR-03171 seal for a profile
@@ -60,6 +63,11 @@ All notable changes to this project will be documented in this file.
   with the same key **and** country. A custom entry without `country` no longer
   replaces a bundled German type of another name; it applies to all other
   countries.
+- **Behavior change:** a national IDB document type is checked only if it has a
+  `specification` (missing required messages), and other message types are
+  reported as `NotAllowed` only if `additionalMessagesAllowed` is false. Before,
+  every document type was checked as closed. Custom IDB document types without
+  these fields are no longer checked.
 - **Behavior change:** `IdbSeal.Builder` encodes the messages in `build()`
   with the definitions of the issuing country (`addMessage(tag, …)` for a tag
   that several countries define). Unknown names or values that do not fit the

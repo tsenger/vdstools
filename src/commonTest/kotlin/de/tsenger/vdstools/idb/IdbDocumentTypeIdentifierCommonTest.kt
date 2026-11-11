@@ -39,7 +39,7 @@ class IdbDocumentTypeIdentifierCommonTest {
                 {"name": "FR_NUMBER", "tag": 145, "coding": "C40", "country": "F"}]"""
         )
         DataEncoder.addCustomIdbDocumentTypes(
-            """[{"tag": 1, "name": "FR_TITRE", "country": "F",
+            """[{"tag": 1, "name": "FR_TITRE", "country": "F", "specification": "Test spec",
                  "messages": [{"name": "FR_DOCUMENT_TYPE", "required": true}, {"name": "FR_NUMBER", "required": true}]}]"""
         )
     }

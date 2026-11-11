@@ -216,7 +216,7 @@ Each `FormatFinding` has a `category` following Appendix D and a `tagPath` (empt
 | `ForeignNationalDefinition` | `UNDETERMINED` | read with the national definition of another country (see [National definitions](#national-definitions)) |
 | `ProfileNotFound` | `UNDETERMINED` | TR-03171 profile not available; content tags are then not checked |
 | `MissingRequired` | `WRONG_FORMAT` | a required message is missing (see below which document types are checked) |
-| `NotAllowed` | `WRONG_FORMAT` | a message the specification forbids: TR-03171 `VALID_FROM`/`VALID_TO` against the profile, an undefined tag in a VDS type that forbids additional features, a known message type that does not belong to the national IDB document type |
+| `NotAllowed` | `WRONG_FORMAT` | a message the specification forbids: TR-03171 `VALID_FROM`/`VALID_TO` against the profile, an undefined tag in a VDS type that forbids additional features, a known message type that a national IDB document type with `additionalMessagesAllowed` false does not list |
 | `InvalidLength` | `WRONG_FORMAT` | a value shorter or longer than its definition allows |
 | `DecodeFailed` | `WRONG_FORMAT` | a defined message whose bytes cannot be decoded with its coding (its message `isRaw`) |
 | `MalformedSubMessages` | `WRONG_FORMAT` | IDB container content is no valid DER-TLV sequence |
@@ -236,8 +236,8 @@ Required messages and lengths are only checked where the definitions are verifie
   `PROFILE_URI` and `CERTIFICATE_URI` required, fixed date lengths), required profile entries, `VALID_FROM`/`VALID_TO`
   presence as the profile demands, explicit `<length>` of UTF8String (characters) and OCTET STRING (bytes) profile
   entries. The v0.8 base type is not verified (no specification at hand).
-- IDB seals with a national document type (German types per BSI TR-03137 chapters 12–17): message types of that
-  document type.
+- IDB national document types with a `specification` (the German types, BSI TR-03137-1 V3.0 §12.2.2–§17.2.2): their
+  required message types, and with `"additionalMessagesAllowed": false` no other message types.
 
 ### National definitions
 
