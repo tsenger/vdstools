@@ -57,6 +57,13 @@ All notable changes to this project will be documented in this file.
   with the same key **and** country. A custom entry without `country` no longer
   replaces a bundled German type of another name; it applies to all other
   countries.
+- **Breaking:** the bundled definition files are split by issuer:
+  `icao/VdsDocumentTypes.json`, `icao/IdbMessageTypes.json`,
+  `de/VdsDocumentTypes.json`, `de/IdbMessageTypes.json` and
+  `de/IdbDocumentTypes.json` (was `IdbGermanDocumentTypes.json`). The constants
+  `DEFAULT_VDS_DOCUMENT_TYPES`, `DEFAULT_IDB_MESSAGE_TYPES` and
+  `DEFAULT_IDB_DOCUMENT_TYPES` are removed; `DataEncoder.resetToDefaults()`
+  restores the bundled definitions.
 - TR-03171 v0.9: the mandatory `PROFILE_URI` and `CERTIFICATE_URI` now come
   from the base type definition in `VdsDocumentTypes.json` (verified against
   BSI TR-03171 V0.9 §3.2, `specification` set) instead of code. The URIs and

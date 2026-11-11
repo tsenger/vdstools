@@ -153,10 +153,17 @@ tasks.register("generateResourceConstants") {
     doLast {
         outputDir.mkdirs()
 
-        // JSON-Dateien einlesen
-        val vdsDocumentTypes = file("$inputDir/VdsDocumentTypes.json").readText()
-        val idbMessageTypes = file("$inputDir/IdbMessageTypes.json").readText()
-        val idbDocumentTypes = file("$inputDir/IdbGermanDocumentTypes.json").readText()
+        // Definitionen je Herausgeber: <issuer>/<Kind>.json, ICAO zuerst, dann alphabetisch
+        val issuers = inputDir.listFiles { f -> f.isDirectory }!!.map { it.name }
+            .sortedWith(compareBy({ it != "icao" }, { it }))
+        val tripleQuote = "\"\"\""
+        fun constant(kind: String, name: String): String {
+            val files = issuers.map { "$it/$kind.json" }.filter { file("$inputDir/$it").exists() }
+            val entries = files.joinToString(",\n") { path ->
+                "        // $path\n        $tripleQuote${file("$inputDir/$path").readText()}$tripleQuote"
+            }
+            return "    val $name: List<String> = listOf(\n$entries\n    )"
+        }
 
         // Kotlin Code generieren
         val kotlinCode = """
@@ -166,16 +173,16 @@ package de.tsenger.vdstools.generated
  * Generated resource constants from JSON files.
  * Do not edit manually - regenerate with: ./gradlew generateResourceConstants
  *
- * Source: src/commonMain/resources/
+ * Source: src/commonMain/resources/<issuer>/, ICAO first. Each list is loaded in order.
  */
 internal object ResourceConstants {
-    const val VDS_DOCUMENT_TYPES_JSON: String = ""${'"'}$vdsDocumentTypes""${'"'}
+${constant("VdsDocumentTypes", "VDS_DOCUMENT_TYPES_JSON")}
 
-    const val IDB_MESSAGE_TYPES_JSON: String = ""${'"'}$idbMessageTypes""${'"'}
+${constant("IdbMessageTypes", "IDB_MESSAGE_TYPES_JSON")}
 
-    const val IDB_DOCUMENT_TYPES_JSON: String = ""${'"'}$idbDocumentTypes""${'"'}
+${constant("IdbDocumentTypes", "IDB_DOCUMENT_TYPES_JSON")}
 }
-""".trimIndent()
+""".trimStart()
 
         // Ausgabe-Datei schreiben
         file("$outputDir/de/tsenger/vdstools/generated/ResourceConstants.kt").apply {
@@ -183,7 +190,7 @@ internal object ResourceConstants {
             writeText(kotlinCode)
         }
 
-        println("Generated ResourceConstants.kt with ${vdsDocumentTypes.length + idbMessageTypes.length + idbDocumentTypes.length} bytes")
+        println("Generated ResourceConstants.kt from issuers $issuers")
     }
 }
 

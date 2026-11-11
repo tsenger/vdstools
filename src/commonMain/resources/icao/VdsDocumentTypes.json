@@ -1,0 +1,83 @@
+[
+  {
+    "documentType": "EMERGENCY_TRAVEL_DOCUMENT",
+    "documentRef": "5e03",
+    "specification": "ICAO Doc 9303-8 §6.1",
+    "version": 4,
+    "messages": [
+      {
+        "name": "MRZ",
+        "tag": 2,
+        "coding": "MRZ",
+        "required": true,
+        "minBytes": 48,
+        "maxBytes": 48
+      }
+    ]
+  },
+  {
+    "documentType": "VISA",
+    "documentRef": "5d01",
+    "specification": "ICAO Doc 9303-7 §9.1",
+    "requiredOneOf": [[1, 2]],
+    "version": 4,
+    "messages": [
+      {
+        "name": "MRZ_MRVA",
+        "tag": 1,
+        "coding": "MRZ_MRVA",
+        "required": false,
+        "minBytes": 48,
+        "maxBytes": 48
+      },
+      {
+        "name": "MRZ_MRVB",
+        "tag": 2,
+        "coding": "MRZ_MRVB",
+        "required": false,
+        "minBytes": 44,
+        "maxBytes": 44
+      },
+      {
+        "name": "NUMBER_OF_ENTRIES",
+        "tag": 3,
+        "coding": "BYTE",
+        "required": false,
+        "minBytes": 1,
+        "maxBytes": 1
+      },
+      {
+        "name": "DURATION_OF_STAY",
+        "tag": 4,
+        "coding": "DURATION_OF_STAY",
+        "required": true,
+        "minBytes": 3,
+        "maxBytes": 3
+      },
+      {
+        "name": "PASSPORT_NUMBER",
+        "tag": 5,
+        "coding": "C40",
+        "required": true,
+        "minBytes": 6,
+        "maxBytes": 6
+      },
+      {
+        "name": "VISA_TYPE",
+        "tag": 6,
+        "coding": "BYTES",
+        "required": false,
+        "minBytes": 1,
+        "maxBytes": 4
+      },
+      {
+        "name": "ADDITIONAL_FEATURES",
+        "tag": 7,
+        "coding": "BYTES",
+        "required": false,
+        "minBytes": 0,
+        "maxBytes": 254
+      }
+    ]
+  }
+]
