@@ -9,10 +9,22 @@ import de.tsenger.vdstools.internal.logV
 import de.tsenger.vdstools.Signer
 import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generic.*
+import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
+import de.tsenger.vdstools.vds.tr03171.ProfileConverter
+import de.tsenger.vdstools.vds.tr03171.ProfileXmlParser
 import de.tsenger.vdstools.vds.tr03171.TrVersion
 import kotlinx.datetime.LocalDate
 import okio.Buffer
 
+
+/**
+ * The registered TR-03171 profile named [name], or null if [name] is a document type (which takes
+ * precedence) or no profile. The one rule for building by name, shared by all builders.
+ * @throws IllegalArgumentException if several registered profiles have this name
+ */
+internal fun profileForName(name: String): VdsProfileDefinitionDto? =
+    if (DataEncoder.vdsDocumentTypes.getDocumentRef(name) != null) null
+    else DataEncoder.vdsProfileDefinitions.resolveByNameUnique(name)
 
 class VdsSeal : Seal {
     private val tag = this::class.simpleName ?: ""
@@ -159,8 +171,19 @@ class VdsSeal : Seal {
         private val headerBuilder: VdsHeader.Builder,
         private val messageBuilder: VdsMessageGroup.Builder
     ) {
-        /** Builds a seal for a known base document type or predefined profile name. */
-        constructor(documentType: String) : this(VdsHeader.Builder(documentType), VdsMessageGroup.Builder(documentType))
+        /**
+         * Builds a seal for a document type (e.g. "VISA") or a registered TR-03171 profile name. The
+         * name is resolved once; a document type takes precedence over a profile of the same name.
+         *
+         * @throws IllegalArgumentException if several registered profiles have this name (a changed
+         *   profile gets a new UUID but may keep its name); use [forProfileUuid] then
+         */
+        constructor(documentType: String) : this(profileForName(documentType), documentType)
+
+        private constructor(profile: VdsProfileDefinitionDto?, documentType: String) : this(
+            profile?.let { VdsHeader.Builder(it) } ?: VdsHeader.Builder(documentType),
+            profile?.let { VdsMessageGroup.Builder(it) } ?: VdsMessageGroup.Builder(documentType)
+        )
 
         fun issuingCountry(v: String) = apply { headerBuilder.setIssuingCountry(v) }
         fun signerIdentifier(v: String) = apply { headerBuilder.setSignerIdentifier(v) }
@@ -196,8 +219,16 @@ class VdsSeal : Seal {
                     ?: throw IllegalArgumentException(
                         "No TR-03171 profile registered for UUID: $profileUuid" + (trVersion?.let { " ($it)" } ?: "")
                     )
-                return Builder(VdsHeader.Builder(profileDefinition), VdsMessageGroup.Builder(profileDefinition))
+                return forProfile(profileDefinition)
             }
+
+            /**
+             * Builds a seal for a TR-03171 document profile the caller supplies, e.g. from its own profile
+             * store (create it with [ProfileXmlParser.parse] and [ProfileConverter.toVdsProfileDefinition]).
+             * The profile is not registered; parsing such a seal resolves it via [DataEncoder.vdsProfileResolver].
+             */
+            fun forProfile(profileDefinition: VdsProfileDefinitionDto): Builder =
+                Builder(VdsHeader.Builder(profileDefinition), VdsMessageGroup.Builder(profileDefinition))
         }
     }
 

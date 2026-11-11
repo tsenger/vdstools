@@ -119,7 +119,7 @@ object DataEncoder {
     /**
      * Resolves the profile definition while parsing UUID-based seals. Replace it to supply
      * profiles by (UUID, profile URI, base type); [resetToDefaults] restores [defaultVdsProfileResolver].
-     * Not used when building seals, which look profiles up in [vdsProfileDefinitions] directly.
+     * Building for a profile does not call it (see [VdsProfileResolver]).
      */
     var vdsProfileResolver: VdsProfileResolver = defaultVdsProfileResolver
 

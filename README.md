@@ -343,7 +343,11 @@ to other languages should key their mapping on profile UUID and tag rather than 
 A profile is identified by its UUID **and** its TR-03171 version: an issuer may keep the UUID (and the name) when moving
 a profile from v0.8 to v0.9, and both can be loaded side by side. Parsing picks the profile matching the seal's
 document category (0xC8 → v0.8, 0xC9 → v0.9) automatically. Building by profile name or UUID works as long as it is
-registered for only one version; otherwise pass the version:
+registered for only one version; otherwise pass the version.
+
+Building by name requires the name to be unique among all registered profiles: a changed profile gets a new UUID but
+may keep its name, so the builder throws instead of picking one silently; use `forProfileUuid` then. A document type
+of the same name (e.g. `VISA`) takes precedence over a profile.
 
 ```kotlin
 // Unique name → same as for any other document type
@@ -365,8 +369,16 @@ val sealV9 = VdsSeal.Builder.forProfileUuid("9a4223406d374ef99e2cf95e31a23846", 
     .build(signer)
 ```
 
-Applications that manage profiles themselves (e.g. several sources publishing the same UUID) can replace the lookup
-used while parsing. The resolver receives the UUID (tag 0x00), the `PROFILE_URI` (tag 0x03, always `null` for v0.8)
+Applications that manage profiles themselves can build with a profile they supply, without registering it:
+
+```kotlin
+val profile = ProfileConverter.toVdsProfileDefinition(ProfileXmlParser.parse(xmlString))
+val seal = VdsSeal.Builder.forProfile(profile)
+    // ... header and messages as above
+    .build(signer)
+```
+
+To read such seals (or when several sources publish the same UUID), they can replace the lookup used while parsing. The resolver receives the UUID (tag 0x00), the `PROFILE_URI` (tag 0x03, always `null` for v0.8)
 and the base document type from the header:
 
 ```kotlin

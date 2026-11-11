@@ -116,16 +116,18 @@ class VdsProfileDefinitionRegistry {
     }
 
     /**
-     * Resolves a profile by name regardless of base document type.
-     * @throws IllegalArgumentException if the name is registered for more than one base document type
+     * Resolves a profile by name regardless of base document type. Unlike [resolveByName], every
+     * registered profile counts: a changed profile gets a new UUID but may keep its name.
+     * @throws IllegalArgumentException if several profiles (of any base document type) have this name
      */
     internal fun resolveByNameUnique(definitionName: String): VdsProfileDefinitionDto? =
-        unique(definitionsByName.filterKeys { it.first == definitionName }.values, "'$definitionName'")
+        unique(definitionsByKey.values.filter { it.definitionName == definitionName }, "'$definitionName'")
 
     private fun unique(matches: Collection<VdsProfileDefinitionDto>, what: String): VdsProfileDefinitionDto? {
         require(matches.size <= 1) {
-            "TR-03171 profile $what is registered for several base document types " +
-                "(${matches.joinToString { it.baseDocumentType }}); use VdsSeal.Builder.forProfileUuid(uuid, trVersion)"
+            "TR-03171 profile $what is registered several times " +
+                "(${matches.joinToString { "${it.definitionId} ${it.baseDocumentType}" }}); " +
+                "use VdsSeal.Builder.forProfileUuid(uuid, trVersion)"
         }
         return matches.firstOrNull()
     }

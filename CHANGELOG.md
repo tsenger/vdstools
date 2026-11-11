@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- `VdsSeal.Builder.forProfile(definition)`: builds a TR-03171 seal for a profile
+  the caller supplies (e.g. from its own profile store) without registering it.
 - `Seal.formatFindings`: findings of the format validation (ICAO Doc 9303-13
   Appendix D, step 1), without judgement. `FormatFinding` subtypes
   `UnknownTag`, `ReservedTag`, `UnknownDocumentType`, `ProfileNotFound`,
@@ -37,6 +39,10 @@ All notable changes to this project will be documented in this file.
   be decoded stays defined.
 
 ### Changed
+- **Behavior change:** `VdsSeal.Builder(name)` throws if several registered
+  TR-03171 profiles have that name (e.g. two versions of a changed profile with
+  new UUIDs). Before, the last registered one was used silently. Use
+  `forProfileUuid`. The name is now resolved once for header and messages.
 - **Behavior change:** a seal binds its definitions when it is parsed or
   built: VDS document type, TR-03171 profile, IDB message types and the IDB
   national document type. Before, names and codings were looked up again on

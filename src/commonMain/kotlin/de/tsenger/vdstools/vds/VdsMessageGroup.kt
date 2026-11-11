@@ -156,22 +156,11 @@ internal class VdsMessageGroup(
         internal var profileDefinition: VdsProfileDefinitionDto? = null
             private set
 
-        /** Builds a message group for a known base document type or predefined profile name. */
+        /** Builds a message group for a document type or registered profile name (see [profileForName]). */
         constructor(vdsType: String) : this() {
             this.vdsType = vdsType
-            val docRef = DataEncoder.vdsDocumentTypes.getDocumentRef(vdsType)
-            if (docRef == null) {
-                // Not a base type — try resolving as a predefined extended definition name
-                val extDef = DataEncoder.vdsProfileDefinitions.resolveByNameUnique(vdsType)
-                if (extDef != null) {
-                    profileDefinition = extDef
-                    baseVdsType = extDef.baseDocumentType
-                } else {
-                    baseVdsType = vdsType
-                }
-            } else {
-                baseVdsType = vdsType
-            }
+            this.profileDefinition = profileForName(vdsType)
+            this.baseVdsType = profileDefinition?.baseDocumentType ?: vdsType
         }
 
         /** Builds a message group for an already-resolved (e.g. TR-03171) profile definition. */
