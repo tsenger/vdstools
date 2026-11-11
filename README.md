@@ -229,9 +229,12 @@ Required messages and lengths are only checked where the definitions are verifie
 
 - VDS document types with a `specification` in `VdsDocumentTypes.json`: the ICAO visa (Doc 9303-7 §9.1, MRZ of MRV-A
   or MRV-B), the ICAO emergency travel document (Doc 9303-8 §6.1) and the BSI TR-03137-1 V3.0 types (arrival
-  attestation, social insurance card, residence permit, supplementary sheet, address stickers). Lengths are bytes.
-- TR-03171 seals: required profile entries, `VALID_FROM`/`VALID_TO` presence, explicit `<length>` of UTF8String
-  (characters) and OCTET STRING (bytes) profile entries.
+  attestation, social insurance card, residence permit, supplementary sheet, address stickers). Lengths are bytes;
+  `maxBytes` 0 means the specification gives no maximum.
+- TR-03171 seals: the v0.9 base type `ADMINISTRATIVE_DOCUMENTS_V9` (BSI TR-03171 V0.9 §3.2: profile number,
+  `PROFILE_URI` and `CERTIFICATE_URI` required, fixed date lengths), required profile entries, `VALID_FROM`/`VALID_TO`
+  presence as the profile demands, explicit `<length>` of UTF8String (characters) and OCTET STRING (bytes) profile
+  entries. The v0.8 base type is not verified (no specification at hand).
 - German IDB seals: message types of the national document type (tag `0x86`, BSI TR-03137 chapters 12–17). Seals of
   other countries are not checked, since `0x86` is a German national message type.
 

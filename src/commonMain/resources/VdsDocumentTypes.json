@@ -327,6 +327,7 @@
   {
     "documentType": "ADMINISTRATIVE_DOCUMENTS_V9",
     "documentRef": "01c9",
+    "specification": "BSI TR-03171 V0.9 §3.2",
     "version": 4,
     "uuidMessageLookup": true,
     "uuidMessageTag": 0,
@@ -372,24 +373,24 @@
         "tag": 3,
         "coding": "UTF8_STRING",
         "required": true,
-        "minBytes": 1,
-        "maxBytes": 255
+        "minBytes": 0,
+        "maxBytes": 0
       },
       {
         "name": "CERTIFICATE_URI",
         "tag": 4,
         "coding": "UTF8_STRING",
         "required": true,
-        "minBytes": 1,
-        "maxBytes": 255
+        "minBytes": 0,
+        "maxBytes": 0
       },
       {
         "name": "STATUS_URI",
         "tag": 5,
         "coding": "UTF8_STRING",
         "required": false,
-        "minBytes": 1,
-        "maxBytes": 255
+        "minBytes": 0,
+        "maxBytes": 0
       },
       {
         "name": "STATUS_LIST_INDEX",
@@ -397,7 +398,7 @@
         "coding": "INTEGER",
         "required": false,
         "minBytes": 1,
-        "maxBytes": 4
+        "maxBytes": 0
       }
     ]
   }

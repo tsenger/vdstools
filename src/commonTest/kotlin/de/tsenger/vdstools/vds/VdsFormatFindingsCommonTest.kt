@@ -251,6 +251,33 @@ class VdsFormatFindingsCommonTest {
     }
 
     @Test
+    fun v9UriWithoutLengthInTheSpecification_isNotLengthChecked() {
+        // TR-03171 V0.9 Tables 9 and 10 give no maximum length for the URIs
+        val longUri = utf8(3, "example.com/" + "p".repeat(300))
+        assertEquals(emptyList(), seal("c9", tlv(0, registeredUuid), longUri, certificateUri, surname).formatFindings)
+    }
+
+    @Test
+    fun v9RequiredMetadata_comeFromTheDocumentTypeDefinition() {
+        // the base type definition decides which metadata is required, not code
+        DataEncoder.addCustomVdsDocumentTypes(
+            """
+            [{
+                "documentType": "ADMINISTRATIVE_DOCUMENTS_V9", "documentRef": "01c9", "version": 4,
+                "specification": "test", "uuidMessageLookup": true, "uuidMessageTag": 0,
+                "metadataTagList": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                "messages": [
+                    {"name": "DOC_PROFILE_NUMBER", "tag": 0, "coding": "BYTES", "required": true, "minBytes": 16, "maxBytes": 16},
+                    {"name": "PROFILE_URI", "tag": 3, "coding": "UTF8_STRING", "required": true, "minBytes": 0, "maxBytes": 0},
+                    {"name": "CERTIFICATE_URI", "tag": 4, "coding": "UTF8_STRING", "required": false, "minBytes": 0, "maxBytes": 0}
+                ]
+            }]
+            """.trimIndent()
+        )
+        assertEquals(emptyList(), seal("c9", tlv(0, registeredUuid), profileUri, surname).formatFindings)
+    }
+
+    @Test
     fun v9WithoutProfileNumber_isMissingRequiredAndProfileNotFound() {
         val seal = seal("c9", profileUri, certificateUri, surname)
 

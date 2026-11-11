@@ -84,22 +84,25 @@ internal class VdsMessageGroup(
     fun formatFindings(): List<FormatFinding> {
         val findings = mutableListOf<FormatFinding>()
         val docType = documentTypeDto
+        val specifiedType = docType?.takeIf { it.specification != null }
         if (docType != null && requiresProfile) {
             if (profileDefinition == null) {
                 findings += FormatFinding.ProfileNotFound(documentProfileUuid?.toHexString()?.uppercase(), profileUri())
             }
+            // a verified base type reports a missing profile number via its definition
             val uuidTag = docType.uuidMessageTag
-            if (documentProfileUuid == null) {
+            if (documentProfileUuid == null && specifiedType == null) {
                 val name = docType.messages.firstOrNull { it.tag == uuidTag }?.name
                     ?: ("0x" + uuidTag.toString(16).uppercase().padStart(2, '0'))
                 findings += FormatFinding.MissingRequired(listOf(uuidTag), name)
             }
+        }
+        if (specifiedType != null) findings += specificationFindings(specifiedType)
+        if (docType != null && requiresProfile) {
             val tags = derTlvList.map { it.tag.toInt() and 0xFF }.toSet()
             findings += Tr03171Conformance.check(vdsType, tags, profileDefinition)
             profileDefinition?.let { findings += Tr03171Conformance.checkLengths(messageList, it) }
         }
-        val specifiedType = docType?.takeIf { it.specification != null }
-        if (specifiedType != null) findings += specificationFindings(specifiedType)
         for (message in metadataMessageList.filter { it.isRaw }) {
             findings += if (message.isDefined) FormatFinding.DecodeFailed(listOf(message.tag), message.name)
             else FormatFinding.ReservedTag(listOf(message.tag))
@@ -118,7 +121,8 @@ internal class VdsMessageGroup(
 
     /**
      * Required messages and lengths of a document type whose definitions are verified against its
-     * specification ([VdsDocumentTypeDto.specification]). Lengths are bytes; raw messages are skipped.
+     * specification ([VdsDocumentTypeDto.specification]). Lengths are bytes; a `maxBytes` of 0 means
+     * the specification gives no maximum. Raw messages are skipped.
      */
     private fun specificationFindings(docType: VdsDocumentTypeDto): List<FormatFinding> {
         val tags = derTlvList.map { it.tag.toInt() and 0xFF }.toSet()
@@ -132,10 +136,9 @@ internal class VdsMessageGroup(
         for (message in messageList.filter { !it.isRaw }) {
             val definition = docType.messages.firstOrNull { it.tag == message.tag } ?: continue
             val length = message.value.rawBytes.size
-            if (length < definition.minBytes || length > definition.maxBytes) {
-                findings += FormatFinding.InvalidLength(
-                    listOf(message.tag), message.name, length, definition.minBytes, definition.maxBytes
-                )
+            val maxBytes = definition.maxBytes.takeIf { it > 0 }
+            if (length < definition.minBytes || (maxBytes != null && length > maxBytes)) {
+                findings += FormatFinding.InvalidLength(listOf(message.tag), message.name, length, definition.minBytes, maxBytes)
             }
         }
         return findings
@@ -184,16 +187,15 @@ internal class VdsMessageGroup(
         }
 
         /**
-         * Enforces the encoder-side requirements of BSI TR-03171 v0.9 (document category 0xC9):
-         * PROFILE_URI (0x03) and CERTIFICATE_URI (0x04) are mandatory, VALID_FROM (0x01) / VALID_TO (0x02)
-         * must be present or absent as the profile's validFromPresent / validToPresent demand, and all
-         * non-optional profile entries must be present. No-op for all other document types.
+         * Enforces BSI TR-03171 v0.9 (document category 0xC9) when building: the group to be built must
+         * have no [FormatFinding.Category.WRONG_FORMAT] findings, i.e. the same rules as when reading
+         * (mandatory metadata of the base type, VALID_FROM / VALID_TO as the profile demands, required
+         * profile entries, lengths). No-op for all other document types.
          */
         @Throws(IllegalArgumentException::class)
         fun requireTr03171Conformance() {
             if (baseVdsType != DataEncoder.ADMINISTRATIVE_DOCUMENTS_V9) return
-            val tags = derTlvList.map { it.tag.toInt() and 0xFF }.toSet()
-            val violations = Tr03171Conformance.check(baseVdsType, tags, profileDefinition)
+            val violations = build().formatFindings().filter { it.category == FormatFinding.Category.WRONG_FORMAT }
             require(violations.isEmpty()) {
                 "TR-03171: " + violations.joinToString("; ", transform = Tr03171Conformance::describe)
             }

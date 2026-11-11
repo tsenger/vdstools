@@ -39,6 +39,13 @@ All notable changes to this project will be documented in this file.
   be decoded stays defined.
 
 ### Changed
+- TR-03171 v0.9: the mandatory `PROFILE_URI` and `CERTIFICATE_URI` now come
+  from the base type definition in `VdsDocumentTypes.json` (verified against
+  BSI TR-03171 V0.9 §3.2, `specification` set) instead of code. The URIs and
+  `STATUS_LIST_INDEX` have no maximum length there (`maxBytes` 0), as the TR
+  gives none; the former 255 / 4 bytes were not from the TR. The builder check
+  (`requireTr03171Conformance`) now uses the same findings as reading, so it
+  also rejects wrong lengths and undecodable values.
 - **Behavior change:** `VdsSeal.Builder(name)` throws if several registered
   TR-03171 profiles have that name (e.g. two versions of a changed profile with
   new UUIDs). Before, the last registered one was used silently. Use
