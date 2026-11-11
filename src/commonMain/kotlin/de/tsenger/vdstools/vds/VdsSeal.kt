@@ -230,17 +230,9 @@ class VdsSeal : Seal {
                     messageList.add(derTlv)
                 }
             }
+            // binds document type, profile (via DataEncoder.vdsProfileResolver) and messages
             val vdsMessageGroup = VdsMessageGroup(vdsHeader.vdsType, messageList)
-
-            // Resolve extended message definition if this seal type requires UUID lookup
-            if (DataEncoder.vdsDocumentTypes.requiresProfileLookup(vdsHeader.vdsType)) {
-                val uuidTag = DataEncoder.vdsDocumentTypes.getUuidMessageTag(vdsHeader.vdsType)
-                vdsMessageGroup.resolveProfileDefinition(uuidTag)
-                DataEncoder.vdsDocumentTypes.getMetadataTags(vdsHeader.vdsType).forEach {
-                    vdsMessageGroup.metadataTags.add(it)
-                }
-                logD(TAG, "Resolved extended definition: ${vdsMessageGroup.profileDefinition?.definitionName}")
-            }
+            vdsMessageGroup.profileDefinition?.let { logD(TAG, "Resolved profile definition: ${it.definitionName}") }
 
             return VdsSeal(vdsHeader, vdsMessageGroup, vdsSignature)
         }

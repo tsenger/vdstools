@@ -10,21 +10,13 @@ import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.vds.dto.MessageDto
 import okio.Buffer
 
-internal class IdbMessageGroup {
-    private var derTlvList: List<DerTlv>
+/**
+ * The message group of an IDB seal. Its messages are decoded with the IDB message types when the
+ * group is created (parsed or built); message types loaded or replaced later do not change it.
+ */
+internal class IdbMessageGroup(private val derTlvList: List<DerTlv>) {
 
-    constructor(derTlvList: List<DerTlv>) {
-        this.derTlvList = derTlvList
-    }
-
-    private constructor(builder: Builder) {
-        this.derTlvList = builder.derTlvList
-    }
-
-    val messageList: List<Message>
-        get() = derTlvList.map { derTlv ->
-            parseMessage(derTlv, null)
-        }
+    val messageList: List<Message> = derTlvList.map { derTlv -> parseMessage(derTlv, null) }
 
     fun getMessageByTag(messageTag: Int): Message? {
         return messageList.firstOrNull { it.tag == messageTag }
@@ -138,7 +130,7 @@ internal class IdbMessageGroup {
         }
 
         fun build(): IdbMessageGroup {
-            return IdbMessageGroup(this)
+            return IdbMessageGroup(derTlvList.toList())
         }
     }
 

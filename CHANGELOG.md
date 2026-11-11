@@ -37,6 +37,13 @@ All notable changes to this project will be documented in this file.
   be decoded stays defined.
 
 ### Changed
+- **Behavior change:** a seal binds its definitions when it is parsed or
+  built: VDS document type, TR-03171 profile, IDB message types and the IDB
+  national document type. Before, names and codings were looked up again on
+  every access, while the profile was already fixed at parsing. Definitions
+  loaded or replaced afterwards (`addCustom*`, `replaceCustom*`,
+  `loadVdsProfileDefinitionFromXml`) no longer change an existing seal; parse
+  it again. `messageList` is no longer decoded anew on every access.
 - **Behavior change:** tags that neither the document type nor the resolved
   profile defines are no longer dropped (ICAO Doc 9303-13 §2.3: unknown tags MAY
   be present). They are returned raw, named by their tag (e.g. `0x0A`), with

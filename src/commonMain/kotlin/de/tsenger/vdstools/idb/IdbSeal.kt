@@ -16,18 +16,23 @@ import kotlinx.datetime.LocalDate
 class IdbSeal : Seal {
     private var barcodeFlag: Char = 0x41.toChar()
     private var _barcodeIdentifier: String = BARCODE_IDENTIFIER
-    internal var payLoad: IdbPayload
+    internal val payLoad: IdbPayload
 
     internal constructor(barcodeFlag: Char, barcodePayload: IdbPayload, identifier: String = BARCODE_IDENTIFIER) {
         this.barcodeFlag = barcodeFlag
         this._barcodeIdentifier = identifier
         this.payLoad = barcodePayload
+        // bind the national document type; document types loaded later do not change this seal
+        this.documentType = bindDocumentType()
+        this.nationalFindings = nationalDocumentTypeFindings()
     }
 
     internal constructor(isSigned: Boolean, isZipped: Boolean, barcodePayload: IdbPayload) {
         if (isSigned) barcodeFlag = (barcodeFlag.code + 0x01).toChar()
         if (isZipped) barcodeFlag = (barcodeFlag.code + 0x02).toChar()
         this.payLoad = barcodePayload
+        this.documentType = bindDocumentType()
+        this.nationalFindings = nationalDocumentTypeFindings()
     }
 
     @OptIn(ExperimentalStdlibApi::class)
@@ -93,13 +98,17 @@ class IdbSeal : Seal {
      */
     override val sealType = SealType.IDB
     override val documentType: String
-        get() {
-            val msg = getMessageByTag(0x86)
-            val docTypeId = (msg?.value as? MessageValue.ByteValue)?.value
-            return if (docTypeId != null) {
-                DataEncoder.idbDocumentTypes.getDocumentType(docTypeId)
-            } else messageList.joinToString(", ") { it.name }
-        }
+
+    /** Findings of the national document type, bound with [documentType] when the seal is created. */
+    private val nationalFindings: List<FormatFinding>
+
+    private fun bindDocumentType(): String {
+        val docTypeId = (getMessageByTag(0x86)?.value as? MessageValue.ByteValue)?.value
+        return if (docTypeId != null) {
+            DataEncoder.idbDocumentTypes.getDocumentType(docTypeId)
+        } else messageList.joinToString(", ") { it.name }
+    }
+
 
     override val messageList: List<Message>
         get() = payLoad.idbMessageGroup.messageList.map { idbMessage ->
@@ -107,7 +116,7 @@ class IdbSeal : Seal {
         }
 
     override val formatFindings: List<FormatFinding>
-        get() = nationalDocumentTypeFindings() + payLoad.idbMessageGroup.formatFindings()
+        get() = nationalFindings + payLoad.idbMessageGroup.formatFindings()
 
     /**
      * Checks the messages against the German national document type (tag 0x86, BSI TR-03137

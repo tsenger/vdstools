@@ -385,6 +385,10 @@ There are two strategies for providing custom definitions:
 - **`addCustom*`** – merges your entries into the existing registry. Built-in defaults are preserved; entries with the
   same key (e.g. `documentRef`) are overwritten by your version.
 
+Load definitions (including TR-03171 profiles) before parsing or building. A seal binds its document type, profile
+and message definitions when it is parsed or built; definitions loaded or replaced afterwards do not change it, so
+parse the seal again to apply them.
+
 ```kotlin
 val customJson = """[
   {
