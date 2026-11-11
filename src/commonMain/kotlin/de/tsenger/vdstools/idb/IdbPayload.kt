@@ -42,7 +42,7 @@ internal class IdbPayload(
             for (derTlv in derTlvList) {
                 when (derTlv.tag) {
                     IdbMessageGroup.TAG -> idbMessageGroup =
-                        IdbMessageGroup.fromByteArray(derTlv.encoded, idbHeader.getCountryIdentifier())
+                        IdbMessageGroup.fromByteArray(derTlv.encoded)
                     IdbSignerCertificate.TAG -> idbSignerCertificate =
                         IdbSignerCertificate.fromByteArray(derTlv.encoded)
 

@@ -6,7 +6,6 @@ import de.tsenger.vdstools.generic.FormatFinding
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.MessageCoding
 import de.tsenger.vdstools.generic.MessageResolver
-import de.tsenger.vdstools.generic.requireNoWrongFormat
 import de.tsenger.vdstools.vds.dto.VdsDocumentTypeDto
 import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
 import de.tsenger.vdstools.vds.tr03171.Tr03171Conformance
@@ -31,8 +30,6 @@ internal class VdsMessageGroup(
 
     private val requiresProfile = documentTypeDto?.uuidMessageLookup == true
 
-    /** Country of the bound national document type, null for an international type or unknown type. */
-    internal val documentTypeCountry: String? get() = documentTypeDto?.country
 
     /** The document profile UUID (UUID tag, usually 0) of a seal whose type requires a profile, else null. */
     val documentProfileUuid: ByteArray? =
@@ -126,7 +123,8 @@ internal class VdsMessageGroup(
     /**
      * Required messages and lengths of a document type whose definitions are verified against its
      * specification ([VdsDocumentTypeDto.specification]). Lengths are bytes; a `maxBytes` of 0 means
-     * the specification gives no maximum. Raw messages are skipped.
+     * the specification gives no maximum. Metadata messages (e.g. TR-03171 v0.9 validity dates) are
+     * included; raw messages are skipped.
      */
     private fun specificationFindings(docType: VdsDocumentTypeDto): List<FormatFinding> {
         val tags = derTlvList.map { it.tag.toInt() and 0xFF }.toSet()
@@ -137,7 +135,7 @@ internal class VdsMessageGroup(
             val names = group.map { tag -> docType.messages.firstOrNull { it.tag == tag }?.name ?: "$tag" }
             findings += FormatFinding.MissingRequired(emptyList(), names.joinToString(" or "))
         }
-        for (message in messageList.filter { !it.isRaw }) {
+        for (message in (metadataMessageList + messageList).filter { !it.isRaw }) {
             val definition = docType.messages.firstOrNull { it.tag == message.tag } ?: continue
             val length = message.value.rawBytes.size
             val maxBytes = definition.maxBytes.takeIf { it > 0 }
@@ -189,14 +187,6 @@ internal class VdsMessageGroup(
         fun <T> addMessage(name: String, value: T): Builder {
             return addMessage(DataEncoder.vdsDocumentTypes.getMessageTag(baseVdsType, profileDefinition, name), value)
         }
-
-        /**
-         * Enforces the same rules when building as when reading: the group to be built must have no
-         * [FormatFinding.Category.WRONG_FORMAT] findings, e.g. a missing required message or a wrong
-         * length of a document type verified against its specification, or a TR-03171 profile violation.
-         */
-        @Throws(IllegalArgumentException::class)
-        fun requireValidFormat() = requireNoWrongFormat(vdsType, build().formatFindings())
 
         /**
          * Builds the group and binds its definitions. With a profile, its UUID is prepended as the

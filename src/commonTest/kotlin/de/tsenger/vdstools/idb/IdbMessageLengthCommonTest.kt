@@ -2,6 +2,7 @@ package de.tsenger.vdstools.idb
 
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.generic.FormatFinding
+import de.tsenger.vdstools.generic.SealParser
 import kotlin.test.*
 
 /**
@@ -20,7 +21,8 @@ class IdbMessageLengthCommonTest {
         DataEncoder.resetToDefaults()
     }
 
-    private fun seal(block: IdbMessageGroup.Builder.() -> Unit) = uncheckedIdbSeal("D<<", block)
+    private fun seal(block: IdbSeal.Builder.() -> Unit): IdbSeal =
+        SealParser().parse(IdbSeal.Builder().countryIdentifier("D<<").apply(block).build().rawString) as IdbSeal
 
     private fun lengthFindings(seal: IdbSeal) = seal.formatFindings.filterIsInstance<FormatFinding.InvalidLength>()
 
@@ -32,7 +34,7 @@ class IdbMessageLengthCommonTest {
         assertEquals(1000, face.maxBytes)
         val expected = mapOf(0x81 to 48, 0x82 to 6, 0x83 to 8, 0x84 to 4, 0x85 to 6, 0x86 to 1)
         for ((tag, length) in expected) {
-            val dto = DataEncoder.idbMessageTypes.getMessageTypeDto(tag, "D")!!
+            val dto = DataEncoder.idbMessageTypes.getMessageTypeDto(tag)!!
             assertEquals(length to length, dto.minBytes to dto.maxBytes, dto.name)
             assertNotNull(dto.specification, dto.name)
         }
@@ -84,7 +86,7 @@ class IdbMessageLengthCommonTest {
     @Test
     fun typeWithoutSpecification_isNotChecked() {
         DataEncoder.addCustomIdbMessageTypes(
-            """[{"name": "MY_BYTES", "tag": 135, "coding": "BYTES", "country": "D", "minBytes": 5, "maxBytes": 5}]"""
+            """[{"name": "MY_BYTES", "tag": 135, "coding": "BYTES", "minBytes": 5, "maxBytes": 5}]"""
         )
         assertEquals(emptyList(), lengthFindings(seal { addMessage("MY_BYTES", ByteArray(1)) }))
     }

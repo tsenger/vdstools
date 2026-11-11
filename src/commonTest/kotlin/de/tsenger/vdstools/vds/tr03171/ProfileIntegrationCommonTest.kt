@@ -3,6 +3,7 @@ package de.tsenger.vdstools.vds.tr03171
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.EcdsaSigner
 import de.tsenger.vdstools.Verifier
+import de.tsenger.vdstools.generic.FormatFinding
 import de.tsenger.vdstools.generic.MessageCoding
 import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.generic.SealParser
@@ -255,9 +256,8 @@ class ProfileIntegrationCommonTest {
         val keyPair = CryptographyProvider.Default.get(ECDSA).keyPairGenerator(EC.Curve.P256).generateKeyBlocking()
         val signer = EcdsaSigner(keyPair.privateKey.encodeToByteArrayBlocking(EC.PrivateKey.Format.DER), "prime256v1")
 
-        // validFromPresent/validToPresent = true -> a seal without VALID_FROM/VALID_TO is rejected
-        val e = assertFailsWith<IllegalArgumentException> {
-            VdsSeal.Builder("GEWERBEERLAUBNIS")
+        // validFromPresent/validToPresent = true -> a seal without VALID_FROM/VALID_TO is reported
+        val seal = VdsSeal.Builder("GEWERBEERLAUBNIS")
                 .issuingCountry("D<<")
                 .signerIdentifier("DEZV")
                 .certificateReference("00112233445566778899AABBCCDDEEFF00112233")
@@ -271,8 +271,7 @@ class ProfileIntegrationCommonTest {
                 .addMessage("PERMIT_NUMBER", "GE-2025-0815")
                 .addMessage("ISSUED_AT", LocalDateTime(2025, 5, 14, 9, 30, 15))
                 .build(signer)
-        }
-        assertTrue(e.message!!.contains("VALID_FROM"), e.message)
+        assertTrue(seal.formatFindings.any { it is FormatFinding.MissingRequired && it.name == "VALID_FROM" }, "${seal.formatFindings}")
     }
 
     @Test

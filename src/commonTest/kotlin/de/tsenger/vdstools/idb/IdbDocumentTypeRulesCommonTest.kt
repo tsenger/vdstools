@@ -2,6 +2,7 @@ package de.tsenger.vdstools.idb
 
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.generic.FormatFinding
+import de.tsenger.vdstools.generic.SealParser
 import kotlin.test.*
 
 /**
@@ -21,20 +22,21 @@ class IdbDocumentTypeRulesCommonTest {
         DataEncoder.resetToDefaults()
     }
 
-    private fun seal(block: IdbMessageGroup.Builder.() -> Unit) = uncheckedIdbSeal("D<<", block)
+    private fun seal(block: IdbSeal.Builder.() -> Unit): IdbSeal =
+        SealParser().parse(IdbSeal.Builder().countryIdentifier("D<<").apply(block).build().rawString) as IdbSeal
 
     @Test
     fun bundledGermanTypes_areVerifiedAndClosed() {
         for (name in DataEncoder.idbDocumentTypes.availableDocumentTypes()) {
             val tag = DataEncoder.idbDocumentTypes.getDocumentType(name)!!
-            val dto = DataEncoder.idbDocumentTypes.findDocumentType(tag, "D")!!
+            val dto = DataEncoder.idbDocumentTypes.findDocumentType(tag)!!
             assertTrue(dto.specification!!.startsWith("BSI TR-03137-1 V3.0 §1"), name)
             assertFalse(dto.additionalMessagesAllowed, name)
         }
     }
 
     private fun addCustomType(rules: String) = DataEncoder.addCustomIdbDocumentTypes(
-        """[{"tag": 16, "name": "CUSTOM_PERMANENT_RESIDENCE", "country": "D", $rules
+        """[{"tag": 16, "name": "CUSTOM_PERMANENT_RESIDENCE", $rules
              "messages": [{"name": "DOCUMENT_REFERENCE", "required": true},
                           {"name": "DOCUMENT_NUMBER", "required": true},
                           {"name": "NATIONAL_DOCUMENT_IDENTIFIER", "required": true}]}]"""

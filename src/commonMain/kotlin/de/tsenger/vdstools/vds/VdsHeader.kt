@@ -70,7 +70,7 @@ internal class VdsHeader {
 
     val vdsType: String
         get() {
-            val vdsType = DataEncoder.vdsDocumentTypes.getVdsType(documentRef, issuingCountry)
+            val vdsType = DataEncoder.vdsDocumentTypes.getVdsType(documentRef)
             return vdsType ?: UNKNOWN_TYPE
         }
 

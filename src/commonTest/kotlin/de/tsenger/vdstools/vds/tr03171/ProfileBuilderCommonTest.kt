@@ -68,6 +68,13 @@ class ProfileBuilderCommonTest {
     }
 
     @Test
+    fun forProfile_baseTypeWithoutProfileNumber_throws() {
+        val profile = ProfileConverter.toVdsProfileDefinition(ProfileXmlParser.parse(profileXml(uuidA, "OWN_PROFILE")))
+        val e = assertFailsWith<IllegalArgumentException> { VdsSeal.Builder.forProfile(profile.copy(baseDocumentType = "VISA")) }
+        assertTrue(e.message!!.contains("uuidMessageLookup"), e.message)
+    }
+
+    @Test
     fun byName_ambiguousProfileName_throws() {
         // a changed profile gets a new UUID but may keep its name
         DataEncoder.loadVdsProfileDefinitionFromXml(profileXml(uuidA, "MELDEBESTAETIGUNG"))

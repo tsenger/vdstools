@@ -6,7 +6,6 @@ import de.tsenger.vdstools.internal.ecFieldBitSize
 import de.tsenger.vdstools.internal.logD
 import de.tsenger.vdstools.internal.logE
 import de.tsenger.vdstools.internal.logV
-import de.tsenger.vdstools.internal.normalizeCountry
 import de.tsenger.vdstools.Signer
 import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generic.*
@@ -165,15 +164,8 @@ class VdsSeal : Seal {
         get() = if (vdsMessageGroup.vdsType == VdsHeader.UNKNOWN_TYPE) {
             listOf(FormatFinding.UnknownDocumentType(vdsHeader.documentRef))
         } else {
-            foreignDefinitionFindings() + vdsMessageGroup.formatFindings()
+            vdsMessageGroup.formatFindings()
         }
-
-    /** The document type is a national type of another country than the seal's issuing country. */
-    private fun foreignDefinitionFindings(): List<FormatFinding> {
-        val country = vdsMessageGroup.documentTypeCountry ?: return emptyList()
-        return if (normalizeCountry(country) == normalizeCountry(issuingCountry)) emptyList()
-        else listOf(FormatFinding.ForeignNationalDefinition(emptyList(), normalizeCountry(country)))
-    }
 
     class Builder private constructor(
         private val headerBuilder: VdsHeader.Builder,
@@ -196,8 +188,7 @@ class VdsSeal : Seal {
         /**
          * Three-letter code of the issuing state, e.g. "D<<". Defaults to "UTO" (Utopia, the code ICAO
          * Doc 9303-3 recommends for specimen documents), so a seal built without it is a specimen. The
-         * document type does not set it; a national type on a seal of another country is reported as
-         * [FormatFinding.ForeignNationalDefinition] when read.
+         * document type does not set it.
          */
         fun issuingCountry(v: String) = apply { headerBuilder.setIssuingCountry(v) }
         fun signerIdentifier(v: String) = apply { headerBuilder.setSignerIdentifier(v) }
@@ -208,7 +199,6 @@ class VdsSeal : Seal {
         fun <T> addMessage(name: String, value: T) = apply { messageBuilder.addMessage(name, value) }
 
         fun build(signer: Signer): VdsSeal {
-            messageBuilder.requireValidFormat()
             return VdsSeal(headerBuilder.build(), messageBuilder.build(), signer)
         }
 
@@ -240,9 +230,18 @@ class VdsSeal : Seal {
              * Builds a seal for a TR-03171 document profile the caller supplies, e.g. from its own profile
              * store (create it with [ProfileXmlParser.parse] and [ProfileConverter.toVdsProfileDefinition]).
              * The profile is not registered; parsing such a seal resolves it via [DataEncoder.vdsProfileResolver].
+             *
+             * @throws IllegalArgumentException if the profile's base document type does not carry a
+             *   profile number (`uuidMessageLookup`), e.g. a custom type
              */
-            fun forProfile(profileDefinition: VdsProfileDefinitionDto): Builder =
-                Builder(VdsHeader.Builder(profileDefinition), VdsMessageGroup.Builder(profileDefinition))
+            fun forProfile(profileDefinition: VdsProfileDefinitionDto): Builder {
+                val base = DataEncoder.vdsDocumentTypes.findDocumentTypeDto(profileDefinition.baseDocumentType)
+                require(base?.uuidMessageLookup == true) {
+                    "Base document type '${profileDefinition.baseDocumentType}' of profile " +
+                            "'${profileDefinition.definitionName}' does not carry a profile number (uuidMessageLookup)"
+                }
+                return Builder(VdsHeader.Builder(profileDefinition), VdsMessageGroup.Builder(profileDefinition))
+            }
         }
     }
 

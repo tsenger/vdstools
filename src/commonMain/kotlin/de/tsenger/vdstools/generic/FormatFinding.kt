@@ -54,16 +54,6 @@ sealed class FormatFinding {
         override val tagPath get() = emptyList<Int>()
     }
 
-    /**
-     * The message or document type was interpreted with the national definition of another country
-     * ([country]), because the seal's issuing country defines none and no international definition
-     * exists, e.g. a German document type on a specimen seal issued by UTO. Empty [tagPath] for a VDS
-     * document type.
-     */
-    data class ForeignNationalDefinition(override val tagPath: List<Int>, val country: String) : FormatFinding() {
-        override val category get() = Category.UNDETERMINED
-    }
-
     /** A message that the specification or profile requires is missing. */
     data class MissingRequired(override val tagPath: List<Int>, val name: String) : FormatFinding() {
         override val category get() = Category.WRONG_FORMAT

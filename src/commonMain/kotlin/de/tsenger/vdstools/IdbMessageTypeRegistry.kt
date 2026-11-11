@@ -1,7 +1,5 @@
 package de.tsenger.vdstools
 
-import de.tsenger.vdstools.internal.normalizeCountry
-import de.tsenger.vdstools.internal.selectForCountry
 import de.tsenger.vdstools.generic.MessageCoding
 import de.tsenger.vdstools.generic.MessageDefinition
 import de.tsenger.vdstools.generic.MessageDefinitionResolver
@@ -35,33 +33,18 @@ class IdbMessageTypeRegistry(jsonString: String) : DefinitionRegistry {
         addEntriesFromJson(jsonString)
     }
 
-    /**
-     * Adds message types. An entry replaces any entry with the same name, and any entry with the same
-     * tag **and** country (an entry without country does not replace a national type of another name).
-     */
+    /** Adds message types. An entry replaces any entry with the same name or the same tag. */
     override fun addEntriesFromJson(jsonString: String) {
         val newDtos = json.decodeFromString<List<IdbMessageTypeDto>>(jsonString)
         for (dto in newDtos) {
-            val country = dto.country?.let(::normalizeCountry)
-            messageTypeDtoList = messageTypeDtoList.filter {
-                it.name != dto.name && !(it.tag == dto.tag && it.country?.let(::normalizeCountry) == country)
-            } + dto
+            messageTypeDtoList = messageTypeDtoList.filter { it.name != dto.name && it.tag != dto.tag } + dto
         }
         messageTypesInverse.clear()
         messageTypeDtoList.forEach { messageTypesInverse[it.name] = it }
     }
 
-    /**
-     * The message type that carries the document types of [country] (`identifiesDocumentType`): that
-     * country's own, else an international one. Unlike reading, no other country's type is used, since a
-     * seal built with it would be read as a document type of that country.
-     */
-    internal fun findDocumentTypeIdentifier(country: String?): IdbMessageTypeDto? {
-        val identifiers = messageTypeDtoList.filter { it.identifiesDocumentType }
-        val normalized = country?.let(::normalizeCountry)
-        return identifiers.lastOrNull { it.country?.let(::normalizeCountry) == normalized }
-            ?: identifiers.lastOrNull { it.country == null }
-    }
+    /** The message types marked `identifiesDocumentType` (bundled: BSI TR-03137 0x86). */
+    internal fun documentTypeIdentifiers(): List<IdbMessageTypeDto> = messageTypeDtoList.filter { it.identifiesDocumentType }
 
     /** Returns the names of all registered IDB message types. */
     fun availableMessageTypes(): Set<String> {
@@ -114,16 +97,7 @@ class IdbMessageTypeRegistry(jsonString: String) : DefinitionRegistry {
      * @param tag The numeric tag of the message type
      * @return The [IdbMessageTypeDto], or `null` if the tag is not registered
      */
-    fun getMessageTypeDto(tag: Int): IdbMessageTypeDto? = getMessageTypeDto(tag, null)
-
-    /**
-     * Returns the message type for a tag read from a seal of [issuingCountry]: the national type of that
-     * country first, then an ICAO type, then the national type of another country if only one defines it.
-     *
-     * @return The [IdbMessageTypeDto], or `null` if the tag is not registered or several other countries define it
-     */
-    fun getMessageTypeDto(tag: Int, issuingCountry: String?): IdbMessageTypeDto? =
-        selectForCountry(messageTypeDtoList.filter { it.tag == tag }, issuingCountry) { it.country }
+    fun getMessageTypeDto(tag: Int): IdbMessageTypeDto? = messageTypeDtoList.lastOrNull { it.tag == tag }
 
     /**
      * Returns the full DTO for a given message type name.

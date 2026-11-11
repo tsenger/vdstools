@@ -56,23 +56,28 @@ class IdbBuilderDocumentTypeCommonTest {
     }
 
     @Test
-    fun anotherCountry_usesItsOwnIdentifier() {
+    fun customIdentifier_isUsed() {
+        // own definitions: the identifier is another tag, 0x86 no longer marked
         DataEncoder.addCustomIdbMessageTypes(
-            """[{"name": "FR_DOCUMENT_TYPE", "tag": 144, "coding": "BYTE", "country": "F", "identifiesDocumentType": true},
-                {"name": "FR_NUMBER", "tag": 145, "coding": "C40", "country": "F"}]"""
+            """[{"name": "NATIONAL_DOCUMENT_IDENTIFIER", "tag": 134, "coding": "BYTE"},
+                {"name": "MY_DOCUMENT_TYPE", "tag": 144, "coding": "BYTE", "identifiesDocumentType": true},
+                {"name": "MY_NUMBER", "tag": 145, "coding": "C40"}]"""
         )
-        DataEncoder.addCustomIdbDocumentTypes(
-            """[{"tag": 1, "name": "FR_TITRE", "country": "F", "messages": [{"name": "FR_NUMBER", "required": true}]}]"""
-        )
-        val seal = parse(IdbSeal.Builder("FR_TITRE").countryIdentifier("F<<").addMessage("FR_NUMBER", "AB123").build())
-        assertEquals("FR_TITRE", seal.documentType)
+        DataEncoder.addCustomIdbDocumentTypes("""[{"tag": 1, "name": "MY_TYPE", "messages": [{"name": "MY_NUMBER", "required": true}]}]""")
+        val seal = parse(IdbSeal.Builder("MY_TYPE").addMessage("MY_NUMBER", "AB123").build())
+        assertEquals("MY_TYPE", seal.documentType)
         assertEquals(listOf(0x91, 0x90), seal.messageList.map { it.tag })
     }
 
     @Test
-    fun typeOfACountryWithoutIdentifier_isRejected() {
-        DataEncoder.addCustomIdbDocumentTypes("""[{"tag": 1, "name": "XX_TYPE", "country": "XX"}]""")
-        val e = assertFailsWith<IllegalArgumentException> { IdbSeal.Builder("XX_TYPE").build() }
-        assertTrue(e.message!!.contains("XX_TYPE"), e.message)
+    fun noOrSeveralIdentifiers_areRejected() {
+        DataEncoder.addCustomIdbMessageTypes("""[{"name": "NATIONAL_DOCUMENT_IDENTIFIER", "tag": 134, "coding": "BYTE"}]""")
+        val none = assertFailsWith<IllegalArgumentException> { IdbSeal.Builder("CERTIFYING_PERMANENT_RESIDENCE") }
+        assertTrue(none.message!!.contains("identifiesDocumentType"), none.message)
+
+        DataEncoder.resetToDefaults()
+        DataEncoder.addCustomIdbMessageTypes("""[{"name": "MY_DOCUMENT_TYPE", "tag": 144, "coding": "BYTE", "identifiesDocumentType": true}]""")
+        val several = assertFailsWith<IllegalArgumentException> { IdbSeal.Builder("CERTIFYING_PERMANENT_RESIDENCE") }
+        assertTrue(several.message!!.contains("MY_DOCUMENT_TYPE"), several.message)
     }
 }

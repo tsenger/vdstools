@@ -82,7 +82,6 @@ class VdsFormatFindingsCommonTest {
 
     @Test
     fun knownTypeFixtures_haveNoFindings() {
-        // specimens issued by UTO are read with the German national types: only that is reported
         val fixtures = mapOf(
             "residentPermit" to VdsRawBytesCommon.residentPermit,
             "addressStickerId" to VdsRawBytesCommon.addressStickerId,
@@ -97,9 +96,7 @@ class VdsFormatFindingsCommonTest {
         )
         for ((name, raw) in fixtures) {
             val seal = VdsSeal.fromByteArray(raw) as VdsSeal
-            val expected = if (seal.issuingCountry == "UTO" && seal.documentType !in setOf("VISA", "EMERGENCY_TRAVEL_DOCUMENT"))
-                listOf(FormatFinding.ForeignNationalDefinition(emptyList(), "D")) else emptyList()
-            assertEquals(expected, seal.formatFindings, name)
+            assertEquals(emptyList(), seal.formatFindings, name)
         }
     }
 
@@ -112,6 +109,16 @@ class VdsFormatFindingsCommonTest {
         assertEquals(FormatFinding.ProfileNotFound(unregisteredUuid, "example.com/profiles"), finding)
         assertEquals(Category.UNDETERMINED, finding.category)
         assertEquals(emptyList(), finding.tagPath)
+    }
+
+    @Test
+    fun v9MetadataLength_isChecked() {
+        // BSI TR-03171 V0.9 §3.2: the profile number (tag 0) is 16 bytes
+        val seal = seal("c9", tlv(0, "1122334455667788"), profileUri, certificateUri, surname)
+        assertEquals(
+            listOf(FormatFinding.InvalidLength(listOf(0), "DOC_PROFILE_NUMBER", 8, 16, 16)),
+            seal.formatFindings.filterIsInstance<FormatFinding.InvalidLength>()
+        )
     }
 
     @Test

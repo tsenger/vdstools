@@ -30,7 +30,6 @@ data class IdbMessageTypeRef(
  * @property tag The numeric value of the `NATIONAL_DOCUMENT_IDENTIFIER` (tag 0x86)
  * @property messages The IDB message types expected in the message group for this document type.
  *   Empty if the expected message combination is not defined.
- * @property country Country whose national document types this belongs to (e.g. `D`), null if not national.
  * @property specification The specification the expected messages were verified against, e.g.
  *   `BSI TR-03137-1 V3.0 §15.2.2`. Only for such document types are missing required messages reported
  *   as format findings.
@@ -42,7 +41,6 @@ data class IdbDocumentTypeDto(
     val name: String,
     val tag: Int,
     val messages: List<IdbMessageTypeRef> = emptyList(),
-    val country: String? = null,
     val specification: String? = null,
     val additionalMessagesAllowed: Boolean = true,
 )

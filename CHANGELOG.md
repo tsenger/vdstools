@@ -5,19 +5,14 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
-- National definitions: optional `country` on `VdsDocumentTypeDto`,
-  `IdbMessageTypeDto` and `IdbDocumentTypeDto`; the bundled BSI TR-03137 and
-  TR-03171 definitions are German (`D`), the ICAO ones international. Lookups for a seal's issuing country: `getVdsType(docRef, country)`,
-  `getMessageTypeDto(tag, country)`, `getDocumentType(tag, country)`,
-  `getExpectedMessages(tag, country)`.
 - `IdbSeal.Builder(documentType)`: builds a seal of a national IDB document
-  type by name, like `VdsSeal.Builder(name)`. It sets the message that
+  type by name, like `VdsSeal.Builder(name)`. It appends the message that
   identifies the document type (bundled: `0x86`) itself; adding it by hand
-  throws. `IdbSeal.Builder()` stays for seals without national document type.
+  throws. Exactly one message type must be marked `identifiesDocumentType`.
+  `IdbSeal.Builder()` stays for seals without national document type.
 - `IdbMessageTypeDto.identifiesDocumentType`: marks the message type that
   carries the national document type (bundled: BSI TR-03137 `0x86`), instead
-  of tag `0x86` in code. The document type is looked up for that message
-  type's country, so other countries can bring their own tag and types.
+  of tag `0x86` in code. Own definitions can use another tag.
 - `IdbMessageTypeDto.specification`: IDB message types verified against a
   specification report a value outside `minBytes`/`maxBytes` as
   `FormatFinding.InvalidLength` when read. Set for the national types
@@ -25,10 +20,10 @@ All notable changes to this project will be documented in this file.
 - `IdbDocumentTypeDto.specification` and `additionalMessagesAllowed`, like
   for VDS document types. Set for the 18 German types (verified against BSI
   TR-03137-1 V3.0 §12.2.2–§17.2.2, no other message types allowed).
-- `FormatFinding.ForeignNationalDefinition` (`UNDETERMINED`): a document type
-  or IDB message was read with the national definition of another country.
 - `VdsSeal.Builder.forProfile(definition)`: builds a TR-03171 seal for a profile
   the caller supplies (e.g. from its own profile store) without registering it.
+  Throws if the profile's base type carries no profile number
+  (`uuidMessageLookup`).
 - `Seal.formatFindings`: findings of the format validation (ICAO Doc 9303-13
   Appendix D, step 1), without judgement. `FormatFinding` subtypes
   `UnknownTag`, `ReservedTag`, `UnknownDocumentType`, `ProfileNotFound`,
@@ -41,7 +36,9 @@ All notable changes to this project will be documented in this file.
   ETD, BSI TR-03137-1 V3.0 types), TR-03171 profiles (explicit `<length>` of
   UTF8String in characters, OCTET STRING in bytes) and German IDB seals
   (national document type per BSI TR-03137 chapters 12–17). Signature and
-  certificate are not covered.
+  certificate are not covered. The definitions apply to seals of every
+  issuing country. Findings are information only; the builders do not
+  enforce them.
 - `VdsDocumentTypeDto.specification`, `additionalFeaturesAllowed` and
   `requiredOneOf`: the specification a document type's definitions were
   verified against (only then are required messages and lengths checked),
@@ -60,32 +57,25 @@ All notable changes to this project will be documented in this file.
   be decoded stays defined.
 
 ### Changed
-- **Behavior change:** seals are read with the definitions of their issuing
-  country first, then international ones, then a unique national definition
-  of another country, reported as `ForeignNationalDefinition`. The BSI specimen
-  seals (issued by `UTO`) thus get this finding. IDB seals of other countries
-  with a national document type are now checked against it, too (before only
-  German seals). Codes are compared without C40 fillers (`D<<`,
-  `D  ` and `D` are equal).
-- **Behavior change:** `addCustom*` replaces an entry with the same name, or
-  with the same key **and** country. A custom entry without `country` no longer
-  replaces a bundled German type of another name; it applies to all other
-  countries.
+- **Behavior change:** IDB seals of other countries with a national document
+  type are now checked against it, too (before only German seals); the loaded
+  definitions apply to seals of every issuing country.
+- **Behavior change:** `addCustom*` also replaces an entry with the same name
+  (before, only the same `documentRef` or tag), so names stay unique.
+- **Breaking:** the IDB national document type is found via the message type
+  marked `identifiesDocumentType`, no longer via tag `0x86` in code. A custom
+  IDB message type JSON that replaces the bundled one (`replaceCustomIdbMessageTypes`)
+  must mark it, otherwise no document type is recognised.
 - **Behavior change:** a national IDB document type is checked only if it has a
   `specification` (missing required messages), and other message types are
   reported as `NotAllowed` only if `additionalMessagesAllowed` is false. Before,
   every document type was checked as closed. Custom IDB document types without
   these fields are no longer checked.
-- **Behavior change:** `IdbSeal.Builder` encodes the messages in `build()`
-  with the definitions of the issuing country (`addMessage(tag, …)` for a tag
-  that several countries define). Unknown names or values that do not fit the
-  coding are thus reported by `build()` instead of `addMessage()`.
 - The bundled ICAO IDB message types no longer carry `minBytes`, `maxBytes`
   or sub-message `required`. Nothing read them, and they were not verified
   against ICAO TR-IDB.
 - **Breaking:** the bundled definition files are split by specification:
-  `icao-9303/`, `icao-idb/`, `bsi-tr-03137/` and `bsi-tr-03171/`, each with a
-  `spec.json` that sets the `country` of its entries
+  `icao-9303/`, `icao-idb/`, `bsi-tr-03137/` and `bsi-tr-03171/`
   (`IdbGermanDocumentTypes.json` is now `bsi-tr-03137/IdbDocumentTypes.json`).
   The constants `DEFAULT_VDS_DOCUMENT_TYPES`, `DEFAULT_IDB_MESSAGE_TYPES` and
   `DEFAULT_IDB_DOCUMENT_TYPES` are removed; `DataEncoder.resetToDefaults()`
@@ -93,23 +83,15 @@ All notable changes to this project will be documented in this file.
 - TR-03171 v0.9: the mandatory `PROFILE_URI` and `CERTIFICATE_URI` now come
   from the base type definition in `bsi-tr-03171/VdsDocumentTypes.json`
   (verified against BSI TR-03171 V0.9 §3.2, `specification` set) instead of
-  code. The URIs and
-  `STATUS_LIST_INDEX` have no maximum length there (`maxBytes` 0), as the TR
-  gives none; the former 255 / 4 bytes were not from the TR.
-- **Behavior change:** `VdsSeal.Builder.build()` applies the same rules as
-  reading: it throws `IllegalArgumentException` if the seal would have
-  `WRONG_FORMAT` findings. This covers the VDS types with a `specification`
-  (missing required message, wrong length, e.g. a social insurance card without
-  `FIRST_NAME`) and TR-03171 profiles of both versions (before, only v0.9
-  required profile entries were enforced, and no lengths). The message starts
-  with "Invalid seal content (<type>):" instead of "TR-03171:" and lists all
-  violations.
-- **Behavior change:** `IdbSeal.Builder.build()` and `build(signer)` apply the
-  same rules as reading, before signing: they throw `IllegalArgumentException`
-  if the seal would have `WRONG_FORMAT` findings (missing required message,
-  message not allowed by the national document type, wrong length of a
-  verified message type, e.g. a face image outside 900–1000 bytes). The
-  message starts with "Invalid seal content (<document type or IDB>):".
+  code. The URIs and `STATUS_LIST_INDEX` have no maximum length there
+  (`maxBytes` 0), as the TR gives none; the former 255 / 4 bytes were not from
+  the TR. Lengths of metadata messages are checked as well (e.g. the profile
+  number, 16 bytes).
+- **Behavior change:** `VdsSeal.Builder.build()` no longer rejects TR-03171
+  v0.9 seals that miss `PROFILE_URI`, `CERTIFICATE_URI` or a required profile
+  entry, or whose `VALID_FROM`/`VALID_TO` do not match the profile. No builder
+  checks content against a specification; such violations are reported in
+  `seal.formatFindings` of the built seal.
 - **Behavior change:** `VdsSeal.Builder(name)` throws if several registered
   TR-03171 profiles have that name (e.g. two versions of a changed profile with
   new UUIDs). Before, the last registered one was used silently. Use

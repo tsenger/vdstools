@@ -55,10 +55,8 @@ import okio.*
  * | `IdbDocumentTypes.json` | IDB | [idbDocumentTypes] | Document types: tag ↔ name ↔ expected messages |
  *
  * The bundled files are split by specification, one folder each: `icao-9303/`, `icao-idb/`,
- * `bsi-tr-03137/` and `bsi-tr-03171/`. A folder's `spec.json` names the specification and, for a
- * national one, the `country` that applies to all its entries. The files are embedded at compile time
- * and loaded international ones first. Custom definitions
- * can be provided at runtime to extend or replace the built-in ones.
+ * `bsi-tr-03137/` and `bsi-tr-03171/`. The files are embedded at compile time and apply to seals of
+ * every issuing country. Custom definitions can be provided at runtime to extend or replace them.
  *
  * ## Loading custom definitions
  *
@@ -201,7 +199,7 @@ object DataEncoder {
 
     /**
      * Merges custom VDS Document Types into the existing registry. Existing entries with the same
-     * documentRef are replaced; all other defaults are preserved.
+     * name or documentRef are replaced; all other defaults are preserved.
      *
      * @param jsonString Custom VdsDocumentTypes JSON content
      */
@@ -217,7 +215,7 @@ object DataEncoder {
 
     /**
      * Merges custom IDB Message Types into the existing registry. Existing entries with the
-     * same tag are replaced; all other defaults are preserved.
+     * same name or tag are replaced; all other defaults are preserved.
      *
      * @param jsonString Custom IdbMessageTypes JSON content
      */
@@ -233,7 +231,7 @@ object DataEncoder {
 
     /**
      * Merges custom IDB Document Types into the existing registry. Existing entries
-     * with the same tag are replaced; all other defaults are preserved.
+     * with the same name or tag are replaced; all other defaults are preserved.
      *
      * @param jsonString Custom IdbDocumentTypes JSON content
      */

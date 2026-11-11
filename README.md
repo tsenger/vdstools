@@ -213,7 +213,6 @@ Each `FormatFinding` has a `category` following Appendix D and a `tagPath` (empt
 | `UnknownTag` | `UNKNOWN_FEATURE` | a tag that neither document type nor profile defines (its message `isRaw`) |
 | `ReservedTag` | `UNKNOWN_FEATURE` | a reserved metadata tag, e.g. TR-03171 v0.9 tags `0x07`–`0x09` |
 | `UnknownDocumentType` | `UNDETERMINED` | VDS document reference or IDB national document identifier not known |
-| `ForeignNationalDefinition` | `UNDETERMINED` | read with the national definition of another country (see [National definitions](#national-definitions)) |
 | `ProfileNotFound` | `UNDETERMINED` | TR-03171 profile not available; content tags are then not checked |
 | `MissingRequired` | `WRONG_FORMAT` | a required message is missing (see below which document types are checked) |
 | `NotAllowed` | `WRONG_FORMAT` | a message the specification forbids: TR-03171 `VALID_FROM`/`VALID_TO` against the profile, an undefined tag in a VDS type that forbids additional features, a known message type that a national IDB document type with `additionalMessagesAllowed` false does not list |
@@ -242,32 +241,28 @@ Required messages and lengths are only checked where the definitions are verifie
 - IDB national document types with a `specification` (the German types, BSI TR-03137-1 V3.0 §12.2.2–§17.2.2): their
   required message types, and with `"additionalMessagesAllowed": false` no other message types.
 
-### National definitions
+### Definitions and issuing country
 
-National document types (an even VDS document type category, ICAO Doc 9303-13 §3.1.1) and national IDB message types
-(e.g. `0x80`–`0x86`, BSI TR-03137 §11.2.2) belong to a country: the bundled BSI ones have `"country": "D"` (set by
-their folder's `spec.json`, see below), ICAO ones no country. A seal is read with the definition of its issuing country first, then an international one, then the
-national definition of another country if exactly one country defines it. The last case is reported as
-`ForeignNationalDefinition(tagPath, country)`, e.g. for the BSI specimen seals, which are issued by `UTO` (ICAO Doc
-9303-3: Utopia for sample documents). If several other countries define it, nothing is guessed: the VDS document type
-is unknown, the IDB message raw. The issuing country of a built seal is always the one you set; the definition only
-describes the content.
+The loaded definitions apply to every seal, whatever its issuing country. The bundled national definitions are German
+(BSI TR-03137, TR-03171). A seal of another country that uses the same national document reference (VDS: even document
+type category, ICAO Doc 9303-13 §3.1.1) or national IDB tags (`0x80`–`0x86`) is read with them, including their format
+findings. If that matters for your application, check `seal.issuingCountry`, or load the definitions of that country
+with `DataEncoder.replaceCustom…`.
 
 An IDB message type marked `"identifiesDocumentType": true` carries the national document type (bundled: BSI
-TR-03137 `0x86` `NATIONAL_DOCUMENT_IDENTIFIER`). Its value is looked up in the IDB document types of that message
-type's country, so another country can bring its own tag and document types:
+TR-03137 `0x86` `NATIONAL_DOCUMENT_IDENTIFIER`); its value is looked up in the IDB document types. Own definitions can
+use another tag:
 
 ```kotlin
-DataEncoder.addCustomIdbMessageTypes("""[{"name": "FR_DOCUMENT_TYPE", "tag": 144, "coding": "BYTE",
-    "country": "F", "identifiesDocumentType": true}]""")
-DataEncoder.addCustomIdbDocumentTypes("""[{"tag": 1, "name": "FR_TITRE", "country": "F",
-    "messages": [{"name": "FR_DOCUMENT_TYPE", "required": true}]}]""")
+DataEncoder.addCustomIdbMessageTypes("""[
+    {"name": "NATIONAL_DOCUMENT_IDENTIFIER", "tag": 134, "coding": "BYTE"},
+    {"name": "MY_DOCUMENT_TYPE", "tag": 144, "coding": "BYTE", "identifiesDocumentType": true}]""")
+DataEncoder.addCustomIdbDocumentTypes("""[{"tag": 1, "name": "MY_TYPE",
+    "messages": [{"name": "MY_DOCUMENT_TYPE", "required": true}]}]""")
 ```
 
 The bundled definitions are split by specification, one folder each in `src/commonMain/resources/`: `icao-9303/`
-(VDS visa and ETD), `icao-idb/` (IDB message types `0x01`–`0x0A`), `bsi-tr-03137/` and `bsi-tr-03171/`. A folder's
-`spec.json` names the specification and, for a national one, the `country` of all its entries. Definitions for another
-country can be added with `DataEncoder.addCustom…` and an explicit `"country"` per entry.
+(VDS visa and ETD), `icao-idb/` (IDB message types `0x01`–`0x0A`), `bsi-tr-03137/` and `bsi-tr-03171/`.
 
 ## Build a barcode
 
@@ -284,15 +279,17 @@ Both builders follow the same Kotlin fluent style: chain configuration calls, th
 
 The issuing country is always the one you set (`issuingCountry(...)` / `countryIdentifier(...)`); the document type does
 not set it. Without it, both builders use `UTO` (Utopia, which ICAO Doc 9303-3 recommends for specimen documents), so
-the seal is a specimen. Reading a national type on a seal of another country reports `ForeignNationalDefinition` (see
-[National definitions](#national-definitions)).
+the seal is a specimen.
 
-Both builders check the seal in `build()` with the same rules as reading (see [Format findings](#format-findings)) and
-throw an `IllegalArgumentException` listing every `WRONG_FORMAT` violation, e.g. a missing required message, a message
-the document type does not allow, or a wrong length (an IDB face image outside 900–1000 bytes). Definitions without a
-verified `specification` are not checked for required messages and lengths. A seal is checked before it is signed.
-`IdbSeal.Builder` encodes the messages in `build()` with the definitions of the issuing country, so
-`countryIdentifier(...)` may come after `addMessage(...)`; an unknown message name is reported there, too.
+The builders encode what you add; they do not check the content against a specification. An unknown message name or
+a value that does not fit the coding throws an `IllegalArgumentException`, but a missing required message or a wrong
+length does not. If you want to know whether a built seal conforms, look at its `formatFindings` (see
+[Format findings](#format-findings)):
+
+```kotlin
+val seal = builder.build(signer)
+check(seal.formatFindings.none { it.category == FormatFinding.Category.WRONG_FORMAT }) { "${seal.formatFindings}" }
+```
 
 ### VDS
 
@@ -328,9 +325,8 @@ val encodedSealBytes = vdsSeal.encoded
 
 `IdbSeal.Builder(documentType)` builds a seal of a national IDB document type (e.g. the German types of BSI TR-03137):
 it adds the message that identifies the document type (`identifiesDocumentType`, `0x86` for Germany) at the end, so
-don't add it yourself. That message type is taken from the document type's country, or an international one; never
-from another country. `IdbSeal.Builder()` builds a seal without national document type, e.g. an ICAO visa or proof of
-vaccination.
+don't add it yourself. Exactly one message type must be marked `identifiesDocumentType`. `IdbSeal.Builder()` builds a
+seal without national document type, e.g. an ICAO visa or proof of vaccination.
 
 IDB seals can be signed or unsigned, as allowed by ICAO Doc 9303-13; the barcode flag says which
 (`IdbSeal.isSigned`). Use `build()` for unsigned and `build(signer)` for signed. The signature
@@ -447,8 +443,7 @@ There are two strategies for providing custom definitions:
 
 - **`replaceCustom*`** – replaces the entire registry with your JSON. The built-in defaults are no longer available.
 - **`addCustom*`** – merges your entries into the existing registry. Built-in defaults are preserved; entries with the
-  same name, or the same key and country (e.g. `documentRef` and `country`), are overwritten by your version. An entry
-  without `country` is international; it does not replace a national entry of another name.
+  same name or the same key (`documentRef` for VDS document types, `tag` for IDB types) are overwritten by your version.
 
 Load definitions (including TR-03171 profiles) before parsing or building. A seal binds its document type, profile
 and message definitions when it is parsed or built; definitions loaded or replaced afterwards do not change it, so

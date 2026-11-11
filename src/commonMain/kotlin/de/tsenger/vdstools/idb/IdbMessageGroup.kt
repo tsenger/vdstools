@@ -1,6 +1,5 @@
 package de.tsenger.vdstools.idb
 
-import de.tsenger.vdstools.internal.normalizeCountry
 import de.tsenger.vdstools.idb.dto.IdbMessageTypeDto
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.asn1.DerTlv
@@ -16,18 +15,13 @@ import okio.Buffer
  * The message group of an IDB seal. Its messages are decoded with the IDB message types when the
  * group is created (parsed or built); message types loaded or replaced later do not change it.
  */
-internal class IdbMessageGroup(private val derTlvList: List<DerTlv>, issuingCountry: String? = null) {
+internal class IdbMessageGroup(private val derTlvList: List<DerTlv>) {
 
-    /** The message type of each top-level message for the seal's country (null: no definition). */
+    /** The message type of each top-level message (null: no definition). */
     private val topLevelDefinitions: List<IdbMessageTypeDto?> =
-        derTlvList.map { DataEncoder.idbMessageTypes.getMessageTypeDto(it.tag.toInt() and 0xFF, issuingCountry) }
+        derTlvList.map { DataEncoder.idbMessageTypes.getMessageTypeDto(it.tag.toInt() and 0xFF) }
 
     val messageList: List<Message> = derTlvList.mapIndexed { i, derTlv -> parseMessage(derTlv, null, topLevelDefinitions[i]) }
-
-    /** Tag and country of each top-level message decoded with a national message type. */
-    internal val nationalDefinitions: List<Pair<Int, String>> = derTlvList.indices.mapNotNull { i ->
-        topLevelDefinitions[i]?.country?.let { (derTlvList[i].tag.toInt() and 0xFF) to normalizeCountry(it) }
-    }
 
     /** The first top-level message whose type identifies the national document type, with that type. */
     internal val documentTypeIdentifier: Pair<Message, IdbMessageTypeDto>? =
@@ -91,14 +85,7 @@ internal class IdbMessageGroup(private val derTlvList: List<DerTlv>, issuingCoun
      * Inside a container only the container's own definitions apply; the registry holds
      * top-level message types, whose tags overlap with sub-message tags.
      */
-    /**
-     * Encodes messages with the IDB message types. Top-level types given by tag are looked up for
-     * [issuingCountry] (a tag can be national in several countries); names are unique.
-     */
-    internal class Builder(
-        private val subMessageDefs: List<MessageDto>? = null,
-        private val issuingCountry: String? = null,
-    ) {
+    internal class Builder(private val subMessageDefs: List<MessageDto>? = null) {
         val derTlvList: MutableList<DerTlv> = ArrayList(5)
 
         private fun resolveTag(name: String): Int {
@@ -123,7 +110,7 @@ internal class IdbMessageGroup(private val derTlvList: List<DerTlv>, issuingCoun
         @Throws(IllegalArgumentException::class)
         fun <T> addMessage(tag: Int, value: T): Builder {
             val coding = if (subMessageDefs != null) subMessageDefs.firstOrNull { it.tag == tag }?.coding ?: MessageCoding.UNKNOWN
-                else DataEncoder.idbMessageTypes.getMessageTypeDto(tag, issuingCountry)?.coding ?: MessageCoding.UNKNOWN
+                else DataEncoder.idbMessageTypes.getMessageTypeCoding(tag)
             val content = DataEncoder.encodeValueByCoding(coding, value, tag)
             derTlvList.add(DerTlv(tag.toByte(), content))
             return this
@@ -155,7 +142,7 @@ internal class IdbMessageGroup(private val derTlvList: List<DerTlv>, issuingCoun
             val childDefs = if (subMessageDefs != null) {
                 subMessageDefs.firstOrNull { it.tag == tag }?.messages
                     ?: throw IllegalArgumentException("Unknown sub-message tag $tag for this container")
-            } else DataEncoder.idbMessageTypes.getMessageTypeDto(tag, issuingCountry)?.messages
+            } else DataEncoder.idbMessageTypes.getMessageTypeDto(tag)?.messages
             val childBuilder = Builder(childDefs)
             childBuilder.block()
             val childBytes = Buffer()
@@ -167,7 +154,7 @@ internal class IdbMessageGroup(private val derTlvList: List<DerTlv>, issuingCoun
         }
 
         fun build(): IdbMessageGroup {
-            return IdbMessageGroup(derTlvList.toList(), issuingCountry)
+            return IdbMessageGroup(derTlvList.toList())
         }
     }
 
@@ -175,7 +162,7 @@ internal class IdbMessageGroup(private val derTlvList: List<DerTlv>, issuingCoun
         const val TAG: Byte = 0x61
 
         @Throws(IllegalArgumentException::class)
-        fun fromByteArray(rawBytes: ByteArray, issuingCountry: String? = null): IdbMessageGroup {
+        fun fromByteArray(rawBytes: ByteArray): IdbMessageGroup {
             require(rawBytes[0] == TAG) {
                 "IdbMessageGroup shall have tag ${
                     TAG.toString(16).padStart(2, '0').uppercase()
@@ -183,7 +170,7 @@ internal class IdbMessageGroup(private val derTlvList: List<DerTlv>, issuingCoun
             }
             val valueBytes = DerTlv.fromByteArray(rawBytes)?.value ?: ByteArray(0)
             val derTlvList = DerTlv.parseAll(valueBytes)
-            return IdbMessageGroup(derTlvList, issuingCountry)
+            return IdbMessageGroup(derTlvList)
         }
 
         /** [topLevelDefinition] is the message type of a top-level message; unused inside a container. */

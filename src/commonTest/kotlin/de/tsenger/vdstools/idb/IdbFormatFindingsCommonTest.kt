@@ -136,20 +136,16 @@ class IdbFormatFindingsCommonTest {
     }
 
     @Test
-    fun foreignSeal_isCheckedWithTheGermanDocumentTypeAndMarked() {
-        // 0x86 is a German national message type: another country's seal is read with it, and that is reported
+    fun otherCountry_isCheckedWithTheLoadedDocumentTypes() {
+        // the definitions apply regardless of the issuing country
         assertEquals(
             listOf(
-                FormatFinding.ForeignNationalDefinition(listOf(0x86), "D"),
                 FormatFinding.MissingRequired(listOf(0x82), "DOCUMENT_REFERENCE"),
                 FormatFinding.MissingRequired(listOf(0x85), "DOCUMENT_NUMBER"),
             ),
             seal("UTO", permanentResidence).formatFindings
         )
-        assertEquals(
-            listOf(FormatFinding.ForeignNationalDefinition(listOf(0x86), "D"), FormatFinding.UnknownDocumentType(0x7F)),
-            seal("UTO", tlv(0x86, "7f")).formatFindings
-        )
+        assertEquals(listOf(FormatFinding.UnknownDocumentType(0x7F)), seal("UTO", tlv(0x86, "7f")).formatFindings)
     }
 
     @Test

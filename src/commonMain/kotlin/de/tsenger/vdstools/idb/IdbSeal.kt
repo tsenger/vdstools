@@ -1,7 +1,5 @@
 package de.tsenger.vdstools.idb
 
-import de.tsenger.vdstools.internal.normalizeCountry
-
 import de.tsenger.vdstools.Base32
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.Signer
@@ -11,8 +9,7 @@ import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.generic.Seal
 import de.tsenger.vdstools.generic.SealType
 import de.tsenger.vdstools.generic.SignatureInfo
-import de.tsenger.vdstools.generic.requireNoWrongFormat
-import de.tsenger.vdstools.idb.dto.IdbDocumentTypeDto
+import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.internal.logW
 import kotlinx.datetime.LocalDate
 
@@ -106,19 +103,15 @@ class IdbSeal : Seal {
     /** Findings of the national document type, bound with [documentType] when the seal is created. */
     private val nationalFindings: List<FormatFinding>
 
-    /**
-     * The national document type value and the country to look it up for: the country of the
-     * identifying message type, or the issuing country if that type is international.
-     */
-    private fun documentTypeReference(): Pair<Int, String>? {
-        val (message, definition) = payLoad.idbMessageGroup.documentTypeIdentifier ?: return null
-        val value = (message.value as? MessageValue.ByteValue)?.value ?: return null
-        return value to (definition.country ?: issuingCountry)
+    /** The value of the message that identifies the national document type, null if there is none. */
+    private fun documentTypeReference(): Int? {
+        val (message, _) = payLoad.idbMessageGroup.documentTypeIdentifier ?: return null
+        return (message.value as? MessageValue.ByteValue)?.value
     }
 
     private fun bindDocumentType(): String {
-        val (docTypeId, country) = documentTypeReference() ?: return messageList.joinToString(", ") { it.name }
-        return DataEncoder.idbDocumentTypes.getDocumentType(docTypeId, country)
+        val docTypeId = documentTypeReference() ?: return messageList.joinToString(", ") { it.name }
+        return DataEncoder.idbDocumentTypes.getDocumentType(docTypeId)
     }
 
 
@@ -128,15 +121,7 @@ class IdbSeal : Seal {
         }
 
     override val formatFindings: List<FormatFinding>
-        get() = foreignDefinitionFindings() + nationalFindings + payLoad.idbMessageGroup.formatFindings()
-
-    /** Top-level messages decoded with a national message type of another country than the issuing one. */
-    private fun foreignDefinitionFindings(): List<FormatFinding> {
-        val country = normalizeCountry(issuingCountry)
-        return payLoad.idbMessageGroup.nationalDefinitions
-            .filter { (_, definitionCountry) -> definitionCountry != country }
-            .map { (tag, definitionCountry) -> FormatFinding.ForeignNationalDefinition(listOf(tag), definitionCountry) }
-    }
+        get() = nationalFindings + payLoad.idbMessageGroup.formatFindings()
 
     /**
      * Checks the messages against the national document type (see [documentTypeReference], e.g.
@@ -145,8 +130,8 @@ class IdbSeal : Seal {
      */
     private fun nationalDocumentTypeFindings(): List<FormatFinding> {
         val messages = messageList
-        val (docTypeId, country) = documentTypeReference() ?: return emptyList()
-        val documentType = DataEncoder.idbDocumentTypes.findDocumentType(docTypeId, country)
+        val docTypeId = documentTypeReference() ?: return emptyList()
+        val documentType = DataEncoder.idbDocumentTypes.findDocumentType(docTypeId)
             ?: return listOf(FormatFinding.UnknownDocumentType(docTypeId))
         if (documentType.specification == null) return emptyList()
         val expected = documentType.messages
@@ -203,90 +188,73 @@ class IdbSeal : Seal {
         }
 
     class Builder() {
-        private var documentType: IdbDocumentTypeDto? = null
         private var countryIdentifier: String = "UTO"
         private var certificateReference: ByteArray? = null
         private var signingDate: String? = null
         private var signerCertBytes: ByteArray? = null
         private var compress: Boolean = false
-        /** Messages are encoded in [build], when the issuing country is known (tags can be national). */
-        private val messages = mutableListOf<(IdbMessageGroup.Builder) -> Unit>()
+        private val messageBuilder = IdbMessageGroup.Builder()
+
+        /** The message that identifies the document type and its name, appended by [build]; null without document type. */
+        private var documentTypeIdentifier: Pair<String, DerTlv>? = null
 
         /**
          * Builds a seal of a national IDB document type, e.g. `CERTIFYING_PERMANENT_RESIDENCE`. The message
-         * that identifies the document type (BSI TR-03137: 0x86 `NATIONAL_DOCUMENT_IDENTIFIER`) is set by
-         * [build]; do not add it. The issuing country is still the one set with [countryIdentifier].
+         * that identifies the document type (the message type marked `identifiesDocumentType`, BSI
+         * TR-03137: 0x86 `NATIONAL_DOCUMENT_IDENTIFIER`) is appended by [build]; do not add it.
          *
-         * @throws IllegalArgumentException if no IDB document type has this name
+         * @throws IllegalArgumentException if no IDB document type has this name, or not exactly one
+         *   message type is marked `identifiesDocumentType`
          */
         constructor(documentType: String) : this() {
-            this.documentType = DataEncoder.idbDocumentTypes.findByName(documentType)
+            val type = DataEncoder.idbDocumentTypes.findByName(documentType)
                 ?: throw IllegalArgumentException("Unknown IDB document type '$documentType'")
+            val identifiers = DataEncoder.idbMessageTypes.documentTypeIdentifiers()
+            val identifier = identifiers.singleOrNull() ?: throw IllegalArgumentException(
+                "Building '$documentType' needs exactly one IDB message type marked identifiesDocumentType, " +
+                        "found ${identifiers.map { it.name }}"
+            )
+            documentTypeIdentifier = identifier.name to DerTlv(
+                identifier.tag.toByte(), DataEncoder.encodeValueByCoding(identifier.coding, type.tag, identifier.tag)
+            )
         }
 
         /**
          * Three-letter code of the issuing state, e.g. "D<<". Defaults to "UTO" (Utopia, the code ICAO
          * Doc 9303-3 recommends for specimen documents), so a seal built without it is a specimen.
-         * National message types of another country are reported as
-         * [FormatFinding.ForeignNationalDefinition] when read.
          */
         fun countryIdentifier(v: String) = apply { countryIdentifier = v }
         fun certificateReference(v: ByteArray) = apply { certificateReference = v }
         fun signingDate(v: String) = apply { signingDate = v }
         fun signerCertificate(v: ByteArray) = apply { signerCertBytes = v }
         fun compress(v: Boolean) = apply { compress = v }
-        // Messages are encoded with the definitions of the issuing country in build(), so unknown names
-        // or values that do not fit the coding are reported there.
-        fun <T> addMessage(tag: Int, value: T) = apply { messages += { it.addMessage(tag, value) } }
-        fun <T> addMessage(name: String, value: T) = apply { messages += { it.addMessage(name, value) } }
+        fun <T> addMessage(tag: Int, value: T) = apply { messageBuilder.addMessage(tag, value) }
+        fun <T> addMessage(name: String, value: T) = apply { messageBuilder.addMessage(name, value) }
         fun addMessage(name: String, block: SubMessageBuilder.() -> Unit) = apply {
-            messages += { it.addMessage(name) { SubMessageBuilder(this).block() } }
+            messageBuilder.addMessage(name) { SubMessageBuilder(this).block() }
         }
         fun addMessage(tag: Int, block: SubMessageBuilder.() -> Unit) = apply {
-            messages += { it.addMessage(tag) { SubMessageBuilder(this).block() } }
+            messageBuilder.addMessage(tag) { SubMessageBuilder(this).block() }
         }
 
         private fun buildMessageGroup(): IdbMessageGroup {
-            val builder = IdbMessageGroup.Builder(issuingCountry = countryIdentifier)
-            messages.forEach { add -> add(builder) }
-            documentType?.let { type ->
-                val identifier = DataEncoder.idbMessageTypes.findDocumentTypeIdentifier(type.country)
-                    ?: throw IllegalArgumentException(
-                        "No IDB message type identifies the document type '${type.name}' (country ${type.country})"
-                    )
-                require(builder.derTlvList.none { (it.tag.toInt() and 0xFF) == identifier.tag }) {
-                    "${identifier.name} is set by the document type '${type.name}'; do not add it"
-                }
-                builder.addMessage(identifier.name, type.tag)
+            val (name, identifier) = documentTypeIdentifier ?: return messageBuilder.build()
+            require(messageBuilder.derTlvList.none { it.tag == identifier.tag }) {
+                "$name is set by the document type; do not add it"
             }
-            return builder.build()
+            return IdbMessageGroup(messageBuilder.derTlvList + identifier)
         }
 
-        /**
-         * Builds an unsigned seal. It is checked with the same rules as reading (see [Seal.formatFindings]).
-         *
-         * @throws IllegalArgumentException if the seal would have `WRONG_FORMAT` findings, e.g. a missing
-         *   required message or a wrong length of a verified message type; all are listed in the message
-         */
         fun build(): IdbSeal {
             val header = IdbHeader(countryIdentifier)
             val payload = IdbPayload(header, buildMessageGroup(), null, null)
-            return IdbSeal(isSigned = false, isZipped = compress, barcodePayload = payload).also {
-                requireNoWrongFormat(documentType?.name ?: "IDB", it.formatFindings)
-            }
+            return IdbSeal(isSigned = false, isZipped = compress, barcodePayload = payload)
         }
 
-        /**
-         * Builds a signed seal. It is checked like [build] before it is signed.
-         *
-         * @throws IllegalArgumentException if the seal would have `WRONG_FORMAT` findings
-         */
         fun build(signer: Signer): IdbSeal {
             val algo = IdbSignatureAlgorithm.fromFieldSize(signer.fieldSize)
             val header = IdbHeader(countryIdentifier, algo, certificateReference, signingDate)
             val msgGroup = buildMessageGroup()
-            val unsigned = IdbSeal(isSigned = false, isZipped = compress, barcodePayload = IdbPayload(header, msgGroup, null, null))
-            requireNoWrongFormat(documentType?.name ?: "IDB", unsigned.formatFindings)
             val sigBytes = signer.sign(header.encoded + msgGroup.encoded)
             val cert = signerCertBytes?.let { IdbSignerCertificate(it) }
             val payload = IdbPayload(header, msgGroup, cert, IdbSignature(sigBytes))
