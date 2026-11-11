@@ -72,6 +72,10 @@ All notable changes to this project will be documented in this file.
   with the definitions of the issuing country (`addMessage(tag, …)` for a tag
   that several countries define). Unknown names or values that do not fit the
   coding are thus reported by `build()` instead of `addMessage()`.
+- **Breaking:** `IdbMessageTypeDto.minBytes` and `maxBytes` are removed, and
+  the bundled IDB message types no longer carry `minBytes`, `maxBytes` or
+  sub-message `required`. Nothing read them, and they were not verified against
+  ICAO TR-IDB. Such keys in custom JSON are ignored.
 - **Breaking:** the bundled definition files are split by specification:
   `icao-9303/`, `icao-idb/`, `bsi-tr-03137/` and `bsi-tr-03171/`, each with a
   `spec.json` that sets the `country` of its entries

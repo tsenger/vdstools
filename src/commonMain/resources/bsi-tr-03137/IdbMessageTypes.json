@@ -2,51 +2,37 @@
   {
     "name": "FACE_IMAGE",
     "tag": 128,
-    "coding": "BYTES",
-    "minBytes": 900,
-    "maxBytes": 1000
+    "coding": "BYTES"
   },
   {
     "name": "MRZ_TD2",
     "tag": 129,
-    "coding": "MRZ",
-    "minBytes": 48,
-    "maxBytes": 48
+    "coding": "MRZ"
   },
   {
     "name": "DOCUMENT_REFERENCE",
     "tag": 130,
-    "coding": "C40",
-    "minBytes": 6,
-    "maxBytes": 6
+    "coding": "C40"
   },
   {
     "name": "AZR",
     "tag": 131,
-    "coding": "C40",
-    "minBytes": 8,
-    "maxBytes": 8
+    "coding": "C40"
   },
   {
     "name": "EXPIRY_DATE",
     "tag": 132,
-    "coding": "MASKED_DATE",
-    "minBytes": 4,
-    "maxBytes": 4
+    "coding": "MASKED_DATE"
   },
   {
     "name": "DOCUMENT_NUMBER",
     "tag": 133,
-    "coding": "C40",
-    "minBytes": 6,
-    "maxBytes": 6
+    "coding": "C40"
   },
   {
     "name": "NATIONAL_DOCUMENT_IDENTIFIER",
     "tag": 134,
     "coding": "BYTE",
-    "minBytes": 1,
-    "maxBytes": 1,
     "identifiesDocumentType": true
   }
 ]
