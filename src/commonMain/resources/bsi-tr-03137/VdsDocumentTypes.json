@@ -2,7 +2,6 @@
   {
     "documentType": "ARRIVAL_ATTESTATION",
     "documentRef": "fd02",
-    "country": "D",
     "specification": "BSI TR-03137-1 V3.0 §6.2",
     "version": 3,
     "messages": [
@@ -27,7 +26,6 @@
   {
     "documentType": "ADDRESS_STICKER_ID",
     "documentRef": "f908",
-    "country": "D",
     "specification": "BSI TR-03137-1 V3.0 §9.2",
     "additionalFeaturesAllowed": false,
     "version": 4,
@@ -61,7 +59,6 @@
   {
     "documentType": "ADDRESS_STICKER_RP",
     "documentRef": "f90c",
-    "country": "D",
     "specification": "BSI TR-03137-1 V3.0 §9.2",
     "additionalFeaturesAllowed": false,
     "version": 4,
@@ -95,7 +92,6 @@
   {
     "documentType": "ADDRESS_STICKER_PASSPORT",
     "documentRef": "f80a",
-    "country": "D",
     "specification": "BSI TR-03137-1 V3.0 §10.2",
     "additionalFeaturesAllowed": false,
     "version": 4,
@@ -129,7 +125,6 @@
   {
     "documentType": "RESIDENCE_PERMIT",
     "documentRef": "fb06",
-    "country": "D",
     "specification": "BSI TR-03137-1 V3.0 §8.2",
     "additionalFeaturesAllowed": false,
     "version": 4,
@@ -155,7 +150,6 @@
   {
     "documentType": "SOCIAL_INSURANCE_CARD",
     "documentRef": "fc04",
-    "country": "D",
     "specification": "BSI TR-03137-1 V3.0 §7.2",
     "additionalFeaturesAllowed": false,
     "version": 4,
@@ -197,7 +191,6 @@
   {
     "documentType": "SUPPLEMENTARY_SHEET",
     "documentRef": "fa06",
-    "country": "D",
     "specification": "BSI TR-03137-1 V3.0 §8.4",
     "version": 4,
     "messages": [
@@ -216,117 +209,6 @@
         "required": true,
         "minBytes": 6,
         "maxBytes": 6
-      }
-    ]
-  },
-  {
-    "documentType": "ADMINISTRATIVE_DOCUMENTS_V8",
-    "documentRef": "01c8",
-    "country": "D",
-    "version": 4,
-    "uuidMessageLookup": true,
-    "uuidMessageTag": 0,
-    "metadataTagList": [
-      0,
-      1,
-      2,
-      3
-    ],
-    "messages": [
-      {
-        "name": "DOC_PROFILE_NUMBER",
-        "tag": 0,
-        "coding": "BYTES",
-        "required": true,
-        "minBytes": 16,
-        "maxBytes": 16
-      },
-      {
-        "name": "VALIDITY_DATES",
-        "tag": 1,
-        "coding": "VALIDITY_DATES",
-        "required": false,
-        "minBytes": 1,
-        "maxBytes": 17
-      }
-    ]
-  },
-  {
-    "documentType": "ADMINISTRATIVE_DOCUMENTS_V9",
-    "documentRef": "01c9",
-    "country": "D",
-    "specification": "BSI TR-03171 V0.9 §3.2",
-    "version": 4,
-    "uuidMessageLookup": true,
-    "uuidMessageTag": 0,
-    "metadataTagList": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9
-    ],
-    "messages": [
-      {
-        "name": "DOC_PROFILE_NUMBER",
-        "tag": 0,
-        "coding": "BYTES",
-        "required": true,
-        "minBytes": 16,
-        "maxBytes": 16
-      },
-      {
-        "name": "VALID_FROM",
-        "tag": 1,
-        "coding": "DATE_STRING",
-        "required": false,
-        "minBytes": 8,
-        "maxBytes": 8
-      },
-      {
-        "name": "VALID_TO",
-        "tag": 2,
-        "coding": "DATE_STRING",
-        "required": false,
-        "minBytes": 8,
-        "maxBytes": 8
-      },
-      {
-        "name": "PROFILE_URI",
-        "tag": 3,
-        "coding": "UTF8_STRING",
-        "required": true,
-        "minBytes": 0,
-        "maxBytes": 0
-      },
-      {
-        "name": "CERTIFICATE_URI",
-        "tag": 4,
-        "coding": "UTF8_STRING",
-        "required": true,
-        "minBytes": 0,
-        "maxBytes": 0
-      },
-      {
-        "name": "STATUS_URI",
-        "tag": 5,
-        "coding": "UTF8_STRING",
-        "required": false,
-        "minBytes": 0,
-        "maxBytes": 0
-      },
-      {
-        "name": "STATUS_LIST_INDEX",
-        "tag": 6,
-        "coding": "INTEGER",
-        "required": false,
-        "minBytes": 1,
-        "maxBytes": 0
       }
     ]
   }

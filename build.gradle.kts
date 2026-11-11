@@ -153,14 +153,23 @@ tasks.register("generateResourceConstants") {
     doLast {
         outputDir.mkdirs()
 
-        // Definitionen je Herausgeber: <issuer>/<Kind>.json, ICAO zuerst, dann alphabetisch
-        val issuers = inputDir.listFiles { f -> f.isDirectory }!!.map { it.name }
-            .sortedWith(compareBy({ it != "icao" }, { it }))
+        // Definitionen je Spezifikation: <spec>/spec.json + <spec>/<Kind>.json.
+        // Das Land steht nur in spec.json und wird in jeden Eintrag übernommen; internationale zuerst.
+        @Suppress("UNCHECKED_CAST")
+        fun readJson(f: File): Any = groovy.json.JsonSlurper().parse(f)
+        val specs = inputDir.listFiles { f -> f.isDirectory }!!
+            .map { it.name to (readJson(file("$it/spec.json")) as Map<String, Any?>)["country"] as String? }
+            .sortedWith(compareBy({ it.second != null }, { it.first }))
         val tripleQuote = "\"\"\""
         fun constant(kind: String, name: String): String {
-            val files = issuers.map { "$it/$kind.json" }.filter { file("$inputDir/$it").exists() }
-            val entries = files.joinToString(",\n") { path ->
-                "        // $path\n        $tripleQuote${file("$inputDir/$path").readText()}$tripleQuote"
+            val entries = specs.filter { file("$inputDir/${it.first}/$kind.json").exists() }.joinToString(",\n") { (spec, country) ->
+                val path = "$spec/$kind.json"
+                @Suppress("UNCHECKED_CAST")
+                val list = (readJson(file("$inputDir/$path")) as List<Map<String, Any?>>).map { entry ->
+                    require("country" !in entry) { "$path: 'country' belongs in $spec/spec.json, not in an entry" }
+                    if (country == null) entry else entry + ("country" to country)
+                }
+                "        // $path\n        $tripleQuote${groovy.json.JsonOutput.toJson(list)}$tripleQuote"
             }
             return "    val $name: List<String> = listOf(\n$entries\n    )"
         }
@@ -173,7 +182,7 @@ package de.tsenger.vdstools.generated
  * Generated resource constants from JSON files.
  * Do not edit manually - regenerate with: ./gradlew generateResourceConstants
  *
- * Source: src/commonMain/resources/<issuer>/, ICAO first. Each list is loaded in order.
+ * Source: src/commonMain/resources/<specification>/, international first. Each list is loaded in order.
  */
 internal object ResourceConstants {
 ${constant("VdsDocumentTypes", "VDS_DOCUMENT_TYPES_JSON")}
@@ -190,7 +199,7 @@ ${constant("IdbDocumentTypes", "IDB_DOCUMENT_TYPES_JSON")}
             writeText(kotlinCode)
         }
 
-        println("Generated ResourceConstants.kt from issuers $issuers")
+        println("Generated ResourceConstants.kt from ${specs.map { it.first }}")
     }
 }
 

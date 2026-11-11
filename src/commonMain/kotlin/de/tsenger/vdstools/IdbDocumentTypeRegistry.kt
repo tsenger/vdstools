@@ -15,7 +15,7 @@ import kotlinx.serialization.json.Json
  * between the numeric tag and the document type name, and provides the list of expected
  * message types for each national document type.
  *
- * The bundled definitions are loaded from `de/IdbDocumentTypes.json`.
+ * The bundled definitions are loaded from `bsi-tr-03137/IdbDocumentTypes.json`.
  *
  * @param jsonString JSON string containing an array of [IdbDocumentTypeDto] definitions
  */

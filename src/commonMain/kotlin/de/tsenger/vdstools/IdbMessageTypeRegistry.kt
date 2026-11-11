@@ -19,7 +19,7 @@ import kotlinx.serialization.json.Json
  * expected for a given document is determined by the national document type; see
  * [IdbDocumentTypeRegistry].
  *
- * The bundled definitions are loaded from `icao/IdbMessageTypes.json` and `de/IdbMessageTypes.json`.
+ * The bundled definitions are loaded from `icao-idb/IdbMessageTypes.json` and `bsi-tr-03137/IdbMessageTypes.json`.
  *
  * @param jsonString JSON string containing an array of [IdbMessageTypeDto] definitions
  */

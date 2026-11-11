@@ -53,8 +53,10 @@ import okio.*
  * | `IdbMessageTypes.json` | IDB | [idbMessageTypes] | IDB message type definitions: tag ↔ name ↔ coding |
  * | `IdbDocumentTypes.json` | IDB | [idbDocumentTypes] | Document types: tag ↔ name ↔ expected messages |
  *
- * The bundled files are split by issuer: `icao/` (no `country`, valid for all seals) and `de/`
- * (`"country": "D"`, BSI TR-03137 / TR-03171). They are embedded at compile time and loaded ICAO first. Custom definitions
+ * The bundled files are split by specification, one folder each: `icao-9303/`, `icao-idb/`,
+ * `bsi-tr-03137/` and `bsi-tr-03171/`. A folder's `spec.json` names the specification and, for a
+ * national one, the `country` that applies to all its entries. The files are embedded at compile time
+ * and loaded international ones first. Custom definitions
  * can be provided at runtime to extend or replace the built-in ones.
  *
  * ## Loading custom definitions
@@ -96,7 +98,7 @@ object DataEncoder {
      */
     const val ADMINISTRATIVE_DOCUMENTS_V9 = "ADMINISTRATIVE_DOCUMENTS_V9"
 
-    /** A registry with the bundled definitions, one file per issuer (ICAO first). */
+    /** A registry with the bundled definitions, one file per specification (international first). */
     private fun <R : DefinitionRegistry> bundled(jsonFiles: List<String>, create: (String) -> R): R =
         create("[]").apply { jsonFiles.forEach(::addEntriesFromJson) }
 

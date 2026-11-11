@@ -250,8 +250,10 @@ national definition of another country if exactly one country defines it. The la
 is unknown, the IDB message raw. The issuing country of a built seal is always the one you set; the definition only
 describes the content.
 
-The bundled definitions are split by issuer: `src/commonMain/resources/icao/` and `src/commonMain/resources/de/`.
-Definitions for another country can be added with `DataEncoder.addCustom…` and an explicit `"country"`.
+The bundled definitions are split by specification, one folder each in `src/commonMain/resources/`: `icao-9303/`
+(VDS visa and ETD), `icao-idb/` (IDB message types `0x01`–`0x0A`), `bsi-tr-03137/` and `bsi-tr-03171/`. A folder's
+`spec.json` names the specification and, for a national one, the `country` of all its entries. Definitions for another
+country can be added with `DataEncoder.addCustom…` and an explicit `"country"` per entry.
 
 ## Build a barcode
 
@@ -507,7 +509,7 @@ val vdsSeal = VdsSeal.Builder("MY_CUSTOM_DOCUMENT")
 | `DATE`        | 3-byte date (ICAO format, e.g. "2024-06-15")                |
 | `MASKED_DATE` | 4-byte date with uncertainty masks                          |
 
-See `src/commonMain/resources/icao/VdsDocumentTypes.json` and `src/commonMain/resources/de/VdsDocumentTypes.json` for the complete structure of the default document types.
+See the `VdsDocumentTypes.json` files in `src/commonMain/resources/` for the complete structure of the default document types.
 
 ## Byte-level structure inspection with the `dissect` package
 

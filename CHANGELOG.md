@@ -57,10 +57,10 @@ All notable changes to this project will be documented in this file.
   with the same key **and** country. A custom entry without `country` no longer
   replaces a bundled German type of another name; it applies to all other
   countries.
-- **Breaking:** the bundled definition files are split by issuer:
-  `icao/VdsDocumentTypes.json`, `icao/IdbMessageTypes.json`,
-  `de/VdsDocumentTypes.json`, `de/IdbMessageTypes.json` and
-  `de/IdbDocumentTypes.json` (was `IdbGermanDocumentTypes.json`). The constants
+- **Breaking:** the bundled definition files are split by specification:
+  `icao-9303/`, `icao-idb/`, `bsi-tr-03137/` and `bsi-tr-03171/`, each with a
+  `spec.json` that sets the `country` of its entries
+  (`IdbGermanDocumentTypes.json` is now `bsi-tr-03137/IdbDocumentTypes.json`). The constants
   `DEFAULT_VDS_DOCUMENT_TYPES`, `DEFAULT_IDB_MESSAGE_TYPES` and
   `DEFAULT_IDB_DOCUMENT_TYPES` are removed; `DataEncoder.resetToDefaults()`
   restores the bundled definitions.

@@ -1,7 +1,6 @@
 [
   {
     "tag": 1,
-    "country": "D",
     "name": "SUBSTITUTE_IDENTITY_DOCUMENT",
     "messages": [
       {
@@ -24,7 +23,6 @@
   },
   {
     "tag": 2,
-    "country": "D",
     "name": "SUBSTITUTE_PASSPORT_DOCUMENT",
     "messages": [
       {
@@ -47,7 +45,6 @@
   },
   {
     "tag": 3,
-    "country": "D",
     "name": "EMERGENCY_TRAVEL_DOCUMENT",
     "messages": [
       {
@@ -70,7 +67,6 @@
   },
   {
     "tag": 4,
-    "country": "D",
     "name": "TEMPORARY_IDENTITY_CARD",
     "messages": [
       {
@@ -93,7 +89,6 @@
   },
   {
     "tag": 5,
-    "country": "D",
     "name": "TEMPORARY_OFFICIAL_PASSPORT",
     "messages": [
       {
@@ -116,7 +111,6 @@
   },
   {
     "tag": 6,
-    "country": "D",
     "name": "TEMPORARY_PASSPORT",
     "messages": [
       {
@@ -139,7 +133,6 @@
   },
   {
     "tag": 7,
-    "country": "D",
     "name": "TEMPORARY_DIPLOMATIC_PASSPORT",
     "messages": [
       {
@@ -162,7 +155,6 @@
   },
   {
     "tag": 8,
-    "country": "D",
     "name": "TEMPORARY_TRAVEL_DOCUMENT_REFUGEES",
     "messages": [
       {
@@ -185,7 +177,6 @@
   },
   {
     "tag": 9,
-    "country": "D",
     "name": "TEMPORARY_TRAVEL_DOCUMENT_STATELESS_PERSONS",
     "messages": [
       {
@@ -208,7 +199,6 @@
   },
   {
     "tag": 10,
-    "country": "D",
     "name": "TEMPORARY_TRAVEL_DOCUMENT_FOREIGNERS",
     "messages": [
       {
@@ -231,7 +221,6 @@
   },
   {
     "tag": 11,
-    "country": "D",
     "name": "PERMISSION_TO_RETAIN_PENDING_THE_ASYLUM_DECISION",
     "messages": [
       {
@@ -254,7 +243,6 @@
   },
   {
     "tag": 12,
-    "country": "D",
     "name": "TEMPORARY_SUSPENSION_OF_DEPORTATION",
     "messages": [
       {
@@ -277,7 +265,6 @@
   },
   {
     "tag": 13,
-    "country": "D",
     "name": "ARRIVAL_ATTESTATION_IDB",
     "messages": [
       {
@@ -300,7 +287,6 @@
   },
   {
     "tag": 14,
-    "country": "D",
     "name": "PROVISIONAL_RESIDENCE_DOCUMENT",
     "messages": [
       {
@@ -323,7 +309,6 @@
   },
   {
     "tag": 15,
-    "country": "D",
     "name": "TEMPORARY_IDENTITY_DOCUMENT",
     "messages": [
       {
@@ -346,7 +331,6 @@
   },
   {
     "tag": 16,
-    "country": "D",
     "name": "CERTIFYING_PERMANENT_RESIDENCE",
     "messages": [
       {
@@ -365,7 +349,6 @@
   },
   {
     "tag": 17,
-    "country": "D",
     "name": "FRONTIER_WORKER_PERMIT",
     "messages": [
       {
@@ -388,7 +371,6 @@
   },
   {
     "tag": 18,
-    "country": "D",
     "name": "SUPPLEMENTARY_SHEET_FOR_RESIDENCE_PERMIT_CARD",
     "messages": [
       {
