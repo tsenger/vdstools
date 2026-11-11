@@ -200,6 +200,12 @@ class IdbSeal : Seal {
         private var compress: Boolean = false
         private val messageBuilder = IdbMessageGroup.Builder()
 
+        /**
+         * Three-letter code of the issuing state, e.g. "D<<". Defaults to "UTO" (Utopia, the code ICAO
+         * Doc 9303-3 recommends for specimen documents), so a seal built without it is a specimen.
+         * National message types of another country are reported as
+         * [FormatFinding.ForeignNationalDefinition] when read.
+         */
         fun countryIdentifier(v: String) = apply { countryIdentifier = v }
         fun certificateReference(v: ByteArray) = apply { certificateReference = v }
         fun signingDate(v: String) = apply { signingDate = v }

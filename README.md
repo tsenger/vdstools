@@ -263,6 +263,11 @@ The library follows a symmetric design:
 
 Both builders follow the same Kotlin fluent style: chain configuration calls, then call `build()`.
 
+The issuing country is always the one you set (`issuingCountry(...)` / `countryIdentifier(...)`); the document type does
+not set it. Without it, both builders use `UTO` (Utopia, which ICAO Doc 9303-3 recommends for specimen documents), so
+the seal is a specimen. Reading a national type on a seal of another country reports `ForeignNationalDefinition` (see
+[National definitions](#national-definitions)).
+
 `VdsSeal.Builder.build()` checks the seal with the same rules as reading (see [Format findings](#format-findings)) and
 throws an `IllegalArgumentException` listing every `WRONG_FORMAT` violation, e.g. a missing required message or a wrong
 length. Document types without a verified `specification` are not checked for required messages and lengths.

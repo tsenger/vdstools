@@ -193,6 +193,12 @@ class VdsSeal : Seal {
             profile?.let { VdsMessageGroup.Builder(it) } ?: VdsMessageGroup.Builder(documentType)
         )
 
+        /**
+         * Three-letter code of the issuing state, e.g. "D<<". Defaults to "UTO" (Utopia, the code ICAO
+         * Doc 9303-3 recommends for specimen documents), so a seal built without it is a specimen. The
+         * document type does not set it; a national type on a seal of another country is reported as
+         * [FormatFinding.ForeignNationalDefinition] when read.
+         */
         fun issuingCountry(v: String) = apply { headerBuilder.setIssuingCountry(v) }
         fun signerIdentifier(v: String) = apply { headerBuilder.setSignerIdentifier(v) }
         fun certificateReference(v: String) = apply { headerBuilder.setCertificateReference(v) }
