@@ -21,7 +21,7 @@ data class IdbMessageTypeDto(
     val messages: List<MessageDto> = emptyList(),
     /**
      * True for the message type whose value is the national document type (e.g. BSI TR-03137 0x86
-     * `NATIONAL_DOCUMENT_IDENTIFIER`); it is looked up in the IDB document types.
+     * `NATIONAL_DOCUMENT_IDENTIFIER`); it is looked up in the IDB document types. Must be coded as `BYTE`.
      */
     var identifiesDocumentType: Boolean = false,
 )

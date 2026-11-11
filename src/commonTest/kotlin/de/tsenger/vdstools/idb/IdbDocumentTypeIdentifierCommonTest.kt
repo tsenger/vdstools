@@ -41,10 +41,10 @@ class IdbDocumentTypeIdentifierCommonTest {
                 {"name": "MY_NUMBER", "tag": 145, "coding": "C40"}]"""
         )
         DataEncoder.addCustomIdbDocumentTypes(
-            """[{"tag": 1, "name": "MY_TYPE", "specification": "Test spec",
+            """[{"tag": 80, "name": "MY_TYPE", "specification": "Test spec",
                  "messages": [{"name": "MY_DOCUMENT_TYPE", "required": true}, {"name": "MY_NUMBER", "required": true}]}]"""
         )
-        val seal = seal("D<<") { addMessage("MY_DOCUMENT_TYPE", 1) }
+        val seal = seal("D<<") { addMessage("MY_DOCUMENT_TYPE", 80) }
         assertEquals("MY_TYPE", seal.documentType)
         assertEquals(listOf(FormatFinding.MissingRequired(listOf(0x91), "MY_NUMBER")), seal.formatFindings)
     }

@@ -63,10 +63,20 @@ class IdbBuilderDocumentTypeCommonTest {
                 {"name": "MY_DOCUMENT_TYPE", "tag": 144, "coding": "BYTE", "identifiesDocumentType": true},
                 {"name": "MY_NUMBER", "tag": 145, "coding": "C40"}]"""
         )
-        DataEncoder.addCustomIdbDocumentTypes("""[{"tag": 1, "name": "MY_TYPE", "messages": [{"name": "MY_NUMBER", "required": true}]}]""")
+        DataEncoder.addCustomIdbDocumentTypes("""[{"tag": 80, "name": "MY_TYPE", "messages": [{"name": "MY_NUMBER", "required": true}]}]""")
         val seal = parse(IdbSeal.Builder("MY_TYPE").addMessage("MY_NUMBER", "AB123").build())
         assertEquals("MY_TYPE", seal.documentType)
         assertEquals(listOf(0x91, 0x90), seal.messageList.map { it.tag })
+        assertEquals("SUBSTITUTE_IDENTITY_DOCUMENT", DataEncoder.idbDocumentTypes.getDocumentType(1), "bundled types stay")
+    }
+
+    @Test
+    fun identifierNotCodedAsByte_isRejected() {
+        DataEncoder.addCustomIdbMessageTypes(
+            """[{"name": "NATIONAL_DOCUMENT_IDENTIFIER", "tag": 134, "coding": "INTEGER", "identifiesDocumentType": true}]"""
+        )
+        val e = assertFailsWith<IllegalArgumentException> { IdbSeal.Builder("CERTIFYING_PERMANENT_RESIDENCE") }
+        assertTrue(e.message!!.contains("BYTE"), e.message)
     }
 
     @Test

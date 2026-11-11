@@ -5,6 +5,7 @@ import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.Signer
 import de.tsenger.vdstools.generic.FormatFinding
 import de.tsenger.vdstools.generic.Message
+import de.tsenger.vdstools.generic.MessageCoding
 import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.generic.Seal
 import de.tsenger.vdstools.generic.SealType
@@ -204,7 +205,7 @@ class IdbSeal : Seal {
          * TR-03137: 0x86 `NATIONAL_DOCUMENT_IDENTIFIER`) is appended by [build]; do not add it.
          *
          * @throws IllegalArgumentException if no IDB document type has this name, or not exactly one
-         *   message type is marked `identifiesDocumentType`
+         *   message type is marked `identifiesDocumentType`, or that type is not coded as `BYTE`
          */
         constructor(documentType: String) : this() {
             val type = DataEncoder.idbDocumentTypes.findByName(documentType)
@@ -214,6 +215,9 @@ class IdbSeal : Seal {
                 "Building '$documentType' needs exactly one IDB message type marked identifiesDocumentType, " +
                         "found ${identifiers.map { it.name }}"
             )
+            require(identifier.coding == MessageCoding.BYTE) {
+                "The document type identifier ${identifier.name} must be coded as BYTE, not ${identifier.coding}"
+            }
             documentTypeIdentifier = identifier.name to DerTlv(
                 identifier.tag.toByte(), DataEncoder.encodeValueByCoding(identifier.coding, type.tag, identifier.tag)
             )

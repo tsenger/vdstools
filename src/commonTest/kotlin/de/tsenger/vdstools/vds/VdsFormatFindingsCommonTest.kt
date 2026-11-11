@@ -324,4 +324,15 @@ class VdsFormatFindingsCommonTest {
         assertEquals(Category.UNDETERMINED, finding.category)
         assertEquals(emptyList(), finding.tagPath)
     }
+
+    @Test
+    fun builtSealOfUnregisteredName_isUnknownDocumentType() {
+        val signer = object : de.tsenger.vdstools.Signer {
+            override val fieldSize = 256
+            override fun sign(data: ByteArray) = ByteArray(64)
+        }
+        val seal = VdsSeal.Builder("NOT_REGISTERED").build(signer)
+        assertEquals(VdsHeader.UNKNOWN_TYPE, seal.documentType)
+        assertEquals(listOf(FormatFinding.UnknownDocumentType(0)), seal.formatFindings)
+    }
 }

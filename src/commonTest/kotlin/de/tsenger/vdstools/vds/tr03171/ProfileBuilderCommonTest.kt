@@ -75,6 +75,28 @@ class ProfileBuilderCommonTest {
     }
 
     @Test
+    fun byName_baseTypeWithoutProfileNumber_throws() {
+        // the same rule as forProfile: the base type must carry the profile number
+        DataEncoder.loadVdsProfileDefinitionFromXml(profileXml(uuidA, "OWN_PROFILE"))
+        DataEncoder.addCustomVdsDocumentTypes("""[{"documentType": "ADMINISTRATIVE_DOCUMENTS_V9", "documentRef": "01c9", "version": 4}]""")
+        val e = assertFailsWith<IllegalArgumentException> { VdsSeal.Builder("OWN_PROFILE") }
+        assertTrue(e.message!!.contains("uuidMessageLookup"), e.message)
+    }
+
+    @Test
+    fun forProfile_writesTheProfileNumberAtTheUuidTagOfTheBaseType() {
+        DataEncoder.addCustomVdsDocumentTypes(
+            """[{"documentType": "MY_BASE", "documentRef": "01ca", "version": 4, "uuidMessageLookup": true,
+                 "uuidMessageTag": 5, "metadataTagList": [5]}]"""
+        )
+        val base = ProfileConverter.toVdsProfileDefinition(ProfileXmlParser.parse(profileXml(uuidA, "OWN_PROFILE")))
+        val profile = base.copy(baseDocumentType = "MY_BASE")
+        val seal = VdsSeal.Builder.forProfile(profile).addMessage("SURNAME", "Mustermann").build(dummySigner)
+        assertEquals(uuidA, seal.documentProfileUuid?.toHexString()?.uppercase())
+        assertEquals(listOf("SURNAME"), seal.messageList.map { it.name })
+    }
+
+    @Test
     fun byName_ambiguousProfileName_throws() {
         // a changed profile gets a new UUID but may keep its name
         DataEncoder.loadVdsProfileDefinitionFromXml(profileXml(uuidA, "MELDEBESTAETIGUNG"))

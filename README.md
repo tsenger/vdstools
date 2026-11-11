@@ -250,14 +250,15 @@ findings. If that matters for your application, check `seal.issuingCountry`, or 
 with `DataEncoder.replaceCustom…`.
 
 An IDB message type marked `"identifiesDocumentType": true` carries the national document type (bundled: BSI
-TR-03137 `0x86` `NATIONAL_DOCUMENT_IDENTIFIER`); its value is looked up in the IDB document types. Own definitions can
-use another tag:
+TR-03137 `0x86` `NATIONAL_DOCUMENT_IDENTIFIER`, coded as `BYTE`); its value is looked up in the IDB document types.
+Own definitions can use another tag. All IDB document types share one value range, and an entry replaces one with the
+same value, so pick a value the bundled types do not use (they use `0x01`–`0x12`):
 
 ```kotlin
 DataEncoder.addCustomIdbMessageTypes("""[
     {"name": "NATIONAL_DOCUMENT_IDENTIFIER", "tag": 134, "coding": "BYTE"},
     {"name": "MY_DOCUMENT_TYPE", "tag": 144, "coding": "BYTE", "identifiesDocumentType": true}]""")
-DataEncoder.addCustomIdbDocumentTypes("""[{"tag": 1, "name": "MY_TYPE",
+DataEncoder.addCustomIdbDocumentTypes("""[{"tag": 80, "name": "MY_TYPE",
     "messages": [{"name": "MY_DOCUMENT_TYPE", "required": true}]}]""")
 ```
 

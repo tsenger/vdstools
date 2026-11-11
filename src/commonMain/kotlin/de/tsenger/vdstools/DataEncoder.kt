@@ -97,7 +97,7 @@ object DataEncoder {
      */
     const val ADMINISTRATIVE_DOCUMENTS_V9 = "ADMINISTRATIVE_DOCUMENTS_V9"
 
-    /** A registry with the bundled definitions, one file per specification (international first). */
+    /** A registry with the bundled definitions, one file per specification folder (alphabetical). */
     private fun <R : DefinitionRegistry> bundled(jsonFiles: List<String>, create: (String) -> R): R =
         create("[]").apply { jsonFiles.forEach(::addEntriesFromJson) }
 

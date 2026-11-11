@@ -165,15 +165,15 @@ internal class VdsHeader {
             private set
 
         /** Builds a header for a document type or registered profile name (see [profileForName]). */
-        constructor(vdsType: String) : this() {
-            val profile = profileForName(vdsType)
-            if (profile != null) applyBaseDocumentRef(profile.baseDocumentType)
-            else DataEncoder.vdsDocumentTypes.getDocumentRef(vdsType)?.let(::applyDocumentRef)
-        }
+        constructor(vdsType: String) : this(vdsType, profileForName(vdsType))
 
         /** Builds a header for an already-resolved (e.g. TR-03171) profile definition. */
-        constructor(profileDefinition: VdsProfileDefinitionDto) : this() {
-            applyBaseDocumentRef(profileDefinition.baseDocumentType)
+        constructor(profileDefinition: VdsProfileDefinitionDto) : this(profileDefinition.definitionName, profileDefinition)
+
+        /** Builds a header for [vdsType], or with an already-resolved [profile] for its base document type. */
+        constructor(vdsType: String, profile: VdsProfileDefinitionDto?) : this() {
+            if (profile != null) applyBaseDocumentRef(profile.baseDocumentType)
+            else DataEncoder.vdsDocumentTypes.getDocumentRef(vdsType)?.let(::applyDocumentRef)
         }
 
         fun setIssuingCountry(issuingCountry: String): Builder {

@@ -7,8 +7,8 @@ import de.tsenger.vdstools.generic.MessageCoding
 import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
 
 /**
- * TR-03171 rules for the message zone that depend on the profile, reported as [FormatFinding]s.
- * The builder enforces them through the same findings.
+ * TR-03171 rules for the message zone that depend on the profile, reported as [FormatFinding]s
+ * when a seal is read (the builders do not enforce them).
  */
 internal object Tr03171Conformance {
 

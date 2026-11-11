@@ -43,6 +43,7 @@ class VdsDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
 
     private fun populateMappings() {
         vdsTypes.clear()
+        vdsMessages.clear()
         for ((documentType, documentRef, _, messages) in documentTypeDtoList) {
             if (documentType != "" && documentRef != "") {
                 vdsTypes[documentType] = documentRef.toInt(16)

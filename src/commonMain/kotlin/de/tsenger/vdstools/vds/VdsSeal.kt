@@ -161,7 +161,7 @@ class VdsSeal : Seal {
         }
 
     override val formatFindings: List<FormatFinding>
-        get() = if (vdsMessageGroup.vdsType == VdsHeader.UNKNOWN_TYPE) {
+        get() = if (documentType == VdsHeader.UNKNOWN_TYPE) {
             listOf(FormatFinding.UnknownDocumentType(vdsHeader.documentRef))
         } else {
             vdsMessageGroup.formatFindings()
@@ -181,8 +181,8 @@ class VdsSeal : Seal {
         constructor(documentType: String) : this(profileForName(documentType), documentType)
 
         private constructor(profile: VdsProfileDefinitionDto?, documentType: String) : this(
-            profile?.let { VdsHeader.Builder(it) } ?: VdsHeader.Builder(documentType),
-            profile?.let { VdsMessageGroup.Builder(it) } ?: VdsMessageGroup.Builder(documentType)
+            VdsHeader.Builder(documentType, profile),
+            VdsMessageGroup.Builder(documentType, profile)
         )
 
         /**
@@ -234,14 +234,8 @@ class VdsSeal : Seal {
              * @throws IllegalArgumentException if the profile's base document type does not carry a
              *   profile number (`uuidMessageLookup`), e.g. a custom type
              */
-            fun forProfile(profileDefinition: VdsProfileDefinitionDto): Builder {
-                val base = DataEncoder.vdsDocumentTypes.findDocumentTypeDto(profileDefinition.baseDocumentType)
-                require(base?.uuidMessageLookup == true) {
-                    "Base document type '${profileDefinition.baseDocumentType}' of profile " +
-                            "'${profileDefinition.definitionName}' does not carry a profile number (uuidMessageLookup)"
-                }
-                return Builder(VdsHeader.Builder(profileDefinition), VdsMessageGroup.Builder(profileDefinition))
-            }
+            fun forProfile(profileDefinition: VdsProfileDefinitionDto): Builder =
+                Builder(profileDefinition, profileDefinition.definitionName)
         }
     }
 

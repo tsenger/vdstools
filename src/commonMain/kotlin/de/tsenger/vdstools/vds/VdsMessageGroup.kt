@@ -162,18 +162,36 @@ internal class VdsMessageGroup(
             private set
 
         /** Builds a message group for a document type or registered profile name (see [profileForName]). */
-        constructor(vdsType: String) : this() {
-            this.vdsType = vdsType
-            this.profileDefinition = profileForName(vdsType)
-            this.baseVdsType = profileDefinition?.baseDocumentType ?: vdsType
-        }
+        constructor(vdsType: String) : this(vdsType, profileForName(vdsType))
 
         /** Builds a message group for an already-resolved (e.g. TR-03171) profile definition. */
-        constructor(profileDefinition: VdsProfileDefinitionDto) : this() {
-            this.vdsType = profileDefinition.definitionName
-            this.profileDefinition = profileDefinition
-            this.baseVdsType = profileDefinition.baseDocumentType
+        constructor(profileDefinition: VdsProfileDefinitionDto) : this(profileDefinition.definitionName, profileDefinition)
+
+        /**
+         * Builds a message group for [vdsType], or with an already-resolved [profile] for that profile.
+         *
+         * @throws IllegalArgumentException if the profile's base document type does not carry a profile
+         *   number (`uuidMessageLookup`), e.g. a custom type
+         */
+        constructor(vdsType: String, profile: VdsProfileDefinitionDto?) : this() {
+            this.profileDefinition = profile
+            if (profile == null) {
+                this.vdsType = vdsType
+                this.baseVdsType = vdsType
+            } else {
+                val base = DataEncoder.vdsDocumentTypes.findDocumentTypeDto(profile.baseDocumentType)
+                require(base?.uuidMessageLookup == true) {
+                    "Base document type '${profile.baseDocumentType}' of profile '${profile.definitionName}' " +
+                            "does not carry a profile number (uuidMessageLookup)"
+                }
+                this.vdsType = profile.definitionName
+                this.baseVdsType = profile.baseDocumentType
+                this.uuidMessageTag = base.uuidMessageTag
+            }
         }
+
+        /** The tag of the profile number in the base document type (TR-03171: 0). */
+        private var uuidMessageTag: Int = 0
 
         @Throws(IllegalArgumentException::class)
         fun <T> addMessage(tag: Int, value: T): Builder {
@@ -190,12 +208,13 @@ internal class VdsMessageGroup(
 
         /**
          * Builds the group and binds its definitions. With a profile, its UUID is prepended as the
-         * profile number (tag 0) and the group is typed as the profile's base document type.
+         * profile number (the base type's UUID tag, TR-03171: 0) and the group is typed as the
+         * profile's base document type.
          */
         @OptIn(ExperimentalStdlibApi::class)
         fun build(): VdsMessageGroup {
             val definition = profileDefinition ?: return VdsMessageGroup(vdsType, derTlvList.toList())
-            val uuidTlv = DerTlv(0.toByte(), definition.definitionId.hexToByteArray())
+            val uuidTlv = DerTlv(uuidMessageTag.toByte(), definition.definitionId.hexToByteArray())
             return VdsMessageGroup(baseVdsType, listOf(uuidTlv) + derTlvList, definition)
         }
     }
