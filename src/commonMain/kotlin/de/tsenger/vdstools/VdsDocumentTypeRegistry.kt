@@ -407,15 +407,13 @@ class VdsDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
         }
     }
 
+    /** The document type definition of [vdsType], or null if it is not registered. */
+    internal fun findDocumentTypeDto(vdsType: String): VdsDocumentTypeDto? =
+        documentTypeDtoList.firstOrNull { it.documentType == vdsType }
+
     @Throws(IllegalArgumentException::class)
-    private fun getVdsDocumentTypeDto(vdsType: String): VdsDocumentTypeDto {
-        for (docTypeDto in documentTypeDtoList) {
-            if (docTypeDto.documentType == vdsType) {
-                return docTypeDto
-            }
-        }
-        throw IllegalArgumentException("VdsType '$vdsType' is unspecified in VdsDocumentTypes.")
-    }
+    private fun getVdsDocumentTypeDto(vdsType: String): VdsDocumentTypeDto =
+        findDocumentTypeDto(vdsType) ?: throw IllegalArgumentException("VdsType '$vdsType' is unspecified in VdsDocumentTypes.")
 
 
 }

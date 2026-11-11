@@ -10,6 +10,25 @@ class Message(
     val value: MessageValue,
     val messageList: List<Message> = emptyList()
 ) {
+    /**
+     * True if [value] holds the uninterpreted raw bytes of this message instead of a decoded value:
+     * either no definition exists for its tag (the name is then the tag in hex, e.g. `0x0A`), or
+     * the bytes cannot be decoded with the coding of its definition. A message defined as plain
+     * bytes, and a container message (whose interpretation are its sub-messages), is not raw.
+     */
+    val isRaw: Boolean
+        get() = coding == MessageCoding.UNKNOWN || (value is MessageValue.BytesValue
+                && coding != MessageCoding.BYTES && coding != MessageCoding.SUB_MESSAGES)
+
+    /**
+     * False if neither the document type, the profile nor the enclosing container defines this
+     * message's tag; the message is then raw ([isRaw]) and named by its tag in hex, e.g. `0x0A`.
+     * A defined message whose bytes cannot be decoded is still defined: [isRaw] and [isDefined]
+     * are then both true (reported as [FormatFinding.DecodeFailed]).
+     */
+    val isDefined: Boolean
+        get() = coding != MessageCoding.UNKNOWN
+
     val encoded: ByteArray
         get() = if (messageList.isNotEmpty()) {
             val childBytes = Buffer()

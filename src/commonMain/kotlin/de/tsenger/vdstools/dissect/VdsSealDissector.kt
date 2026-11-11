@@ -52,11 +52,11 @@ private fun VdsSeal.buildMessageGroupDissection(
     val msgBytes = raw.copyOfRange(headerLen, signedEnd)
     val spans = scanTlvs(msgBytes, baseOffset = headerLen)
 
-    // Include metadata messages (V9 tags 0x00–0x06) so they get proper names too
+    // TLVs of the message zone are messages or metadata messages (raw ones named "0x0A"); an empty
+    // signature TLV (FF 00) yields no signature range and is scanned here too, so fall back to the hex tag
     val allMessages = messageList + metadataMessageList
     val children = spans.map { span ->
-        val label = allMessages.firstOrNull { it.tag == (span.tag and 0xFF) }?.name
-            ?: "Unknown (0x${span.tag.toHex()})"
+        val label = allMessages.firstOrNull { it.tag == (span.tag and 0xFF) }?.name ?: "0x${span.tag.toHex()}"
         FieldDissection(
             label, span.range, listOf(
                 FieldDissection("Tag (0x${span.tag.toHex()})", span.tagRange),

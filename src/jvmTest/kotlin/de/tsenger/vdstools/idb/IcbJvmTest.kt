@@ -262,7 +262,7 @@ class IcbJvmTest {
         assertEquals(3, numberOfMessages)
 
         assertEquals("123456789", icb.getMessageByTag(0x82)?.value.toString())
-        assertEquals("ABC123456DEF", icb.getMessageByTag(0x83)?.value.toString())
+        assertEquals("ABC123456", icb.getMessageByTag(0x85)?.value.toString())
         assertEquals(0x10, (icb.getMessageByTag(0x86)?.value as? MessageValue.ByteValue)?.value)
 
         val cert = keystore.getCertificate("utts5b") as X509Certificate
@@ -280,7 +280,7 @@ class IcbJvmTest {
         assertEquals(3, numberOfMessages)
 
         assertEquals("123456789", icb.getMessageByTag(0x82)?.value.toString())
-        assertEquals("ABC123456DEF", icb.getMessageByTag(0x83)?.value.toString())
+        assertEquals("ABC123456", icb.getMessageByTag(0x85)?.value.toString())
         assertEquals(0x10, (icb.getMessageByTag(0x86)?.value as? MessageValue.ByteValue)?.value)
 
         val cert = keystore.getCertificate("utts5b") as X509Certificate

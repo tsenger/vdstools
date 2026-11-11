@@ -8,6 +8,7 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -247,6 +248,18 @@ class IdbMessageGroupCommonTest {
     }
 
     @Test
+    fun testUnknownTopLevelMessageIsRaw() {
+        val messageGroup = IdbMessageGroup(listOf(DerTlv(0x50, "abcd".hexToByteArray())))
+
+        val unknown = messageGroup.messageList.single()
+        assertEquals(0x50, unknown.tag)
+        assertEquals("0x50", unknown.name)
+        assertEquals(MessageCoding.UNKNOWN, unknown.coding)
+        assertTrue(unknown.isRaw)
+        assertContentEquals("abcd".hexToByteArray(), unknown.value.rawBytes)
+    }
+
+    @Test
     fun testUnknownSubMessageTagIsNotResolvedViaTopLevelRegistry() {
         // VISA defines sub-tags 1–7; sub-tag 0x08 is unknown inside VISA
         // (but 0x08 is MRZ_TD3 on top level, which must not leak into the container)
@@ -256,7 +269,9 @@ class IdbMessageGroupCommonTest {
 
         val visa = messageGroup.getMessageByName("VISA")
         assertNotNull(visa)
-        assertEquals(listOf("VISA_TYPE", "UNKNOWN"), visa.messageList.map { it.name })
+        assertEquals(listOf("VISA_TYPE", "0x08"), visa.messageList.map { it.name })
+        assertEquals(listOf(false, true), visa.messageList.map { it.isRaw })
+        assertFalse(visa.isRaw)
         val unknown = visa.getMessageByTag(0x08)
         assertNotNull(unknown)
         assertEquals(MessageCoding.UNKNOWN, unknown.coding)
@@ -278,7 +293,7 @@ class IdbMessageGroupCommonTest {
 
         val parsedEtd = messageGroup.getMessageByName("EMERGENCY_TRAVEL_DOCUMENT")
         assertNotNull(parsedEtd)
-        assertEquals(listOf("MRZ", "UNKNOWN"), parsedEtd.messageList.map { it.name })
+        assertEquals(listOf("MRZ", "0x01"), parsedEtd.messageList.map { it.name })
         val unknown = parsedEtd.getMessageByTag(0x01)
         assertNotNull(unknown)
         assertEquals(MessageCoding.UNKNOWN, unknown.coding)

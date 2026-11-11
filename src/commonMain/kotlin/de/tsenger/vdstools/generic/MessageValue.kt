@@ -337,7 +337,7 @@ sealed class MessageValue {
                     MessageCoding.INTEGER -> IntegerValue(DataEncoder.decodeInteger(bytes), bytes)
                     MessageCoding.BOOLEAN -> BooleanValue(DataEncoder.decodeBoolean(bytes), bytes)
                     MessageCoding.C40 -> StringValue(DataEncoder.decodeC40(bytes), bytes)
-                    MessageCoding.UTF8_STRING -> StringValue(bytes.decodeToString(), bytes)
+                    MessageCoding.UTF8_STRING -> StringValue(bytes.decodeToString(throwOnInvalidSequence = true), bytes)
                     MessageCoding.DATE -> DateValue(DataEncoder.decodeDate(bytes), bytes)
                     // TR-03171 v0.9: 8-byte YYYYMMDD UTF-8 string; decoded result is the same DateValue type
                     MessageCoding.DATE_STRING -> DateValue(DataEncoder.decodeDateString(bytes), bytes)

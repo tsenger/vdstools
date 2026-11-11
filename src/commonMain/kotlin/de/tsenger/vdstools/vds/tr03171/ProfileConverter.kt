@@ -39,7 +39,9 @@ object ProfileConverter {
             coding = coding,
             required = !entry.optional,
             minBytes = 1,
-            maxBytes = maxLength
+            maxBytes = maxLength,
+            // TR-03171 §4: the length is to be ignored for BOOLEAN, INTEGER, DATE and DATE-TIME
+            maxLength = if (entry.type == Asn1Type.OCTET_STRING || entry.type == Asn1Type.UTF8String) entry.length else null
         )
     }
 

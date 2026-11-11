@@ -2,10 +2,13 @@ package de.tsenger.vdstools.vds
 
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.asn1.DerTlv
+import de.tsenger.vdstools.generic.FormatFinding
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.MessageCoding
-import de.tsenger.vdstools.generic.MessageValue
+import de.tsenger.vdstools.generic.MessageResolver
+import de.tsenger.vdstools.vds.dto.VdsDocumentTypeDto
 import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
+import de.tsenger.vdstools.vds.tr03171.Tr03171Conformance
 import okio.Buffer
 
 
@@ -51,35 +54,20 @@ internal class VdsMessageGroup {
 
     val messageList: List<Message>
         /**
-         * @return a list of all decoded Messages, using extended message definition-aware lookup if available.
-         * Metadata tags (e.g. UUID tag) are excluded.
-         * For unknown document types, messages are returned as raw bytes with names like "TAG02".
+         * @return all messages except metadata tags (e.g. the UUID tag), in seal order, decoded via
+         * the resolved profile definition and the base type. A tag that neither defines is returned
+         * raw with a name like "0x0A" and coding [MessageCoding.UNKNOWN] (ICAO Doc 9303-13 §2.3:
+         * unknown tags may be present).
          */
-        get() {
-            val messageList: MutableList<Message> = ArrayList()
-            for (derTlv in derTlvList) {
-                if (derTlv.tag.toInt() in metadataTags) continue
-                val tag = derTlv.tag.toInt() and 0xFF
-                val message = DataEncoder.vdsDocumentTypes.resolveMessage(vdsType, profileDefinition, derTlv)
-                    ?: if (vdsType == VdsHeader.UNKNOWN_TYPE) {
-                        Message(tag, "0x${tag.toString(16).uppercase().padStart(2, '0')}", MessageCoding.BYTES,
-                            MessageValue.BytesValue(derTlv.value))
-                    } else null
-                message?.let { messageList.add(it) }
-            }
-            return messageList
-        }
+        get() = derTlvList.filter { it.tag.toInt() !in metadataTags }.map(::resolve)
 
+    /** The metadata tags of [messageList], resolved the same way. */
     val metadataMessageList: List<Message>
-        get() {
-            val result: MutableList<Message> = ArrayList()
-            for (derTlv in derTlvList) {
-                if (derTlv.tag.toInt() !in metadataTags) continue
-                DataEncoder.vdsDocumentTypes.resolveMessage(vdsType, profileDefinition, derTlv)
-                    ?.let { result.add(it) }
-            }
-            return result
-        }
+        get() = derTlvList.filter { it.tag.toInt() in metadataTags }.map(::resolve)
+
+    private fun resolve(derTlv: DerTlv): Message =
+        DataEncoder.vdsDocumentTypes.resolveMessage(vdsType, profileDefinition, derTlv)
+            ?: MessageResolver.unresolved(derTlv)
 
     /** Looks up a message by name, ignoring case (names come verbatim from the definition or profile). */
     fun getMessageByName(messageName: String): Message? {
@@ -105,6 +93,73 @@ internal class VdsMessageGroup {
             metadataTags.add(uuidTag)
             profileDefinition = DataEncoder.vdsProfileResolver.resolve(uuidTlv.value, profileUri(), vdsType)
         }
+    }
+
+    /**
+     * Format findings of this message group (see [FormatFinding]). Without a resolved profile the
+     * content tags cannot be checked, so they are covered by [FormatFinding.ProfileNotFound] alone.
+     */
+    @OptIn(ExperimentalStdlibApi::class)
+    fun formatFindings(): List<FormatFinding> {
+        val registry = DataEncoder.vdsDocumentTypes
+        val findings = mutableListOf<FormatFinding>()
+        val messages = messageList
+        val needsProfile = registry.requiresProfileLookup(vdsType)
+        if (needsProfile) {
+            if (profileDefinition == null) {
+                findings += FormatFinding.ProfileNotFound(documentProfileUuid?.toHexString()?.uppercase(), profileUri())
+            }
+            val uuidTag = registry.getUuidMessageTag(vdsType)
+            if (derTlvList.none { it.tag.toInt() == uuidTag }) {
+                val name = runCatching { registry.getMessageName(vdsType, null, uuidTag) }
+                    .getOrDefault("0x" + uuidTag.toString(16).uppercase().padStart(2, '0'))
+                findings += FormatFinding.MissingRequired(listOf(uuidTag), name)
+            }
+            val tags = derTlvList.map { it.tag.toInt() and 0xFF }.toSet()
+            findings += Tr03171Conformance.check(vdsType, tags, profileDefinition)
+            profileDefinition?.let { findings += Tr03171Conformance.checkLengths(messages, it) }
+        }
+        val specifiedType = registry.findDocumentTypeDto(vdsType)?.takeIf { it.specification != null }
+        if (specifiedType != null) findings += specificationFindings(specifiedType, messages)
+        for (message in metadataMessageList.filter { it.isRaw }) {
+            findings += if (message.isDefined) FormatFinding.DecodeFailed(listOf(message.tag), message.name)
+            else FormatFinding.ReservedTag(listOf(message.tag))
+        }
+        for (message in messages.filter { it.isRaw }) {
+            if (message.isDefined) {
+                findings += FormatFinding.DecodeFailed(listOf(message.tag), message.name)
+            } else if (specifiedType?.additionalFeaturesAllowed == false) {
+                findings += FormatFinding.NotAllowed(listOf(message.tag), message.name)
+            } else if (!needsProfile || profileDefinition != null) {
+                findings += FormatFinding.UnknownTag(listOf(message.tag))
+            }
+        }
+        return findings
+    }
+
+    /**
+     * Required messages and lengths of a document type whose definitions are verified against its
+     * specification ([VdsDocumentTypeDto.specification]). Lengths are bytes; raw messages are skipped.
+     */
+    private fun specificationFindings(docType: VdsDocumentTypeDto, messages: List<Message>): List<FormatFinding> {
+        val tags = derTlvList.map { it.tag.toInt() and 0xFF }.toSet()
+        val findings = mutableListOf<FormatFinding>()
+        docType.messages.filter { it.required && it.tag !in tags }
+            .forEach { findings += FormatFinding.MissingRequired(listOf(it.tag), it.name) }
+        for (group in docType.requiredOneOf.filter { group -> group.none { it in tags } }) {
+            val names = group.map { tag -> docType.messages.firstOrNull { it.tag == tag }?.name ?: "$tag" }
+            findings += FormatFinding.MissingRequired(emptyList(), names.joinToString(" or "))
+        }
+        for (message in messages.filter { !it.isRaw }) {
+            val definition = docType.messages.firstOrNull { it.tag == message.tag } ?: continue
+            val length = message.value.rawBytes.size
+            if (length < definition.minBytes || length > definition.maxBytes) {
+                findings += FormatFinding.InvalidLength(
+                    listOf(message.tag), message.name, length, definition.minBytes, definition.maxBytes
+                )
+            }
+        }
+        return findings
     }
 
     private fun profileUri(): String? {
@@ -173,22 +228,9 @@ internal class VdsMessageGroup {
         fun requireTr03171Conformance() {
             if (baseVdsType != DataEncoder.ADMINISTRATIVE_DOCUMENTS_V9) return
             val tags = derTlvList.map { it.tag.toInt() and 0xFF }.toSet()
-            require(3 in tags) { "TR-03171: PROFILE_URI (tag 0x03) is mandatory" }
-            require(4 in tags) { "TR-03171: CERTIFICATE_URI (tag 0x04) is mandatory" }
-            val definition = profileDefinition ?: return
-            requireDatePresence("VALID_FROM", 1, definition.validFromPresent, tags)
-            requireDatePresence("VALID_TO", 2, definition.validToPresent, tags)
-            val missing = definition.messages.filter { it.required && it.tag !in tags }.map { it.name }
-            require(missing.isEmpty()) {
-                "TR-03171: profile '${definition.definitionName}' requires missing field(s): ${missing.joinToString()}"
-            }
-        }
-
-        private fun requireDatePresence(name: String, tag: Int, mustBePresent: Boolean?, tags: Set<Int>) {
-            if (mustBePresent == null) return
-            require((tag in tags) == mustBePresent) {
-                if (mustBePresent) "TR-03171: $name (tag 0x0$tag) is required by the profile"
-                else "TR-03171: $name (tag 0x0$tag) must not be present according to the profile"
+            val violations = Tr03171Conformance.check(baseVdsType, tags, profileDefinition)
+            require(violations.isEmpty()) {
+                "TR-03171: " + violations.joinToString("; ", transform = Tr03171Conformance::describe)
             }
         }
 

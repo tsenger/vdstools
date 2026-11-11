@@ -148,6 +148,13 @@ class VdsSeal : Seal {
             )
         }
 
+    override val formatFindings: List<FormatFinding>
+        get() = if (vdsHeader.vdsType == VdsHeader.UNKNOWN_TYPE) {
+            listOf(FormatFinding.UnknownDocumentType(vdsHeader.documentRef))
+        } else {
+            vdsMessageGroup.formatFindings()
+        }
+
     class Builder private constructor(
         private val headerBuilder: VdsHeader.Builder,
         private val messageBuilder: VdsMessageGroup.Builder

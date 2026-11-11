@@ -263,11 +263,11 @@ class SealDissectorCommonTest {
 
     @Test
     fun vds_v9_metadataFieldsGetProperNames() {
-        // UUID (tag 0x00), PROFILE_URI (0x03), CERTIFICATE_URI (0x04) are metadata — must not
-        // fall through to "Unknown" after the metadataMessageList fallback was added.
+        // UUID (tag 0x00), PROFILE_URI (0x03), CERTIFICATE_URI (0x04) are metadata — they must get
+        // their names, not the raw tag name ("0x03").
         val seal = VdsSeal.fromByteArray(VdsRawBytesCommon.administrativeDocumentV9Basic) as VdsSeal
         val fieldNames = seal.dissect().messageGroup.children.map { it.label }
-        assertTrue(fieldNames.none { it.startsWith("Unknown") },
+        assertTrue(fieldNames.none { it.startsWith("0x") },
             "All V9 fields should resolve to named labels, got: $fieldNames")
     }
 
@@ -301,7 +301,7 @@ class SealDissectorCommonTest {
         val fieldNames = seal.dissect().messageGroup.children.map { it.label }
         assertTrue(fieldNames.any { it == "VALID_FROM" }, "Expected VALID_FROM, got: $fieldNames")
         assertTrue(fieldNames.any { it == "VALID_TO" }, "Expected VALID_TO, got: $fieldNames")
-        assertTrue(fieldNames.none { it.startsWith("Unknown") },
+        assertTrue(fieldNames.none { it.startsWith("0x") },
             "All V9 date-seal fields should be named, got: $fieldNames")
     }
 
@@ -311,7 +311,7 @@ class SealDissectorCommonTest {
         val fieldNames = seal.dissect().messageGroup.children.map { it.label }
         assertTrue(fieldNames.any { it == "STATUS_URI" }, "Expected STATUS_URI, got: $fieldNames")
         assertTrue(fieldNames.any { it == "STATUS_LIST_INDEX" }, "Expected STATUS_LIST_INDEX, got: $fieldNames")
-        assertTrue(fieldNames.none { it.startsWith("Unknown") },
+        assertTrue(fieldNames.none { it.startsWith("0x") },
             "All V9 status-seal fields should be named, got: $fieldNames")
     }
 }

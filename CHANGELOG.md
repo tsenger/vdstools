@@ -4,14 +4,72 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- `Seal.formatFindings`: findings of the format validation (ICAO Doc 9303-13
+  Appendix D, step 1), without judgement. `FormatFinding` subtypes
+  `UnknownTag`, `ReservedTag`, `UnknownDocumentType`, `ProfileNotFound`,
+  `MissingRequired`, `NotAllowed`, `InvalidLength`, `DecodeFailed` and
+  `MalformedSubMessages`, each with a `category` (`UNKNOWN_FEATURE`,
+  `WRONG_FORMAT`, `UNDETERMINED`) and a `tagPath`. Unknown tags, decode
+  failures and unknown document types are reported for all seals. Required
+  messages and lengths are checked where the definitions are verified against
+  their specification: the VDS types with a `specification` (ICAO visa and
+  ETD, BSI TR-03137-1 V3.0 types), TR-03171 profiles (explicit `<length>` of
+  UTF8String in characters, OCTET STRING in bytes) and German IDB seals
+  (national document type per BSI TR-03137 chapters 12–17). Signature and
+  certificate are not covered.
+- `VdsDocumentTypeDto.specification`, `additionalFeaturesAllowed` and
+  `requiredOneOf`: the specification a document type's definitions were
+  verified against (only then are required messages and lengths checked),
+  whether undefined tags are allowed, and groups of tags of which one is
+  required. Set in `VdsDocumentTypes.json` for the ICAO visa and ETD and the
+  BSI TR-03137-1 V3.0 types.
+- `MessageDto.maxLength`: the explicit maximum length of a TR-03171 profile
+  entry (`<length>` of UTF8String and OCTET STRING), null otherwise.
+- `Message.isRaw`: true if the message's value holds uninterpreted raw bytes
+  instead of a decoded value: for tags without definition (see Changed) and
+  for defined messages whose bytes cannot be decoded with their coding (e.g.
+  an invalid date). Such a decode failure already fell back to `BytesValue`
+  before, but silently; it is now reported as `FormatFinding.DecodeFailed`.
+  `Message.coding` stays internal.
+- `Message.isDefined`: false if no definition exists for the message's tag.
+  Tells the two cases of `isRaw` apart: a defined message whose bytes cannot
+  be decoded stays defined.
+
+### Changed
+- **Behavior change:** tags that neither the document type nor the resolved
+  profile defines are no longer dropped (ICAO Doc 9303-13 §2.3: unknown tags MAY
+  be present). They are returned raw, named by their tag (e.g. `0x0A`), with
+  coding `UNKNOWN` and a `BytesValue`; the bytes are not interpreted.
+  - VDS `messageList`: before, only seals of an unknown document type returned
+    unknown tags (then with coding `BYTES`). Now every document type does, e.g.
+    the content tags of a TR-03171 seal whose profile is not available, or a tag
+    that the resolved profile does not define.
+  - VDS `metadataMessageList`: undefined metadata tags (e.g. the reserved TR-03171
+    v0.9 tags `0x07`–`0x09`) are returned raw as well.
+  - IDB: unknown messages and sub-messages are now named by their tag (`0x50`)
+    instead of `UNKNOWN`.
+  - The dissection labels such tags with their name (`0x0A`) instead of
+    `Unknown (0x0A)`.
+- IDB container messages are split into sub-messages even if the first
+  sub-tag is unknown. Before, such a container had no sub-messages at all.
+- The TR-03171 builder check (`requireTr03171Conformance`) now reports all
+  violations in one exception message; decoding and encoding share its rules.
+- **Behavior change:** a `UTF8_STRING` message with invalid UTF-8 bytes is no
+  longer decoded with U+FFFD replacement characters. Its value is now the raw
+  `BytesValue` (`isRaw`), reported as `FormatFinding.DecodeFailed`.
+
 ### Fixed
+- `VdsDocumentTypes.json`, `VISA`: `MRZ_MRVA` and `MRZ_MRVB` are no longer
+  both marked as required, and `NUMBER_OF_ENTRIES` is optional (ICAO Doc
+  9303-7 §9.1.3). A visa needs the MRZ of either an MRV-A or an MRV-B
+  (`requiredOneOf`).
 - IDB: a sub-message tag that the enclosing container does not define is no
   longer looked up in the top-level message type registry. Before, e.g. an
   unknown sub-tag `0x08` inside `VISA` was decoded as `MRZ_TD3` (MRZ coding),
   and an unknown sub-tag `0x01` inside `EMERGENCY_TRAVEL_DOCUMENT` was parsed
-  as a nested `VISA` container. Such sub-messages are now returned raw with
-  name `UNKNOWN`, coding `UNKNOWN` and a `BytesValue`, like unknown top-level
-  messages.
+  as a nested `VISA` container. Such sub-messages are now returned raw, like
+  unknown top-level messages (see Changed).
 - **Behavior change:** the IDB sub-message builder (`IdbSeal.Builder` sub-message
   blocks) no longer falls back to the top-level message type registry either.
   Adding a name or tag that the container does not define now throws

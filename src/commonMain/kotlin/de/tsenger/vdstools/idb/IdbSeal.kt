@@ -4,6 +4,7 @@ package de.tsenger.vdstools.idb
 import de.tsenger.vdstools.Base32
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.Signer
+import de.tsenger.vdstools.generic.FormatFinding
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.generic.Seal
@@ -104,6 +105,40 @@ class IdbSeal : Seal {
         get() = payLoad.idbMessageGroup.messageList.map { idbMessage ->
             Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value, idbMessage.messageList)
         }
+
+    override val formatFindings: List<FormatFinding>
+        get() = nationalDocumentTypeFindings() + payLoad.idbMessageGroup.formatFindings()
+
+    /**
+     * Checks the messages against the German national document type (tag 0x86, BSI TR-03137
+     * chapters 12–17): all its message types are required, others are not allowed. Tag 0x86 is a
+     * German national message type, so seals of other countries are not checked.
+     */
+    private fun nationalDocumentTypeFindings(): List<FormatFinding> {
+        if (issuingCountry != "D") return emptyList()
+        val messages = messageList
+        val docTypeId = (messages.firstOrNull { it.tag == 0x86 }?.value as? MessageValue.ByteValue)?.value
+            ?: return emptyList()
+        if (DataEncoder.idbDocumentTypes.getDocumentType(docTypeId) == "UNKNOWN") {
+            return listOf(FormatFinding.UnknownDocumentType(docTypeId))
+        }
+        val expected = DataEncoder.idbDocumentTypes.getExpectedMessages(docTypeId)
+        if (expected.isEmpty()) return emptyList()
+        val present = messages.filter { it.isDefined }
+        val findings = mutableListOf<FormatFinding>()
+        for (ref in expected.filter { it.required }) {
+            if (present.none { it.name.equals(ref.name, ignoreCase = true) }) {
+                val tag = DataEncoder.idbMessageTypes.getMessageType(ref.name)
+                findings += FormatFinding.MissingRequired(listOfNotNull(tag), ref.name)
+            }
+        }
+        for (message in present) {
+            if (expected.none { it.name.equals(message.name, ignoreCase = true) }) {
+                findings += FormatFinding.NotAllowed(listOf(message.tag), message.name)
+            }
+        }
+        return findings
+    }
 
     @OptIn(ExperimentalStdlibApi::class)
     override val signatureInfo: SignatureInfo?

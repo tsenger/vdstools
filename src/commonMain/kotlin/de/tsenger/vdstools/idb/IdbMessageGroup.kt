@@ -2,8 +2,10 @@ package de.tsenger.vdstools.idb
 
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.asn1.DerTlv
+import de.tsenger.vdstools.generic.FormatFinding
 import de.tsenger.vdstools.generic.Message
 import de.tsenger.vdstools.generic.MessageCoding
+import de.tsenger.vdstools.generic.MessageResolver
 import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.vds.dto.MessageDto
 import okio.Buffer
@@ -31,6 +33,27 @@ internal class IdbMessageGroup {
     /** Looks up a message by name, ignoring case (names come verbatim from the definition or profile). */
     fun getMessageByName(messageName: String): Message? {
         return messageList.firstOrNull { it.name.equals(messageName, ignoreCase = true) }
+    }
+
+    /** Format findings of the messages and sub-messages (see [FormatFinding]). */
+    fun formatFindings(): List<FormatFinding> {
+        val findings = mutableListOf<FormatFinding>()
+        fun walk(messages: List<Message>, parentPath: List<Int>) {
+            for (message in messages) {
+                val path = parentPath + message.tag
+                if (message.isRaw) {
+                    findings += if (message.isDefined) FormatFinding.DecodeFailed(path, message.name)
+                    else FormatFinding.UnknownTag(path)
+                } else if (message.coding == MessageCoding.SUB_MESSAGES && message.messageList.isEmpty()
+                    && message.value.rawBytes.isNotEmpty()
+                ) {
+                    findings += FormatFinding.MalformedSubMessages(path, message.name)
+                }
+                walk(message.messageList, path)
+            }
+        }
+        walk(messageList, emptyList())
+        return findings
     }
 
     val encoded: ByteArray
@@ -139,27 +162,25 @@ internal class IdbMessageGroup {
 
             // Inside a container only the container's own definitions apply; the registry
             // holds top-level message types, whose tags overlap with sub-message tags.
-            val msgDef = subMessageDefs?.firstOrNull { it.tag == tagInt }
-            val isSubMessage = subMessageDefs != null
-            val name = msgDef?.name
-                ?: if (isSubMessage) "UNKNOWN" else DataEncoder.idbMessageTypes.getMessageType(tagInt)
-            val coding = msgDef?.coding
-                ?: if (isSubMessage) MessageCoding.UNKNOWN else DataEncoder.idbMessageTypes.getMessageTypeCoding(name)
+            // A tag without definition is returned raw.
+            val name: String
+            val coding: MessageCoding
+            val childDefs: List<MessageDto>
+            if (subMessageDefs != null) {
+                val msgDef = subMessageDefs.firstOrNull { it.tag == tagInt } ?: return MessageResolver.unresolved(derTlv)
+                name = msgDef.name; coding = msgDef.coding; childDefs = msgDef.messages
+            } else {
+                val dto = DataEncoder.idbMessageTypes.getMessageTypeDto(tagInt) ?: return MessageResolver.unresolved(derTlv)
+                name = dto.name; coding = dto.coding; childDefs = dto.messages
+            }
             val value = MessageValue.fromBytes(derTlv.value, coding)
 
-            val childDefs = msgDef?.messages
-                ?: if (isSubMessage) null else DataEncoder.idbMessageTypes.getMessageTypeDto(tagInt)?.messages
-            val subMessages = if (!childDefs.isNullOrEmpty() && coding == MessageCoding.SUB_MESSAGES) {
-                val expectedTags = childDefs.map { it.tag.toByte() }.toSet()
-                val firstByte = derTlv.value.firstOrNull()
-                if (firstByte != null && firstByte in expectedTags) {
-                    try {
-                        val childTlvs = DerTlv.parseAll(derTlv.value)
-                        childTlvs.map { childTlv -> parseMessage(childTlv, childDefs) }
-                    } catch (_: Exception) {
-                        emptyList()
-                    }
-                } else {
+            // Content that is no valid DER-TLV sequence yields no sub-messages (reported as
+            // FormatFinding.MalformedSubMessages); an unknown sub-tag is returned raw.
+            val subMessages = if (childDefs.isNotEmpty() && coding == MessageCoding.SUB_MESSAGES) {
+                try {
+                    DerTlv.parseAll(derTlv.value).map { childTlv -> parseMessage(childTlv, childDefs) }
+                } catch (_: Exception) {
                     emptyList()
                 }
             } else {

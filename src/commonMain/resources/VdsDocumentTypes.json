@@ -2,6 +2,7 @@
   {
     "documentType": "ARRIVAL_ATTESTATION",
     "documentRef": "fd02",
+    "specification": "BSI TR-03137-1 V3.0 §6.2",
     "version": 3,
     "messages": [
       {
@@ -25,6 +26,8 @@
   {
     "documentType": "ADDRESS_STICKER_ID",
     "documentRef": "f908",
+    "specification": "BSI TR-03137-1 V3.0 §9.2",
+    "additionalFeaturesAllowed": false,
     "version": 4,
     "messages": [
       {
@@ -56,6 +59,8 @@
   {
     "documentType": "ADDRESS_STICKER_RP",
     "documentRef": "f90c",
+    "specification": "BSI TR-03137-1 V3.0 §9.2",
+    "additionalFeaturesAllowed": false,
     "version": 4,
     "messages": [
       {
@@ -87,6 +92,8 @@
   {
     "documentType": "ADDRESS_STICKER_PASSPORT",
     "documentRef": "f80a",
+    "specification": "BSI TR-03137-1 V3.0 §10.2",
+    "additionalFeaturesAllowed": false,
     "version": 4,
     "messages": [
       {
@@ -118,6 +125,7 @@
   {
     "documentType": "EMERGENCY_TRAVEL_DOCUMENT",
     "documentRef": "5e03",
+    "specification": "ICAO Doc 9303-8 §6.1",
     "version": 4,
     "messages": [
       {
@@ -133,13 +141,15 @@
   {
     "documentType": "VISA",
     "documentRef": "5d01",
+    "specification": "ICAO Doc 9303-7 §9.1",
+    "requiredOneOf": [[1, 2]],
     "version": 4,
     "messages": [
       {
         "name": "MRZ_MRVA",
         "tag": 1,
         "coding": "MRZ_MRVA",
-        "required": true,
+        "required": false,
         "minBytes": 48,
         "maxBytes": 48
       },
@@ -147,7 +157,7 @@
         "name": "MRZ_MRVB",
         "tag": 2,
         "coding": "MRZ_MRVB",
-        "required": true,
+        "required": false,
         "minBytes": 44,
         "maxBytes": 44
       },
@@ -155,7 +165,7 @@
         "name": "NUMBER_OF_ENTRIES",
         "tag": 3,
         "coding": "BYTE",
-        "required": true,
+        "required": false,
         "minBytes": 1,
         "maxBytes": 1
       },
@@ -196,6 +206,8 @@
   {
     "documentType": "RESIDENCE_PERMIT",
     "documentRef": "fb06",
+    "specification": "BSI TR-03137-1 V3.0 §8.2",
+    "additionalFeaturesAllowed": false,
     "version": 4,
     "messages": [
       {
@@ -219,6 +231,8 @@
   {
     "documentType": "SOCIAL_INSURANCE_CARD",
     "documentRef": "fc04",
+    "specification": "BSI TR-03137-1 V3.0 §7.2",
+    "additionalFeaturesAllowed": false,
     "version": 4,
     "messages": [
       {
@@ -258,6 +272,7 @@
   {
     "documentType": "SUPPLEMENTARY_SHEET",
     "documentRef": "fa06",
+    "specification": "BSI TR-03137-1 V3.0 §8.4",
     "version": 4,
     "messages": [
       {
