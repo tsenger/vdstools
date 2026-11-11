@@ -73,6 +73,8 @@ All notable changes to this project will be documented in this file.
   `BytesValue` (`isRaw`), reported as `FormatFinding.DecodeFailed`.
 
 ### Fixed
+- IDB builder: an unknown message name now fails with "Unknown IDB message type
+  '<name>'" instead of the misleading "Unsupported tag: 0".
 - `VdsDocumentTypes.json`, `VISA`: `MRZ_MRVA` and `MRZ_MRVB` are no longer
   both marked as required, and `NUMBER_OF_ENTRIES` is optional (ICAO Doc
   9303-7 §9.1.3). A visa needs the MRZ of either an MRV-A or an MRV-B

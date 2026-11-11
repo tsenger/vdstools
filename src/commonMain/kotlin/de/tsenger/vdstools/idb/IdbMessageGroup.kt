@@ -70,7 +70,8 @@ internal class IdbMessageGroup(private val derTlvList: List<DerTlv>) {
                 return subMessageDefs.firstOrNull { it.name.equals(name, ignoreCase = true) }?.tag
                     ?: throw IllegalArgumentException("Unknown sub-message '$name' for this container")
             }
-            return DataEncoder.idbMessageTypes.getMessageType(name) ?: 0
+            return DataEncoder.idbMessageTypes.getMessageType(name)
+                ?: throw IllegalArgumentException("Unknown IDB message type '$name'")
         }
 
         private fun resolveCoding(name: String, tag: Int): MessageCoding {
