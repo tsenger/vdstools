@@ -113,6 +113,24 @@ class IdbFormatFindingsCommonTest {
     }
 
     @Test
+    fun germanDocumentType_undecodableRequiredMessage_isOnlyDecodeFailed() {
+        // C40 needs an even number of bytes; the message is present, so it is not missing
+        val seal = seal(permanentResidence, documentReference, tlv(0x85, "010203"))
+        assertTrue(seal.messageList.single { it.tag == 0x85 }.isRaw)
+        assertEquals(listOf(FormatFinding.DecodeFailed(listOf(0x85), "DOCUMENT_NUMBER")), seal.formatFindings)
+    }
+
+    @Test
+    fun germanDocumentType_undecodableMessageNotBelongingToType_isNotAllowed() {
+        val seal = seal(permanentResidence, documentReference, documentNumber, tlv(0x09, "010203"))
+        assertTrue(seal.messageList.single { it.tag == 0x09 }.isRaw)
+        assertEquals(
+            listOf(FormatFinding.NotAllowed(listOf(0x09), "CAN"), FormatFinding.DecodeFailed(listOf(0x09), "CAN")),
+            seal.formatFindings
+        )
+    }
+
+    @Test
     fun germanDocumentType_complete_hasNoFindings() {
         assertEquals(emptyList(), seal(permanentResidence, documentReference, documentNumber).formatFindings)
     }

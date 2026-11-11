@@ -116,13 +116,15 @@ class IdbSeal : Seal {
      */
     private fun nationalDocumentTypeFindings(): List<FormatFinding> {
         if (issuingCountry != "D") return emptyList()
-        val docTypeId = (getMessageByTag(0x86)?.value as? MessageValue.ByteValue)?.value ?: return emptyList()
+        val messages = messageList
+        val docTypeId = (messages.firstOrNull { it.tag == 0x86 }?.value as? MessageValue.ByteValue)?.value
+            ?: return emptyList()
         if (DataEncoder.idbDocumentTypes.getDocumentType(docTypeId) == "UNKNOWN") {
             return listOf(FormatFinding.UnknownDocumentType(docTypeId))
         }
         val expected = DataEncoder.idbDocumentTypes.getExpectedMessages(docTypeId)
         if (expected.isEmpty()) return emptyList()
-        val present = messageList.filter { !it.isRaw }
+        val present = messages.filter { it.isDefined }
         val findings = mutableListOf<FormatFinding>()
         for (ref in expected.filter { it.required }) {
             if (present.none { it.name.equals(ref.name, ignoreCase = true) }) {

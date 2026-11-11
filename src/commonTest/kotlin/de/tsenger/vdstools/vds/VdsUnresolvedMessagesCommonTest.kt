@@ -137,6 +137,15 @@ class VdsUnresolvedMessagesCommonTest {
     }
 
     @Test
+    fun emptySignature_dissectionLabelsTheSignatureTagByHex() {
+        // an empty signature TLV (FF 00) yields no signature range, so it is scanned as part of the message zone
+        val seal = seal("c9", tlv(0, unregisteredUuid), tlv(0x0A, "4d75"), DerTlv(0xFF.toByte(), ByteArray(0)))
+
+        val labels = seal.dissect().messageGroup.children.map { it.label }
+        assertEquals(listOf("DOC_PROFILE_NUMBER", "0x0A", "0xFF"), labels)
+    }
+
+    @Test
     fun v9_withoutProfile_dissectionLabelsContentTagsByHex() {
         val seal = seal("c9", tlv(0, unregisteredUuid), tlv(0x0A, "4d75"))
 

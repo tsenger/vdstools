@@ -137,6 +137,49 @@ class VdsFormatFindingsCommonTest {
     }
 
     @Test
+    fun invalidUtf8ProfileField_isDecodeFailedAndRaw() {
+        // C3 28 is an invalid UTF-8 sequence; it must not be replaced by U+FFFD silently
+        val seal = seal("c9", tlv(0, registeredUuid), profileUri, certificateUri, tlv(0x0A, "c328ff"))
+
+        val surname = seal.messageList.single { it.tag == 0x0A }
+        assertTrue(surname.isRaw)
+        assertTrue(surname.isDefined)
+        assertEquals(listOf(FormatFinding.DecodeFailed(listOf(0x0A), "SURNAME")), seal.formatFindings)
+    }
+
+    @Test
+    fun invalidUtf8ProfileField_isNotLengthChecked() {
+        // NOTE allows 6 characters; the undecodable bytes are reported as DecodeFailed only
+        val seal = seal("c9", tlv(0, registeredUuid), profileUri, certificateUri, surname, tlv(0x0B, "ff".repeat(7)))
+        assertEquals(listOf(FormatFinding.DecodeFailed(listOf(0x0B), "NOTE")), seal.formatFindings)
+    }
+
+    @Test
+    fun customBaseTypeWithoutProfileNumberDefinition_reportsInsteadOfThrowing() {
+        DataEncoder.addCustomVdsDocumentTypes(
+            """
+            [{
+                "documentType": "CUSTOM_PROFILE_BASE",
+                "documentRef": "fcfe",
+                "version": 4,
+                "uuidMessageLookup": true,
+                "uuidMessageTag": 0,
+                "metadataTagList": [0],
+                "messages": [
+                    {"name": "PAYLOAD", "tag": 10, "coding": "BYTES", "required": false, "minBytes": 1, "maxBytes": 10}
+                ]
+            }]
+            """.trimIndent()
+        )
+        val group = VdsMessageGroup("CUSTOM_PROFILE_BASE", listOf(tlv(0x0A, "aa")))
+
+        assertEquals(
+            listOf(FormatFinding.ProfileNotFound(null, null), FormatFinding.MissingRequired(listOf(0), "0x00")),
+            group.formatFindings()
+        )
+    }
+
+    @Test
     fun decodableProfileField_isNotRaw() {
         val seal = seal("c9", tlv(0, registeredUuid), profileUri, certificateUri, surname, utf8(0x0D, "20251231"))
 

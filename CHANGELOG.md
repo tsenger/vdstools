@@ -55,6 +55,9 @@ All notable changes to this project will be documented in this file.
   sub-tag is unknown. Before, such a container had no sub-messages at all.
 - The TR-03171 builder check (`requireTr03171Conformance`) now reports all
   violations in one exception message; decoding and encoding share its rules.
+- **Behavior change:** a `UTF8_STRING` message with invalid UTF-8 bytes is no
+  longer decoded with U+FFFD replacement characters. Its value is now the raw
+  `BytesValue` (`isRaw`), reported as `FormatFinding.DecodeFailed`.
 
 ### Fixed
 - `VdsDocumentTypes.json`, `VISA`: `MRZ_MRVA` and `MRZ_MRVB` are no longer
