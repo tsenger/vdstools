@@ -51,6 +51,18 @@ class IdbMessageTypeRegistry(jsonString: String) : DefinitionRegistry {
         messageTypeDtoList.forEach { messageTypesInverse[it.name] = it }
     }
 
+    /**
+     * The message type that carries the document types of [country] (`identifiesDocumentType`): that
+     * country's own, else an international one. Unlike reading, no other country's type is used, since a
+     * seal built with it would be read as a document type of that country.
+     */
+    internal fun findDocumentTypeIdentifier(country: String?): IdbMessageTypeDto? {
+        val identifiers = messageTypeDtoList.filter { it.identifiesDocumentType }
+        val normalized = country?.let(::normalizeCountry)
+        return identifiers.lastOrNull { it.country?.let(::normalizeCountry) == normalized }
+            ?: identifiers.lastOrNull { it.country == null }
+    }
+
     /** Returns the names of all registered IDB message types. */
     fun availableMessageTypes(): Set<String> {
         return messageTypeDtoList.map { it.name }.toSet()

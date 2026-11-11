@@ -11,6 +11,7 @@ import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.generic.Seal
 import de.tsenger.vdstools.generic.SealType
 import de.tsenger.vdstools.generic.SignatureInfo
+import de.tsenger.vdstools.idb.dto.IdbDocumentTypeDto
 import de.tsenger.vdstools.internal.logW
 import kotlinx.datetime.LocalDate
 
@@ -200,7 +201,8 @@ class IdbSeal : Seal {
             return payLoad.idbHeader.getSignatureCreationDate()
         }
 
-    class Builder {
+    class Builder() {
+        private var documentType: IdbDocumentTypeDto? = null
         private var countryIdentifier: String = "UTO"
         private var certificateReference: ByteArray? = null
         private var signingDate: String? = null
@@ -208,6 +210,18 @@ class IdbSeal : Seal {
         private var compress: Boolean = false
         /** Messages are encoded in [build], when the issuing country is known (tags can be national). */
         private val messages = mutableListOf<(IdbMessageGroup.Builder) -> Unit>()
+
+        /**
+         * Builds a seal of a national IDB document type, e.g. `CERTIFYING_PERMANENT_RESIDENCE`. The message
+         * that identifies the document type (BSI TR-03137: 0x86 `NATIONAL_DOCUMENT_IDENTIFIER`) is set by
+         * [build]; do not add it. The issuing country is still the one set with [countryIdentifier].
+         *
+         * @throws IllegalArgumentException if no IDB document type has this name
+         */
+        constructor(documentType: String) : this() {
+            this.documentType = DataEncoder.idbDocumentTypes.findByName(documentType)
+                ?: throw IllegalArgumentException("Unknown IDB document type '$documentType'")
+        }
 
         /**
          * Three-letter code of the issuing state, e.g. "D<<". Defaults to "UTO" (Utopia, the code ICAO
@@ -231,8 +245,21 @@ class IdbSeal : Seal {
             messages += { it.addMessage(tag) { SubMessageBuilder(this).block() } }
         }
 
-        private fun buildMessageGroup(): IdbMessageGroup =
-            IdbMessageGroup.Builder(issuingCountry = countryIdentifier).apply { messages.forEach { add -> add(this) } }.build()
+        private fun buildMessageGroup(): IdbMessageGroup {
+            val builder = IdbMessageGroup.Builder(issuingCountry = countryIdentifier)
+            messages.forEach { add -> add(builder) }
+            documentType?.let { type ->
+                val identifier = DataEncoder.idbMessageTypes.findDocumentTypeIdentifier(type.country)
+                    ?: throw IllegalArgumentException(
+                        "No IDB message type identifies the document type '${type.name}' (country ${type.country})"
+                    )
+                require(builder.derTlvList.none { (it.tag.toInt() and 0xFF) == identifier.tag }) {
+                    "${identifier.name} is set by the document type '${type.name}'; do not add it"
+                }
+                builder.addMessage(identifier.name, type.tag)
+            }
+            return builder.build()
+        }
 
         fun build(): IdbSeal {
             val header = IdbHeader(countryIdentifier)

@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file.
   TR-03171 definitions are German (`D`), the ICAO ones international. Lookups for a seal's issuing country: `getVdsType(docRef, country)`,
   `getMessageTypeDto(tag, country)`, `getDocumentType(tag, country)`,
   `getExpectedMessages(tag, country)`.
+- `IdbSeal.Builder(documentType)`: builds a seal of a national IDB document
+  type by name, like `VdsSeal.Builder(name)`. It sets the message that
+  identifies the document type (bundled: `0x86`) itself; adding it by hand
+  throws. `IdbSeal.Builder()` stays for seals without national document type.
 - `IdbMessageTypeDto.identifiesDocumentType`: marks the message type that
   carries the national document type (bundled: BSI TR-03137 `0x86`), instead
   of tag `0x86` in code. The document type is looked up for that message

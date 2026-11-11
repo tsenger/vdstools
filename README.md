@@ -325,6 +325,12 @@ val encodedSealBytes = vdsSeal.encoded
 
 ### IDB
 
+`IdbSeal.Builder(documentType)` builds a seal of a national IDB document type (e.g. the German types of BSI TR-03137):
+it adds the message that identifies the document type (`identifiesDocumentType`, `0x86` for Germany) at the end, so
+don't add it yourself. That message type is taken from the document type's country, or an international one; never
+from another country. `IdbSeal.Builder()` builds a seal without national document type, e.g. an ICAO visa or proof of
+vaccination.
+
 IDB seals can be signed or unsigned, as allowed by ICAO Doc 9303-13; the barcode flag says which
 (`IdbSeal.isSigned`). Use `build()` for unsigned and `build(signer)` for signed. The signature
 algorithm is derived automatically from the signer's key size.
@@ -349,15 +355,15 @@ val signer = EcdsaSigner(ecKey.encoded, "brainpoolP256r1")
 // The certificate reference is a hash derived from the signer certificate's DER bytes
 val certRef: ByteArray = DataEncoder.buildCertificateReference(cert.encoded)
 
-// Build and sign the IdbSeal in a single step
-val idbSeal = IdbSeal.Builder()
+// Build and sign the IdbSeal in a single step. The national document type sets
+// NATIONAL_DOCUMENT_IDENTIFIER (0x86) = 0x01 itself.
+val idbSeal = IdbSeal.Builder("SUBSTITUTE_IDENTITY_DOCUMENT")
     .countryIdentifier("D<<")
     .certificateReference(certRef)
     .signingDate("2025-02-11")
-    .addMessage(0x80, faceImageBytes)   // FACE_IMAGE
-    .addMessage(0x81, mrzTd2String)     // MRZ_TD2
-    .addMessage(0x84, "2026-04-23")     // EXPIRY_DATE
-    .addMessage(0x86, 0x01)             // NATIONAL_DOCUMENT_IDENTIFIER
+    .addMessage("FACE_IMAGE", faceImageBytes)   // or by tag: addMessage(0x80, faceImageBytes)
+    .addMessage("MRZ_TD2", mrzTd2String)
+    .addMessage("EXPIRY_DATE", "2026-04-23")
     .build(signer)
 
 // The raw string can now be used to build a DataMatrix (or other) code

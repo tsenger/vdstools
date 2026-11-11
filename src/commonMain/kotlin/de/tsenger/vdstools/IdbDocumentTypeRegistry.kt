@@ -52,7 +52,7 @@ class IdbDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
     internal fun findDocumentType(tag: Int, issuingCountry: String?): IdbDocumentTypeDto? =
         selectForCountry(documentTypeDtoList.filter { it.tag == tag }, issuingCountry) { it.country }
 
-    private fun findByName(name: String): IdbDocumentTypeDto? = documentTypeDtoList.lastOrNull { it.name == name }
+    internal fun findByName(name: String): IdbDocumentTypeDto? = documentTypeDtoList.lastOrNull { it.name == name }
 
     /** Returns the names of all registered national document types. */
     fun availableDocumentTypes(): Set<String> {
