@@ -63,6 +63,7 @@ class VdsUnresolvedMessagesCommonTest {
         assertEquals("0x" + tag.toString(16).uppercase().padStart(2, '0'), message.name)
         assertEquals(MessageCoding.UNKNOWN, message.coding)
         assertTrue(message.isRaw)
+        assertFalse(message.isDefined)
         assertTrue(message.value is MessageValue.BytesValue)
         assertEquals(hex, message.value.rawBytes.toHexString())
     }
@@ -85,6 +86,7 @@ class VdsUnresolvedMessagesCommonTest {
         assertEquals(listOf("0x0A"), seal.messageList.map { it.name })
         assertEquals(listOf("DOC_PROFILE_NUMBER", "PROFILE_URI"), seal.metadataMessageList.map { it.name })
         assertTrue(seal.metadataMessageList.none { it.isRaw })
+        assertTrue(seal.metadataMessageList.all { it.isDefined })
     }
 
     @Test
@@ -96,6 +98,7 @@ class VdsUnresolvedMessagesCommonTest {
         assertEquals(listOf("SURNAME", "0x0B"), seal.messageList.map { it.name })
         assertEquals("Mustermann", seal.messageList[0].value.toString())
         assertFalse(seal.messageList[0].isRaw)
+        assertTrue(seal.messageList[0].isDefined)
         assertRaw(seal.messageList[1], 0x0B, "abcd")
     }
 

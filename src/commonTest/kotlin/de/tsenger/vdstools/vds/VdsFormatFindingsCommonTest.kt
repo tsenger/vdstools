@@ -128,6 +128,7 @@ class VdsFormatFindingsCommonTest {
         val birthDate = seal.messageList.single { it.tag == 0x0D }
         assertEquals("BIRTH_DATE", birthDate.name)
         assertTrue(birthDate.isRaw)
+        assertTrue(birthDate.isDefined, "a defined field that cannot be decoded is still defined")
         assertEquals("3230323531333031", birthDate.value.toString())
 
         val finding = seal.formatFindings.single()
@@ -139,7 +140,9 @@ class VdsFormatFindingsCommonTest {
     fun decodableProfileField_isNotRaw() {
         val seal = seal("c9", tlv(0, registeredUuid), profileUri, certificateUri, surname, utf8(0x0D, "20251231"))
 
-        assertFalse(seal.messageList.single { it.tag == 0x0D }.isRaw)
+        val birthDate = seal.messageList.single { it.tag == 0x0D }
+        assertFalse(birthDate.isRaw)
+        assertTrue(birthDate.isDefined)
         assertEquals(emptyList(), seal.formatFindings)
     }
 

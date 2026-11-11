@@ -44,7 +44,9 @@ class IdbFormatFindingsCommonTest {
 
     @Test
     fun unknownTopLevelMessage_isUnknownTag() {
-        val finding = seal(tlv(0x50, "abcd")).formatFindings.single()
+        val seal = seal(tlv(0x50, "abcd"))
+        assertFalse(seal.messageList.single().isDefined)
+        val finding = seal.formatFindings.single()
         assertEquals(FormatFinding.UnknownTag(listOf(0x50)), finding)
         assertEquals(Category.UNKNOWN_FEATURE, finding.category)
     }
@@ -62,6 +64,7 @@ class IdbFormatFindingsCommonTest {
         val parsed = seal(visa).messageList.single()
 
         assertEquals(listOf("0x08", "VISA_TYPE"), parsed.messageList.map { it.name })
+        assertEquals(listOf(false, true), parsed.messageList.map { it.isDefined })
         assertEquals(listOf(FormatFinding.UnknownTag(listOf(0x01, 0x08))), seal(visa).formatFindings)
     }
 
@@ -74,6 +77,7 @@ class IdbFormatFindingsCommonTest {
         val duration = seal.messageList.single().messageList.single()
         assertEquals("DURATION_OF_STAY", duration.name)
         assertTrue(duration.isRaw)
+        assertTrue(duration.isDefined, "a defined sub-message that cannot be decoded is still defined")
         assertEquals(listOf(FormatFinding.DecodeFailed(listOf(0x01, 0x04), "DURATION_OF_STAY")), seal.formatFindings)
     }
 
@@ -83,6 +87,7 @@ class IdbFormatFindingsCommonTest {
         val seal = seal(tlv(0x0A, "aabb"), tlv(0x01, tlv(0x06, "aa").encoded.toHexString()))
 
         assertEquals(listOf(false, false), seal.messageList.map { it.isRaw })
+        assertEquals(listOf(true, true), seal.messageList.map { it.isDefined })
         assertEquals(emptyList(), seal.formatFindings)
     }
 

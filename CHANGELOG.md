@@ -32,6 +32,9 @@ All notable changes to this project will be documented in this file.
   an invalid date). Such a decode failure already fell back to `BytesValue`
   before, but silently; it is now reported as `FormatFinding.DecodeFailed`.
   `Message.coding` stays internal.
+- `Message.isDefined`: false if no definition exists for the message's tag.
+  Tells the two cases of `isRaw` apart: a defined message whose bytes cannot
+  be decoded stays defined.
 
 ### Changed
 - **Behavior change:** tags that neither the document type nor the resolved

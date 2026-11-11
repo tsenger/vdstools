@@ -184,12 +184,21 @@ seals, including sub-messages of IDB container messages.
 
 `Message.isRaw` tells whether a message's value is such uninterpreted raw data. This is also the case for a defined
 message whose bytes cannot be decoded with its coding (e.g. an invalid date): it keeps its name, but its value is a
-`BytesValue`.
+`BytesValue`. `Message.isDefined` tells the two cases apart: it is false only for a tag without definition.
+
+| `isDefined` | `isRaw` | Meaning |
+|---|---|---|
+| true | false | defined and decoded |
+| true | true | defined, but its bytes cannot be decoded (`FormatFinding.DecodeFailed`) |
+| false | true | no definition for this tag (`FormatFinding.UnknownTag` / `ReservedTag`) |
 
 ```kotlin
 for (message in seal.messageList) {
-    if (message.isRaw) println("${message.name}: ${message.value.rawBytes.toHexString()} (not interpreted)")
-    else println("${message.name}: ${message.value}")
+    when {
+        !message.isDefined -> println("${message.name}: ${message.value.rawBytes.toHexString()} (unknown field)")
+        message.isRaw -> println("${message.name}: ${message.value.rawBytes.toHexString()} (invalid value)")
+        else -> println("${message.name}: ${message.value}")
+    }
 }
 ```
 
