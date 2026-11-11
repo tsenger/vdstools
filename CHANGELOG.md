@@ -8,7 +8,8 @@ All notable changes to this project will be documented in this file.
 - `IdbSeal.Builder(documentType)`: builds a seal of a national IDB document
   type by name, like `VdsSeal.Builder(name)`. It appends the message that
   identifies the document type (bundled: `0x86`) itself; adding it by hand
-  throws. Exactly one message type must be marked `identifiesDocumentType`.
+  throws. Exactly one message type must be marked `identifiesDocumentType`,
+  coded as `BYTE`.
   `IdbSeal.Builder()` stays for seals without national document type.
 - `IdbMessageTypeDto.identifiesDocumentType`: marks the message type that
   carries the national document type (bundled: BSI TR-03137 `0x86`), instead
@@ -23,7 +24,7 @@ All notable changes to this project will be documented in this file.
 - `VdsSeal.Builder.forProfile(definition)`: builds a TR-03171 seal for a profile
   the caller supplies (e.g. from its own profile store) without registering it.
   Throws if the profile's base type carries no profile number
-  (`uuidMessageLookup`).
+  (`uuidMessageLookup`); building by profile name applies the same rule.
 - `Seal.formatFindings`: findings of the format validation (ICAO Doc 9303-13
   Appendix D, step 1), without judgement. `FormatFinding` subtypes
   `UnknownTag`, `ReservedTag`, `UnknownDocumentType`, `ProfileNotFound`,
@@ -124,6 +125,8 @@ All notable changes to this project will be documented in this file.
   `BytesValue` (`isRaw`), reported as `FormatFinding.DecodeFailed`.
 
 ### Fixed
+- `VdsDocumentTypeRegistry.availableVdsMessages` no longer keeps the message
+  names of replaced document types.
 - IDB builder: an unknown message name now fails with "Unknown IDB message type
   '<name>'" instead of the misleading "Unsupported tag: 0".
 - `icao-9303/VdsDocumentTypes.json`, `VISA`: `MRZ_MRVA` and `MRZ_MRVB` are no longer
