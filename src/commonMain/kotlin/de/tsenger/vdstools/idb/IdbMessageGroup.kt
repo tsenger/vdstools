@@ -78,7 +78,14 @@ internal class IdbMessageGroup(private val derTlvList: List<DerTlv>, issuingCoun
      * Inside a container only the container's own definitions apply; the registry holds
      * top-level message types, whose tags overlap with sub-message tags.
      */
-    internal class Builder(private val subMessageDefs: List<MessageDto>? = null) {
+    /**
+     * Encodes messages with the IDB message types. Top-level types given by tag are looked up for
+     * [issuingCountry] (a tag can be national in several countries); names are unique.
+     */
+    internal class Builder(
+        private val subMessageDefs: List<MessageDto>? = null,
+        private val issuingCountry: String? = null,
+    ) {
         val derTlvList: MutableList<DerTlv> = ArrayList(5)
 
         private fun resolveTag(name: String): Int {
@@ -97,13 +104,13 @@ internal class IdbMessageGroup(private val derTlvList: List<DerTlv>, issuingCoun
 
         private fun resolveChildDefs(name: String, tag: Int): List<MessageDto>? {
             if (subMessageDefs != null) return subMessageDefs.firstOrNull { it.tag == tag }?.messages
-            return DataEncoder.idbMessageTypes.getMessageTypeDto(tag)?.messages
+            return DataEncoder.idbMessageTypes.getMessageTypeDto(name)?.messages
         }
 
         @Throws(IllegalArgumentException::class)
         fun <T> addMessage(tag: Int, value: T): Builder {
             val coding = if (subMessageDefs != null) subMessageDefs.firstOrNull { it.tag == tag }?.coding ?: MessageCoding.UNKNOWN
-                else DataEncoder.idbMessageTypes.getMessageTypeCoding(tag)
+                else DataEncoder.idbMessageTypes.getMessageTypeDto(tag, issuingCountry)?.coding ?: MessageCoding.UNKNOWN
             val content = DataEncoder.encodeValueByCoding(coding, value, tag)
             derTlvList.add(DerTlv(tag.toByte(), content))
             return this
@@ -135,7 +142,7 @@ internal class IdbMessageGroup(private val derTlvList: List<DerTlv>, issuingCoun
             val childDefs = if (subMessageDefs != null) {
                 subMessageDefs.firstOrNull { it.tag == tag }?.messages
                     ?: throw IllegalArgumentException("Unknown sub-message tag $tag for this container")
-            } else DataEncoder.idbMessageTypes.getMessageTypeDto(tag)?.messages
+            } else DataEncoder.idbMessageTypes.getMessageTypeDto(tag, issuingCountry)?.messages
             val childBuilder = Builder(childDefs)
             childBuilder.block()
             val childBytes = Buffer()
@@ -146,7 +153,7 @@ internal class IdbMessageGroup(private val derTlvList: List<DerTlv>, issuingCoun
             return this
         }
 
-        fun build(issuingCountry: String? = null): IdbMessageGroup {
+        fun build(): IdbMessageGroup {
             return IdbMessageGroup(derTlvList.toList(), issuingCountry)
         }
     }

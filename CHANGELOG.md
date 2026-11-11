@@ -61,6 +61,10 @@ All notable changes to this project will be documented in this file.
   with the same key **and** country. A custom entry without `country` no longer
   replaces a bundled German type of another name; it applies to all other
   countries.
+- **Behavior change:** `IdbSeal.Builder` encodes the messages in `build()`
+  with the definitions of the issuing country (`addMessage(tag, …)` for a tag
+  that several countries define). Unknown names or values that do not fit the
+  coding are thus reported by `build()` instead of `addMessage()`.
 - **Breaking:** the bundled definition files are split by specification:
   `icao-9303/`, `icao-idb/`, `bsi-tr-03137/` and `bsi-tr-03171/`, each with a
   `spec.json` that sets the `country` of its entries

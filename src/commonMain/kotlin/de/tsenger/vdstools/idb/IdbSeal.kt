@@ -205,7 +205,8 @@ class IdbSeal : Seal {
         private var signingDate: String? = null
         private var signerCertBytes: ByteArray? = null
         private var compress: Boolean = false
-        private val messageBuilder = IdbMessageGroup.Builder()
+        /** Messages are encoded in [build], when the issuing country is known (tags can be national). */
+        private val messages = mutableListOf<(IdbMessageGroup.Builder) -> Unit>()
 
         /**
          * Three-letter code of the issuing state, e.g. "D<<". Defaults to "UTO" (Utopia, the code ICAO
@@ -218,25 +219,30 @@ class IdbSeal : Seal {
         fun signingDate(v: String) = apply { signingDate = v }
         fun signerCertificate(v: ByteArray) = apply { signerCertBytes = v }
         fun compress(v: Boolean) = apply { compress = v }
-        fun <T> addMessage(tag: Int, value: T) = apply { messageBuilder.addMessage(tag, value) }
-        fun <T> addMessage(name: String, value: T) = apply { messageBuilder.addMessage(name, value) }
+        // Messages are encoded with the definitions of the issuing country in build(), so unknown names
+        // or values that do not fit the coding are reported there.
+        fun <T> addMessage(tag: Int, value: T) = apply { messages += { it.addMessage(tag, value) } }
+        fun <T> addMessage(name: String, value: T) = apply { messages += { it.addMessage(name, value) } }
         fun addMessage(name: String, block: SubMessageBuilder.() -> Unit) = apply {
-            messageBuilder.addMessage(name) { SubMessageBuilder(this).block() }
+            messages += { it.addMessage(name) { SubMessageBuilder(this).block() } }
         }
         fun addMessage(tag: Int, block: SubMessageBuilder.() -> Unit) = apply {
-            messageBuilder.addMessage(tag) { SubMessageBuilder(this).block() }
+            messages += { it.addMessage(tag) { SubMessageBuilder(this).block() } }
         }
+
+        private fun buildMessageGroup(): IdbMessageGroup =
+            IdbMessageGroup.Builder(issuingCountry = countryIdentifier).apply { messages.forEach { add -> add(this) } }.build()
 
         fun build(): IdbSeal {
             val header = IdbHeader(countryIdentifier)
-            val payload = IdbPayload(header, messageBuilder.build(countryIdentifier), null, null)
+            val payload = IdbPayload(header, buildMessageGroup(), null, null)
             return IdbSeal(isSigned = false, isZipped = compress, barcodePayload = payload)
         }
 
         fun build(signer: Signer): IdbSeal {
             val algo = IdbSignatureAlgorithm.fromFieldSize(signer.fieldSize)
             val header = IdbHeader(countryIdentifier, algo, certificateReference, signingDate)
-            val msgGroup = messageBuilder.build(countryIdentifier)
+            val msgGroup = buildMessageGroup()
             val sigBytes = signer.sign(header.encoded + msgGroup.encoded)
             val cert = signerCertBytes?.let { IdbSignerCertificate(it) }
             val payload = IdbPayload(header, msgGroup, cert, IdbSignature(sigBytes))

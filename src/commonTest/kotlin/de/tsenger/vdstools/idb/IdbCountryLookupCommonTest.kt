@@ -90,6 +90,36 @@ class IdbCountryLookupCommonTest {
         assertEquals(listOf(FormatFinding.UnknownTag(listOf(0x80))), seal.formatFindings)
     }
 
+    private fun addFrenchCode() = DataEncoder.addCustomIdbMessageTypes(
+        """[{"name": "FR_CODE", "tag": 128, "coding": "C40", "country": "F"}]"""
+    )
+
+    @Test
+    fun builderByTag_usesTheDefinitionOfTheIssuingCountry() {
+        // 0x80 is FACE_IMAGE (BYTES) for D and FR_CODE (C40) for F; the country may be set after the message
+        addFrenchCode()
+        val french = SealParser().parse(
+            IdbSeal.Builder().addMessage(0x80, "AB12").countryIdentifier("F<<").build().rawString
+        ) as IdbSeal
+        assertEquals("FR_CODE", french.messageList.single().name)
+        assertEquals(emptyList(), french.formatFindings)
+
+        val photo = byteArrayOf(1, 2, 3)
+        val german = seal("D<<") { addMessage(0x80, photo) }
+        assertEquals("FACE_IMAGE", german.messageList.single().name)
+        assertContentEquals(photo, german.messageList.single().value.rawBytes)
+    }
+
+    @Test
+    fun builderByTag_containerUsesTheDefinitionOfTheIssuingCountry() {
+        DataEncoder.addCustomIdbMessageTypes(
+            """[{"name": "FR_CONTAINER", "tag": 129, "coding": "SUB_MESSAGES", "country": "F",
+                 "messages": [{"name": "FR_ITEM", "tag": 1, "coding": "C40"}]}]"""
+        )
+        val seal = seal("F<<") { addMessage(0x81) { addMessage("FR_ITEM", "XY") } }
+        assertEquals("FR_ITEM", seal.messageList.single().messageList.single().name)
+    }
+
     @Test
     fun icaoMessages_haveNoFinding() {
         val seal = seal("UTO") { addMessage("CAN", "123456") }

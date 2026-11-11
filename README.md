@@ -287,7 +287,8 @@ the seal is a specimen. Reading a national type on a seal of another country rep
 `VdsSeal.Builder.build()` checks the seal with the same rules as reading (see [Format findings](#format-findings)) and
 throws an `IllegalArgumentException` listing every `WRONG_FORMAT` violation, e.g. a missing required message or a wrong
 length. Document types without a verified `specification` are not checked for required messages and lengths.
-`IdbSeal.Builder` does not check yet.
+`IdbSeal.Builder` does not check yet. It encodes the messages in `build()` with the definitions of the issuing country,
+so `countryIdentifier(...)` may come after `addMessage(...)`; an unknown message name is reported there, too.
 
 ### VDS
 
