@@ -216,7 +216,7 @@ Each `FormatFinding` has a `category` following Appendix D and a `tagPath` (empt
 | `ForeignNationalDefinition` | `UNDETERMINED` | read with the national definition of another country (see [National definitions](#national-definitions)) |
 | `ProfileNotFound` | `UNDETERMINED` | TR-03171 profile not available; content tags are then not checked |
 | `MissingRequired` | `WRONG_FORMAT` | a required message is missing (see below which document types are checked) |
-| `NotAllowed` | `WRONG_FORMAT` | a message the specification forbids: TR-03171 `VALID_FROM`/`VALID_TO` against the profile, an undefined tag in a VDS type that forbids additional features, a known message type that does not belong to a German IDB document type |
+| `NotAllowed` | `WRONG_FORMAT` | a message the specification forbids: TR-03171 `VALID_FROM`/`VALID_TO` against the profile, an undefined tag in a VDS type that forbids additional features, a known message type that does not belong to the national IDB document type |
 | `InvalidLength` | `WRONG_FORMAT` | a value shorter or longer than its definition allows |
 | `DecodeFailed` | `WRONG_FORMAT` | a defined message whose bytes cannot be decoded with its coding (its message `isRaw`) |
 | `MalformedSubMessages` | `WRONG_FORMAT` | IDB container content is no valid DER-TLV sequence |
@@ -228,7 +228,7 @@ if (findings.any { it.category == FormatFinding.Category.WRONG_FORMAT }) println
 
 Required messages and lengths are only checked where the definitions are verified against their specification:
 
-- VDS document types with a `specification` in `VdsDocumentTypes.json`: the ICAO visa (Doc 9303-7 §9.1, MRZ of MRV-A
+- VDS document types with a `specification`: the ICAO visa (Doc 9303-7 §9.1, MRZ of MRV-A
   or MRV-B), the ICAO emergency travel document (Doc 9303-8 §6.1) and the BSI TR-03137-1 V3.0 types (arrival
   attestation, social insurance card, residence permit, supplementary sheet, address stickers). Lengths are bytes;
   `maxBytes` 0 means the specification gives no maximum.
@@ -242,8 +242,8 @@ Required messages and lengths are only checked where the definitions are verifie
 ### National definitions
 
 National document types (an even VDS document type category, ICAO Doc 9303-13 §3.1.1) and national IDB message types
-(e.g. `0x80`–`0x86`, BSI TR-03137 §11.2.2) belong to a country: the bundled German ones carry `"country": "D"`, ICAO
-ones no country. A seal is read with the definition of its issuing country first, then an international one, then the
+(e.g. `0x80`–`0x86`, BSI TR-03137 §11.2.2) belong to a country: the bundled BSI ones have `"country": "D"` (set by
+their folder's `spec.json`, see below), ICAO ones no country. A seal is read with the definition of its issuing country first, then an international one, then the
 national definition of another country if exactly one country defines it. The last case is reported as
 `ForeignNationalDefinition(tagPath, country)`, e.g. for the BSI specimen seals, which are issued by `UTO` (ICAO Doc
 9303-3: Utopia for sample documents). If several other countries define it, nothing is guessed: the VDS document type
