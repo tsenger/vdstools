@@ -92,22 +92,31 @@ class IdbSeal : Seal {
         return Message(idbMessage.tag, idbMessage.name, idbMessage.coding, idbMessage.value, idbMessage.messageList)
     }
 
-    /**
-     * If messageGroup contains a message with tag 0x86 ("NATIONAL_DOCUMENT_IDENTIFIER")
-     * the name of the nation document type will be returned. Otherwise, the comma separated name(s) of the
-     * available messages in the message group will be returned.
-     */
     override val sealType = SealType.IDB
+
+    /**
+     * The name of the national document type if the message group contains a message whose type
+     * identifies it (`identifiesDocumentType`, e.g. BSI TR-03137 0x86 `NATIONAL_DOCUMENT_IDENTIFIER`).
+     * Otherwise, the comma separated names of the messages in the message group.
+     */
     override val documentType: String
 
     /** Findings of the national document type, bound with [documentType] when the seal is created. */
     private val nationalFindings: List<FormatFinding>
 
+    /**
+     * The national document type value and the country to look it up for: the country of the
+     * identifying message type, or the issuing country if that type is international.
+     */
+    private fun documentTypeReference(): Pair<Int, String>? {
+        val (message, definition) = payLoad.idbMessageGroup.documentTypeIdentifier ?: return null
+        val value = (message.value as? MessageValue.ByteValue)?.value ?: return null
+        return value to (definition.country ?: issuingCountry)
+    }
+
     private fun bindDocumentType(): String {
-        val docTypeId = (getMessageByTag(0x86)?.value as? MessageValue.ByteValue)?.value
-        return if (docTypeId != null) {
-            DataEncoder.idbDocumentTypes.getDocumentType(docTypeId, issuingCountry)
-        } else messageList.joinToString(", ") { it.name }
+        val (docTypeId, country) = documentTypeReference() ?: return messageList.joinToString(", ") { it.name }
+        return DataEncoder.idbDocumentTypes.getDocumentType(docTypeId, country)
     }
 
 
@@ -128,18 +137,16 @@ class IdbSeal : Seal {
     }
 
     /**
-     * Checks the messages against the national document type (tag 0x86, e.g. BSI TR-03137 chapters
-     * 12–17): all its message types are required, others are not allowed. The document type is looked
-     * up for the seal's country like the message types (see [ForeignNationalDefinition][FormatFinding.ForeignNationalDefinition]).
+     * Checks the messages against the national document type (see [documentTypeReference], e.g.
+     * BSI TR-03137 chapters 12–17): all its message types are required, others are not allowed.
      */
     private fun nationalDocumentTypeFindings(): List<FormatFinding> {
         val messages = messageList
-        val docTypeId = (messages.firstOrNull { it.tag == 0x86 }?.value as? MessageValue.ByteValue)?.value
-            ?: return emptyList()
-        if (DataEncoder.idbDocumentTypes.getDocumentType(docTypeId, issuingCountry) == "UNKNOWN") {
+        val (docTypeId, country) = documentTypeReference() ?: return emptyList()
+        if (DataEncoder.idbDocumentTypes.getDocumentType(docTypeId, country) == "UNKNOWN") {
             return listOf(FormatFinding.UnknownDocumentType(docTypeId))
         }
-        val expected = DataEncoder.idbDocumentTypes.getExpectedMessages(docTypeId, issuingCountry)
+        val expected = DataEncoder.idbDocumentTypes.getExpectedMessages(docTypeId, country)
         if (expected.isEmpty()) return emptyList()
         val present = messages.filter { it.isDefined }
         val findings = mutableListOf<FormatFinding>()

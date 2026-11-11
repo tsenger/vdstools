@@ -41,7 +41,8 @@ import okio.*
  * ## IDB – ICAO Datastructure for Barcode (ICAO TR-IDB)
  * An IDB barcode can contain multiple message types simultaneously in its message group.
  * Which message types are expected in a given seal is determined by the national document
- * type, encoded as `NATIONAL_DOCUMENT_IDENTIFIER` (tag 0x86) within the message group.
+ * type, the value of the message type marked `identifiesDocumentType` (BSI TR-03137:
+ * `NATIONAL_DOCUMENT_IDENTIFIER`, tag 0x86).
  * The available message types are defined in the `IdbMessageTypes.json` files; the document
  * types and their expected message combinations in the `IdbDocumentTypes.json` files.
  *

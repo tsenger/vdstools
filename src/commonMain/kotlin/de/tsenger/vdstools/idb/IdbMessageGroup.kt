@@ -29,6 +29,11 @@ internal class IdbMessageGroup(private val derTlvList: List<DerTlv>, issuingCoun
         topLevelDefinitions[i]?.country?.let { (derTlvList[i].tag.toInt() and 0xFF) to normalizeCountry(it) }
     }
 
+    /** The first top-level message whose type identifies the national document type, with that type. */
+    internal val documentTypeIdentifier: Pair<Message, IdbMessageTypeDto>? =
+        messageList.indices.firstOrNull { topLevelDefinitions[it]?.identifiesDocumentType == true }
+            ?.let { messageList[it] to topLevelDefinitions[it]!! }
+
     fun getMessageByTag(messageTag: Int): Message? {
         return messageList.firstOrNull { it.tag == messageTag }
     }

@@ -10,8 +10,8 @@ import kotlinx.serialization.json.Json
  * Registry for IDB national document type definitions (ICAO TR-IDB / BSI TR-03137).
  *
  * In IDB, a message group can contain multiple message types belonging to one document.
- * Which message types are expected is determined by the national document type, encoded
- * as `NATIONAL_DOCUMENT_IDENTIFIER` (tag 0x86) in the message group. This registry maps
+ * Which message types are expected is determined by the national document type, the value of the
+ * message type marked `identifiesDocumentType` (BSI TR-03137: `NATIONAL_DOCUMENT_IDENTIFIER`, tag 0x86). This registry maps
  * between the numeric tag and the document type name, and provides the list of expected
  * message types for each national document type.
  *

@@ -46,6 +46,7 @@
     "tag": 134,
     "coding": "BYTE",
     "minBytes": 1,
-    "maxBytes": 1
+    "maxBytes": 1,
+    "identifiesDocumentType": true
   }
 ]

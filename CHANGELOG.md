@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file.
   `D`. Lookups for a seal's issuing country: `getVdsType(docRef, country)`,
   `getMessageTypeDto(tag, country)`, `getDocumentType(tag, country)`,
   `getExpectedMessages(tag, country)`.
+- `IdbMessageTypeDto.identifiesDocumentType`: marks the message type that
+  carries the national document type (bundled: BSI TR-03137 `0x86`), instead
+  of tag `0x86` in code. The document type is looked up for that message
+  type's country, so other countries can bring their own tag and types.
 - `FormatFinding.ForeignNationalDefinition` (`UNDETERMINED`): a document type
   or IDB message was read with the national definition of another country.
 - `VdsSeal.Builder.forProfile(definition)`: builds a TR-03171 seal for a profile

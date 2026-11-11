@@ -236,8 +236,8 @@ Required messages and lengths are only checked where the definitions are verifie
   `PROFILE_URI` and `CERTIFICATE_URI` required, fixed date lengths), required profile entries, `VALID_FROM`/`VALID_TO`
   presence as the profile demands, explicit `<length>` of UTF8String (characters) and OCTET STRING (bytes) profile
   entries. The v0.8 base type is not verified (no specification at hand).
-- IDB seals with a national document type (tag `0x86`, German types per BSI TR-03137 chapters 12–17): message types of
-  that document type.
+- IDB seals with a national document type (German types per BSI TR-03137 chapters 12–17): message types of that
+  document type.
 
 ### National definitions
 
@@ -249,6 +249,17 @@ national definition of another country if exactly one country defines it. The la
 9303-3: Utopia for sample documents). If several other countries define it, nothing is guessed: the VDS document type
 is unknown, the IDB message raw. The issuing country of a built seal is always the one you set; the definition only
 describes the content.
+
+An IDB message type marked `"identifiesDocumentType": true` carries the national document type (bundled: BSI
+TR-03137 `0x86` `NATIONAL_DOCUMENT_IDENTIFIER`). Its value is looked up in the IDB document types of that message
+type's country, so another country can bring its own tag and document types:
+
+```kotlin
+DataEncoder.addCustomIdbMessageTypes("""[{"name": "FR_DOCUMENT_TYPE", "tag": 144, "coding": "BYTE",
+    "country": "F", "identifiesDocumentType": true}]""")
+DataEncoder.addCustomIdbDocumentTypes("""[{"tag": 1, "name": "FR_TITRE", "country": "F",
+    "messages": [{"name": "FR_DOCUMENT_TYPE", "required": true}]}]""")
+```
 
 The bundled definitions are split by specification, one folder each in `src/commonMain/resources/`: `icao-9303/`
 (VDS visa and ETD), `icao-idb/` (IDB message types `0x01`–`0x0A`), `bsi-tr-03137/` and `bsi-tr-03171/`. A folder's
