@@ -18,6 +18,8 @@ All notable changes to this project will be documented in this file.
   specification report a value outside `minBytes`/`maxBytes` as
   `FormatFinding.InvalidLength` when read. Set for the national types
   `0x80`–`0x86` (BSI TR-03137-1 V3.0 §11.2.2, e.g. face image 900–1000 bytes).
+  Also set for the ICAO types `0x07`/`0x08` (MRZ, 60 bytes) and `0x09` (CAN,
+  4 bytes), ICAO TR Datastructure for Barcode V1.10 §3.3.1.7–§3.3.1.9.
 - `IdbDocumentTypeDto.specification` and `additionalMessagesAllowed`, like
   for VDS document types. Set for the 18 German types (verified against BSI
   TR-03137-1 V3.0 §12.2.2–§17.2.2, no other message types allowed).

@@ -328,35 +328,96 @@
     "tag": 6,
     "coding": "SUB_MESSAGES",
     "messages": [
-      { "name": "DTA_NUMBER",           "tag":  1, "coding": "C40" },
-      { "name": "NAME_OF_HOLDER",       "tag":  2, "coding": "C40" },
-      { "name": "PASSPORT_NUMBER",      "tag":  3, "coding": "C40" },
-      { "name": "DATE_OF_BIRTH",        "tag":  4, "coding": "MASKED_DATE" },
-      { "name": "NATIONALITY",          "tag":  5, "coding": "C40" },
-      { "name": "SEX",                  "tag":  6, "coding": "UTF8_STRING" },
-      { "name": "PLACE_OF_ISSUE",       "tag":  7, "coding": "C40" },
-      { "name": "VALID_FROM",           "tag":  8, "coding": "MASKED_DATE" },
-      { "name": "VALID_UNTIL",          "tag":  9, "coding": "MASKED_DATE" },
-      { "name": "DURATION_OF_STAY",     "tag": 10, "coding": "C40" },
-      { "name": "NUMBER_OF_ENTRIES",    "tag": 11, "coding": "BYTE" },
-      { "name": "TYPE_CLASS_CATEGORY",  "tag": 12, "coding": "C40" },
-      { "name": "ADDITIONAL_INFORMATION","tag": 13, "coding": "C40" }
+      {
+        "name": "DTA_NUMBER",
+        "tag": 1,
+        "coding": "C40"
+      },
+      {
+        "name": "NAME_OF_HOLDER",
+        "tag": 2,
+        "coding": "C40"
+      },
+      {
+        "name": "PASSPORT_NUMBER",
+        "tag": 3,
+        "coding": "C40"
+      },
+      {
+        "name": "DATE_OF_BIRTH",
+        "tag": 4,
+        "coding": "MASKED_DATE"
+      },
+      {
+        "name": "NATIONALITY",
+        "tag": 5,
+        "coding": "C40"
+      },
+      {
+        "name": "SEX",
+        "tag": 6,
+        "coding": "UTF8_STRING"
+      },
+      {
+        "name": "PLACE_OF_ISSUE",
+        "tag": 7,
+        "coding": "C40"
+      },
+      {
+        "name": "VALID_FROM",
+        "tag": 8,
+        "coding": "MASKED_DATE"
+      },
+      {
+        "name": "VALID_UNTIL",
+        "tag": 9,
+        "coding": "MASKED_DATE"
+      },
+      {
+        "name": "DURATION_OF_STAY",
+        "tag": 10,
+        "coding": "C40"
+      },
+      {
+        "name": "NUMBER_OF_ENTRIES",
+        "tag": 11,
+        "coding": "BYTE"
+      },
+      {
+        "name": "TYPE_CLASS_CATEGORY",
+        "tag": 12,
+        "coding": "C40"
+      },
+      {
+        "name": "ADDITIONAL_INFORMATION",
+        "tag": 13,
+        "coding": "C40"
+      }
     ]
   },
   {
     "name": "MRZ_TD1",
     "tag": 7,
-    "coding": "MRZ"
+    "coding": "MRZ",
+    "specification": "ICAO TR Datastructure for Barcode V1.10 §3.3.1.7",
+    "minBytes": 60,
+    "maxBytes": 60
   },
   {
     "name": "MRZ_TD3",
     "tag": 8,
-    "coding": "MRZ"
+    "coding": "MRZ",
+    "specification": "ICAO TR Datastructure for Barcode V1.10 §3.3.1.8",
+    "minBytes": 60,
+    "maxBytes": 60
   },
   {
     "name": "CAN",
     "tag": 9,
-    "coding": "C40"
+    "coding": "C40",
+    "specification": "ICAO TR Datastructure for Barcode V1.10 §3.3.1.9",
+    "minBytes": 4,
+    "maxBytes": 4
   },
   {
     "name": "EF_CARD_ACCESS",
