@@ -1,5 +1,6 @@
 package de.tsenger.vdstools
 
+import de.tsenger.vdstools.generated.ResourceConstants
 import de.tsenger.vdstools.idb.dto.IdbMessageTypeRef
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -8,9 +9,9 @@ import kotlin.test.assertTrue
 
 class IdbDocumentTypeRegistryCommonTest {
 
-    private val registry = IdbDocumentTypeRegistry(
-        readTextResource("IdbGermanDocumentTypes.json")
-    )
+    private val registry = IdbDocumentTypeRegistry("[]").apply {
+        ResourceConstants.IDB_DOCUMENT_TYPES_JSON.forEach(::addEntriesFromJson)
+    }
 
     @Test
     fun testParseJsonLoadsAllEntries() {
@@ -77,9 +78,9 @@ class IdbDocumentTypeRegistryCommonTest {
     }
 
     @Test
-    fun testGetExpectedMessages_provisionalResidenceHasMrzTd1AndAzr() {
+    fun testGetExpectedMessages_provisionalResidenceHasMrzTd2AndAzr() {
         val messages = registry.getExpectedMessages(14) // PROVISIONAL_RESIDENCE_DOCUMENT
-        assertTrue(messages.any { it.name == "MRZ_TD1" })
+        assertTrue(messages.any { it.name == "MRZ_TD2" })
         assertTrue(messages.any { it.name == "AZR" })
         assertTrue(messages.any { it.name == "DOCUMENT_REFERENCE" })
         assertTrue(messages.any { it.name == "NATIONAL_DOCUMENT_IDENTIFIER" })
@@ -87,9 +88,10 @@ class IdbDocumentTypeRegistryCommonTest {
 
     @Test
     fun testGetExpectedMessages_certifyingPermanentResidenceMinimalMessages() {
-        // CERTIFYING_PERMANENT_RESIDENCE only has DOCUMENT_NUMBER and NATIONAL_DOCUMENT_IDENTIFIER
+        // CERTIFYING_PERMANENT_RESIDENCE only has DOCUMENT_REFERENCE, DOCUMENT_NUMBER and NATIONAL_DOCUMENT_IDENTIFIER
         val messages = registry.getExpectedMessages(16)
-        assertEquals(2, messages.size)
+        assertEquals(3, messages.size)
+        assertTrue(messages.any { it.name == "DOCUMENT_REFERENCE" })
         assertTrue(messages.any { it.name == "DOCUMENT_NUMBER" })
         assertTrue(messages.any { it.name == "NATIONAL_DOCUMENT_IDENTIFIER" })
     }
