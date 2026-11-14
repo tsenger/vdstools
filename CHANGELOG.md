@@ -76,9 +76,9 @@ All notable changes to this project will be documented in this file.
   reported as `NotAllowed` only if `additionalMessagesAllowed` is false. Before,
   every document type was checked as closed. Custom IDB document types without
   these fields are no longer checked.
-- The bundled ICAO IDB message types no longer carry `minBytes`, `maxBytes`
-  or sub-message `required`. Nothing read them, and they were not verified
-  against ICAO TR-IDB.
+- The bundled ICAO IDB message types no longer carry sub-message `required`,
+  and `minBytes`/`maxBytes` only where verified against ICAO TR Datastructure
+  for Barcode V1.10 (`0x07`, `0x08`, `0x09`). Nothing read the others.
 - **Breaking:** the bundled definition files are split by specification:
   `icao-9303/`, `icao-idb/`, `bsi-tr-03137/` and `bsi-tr-03171/`
   (`IdbGermanDocumentTypes.json` is now `bsi-tr-03137/IdbDocumentTypes.json`).
