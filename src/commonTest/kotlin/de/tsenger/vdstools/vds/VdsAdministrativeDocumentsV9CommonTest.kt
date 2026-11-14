@@ -131,8 +131,8 @@ class VdsAdministrativeDocumentsV9CommonTest {
             .build()
 
         assertNotNull(group.documentProfileUuid)
-        assertEquals(16, group.documentProfileUuid!!.size)
-        assertEquals(testUuidHex, group.documentProfileUuid!!.toHexString())
+        assertEquals(16, group.documentProfileUuid.size)
+        assertEquals(testUuidHex, group.documentProfileUuid.toHexString())
     }
 
     // -------------------------------------------------------------------------
@@ -225,7 +225,7 @@ class VdsAdministrativeDocumentsV9CommonTest {
         // Must decode to DateValue (from DATE_STRING coding)
         assertTrue(validFrom.value is MessageValue.DateValue,
             "VALID_FROM must decode to DateValue, got ${validFrom.value::class.simpleName}")
-        assertEquals(date, (validFrom.value as MessageValue.DateValue).date)
+        assertEquals(date, validFrom.value.date)
 
         // Raw bytes must be the 8-byte YYYYMMDD UTF-8 string, not the 3-byte ICAO format
         assertEquals(8, validFrom.value.rawBytes.size,
@@ -245,7 +245,7 @@ class VdsAdministrativeDocumentsV9CommonTest {
         assertNotNull(validTo, "VALID_TO must be present in metadataMessageList")
 
         assertTrue(validTo.value is MessageValue.DateValue)
-        assertEquals(date, (validTo.value as MessageValue.DateValue).date)
+        assertEquals(date, validTo.value.date)
         assertEquals(8, validTo.value.rawBytes.size)
         assertEquals("20251231", validTo.value.rawBytes.decodeToString())
     }
@@ -424,7 +424,7 @@ class VdsAdministrativeDocumentsV9CommonTest {
         assertNotNull(validFrom, "VALID_FROM must be present in metadataMessageList")
         assertTrue(validFrom.value is MessageValue.DateValue,
             "VALID_FROM must decode to DateValue")
-        assertEquals(LocalDate(2025, 1, 1), (validFrom.value as MessageValue.DateValue).date)
+        assertEquals(LocalDate(2025, 1, 1), validFrom.value.date)
         // Raw bytes must be the 8-byte YYYYMMDD string (DATE_STRING coding)
         assertEquals(8, validFrom.value.rawBytes.size)
         assertEquals("20250101", validFrom.value.rawBytes.decodeToString())

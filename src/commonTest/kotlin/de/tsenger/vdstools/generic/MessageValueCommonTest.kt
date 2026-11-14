@@ -70,7 +70,6 @@ class MessageValueCommonTest {
     fun testFromBytes_DATE_STRING_decodedPropertyIsLocalDate() {
         val bytes = DataEncoder.encodeDateString(LocalDate(1999, 12, 31))
         val value = MessageValue.fromBytes(bytes, MessageCoding.DATE_STRING) as MessageValue.DateValue
-        assertTrue(value.decoded is LocalDate)
         assertEquals(LocalDate(1999, 12, 31), value.decoded)
     }
 
