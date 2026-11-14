@@ -17,13 +17,12 @@ import kotlinx.serialization.json.Json
  * expected for a given document is determined by the national document type; see
  * [IdbDocumentTypeRegistry].
  *
- * Definitions are loaded from `IdbMessageTypes.json`.
+ * The bundled definitions are loaded from `icao-idb/IdbMessageTypes.json` and `bsi-tr-03137/IdbMessageTypes.json`.
  *
  * @param jsonString JSON string containing an array of [IdbMessageTypeDto] definitions
  */
 class IdbMessageTypeRegistry(jsonString: String) : DefinitionRegistry {
     private var messageTypeDtoList: List<IdbMessageTypeDto> = emptyList()
-    private val messageTypes: HashMap<Int, IdbMessageTypeDto> = HashMap()
     private val messageTypesInverse: HashMap<String, IdbMessageTypeDto> = HashMap()
 
     companion object {
@@ -31,25 +30,25 @@ class IdbMessageTypeRegistry(jsonString: String) : DefinitionRegistry {
     }
 
     init {
-        messageTypeDtoList = json.decodeFromString(jsonString)
-        for (messageTypeDto in messageTypeDtoList) {
-            messageTypes[messageTypeDto.tag] = messageTypeDto
-            messageTypesInverse[messageTypeDto.name] = messageTypeDto
-
-        }
+        addEntriesFromJson(jsonString)
     }
 
+    /** Adds message types. An entry replaces any entry with the same name or the same tag. */
     override fun addEntriesFromJson(jsonString: String) {
         val newDtos = json.decodeFromString<List<IdbMessageTypeDto>>(jsonString)
         for (dto in newDtos) {
-            messageTypes[dto.tag] = dto
-            messageTypesInverse[dto.name] = dto
+            messageTypeDtoList = messageTypeDtoList.filter { it.name != dto.name && it.tag != dto.tag } + dto
         }
+        messageTypesInverse.clear()
+        messageTypeDtoList.forEach { messageTypesInverse[it.name] = it }
     }
+
+    /** The message types marked `identifiesDocumentType` (bundled: BSI TR-03137 0x86). */
+    internal fun documentTypeIdentifiers(): List<IdbMessageTypeDto> = messageTypeDtoList.filter { it.identifiesDocumentType }
 
     /** Returns the names of all registered IDB message types. */
     fun availableMessageTypes(): Set<String> {
-        return messageTypes.values.map { it.name }.toSet()
+        return messageTypeDtoList.map { it.name }.toSet()
     }
 
     /**
@@ -59,7 +58,7 @@ class IdbMessageTypeRegistry(jsonString: String) : DefinitionRegistry {
      * @return The message type name, or `"UNKNOWN"` if the tag is not registered
      */
     fun getMessageType(tag: Int): String {
-        return messageTypes[tag]?.name ?: "UNKNOWN"
+        return getMessageTypeDto(tag)?.name ?: "UNKNOWN"
     }
 
     /**
@@ -89,7 +88,7 @@ class IdbMessageTypeRegistry(jsonString: String) : DefinitionRegistry {
      * @return The [MessageCoding], or [MessageCoding.UNKNOWN] if the tag is not registered
      */
     fun getMessageTypeCoding(messageTypeTag: Int): MessageCoding {
-        return messageTypes[messageTypeTag]?.coding ?: MessageCoding.UNKNOWN
+        return getMessageTypeDto(messageTypeTag)?.coding ?: MessageCoding.UNKNOWN
     }
 
     /**
@@ -98,9 +97,7 @@ class IdbMessageTypeRegistry(jsonString: String) : DefinitionRegistry {
      * @param tag The numeric tag of the message type
      * @return The [IdbMessageTypeDto], or `null` if the tag is not registered
      */
-    fun getMessageTypeDto(tag: Int): IdbMessageTypeDto? {
-        return messageTypes[tag]
-    }
+    fun getMessageTypeDto(tag: Int): IdbMessageTypeDto? = messageTypeDtoList.lastOrNull { it.tag == tag }
 
     /**
      * Returns the full DTO for a given message type name.

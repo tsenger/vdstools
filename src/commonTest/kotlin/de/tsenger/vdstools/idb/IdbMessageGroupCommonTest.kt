@@ -361,4 +361,17 @@ class IdbMessageGroupCommonTest {
                 ?.getMessageByName("VACCINE_BRAND")?.value.toString()
         )
     }
+
+    @Test
+    fun builder_unknownTopLevelName_namesTheMessageInTheError() {
+        val byValue = assertFailsWith<IllegalArgumentException> {
+            IdbMessageGroup.Builder().addMessage("NO_SUCH_MESSAGE", "x")
+        }
+        assertTrue(byValue.message!!.contains("NO_SUCH_MESSAGE"), byValue.message)
+
+        val byBlock = assertFailsWith<IllegalArgumentException> {
+            IdbMessageGroup.Builder().addMessage("NO_SUCH_CONTAINER") { addMessage("VISA_TYPE", "aa".hexToByteArray()) }
+        }
+        assertTrue(byBlock.message!!.contains("NO_SUCH_CONTAINER"), byBlock.message)
+    }
 }

@@ -164,14 +164,16 @@ internal class VdsHeader {
         var rawVersion: Byte = 3
             private set
 
-        /** Builds a header for a known base document type or predefined profile name. */
-        constructor(vdsType: String) : this() {
-            setDocumentType(vdsType)
-        }
+        /** Builds a header for a document type or registered profile name (see [profileForName]). */
+        constructor(vdsType: String) : this(vdsType, profileForName(vdsType))
 
         /** Builds a header for an already-resolved (e.g. TR-03171) profile definition. */
-        constructor(profileDefinition: VdsProfileDefinitionDto) : this() {
-            applyBaseDocumentRef(profileDefinition.baseDocumentType)
+        constructor(profileDefinition: VdsProfileDefinitionDto) : this(profileDefinition.definitionName, profileDefinition)
+
+        /** Builds a header for [vdsType], or with an already-resolved [profile] for its base document type. */
+        constructor(vdsType: String, profile: VdsProfileDefinitionDto?) : this() {
+            if (profile != null) applyBaseDocumentRef(profile.baseDocumentType)
+            else DataEncoder.vdsDocumentTypes.getDocumentRef(vdsType)?.let(::applyDocumentRef)
         }
 
         fun setIssuingCountry(issuingCountry: String): Builder {
@@ -208,24 +210,13 @@ internal class VdsHeader {
             return VdsHeader(this)
         }
 
-        private fun setDocumentType(vdsType: String) {
-            val docRef = DataEncoder.vdsDocumentTypes.getDocumentRef(vdsType)
-            if (docRef != null) {
-                this.docFeatureRef = ((docRef shr 8) and 0xFF).toByte()
-                this.docTypeCat = (docRef and 0xFF).toByte()
-            } else {
-                // Try resolving as an extended definition name
-                val profileDef = DataEncoder.vdsProfileDefinitions.resolveByNameUnique(vdsType)
-                if (profileDef != null) {
-                    applyBaseDocumentRef(profileDef.baseDocumentType)
-                }
-            }
+        private fun applyBaseDocumentRef(baseDocumentType: String) {
+            DataEncoder.vdsDocumentTypes.getDocumentRef(baseDocumentType)?.let(::applyDocumentRef)
         }
 
-        private fun applyBaseDocumentRef(baseDocumentType: String) {
-            val baseDocRef = DataEncoder.vdsDocumentTypes.getDocumentRef(baseDocumentType) ?: return
-            this.docFeatureRef = ((baseDocRef shr 8) and 0xFF).toByte()
-            this.docTypeCat = (baseDocRef and 0xFF).toByte()
+        private fun applyDocumentRef(docRef: Int) {
+            this.docFeatureRef = ((docRef shr 8) and 0xFF).toByte()
+            this.docTypeCat = (docRef and 0xFF).toByte()
         }
     }
 

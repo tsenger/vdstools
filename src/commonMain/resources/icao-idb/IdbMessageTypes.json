@@ -1,0 +1,427 @@
+[
+  {
+    "name": "VISA",
+    "tag": 1,
+    "coding": "SUB_MESSAGES",
+    "messages": [
+      {
+        "name": "MRZ_MRVA",
+        "tag": 1,
+        "coding": "MRZ_MRVA"
+      },
+      {
+        "name": "MRZ_MRVB",
+        "tag": 2,
+        "coding": "MRZ_MRVB"
+      },
+      {
+        "name": "NUMBER_OF_ENTRIES",
+        "tag": 3,
+        "coding": "BYTE"
+      },
+      {
+        "name": "DURATION_OF_STAY",
+        "tag": 4,
+        "coding": "DURATION_OF_STAY"
+      },
+      {
+        "name": "PASSPORT_NUMBER",
+        "tag": 5,
+        "coding": "C40"
+      },
+      {
+        "name": "VISA_TYPE",
+        "tag": 6,
+        "coding": "BYTES"
+      },
+      {
+        "name": "ADDITIONAL_FEATURES",
+        "tag": 7,
+        "coding": "BYTES"
+      }
+    ]
+  },
+  {
+    "name": "EMERGENCY_TRAVEL_DOCUMENT",
+    "tag": 2,
+    "coding": "SUB_MESSAGES",
+    "messages": [
+      {
+        "name": "MRZ",
+        "tag": 2,
+        "coding": "MRZ"
+      }
+    ]
+  },
+  {
+    "name": "PROOF_OF_TESTING",
+    "tag": 3,
+    "coding": "SUB_MESSAGES",
+    "messages": [
+      {
+        "name": "UTCI",
+        "tag": 1,
+        "coding": "C40"
+      },
+      {
+        "name": "NAME",
+        "tag": 2,
+        "coding": "C40"
+      },
+      {
+        "name": "DATE_OF_BIRTH",
+        "tag": 3,
+        "coding": "MASKED_DATE"
+      },
+      {
+        "name": "DOCUMENT_TYPE",
+        "tag": 4,
+        "coding": "C40"
+      },
+      {
+        "name": "DOCUMENT_NUMBER",
+        "tag": 5,
+        "coding": "C40"
+      },
+      {
+        "name": "TESTING_FACILITY_NAME",
+        "tag": 6,
+        "coding": "C40"
+      },
+      {
+        "name": "COUNTRY_OF_TEST",
+        "tag": 7,
+        "coding": "C40"
+      },
+      {
+        "name": "TESTING_FACILITY_CONTACT_NUMBER",
+        "tag": 8,
+        "coding": "C40"
+      },
+      {
+        "name": "TESTING_FACILITY_EMAIL",
+        "tag": 9,
+        "coding": "UTF8_STRING"
+      },
+      {
+        "name": "TESTING_FACILITY_ADDRESS",
+        "tag": 10,
+        "coding": "UTF8_STRING"
+      },
+      {
+        "name": "SPECIMEN_COLLECTION_DATE_TIME",
+        "tag": 11,
+        "coding": "DATE_TIME"
+      },
+      {
+        "name": "REPORT_ISSUANCE_DATE_TIME",
+        "tag": 12,
+        "coding": "DATE_TIME"
+      },
+      {
+        "name": "TEST_CONDUCTED",
+        "tag": 13,
+        "coding": "BYTE"
+      },
+      {
+        "name": "TEST_RESULT",
+        "tag": 14,
+        "coding": "BYTE"
+      },
+      {
+        "name": "METHOD_USED",
+        "tag": 15,
+        "coding": "BYTE"
+      },
+      {
+        "name": "OPTIONAL_FIELD",
+        "tag": 16,
+        "coding": "C40"
+      }
+    ]
+  },
+  {
+    "name": "PROOF_OF_VACCINATION",
+    "tag": 4,
+    "coding": "SUB_MESSAGES",
+    "messages": [
+      {
+        "name": "UVCI",
+        "tag": 1,
+        "coding": "C40"
+      },
+      {
+        "name": "CERTIFICATE_VALID_FROM",
+        "tag": 2,
+        "coding": "MASKED_DATE"
+      },
+      {
+        "name": "CERTIFICATE_VALID_UNTIL",
+        "tag": 3,
+        "coding": "MASKED_DATE"
+      },
+      {
+        "name": "NAME_OF_HOLDER",
+        "tag": 4,
+        "coding": "C40"
+      },
+      {
+        "name": "DATE_OF_BIRTH",
+        "tag": 5,
+        "coding": "MASKED_DATE"
+      },
+      {
+        "name": "SEX",
+        "tag": 6,
+        "coding": "UTF8_STRING"
+      },
+      {
+        "name": "UNIQUE_IDENTIFIER",
+        "tag": 7,
+        "coding": "C40"
+      },
+      {
+        "name": "ADDITIONAL_IDENTIFIER",
+        "tag": 8,
+        "coding": "C40"
+      },
+      {
+        "name": "VACCINATION_EVENT",
+        "tag": 9,
+        "coding": "SUB_MESSAGES",
+        "messages": [
+          {
+            "name": "VACCINE_OR_PROPHYLAXIS",
+            "tag": 31,
+            "coding": "C40"
+          },
+          {
+            "name": "VACCINE_BRAND",
+            "tag": 32,
+            "coding": "C40"
+          },
+          {
+            "name": "VACCINE_MANUFACTURER",
+            "tag": 33,
+            "coding": "C40"
+          },
+          {
+            "name": "VACCINE_MAH",
+            "tag": 34,
+            "coding": "C40"
+          },
+          {
+            "name": "DISEASE_OR_AGENT",
+            "tag": 35,
+            "coding": "C40"
+          },
+          {
+            "name": "VACCINATION_DETAILS",
+            "tag": 36,
+            "coding": "SUB_MESSAGES",
+            "messages": [
+              {
+                "name": "DATE_OF_VACCINATION",
+                "tag": 51,
+                "coding": "MASKED_DATE"
+              },
+              {
+                "name": "DOSE_NUMBER",
+                "tag": 52,
+                "coding": "C40"
+              },
+              {
+                "name": "TOTAL_DOSES",
+                "tag": 53,
+                "coding": "C40"
+              },
+              {
+                "name": "COUNTRY_OF_VACCINATION",
+                "tag": 54,
+                "coding": "C40"
+              },
+              {
+                "name": "ADMINISTERING_CENTRE",
+                "tag": 55,
+                "coding": "C40"
+              },
+              {
+                "name": "VACCINE_BATCH_NUMBER",
+                "tag": 56,
+                "coding": "C40"
+              },
+              {
+                "name": "DUE_DATE_NEXT_DOSE",
+                "tag": 57,
+                "coding": "MASKED_DATE"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "OPTIONAL_FIELD",
+        "tag": 10,
+        "coding": "C40"
+      }
+    ]
+  },
+  {
+    "name": "PROOF_OF_RECOVERY",
+    "tag": 5,
+    "coding": "SUB_MESSAGES",
+    "messages": [
+      {
+        "name": "URCI",
+        "tag": 1,
+        "coding": "C40"
+      },
+      {
+        "name": "CERTIFICATE_VALID_FROM",
+        "tag": 2,
+        "coding": "MASKED_DATE"
+      },
+      {
+        "name": "CERTIFICATE_VALID_UNTIL",
+        "tag": 3,
+        "coding": "MASKED_DATE"
+      },
+      {
+        "name": "NAME_OF_HOLDER",
+        "tag": 4,
+        "coding": "C40"
+      },
+      {
+        "name": "DATE_OF_BIRTH",
+        "tag": 5,
+        "coding": "MASKED_DATE"
+      },
+      {
+        "name": "DOCUMENT_TYPE",
+        "tag": 6,
+        "coding": "C40"
+      },
+      {
+        "name": "DOCUMENT_NUMBER",
+        "tag": 7,
+        "coding": "C40"
+      },
+      {
+        "name": "COUNTRY_OF_TEST",
+        "tag": 8,
+        "coding": "C40"
+      },
+      {
+        "name": "DATE_OF_FIRST_POSITIVE_TEST",
+        "tag": 9,
+        "coding": "MASKED_DATE"
+      },
+      {
+        "name": "OPTIONAL_FIELD",
+        "tag": 10,
+        "coding": "C40"
+      }
+    ]
+  },
+  {
+    "name": "DIGITAL_TRAVEL_AUTHORIZATION",
+    "tag": 6,
+    "coding": "SUB_MESSAGES",
+    "messages": [
+      {
+        "name": "DTA_NUMBER",
+        "tag": 1,
+        "coding": "C40"
+      },
+      {
+        "name": "NAME_OF_HOLDER",
+        "tag": 2,
+        "coding": "C40"
+      },
+      {
+        "name": "PASSPORT_NUMBER",
+        "tag": 3,
+        "coding": "C40"
+      },
+      {
+        "name": "DATE_OF_BIRTH",
+        "tag": 4,
+        "coding": "MASKED_DATE"
+      },
+      {
+        "name": "NATIONALITY",
+        "tag": 5,
+        "coding": "C40"
+      },
+      {
+        "name": "SEX",
+        "tag": 6,
+        "coding": "UTF8_STRING"
+      },
+      {
+        "name": "PLACE_OF_ISSUE",
+        "tag": 7,
+        "coding": "C40"
+      },
+      {
+        "name": "VALID_FROM",
+        "tag": 8,
+        "coding": "MASKED_DATE"
+      },
+      {
+        "name": "VALID_UNTIL",
+        "tag": 9,
+        "coding": "MASKED_DATE"
+      },
+      {
+        "name": "DURATION_OF_STAY",
+        "tag": 10,
+        "coding": "C40"
+      },
+      {
+        "name": "NUMBER_OF_ENTRIES",
+        "tag": 11,
+        "coding": "BYTE"
+      },
+      {
+        "name": "TYPE_CLASS_CATEGORY",
+        "tag": 12,
+        "coding": "C40"
+      },
+      {
+        "name": "ADDITIONAL_INFORMATION",
+        "tag": 13,
+        "coding": "C40"
+      }
+    ]
+  },
+  {
+    "name": "MRZ_TD1",
+    "tag": 7,
+    "coding": "MRZ",
+    "specification": "ICAO TR Datastructure for Barcode V1.10 §3.3.1.7",
+    "minBytes": 60,
+    "maxBytes": 60
+  },
+  {
+    "name": "MRZ_TD3",
+    "tag": 8,
+    "coding": "MRZ",
+    "specification": "ICAO TR Datastructure for Barcode V1.10 §3.3.1.8",
+    "minBytes": 60,
+    "maxBytes": 60
+  },
+  {
+    "name": "CAN",
+    "tag": 9,
+    "coding": "C40",
+    "specification": "ICAO TR Datastructure for Barcode V1.10 §3.3.1.9",
+    "minBytes": 4,
+    "maxBytes": 4
+  },
+  {
+    "name": "EF_CARD_ACCESS",
+    "tag": 10,
+    "coding": "BYTES"
+  }
+]

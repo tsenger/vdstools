@@ -212,10 +212,10 @@ Each `FormatFinding` has a `category` following Appendix D and a `tagPath` (empt
 |---|---|---|
 | `UnknownTag` | `UNKNOWN_FEATURE` | a tag that neither document type nor profile defines (its message `isRaw`) |
 | `ReservedTag` | `UNKNOWN_FEATURE` | a reserved metadata tag, e.g. TR-03171 v0.9 tags `0x07`–`0x09` |
-| `UnknownDocumentType` | `UNDETERMINED` | VDS document reference or (German IDB seals) national document identifier not known |
+| `UnknownDocumentType` | `UNDETERMINED` | VDS document reference or IDB national document identifier not known |
 | `ProfileNotFound` | `UNDETERMINED` | TR-03171 profile not available; content tags are then not checked |
 | `MissingRequired` | `WRONG_FORMAT` | a required message is missing (see below which document types are checked) |
-| `NotAllowed` | `WRONG_FORMAT` | a message the specification forbids: TR-03171 `VALID_FROM`/`VALID_TO` against the profile, an undefined tag in a VDS type that forbids additional features, a known message type that does not belong to a German IDB document type |
+| `NotAllowed` | `WRONG_FORMAT` | a message the specification forbids: TR-03171 `VALID_FROM`/`VALID_TO` against the profile, an undefined tag in a VDS type that forbids additional features, a known message type that a national IDB document type with `additionalMessagesAllowed` false does not list |
 | `InvalidLength` | `WRONG_FORMAT` | a value shorter or longer than its definition allows |
 | `DecodeFailed` | `WRONG_FORMAT` | a defined message whose bytes cannot be decoded with its coding (its message `isRaw`) |
 | `MalformedSubMessages` | `WRONG_FORMAT` | IDB container content is no valid DER-TLV sequence |
@@ -227,13 +227,43 @@ if (findings.any { it.category == FormatFinding.Category.WRONG_FORMAT }) println
 
 Required messages and lengths are only checked where the definitions are verified against their specification:
 
-- VDS document types with a `specification` in `VdsDocumentTypes.json`: the ICAO visa (Doc 9303-7 §9.1, MRZ of MRV-A
+- VDS document types with a `specification`: the ICAO visa (Doc 9303-7 §9.1, MRZ of MRV-A
   or MRV-B), the ICAO emergency travel document (Doc 9303-8 §6.1) and the BSI TR-03137-1 V3.0 types (arrival
-  attestation, social insurance card, residence permit, supplementary sheet, address stickers). Lengths are bytes.
-- TR-03171 seals: required profile entries, `VALID_FROM`/`VALID_TO` presence, explicit `<length>` of UTF8String
-  (characters) and OCTET STRING (bytes) profile entries.
-- German IDB seals: message types of the national document type (tag `0x86`, BSI TR-03137 chapters 12–17). Seals of
-  other countries are not checked, since `0x86` is a German national message type.
+  attestation, social insurance card, residence permit, supplementary sheet, address stickers). Lengths are bytes;
+  `maxBytes` 0 means the specification gives no maximum.
+- TR-03171 seals: the v0.9 base type `ADMINISTRATIVE_DOCUMENTS_V9` (BSI TR-03171 V0.9 §3.2: profile number,
+  `PROFILE_URI` and `CERTIFICATE_URI` required, fixed date lengths), required profile entries, `VALID_FROM`/`VALID_TO`
+  presence as the profile demands, explicit `<length>` of UTF8String (characters) and OCTET STRING (bytes) profile
+  entries. The v0.8 base type is not verified (no specification at hand).
+- IDB message types with a `specification`: the national types `0x80`–`0x86` (BSI TR-03137-1 V3.0 §11.2.2, e.g. face
+  image 900–1000 bytes). Lengths are encoded bytes (C40: 3 characters in 2 bytes, an MRZ-TD2 of 72 characters is 48
+  bytes). The ICAO message types are not verified yet.
+- IDB national document types with a `specification` (the German types, BSI TR-03137-1 V3.0 §12.2.2–§17.2.2): their
+  required message types, and with `"additionalMessagesAllowed": false` no other message types.
+
+### Definitions and issuing country
+
+The loaded definitions apply to every seal, whatever its issuing country. The bundled national definitions are German
+(BSI TR-03137, TR-03171). A seal of another country that uses the same national document reference (VDS: even document
+type category, ICAO Doc 9303-13 §3.1.1) or national IDB tags (`0x80`–`0x86`) is read with them, including their format
+findings. If that matters for your application, check `seal.issuingCountry`, or load the definitions of that country
+with `DataEncoder.replaceCustom…`.
+
+An IDB message type marked `"identifiesDocumentType": true` carries the national document type (bundled: BSI
+TR-03137 `0x86` `NATIONAL_DOCUMENT_IDENTIFIER`, coded as `BYTE`); its value is looked up in the IDB document types.
+Own definitions can use another tag. All IDB document types share one value range, and an entry replaces one with the
+same value, so pick a value the bundled types do not use (they use `0x01`–`0x12`):
+
+```kotlin
+DataEncoder.addCustomIdbMessageTypes("""[
+    {"name": "NATIONAL_DOCUMENT_IDENTIFIER", "tag": 134, "coding": "BYTE"},
+    {"name": "MY_DOCUMENT_TYPE", "tag": 144, "coding": "BYTE", "identifiesDocumentType": true}]""")
+DataEncoder.addCustomIdbDocumentTypes("""[{"tag": 80, "name": "MY_TYPE",
+    "messages": [{"name": "MY_DOCUMENT_TYPE", "required": true}]}]""")
+```
+
+The bundled definitions are split by specification, one folder each in `src/commonMain/resources/`: `icao-9303/`
+(VDS visa and ETD), `icao-idb/` (IDB message types `0x01`–`0x0A`), `bsi-tr-03137/` and `bsi-tr-03171/`.
 
 ## Build a barcode
 
@@ -247,6 +277,20 @@ The library follows a symmetric design:
   message group, signature, payload) are handled automatically.
 
 Both builders follow the same Kotlin fluent style: chain configuration calls, then call `build()`.
+
+The issuing country is always the one you set (`issuingCountry(...)` / `countryIdentifier(...)`); the document type does
+not set it. Without it, both builders use `UTO` (Utopia, which ICAO Doc 9303-3 recommends for specimen documents), so
+the seal is a specimen.
+
+The builders encode what you add; they do not check the content against a specification. An unknown message name or
+a value that does not fit the coding throws an `IllegalArgumentException`, but a missing required message or a wrong
+length does not. If you want to know whether a built seal conforms, look at its `formatFindings` (see
+[Format findings](#format-findings)):
+
+```kotlin
+val seal = builder.build(signer)
+check(seal.formatFindings.none { it.category == FormatFinding.Category.WRONG_FORMAT }) { "${seal.formatFindings}" }
+```
 
 ### VDS
 
@@ -280,6 +324,11 @@ val encodedSealBytes = vdsSeal.encoded
 
 ### IDB
 
+`IdbSeal.Builder(documentType)` builds a seal of a national IDB document type (e.g. the German types of BSI TR-03137):
+it adds the message that identifies the document type (`identifiesDocumentType`, `0x86` for Germany) at the end, so
+don't add it yourself. Exactly one message type must be marked `identifiesDocumentType`. `IdbSeal.Builder()` builds a
+seal without national document type, e.g. an ICAO visa or proof of vaccination.
+
 IDB seals can be signed or unsigned, as allowed by ICAO Doc 9303-13; the barcode flag says which
 (`IdbSeal.isSigned`). Use `build()` for unsigned and `build(signer)` for signed. The signature
 algorithm is derived automatically from the signer's key size.
@@ -304,15 +353,15 @@ val signer = EcdsaSigner(ecKey.encoded, "brainpoolP256r1")
 // The certificate reference is a hash derived from the signer certificate's DER bytes
 val certRef: ByteArray = DataEncoder.buildCertificateReference(cert.encoded)
 
-// Build and sign the IdbSeal in a single step
-val idbSeal = IdbSeal.Builder()
+// Build and sign the IdbSeal in a single step. The national document type sets
+// NATIONAL_DOCUMENT_IDENTIFIER (0x86) = 0x01 itself.
+val idbSeal = IdbSeal.Builder("SUBSTITUTE_IDENTITY_DOCUMENT")
     .countryIdentifier("D<<")
     .certificateReference(certRef)
     .signingDate("2025-02-11")
-    .addMessage(0x80, faceImageBytes)   // FACE_IMAGE
-    .addMessage(0x81, mrzTd2String)     // MRZ_TD2
-    .addMessage(0x84, "2026-04-23")     // EXPIRY_DATE
-    .addMessage(0x86, 0x01)             // NATIONAL_DOCUMENT_IDENTIFIER
+    .addMessage("FACE_IMAGE", faceImageBytes)   // or by tag: addMessage(0x80, faceImageBytes)
+    .addMessage("MRZ_TD2", mrzTd2String)
+    .addMessage("EXPIRY_DATE", "2026-04-23")
     .build(signer)
 
 // The raw string can now be used to build a DataMatrix (or other) code
@@ -343,7 +392,11 @@ to other languages should key their mapping on profile UUID and tag rather than 
 A profile is identified by its UUID **and** its TR-03171 version: an issuer may keep the UUID (and the name) when moving
 a profile from v0.8 to v0.9, and both can be loaded side by side. Parsing picks the profile matching the seal's
 document category (0xC8 → v0.8, 0xC9 → v0.9) automatically. Building by profile name or UUID works as long as it is
-registered for only one version; otherwise pass the version:
+registered for only one version; otherwise pass the version.
+
+Building by name requires the name to be unique among all registered profiles: a changed profile gets a new UUID but
+may keep its name, so the builder throws instead of picking one silently; use `forProfileUuid` then. A document type
+of the same name (e.g. `VISA`) takes precedence over a profile.
 
 ```kotlin
 // Unique name → same as for any other document type
@@ -365,8 +418,16 @@ val sealV9 = VdsSeal.Builder.forProfileUuid("9a4223406d374ef99e2cf95e31a23846", 
     .build(signer)
 ```
 
-Applications that manage profiles themselves (e.g. several sources publishing the same UUID) can replace the lookup
-used while parsing. The resolver receives the UUID (tag 0x00), the `PROFILE_URI` (tag 0x03, always `null` for v0.8)
+Applications that manage profiles themselves can build with a profile they supply, without registering it:
+
+```kotlin
+val profile = ProfileConverter.toVdsProfileDefinition(ProfileXmlParser.parse(xmlString))
+val seal = VdsSeal.Builder.forProfile(profile)
+    // ... header and messages as above
+    .build(signer)
+```
+
+To read such seals (or when several sources publish the same UUID), they can replace the lookup used while parsing. The resolver receives the UUID (tag 0x00), the `PROFILE_URI` (tag 0x03, always `null` for v0.8)
 and the base document type from the header:
 
 ```kotlin
@@ -383,7 +444,11 @@ There are two strategies for providing custom definitions:
 
 - **`replaceCustom*`** – replaces the entire registry with your JSON. The built-in defaults are no longer available.
 - **`addCustom*`** – merges your entries into the existing registry. Built-in defaults are preserved; entries with the
-  same key (e.g. `documentRef`) are overwritten by your version.
+  same name or the same key (`documentRef` for VDS document types, `tag` for IDB types) are overwritten by your version.
+
+Load definitions (including TR-03171 profiles) before parsing or building. A seal binds its document type, profile
+and message definitions when it is parsed or built; definitions loaded or replaced afterwards do not change it, so
+parse the seal again to apply them.
 
 ```kotlin
 val customJson = """[
@@ -462,7 +527,7 @@ val vdsSeal = VdsSeal.Builder("MY_CUSTOM_DOCUMENT")
 | `DATE`        | 3-byte date (ICAO format, e.g. "2024-06-15")                |
 | `MASKED_DATE` | 4-byte date with uncertainty masks                          |
 
-See `src/commonMain/resources/VdsDocumentTypes.json` for the complete structure of the default document types.
+See the `VdsDocumentTypes.json` files in `src/commonMain/resources/` for the complete structure of the default document types.
 
 ## Byte-level structure inspection with the `dissect` package
 

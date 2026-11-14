@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- `IdbSeal.Builder(documentType)`: builds a seal of a national IDB document
+  type by name, like `VdsSeal.Builder(name)`. It appends the message that
+  identifies the document type (bundled: `0x86`) itself; adding it by hand
+  throws. Exactly one message type must be marked `identifiesDocumentType`,
+  coded as `BYTE`.
+  `IdbSeal.Builder()` stays for seals without national document type.
+- `IdbMessageTypeDto.identifiesDocumentType`: marks the message type that
+  carries the national document type (bundled: BSI TR-03137 `0x86`), instead
+  of tag `0x86` in code. Own definitions can use another tag.
+- `IdbMessageTypeDto.specification`: IDB message types verified against a
+  specification report a value outside `minBytes`/`maxBytes` as
+  `FormatFinding.InvalidLength` when read. Set for the national types
+  `0x80`–`0x86` (BSI TR-03137-1 V3.0 §11.2.2, e.g. face image 900–1000 bytes).
+  Also set for the ICAO types `0x07`/`0x08` (MRZ, 60 bytes) and `0x09` (CAN,
+  4 bytes), ICAO TR Datastructure for Barcode V1.10 §3.3.1.7–§3.3.1.9.
+- `IdbDocumentTypeDto.specification` and `additionalMessagesAllowed`, like
+  for VDS document types. Set for the 18 German types (verified against BSI
+  TR-03137-1 V3.0 §12.2.2–§17.2.2, no other message types allowed).
+- `VdsSeal.Builder.forProfile(definition)`: builds a TR-03171 seal for a profile
+  the caller supplies (e.g. from its own profile store) without registering it.
+  Throws if the profile's base type carries no profile number
+  (`uuidMessageLookup`); building by profile name applies the same rule.
 - `Seal.formatFindings`: findings of the format validation (ICAO Doc 9303-13
   Appendix D, step 1), without judgement. `FormatFinding` subtypes
   `UnknownTag`, `ReservedTag`, `UnknownDocumentType`, `ProfileNotFound`,
@@ -17,13 +39,14 @@ All notable changes to this project will be documented in this file.
   ETD, BSI TR-03137-1 V3.0 types), TR-03171 profiles (explicit `<length>` of
   UTF8String in characters, OCTET STRING in bytes) and German IDB seals
   (national document type per BSI TR-03137 chapters 12–17). Signature and
-  certificate are not covered.
+  certificate are not covered. The definitions apply to seals of every
+  issuing country. Findings are information only; the builders do not
+  enforce them.
 - `VdsDocumentTypeDto.specification`, `additionalFeaturesAllowed` and
   `requiredOneOf`: the specification a document type's definitions were
   verified against (only then are required messages and lengths checked),
   whether undefined tags are allowed, and groups of tags of which one is
-  required. Set in `VdsDocumentTypes.json` for the ICAO visa and ETD and the
-  BSI TR-03137-1 V3.0 types.
+  required. Set for the ICAO visa and ETD and the BSI TR-03137-1 V3.0 types.
 - `MessageDto.maxLength`: the explicit maximum length of a TR-03171 profile
   entry (`<length>` of UTF8String and OCTET STRING), null otherwise.
 - `Message.isRaw`: true if the message's value holds uninterpreted raw bytes
@@ -37,6 +60,52 @@ All notable changes to this project will be documented in this file.
   be decoded stays defined.
 
 ### Changed
+- **Behavior change:** IDB seals of other countries with a national document
+  type are now checked against it, too (before only German seals); the loaded
+  definitions apply to seals of every issuing country.
+- **Behavior change:** `addCustom*` also replaces an entry with the same name
+  (before, only the same `documentRef` or tag), so names stay unique.
+- **Breaking:** the IDB national document type is found via the message type
+  marked `identifiesDocumentType`, no longer via tag `0x86` in code. A custom
+  IDB message type JSON that replaces the bundled one (`replaceCustomIdbMessageTypes`)
+  must mark it, otherwise no document type is recognised.
+- **Behavior change:** a national IDB document type is checked only if it has a
+  `specification` (missing required messages), and other message types are
+  reported as `NotAllowed` only if `additionalMessagesAllowed` is false. Before,
+  every document type was checked as closed. Custom IDB document types without
+  these fields are no longer checked.
+- The bundled ICAO IDB message types no longer carry `minBytes`, `maxBytes`
+  or sub-message `required`. Nothing read them, and they were not verified
+  against ICAO TR-IDB.
+- **Breaking:** the bundled definition files are split by specification:
+  `icao-9303/`, `icao-idb/`, `bsi-tr-03137/` and `bsi-tr-03171/`
+  (`IdbGermanDocumentTypes.json` is now `bsi-tr-03137/IdbDocumentTypes.json`).
+  The constants `DEFAULT_VDS_DOCUMENT_TYPES`, `DEFAULT_IDB_MESSAGE_TYPES` and
+  `DEFAULT_IDB_DOCUMENT_TYPES` are removed; `DataEncoder.resetToDefaults()`
+  restores the bundled definitions.
+- TR-03171 v0.9: the mandatory `PROFILE_URI` and `CERTIFICATE_URI` now come
+  from the base type definition in `bsi-tr-03171/VdsDocumentTypes.json`
+  (verified against BSI TR-03171 V0.9 §3.2, `specification` set) instead of
+  code. The URIs and `STATUS_LIST_INDEX` have no maximum length there
+  (`maxBytes` 0), as the TR gives none; the former 255 / 4 bytes were not from
+  the TR. Lengths of metadata messages are checked as well (e.g. the profile
+  number, 16 bytes).
+- **Behavior change:** `VdsSeal.Builder.build()` no longer rejects TR-03171
+  v0.9 seals that miss `PROFILE_URI`, `CERTIFICATE_URI` or a required profile
+  entry, or whose `VALID_FROM`/`VALID_TO` do not match the profile. No builder
+  checks content against a specification; such violations are reported in
+  `seal.formatFindings` of the built seal.
+- **Behavior change:** `VdsSeal.Builder(name)` throws if several registered
+  TR-03171 profiles have that name (e.g. two versions of a changed profile with
+  new UUIDs). Before, the last registered one was used silently. Use
+  `forProfileUuid`. The name is now resolved once for header and messages.
+- **Behavior change:** a seal binds its definitions when it is parsed or
+  built: VDS document type, TR-03171 profile, IDB message types and the IDB
+  national document type. Before, names and codings were looked up again on
+  every access, while the profile was already fixed at parsing. Definitions
+  loaded or replaced afterwards (`addCustom*`, `replaceCustom*`,
+  `loadVdsProfileDefinitionFromXml`) no longer change an existing seal; parse
+  it again. `messageList` is no longer decoded anew on every access.
 - **Behavior change:** tags that neither the document type nor the resolved
   profile defines are no longer dropped (ICAO Doc 9303-13 §2.3: unknown tags MAY
   be present). They are returned raw, named by their tag (e.g. `0x0A`), with
@@ -53,14 +122,16 @@ All notable changes to this project will be documented in this file.
     `Unknown (0x0A)`.
 - IDB container messages are split into sub-messages even if the first
   sub-tag is unknown. Before, such a container had no sub-messages at all.
-- The TR-03171 builder check (`requireTr03171Conformance`) now reports all
-  violations in one exception message; decoding and encoding share its rules.
 - **Behavior change:** a `UTF8_STRING` message with invalid UTF-8 bytes is no
   longer decoded with U+FFFD replacement characters. Its value is now the raw
   `BytesValue` (`isRaw`), reported as `FormatFinding.DecodeFailed`.
 
 ### Fixed
-- `VdsDocumentTypes.json`, `VISA`: `MRZ_MRVA` and `MRZ_MRVB` are no longer
+- `VdsDocumentTypeRegistry.availableVdsMessages` no longer keeps the message
+  names of replaced document types.
+- IDB builder: an unknown message name now fails with "Unknown IDB message type
+  '<name>'" instead of the misleading "Unsupported tag: 0".
+- `icao-9303/VdsDocumentTypes.json`, `VISA`: `MRZ_MRVA` and `MRZ_MRVB` are no longer
   both marked as required, and `NUMBER_OF_ENTRIES` is optional (ICAO Doc
   9303-7 §9.1.3). A visa needs the MRZ of either an MRV-A or an MRV-B
   (`requiredOneOf`).

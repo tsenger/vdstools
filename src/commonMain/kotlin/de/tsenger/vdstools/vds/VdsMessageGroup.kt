@@ -12,36 +12,47 @@ import de.tsenger.vdstools.vds.tr03171.Tr03171Conformance
 import okio.Buffer
 
 
-internal class VdsMessageGroup {
-    internal var derTlvList: List<DerTlv>
-    var vdsType: String
-        internal set
+/**
+ * The message zone of a VDS seal. All definitions are bound when the group is created (parsed or
+ * built): the document type, the TR-03171 profile and the decoded messages. Definitions loaded or
+ * replaced later do not change it; parse the seal again to apply them.
+ *
+ * @param profile a profile already chosen by the builder; null to look it up via
+ *   [DataEncoder.vdsProfileResolver] if the document type requires one
+ */
+internal class VdsMessageGroup(
+    val vdsType: String,
+    internal val derTlvList: List<DerTlv>,
+    profile: VdsProfileDefinitionDto? = null
+) {
+    /** The definition of [vdsType] at creation, null for an unknown document type. */
+    private val documentTypeDto: VdsDocumentTypeDto? = DataEncoder.vdsDocumentTypes.findDocumentTypeDto(vdsType)
+
+    private val requiresProfile = documentTypeDto?.uuidMessageLookup == true
+
+
+    /** The document profile UUID (UUID tag, usually 0) of a seal whose type requires a profile, else null. */
+    val documentProfileUuid: ByteArray? =
+        if (requiresProfile) derTlvList.find { it.tag.toInt() == documentTypeDto!!.uuidMessageTag }?.value else null
+
+    /** The resolved TR-03171 profile; null if the type requires none or it could not be resolved. */
+    val profileDefinition: VdsProfileDefinitionDto? =
+        profile ?: documentProfileUuid?.let { DataEncoder.vdsProfileResolver.resolve(it, profileUri(), vdsType) }
+
+    /** Tags of the metadata messages (e.g. the profile number), excluded from [messageList]. */
+    internal val metadataTags: Set<Int> =
+        if (requiresProfile) documentTypeDto!!.metadataTagList.toSet() + documentTypeDto.uuidMessageTag
+        else emptySet()
 
     /**
-     * The resolved extended message definition for UUID-based seals.
-     * Null if no definition lookup was performed or no matching definition was found.
+     * All messages except metadata tags (e.g. the UUID tag), in seal order, decoded via the resolved
+     * profile definition and the base type. A tag that neither defines is returned raw with a name
+     * like "0x0A" and coding [MessageCoding.UNKNOWN] (ICAO Doc 9303-13 §2.3: unknown tags may be present).
      */
-    var profileDefinition: VdsProfileDefinitionDto? = null
-        internal set
+    val messageList: List<Message> = derTlvList.filter { it.tag.toInt() !in metadataTags }.map(::resolve)
 
-    /**
-     * The document profile UUID (Tag 0) for UUID-based seals.
-     * Set during [resolveProfileDefinition] and excluded from [messageList].
-     */
-    var documentProfileUuid: ByteArray? = null
-        internal set
-
-    internal val metadataTags: MutableSet<Int> = mutableSetOf()
-
-    constructor(vdsType: String, derTlvList: List<DerTlv>) {
-        this.vdsType = vdsType
-        this.derTlvList = derTlvList
-    }
-
-    private constructor(builder: Builder) {
-        this.derTlvList = builder.derTlvList
-        this.vdsType = builder.vdsType
-    }
+    /** The metadata tags of [messageList], resolved the same way. */
+    val metadataMessageList: List<Message> = derTlvList.filter { it.tag.toInt() in metadataTags }.map(::resolve)
 
     val encoded: ByteArray
         get() {
@@ -51,19 +62,6 @@ internal class VdsMessageGroup {
             }
             return buffer.readByteArray()
         }
-
-    val messageList: List<Message>
-        /**
-         * @return all messages except metadata tags (e.g. the UUID tag), in seal order, decoded via
-         * the resolved profile definition and the base type. A tag that neither defines is returned
-         * raw with a name like "0x0A" and coding [MessageCoding.UNKNOWN] (ICAO Doc 9303-13 §2.3:
-         * unknown tags may be present).
-         */
-        get() = derTlvList.filter { it.tag.toInt() !in metadataTags }.map(::resolve)
-
-    /** The metadata tags of [messageList], resolved the same way. */
-    val metadataMessageList: List<Message>
-        get() = derTlvList.filter { it.tag.toInt() in metadataTags }.map(::resolve)
 
     private fun resolve(derTlv: DerTlv): Message =
         DataEncoder.vdsDocumentTypes.resolveMessage(vdsType, profileDefinition, derTlv)
@@ -79,58 +77,43 @@ internal class VdsMessageGroup {
     }
 
     /**
-     * Resolves the extended message definition based on the UUID in the specified tag.
-     * This method should be called after parsing for seal types that require UUID lookup.
-     * The lookup goes through [DataEncoder.vdsProfileResolver], together with the seal's
-     * `PROFILE_URI` if the seal type defines one and the base type ([vdsType]).
-     *
-     * @param uuidTag The tag number containing the UUID (typically 0)
-     */
-    fun resolveProfileDefinition(uuidTag: Int) {
-        val uuidTlv = derTlvList.find { it.tag.toInt() == uuidTag }
-        if (uuidTlv != null) {
-            documentProfileUuid = uuidTlv.value
-            metadataTags.add(uuidTag)
-            profileDefinition = DataEncoder.vdsProfileResolver.resolve(uuidTlv.value, profileUri(), vdsType)
-        }
-    }
-
-    /**
-     * Format findings of this message group (see [FormatFinding]). Without a resolved profile the
-     * content tags cannot be checked, so they are covered by [FormatFinding.ProfileNotFound] alone.
+     * Format findings of this message group (see [FormatFinding]), checked against the definitions
+     * bound at creation. Without a resolved profile the content tags cannot be checked, so they are
+     * covered by [FormatFinding.ProfileNotFound] alone.
      */
     @OptIn(ExperimentalStdlibApi::class)
     fun formatFindings(): List<FormatFinding> {
-        val registry = DataEncoder.vdsDocumentTypes
         val findings = mutableListOf<FormatFinding>()
-        val messages = messageList
-        val needsProfile = registry.requiresProfileLookup(vdsType)
-        if (needsProfile) {
+        val docType = documentTypeDto
+        val specifiedType = docType?.takeIf { it.specification != null }
+        if (docType != null && requiresProfile) {
             if (profileDefinition == null) {
                 findings += FormatFinding.ProfileNotFound(documentProfileUuid?.toHexString()?.uppercase(), profileUri())
             }
-            val uuidTag = registry.getUuidMessageTag(vdsType)
-            if (derTlvList.none { it.tag.toInt() == uuidTag }) {
-                val name = runCatching { registry.getMessageName(vdsType, null, uuidTag) }
-                    .getOrDefault("0x" + uuidTag.toString(16).uppercase().padStart(2, '0'))
+            // a verified base type reports a missing profile number via its definition
+            val uuidTag = docType.uuidMessageTag
+            if (documentProfileUuid == null && specifiedType == null) {
+                val name = docType.messages.firstOrNull { it.tag == uuidTag }?.name
+                    ?: ("0x" + uuidTag.toString(16).uppercase().padStart(2, '0'))
                 findings += FormatFinding.MissingRequired(listOf(uuidTag), name)
             }
+        }
+        if (specifiedType != null) findings += specificationFindings(specifiedType)
+        if (docType != null && requiresProfile) {
             val tags = derTlvList.map { it.tag.toInt() and 0xFF }.toSet()
             findings += Tr03171Conformance.check(vdsType, tags, profileDefinition)
-            profileDefinition?.let { findings += Tr03171Conformance.checkLengths(messages, it) }
+            profileDefinition?.let { findings += Tr03171Conformance.checkLengths(messageList, it) }
         }
-        val specifiedType = registry.findDocumentTypeDto(vdsType)?.takeIf { it.specification != null }
-        if (specifiedType != null) findings += specificationFindings(specifiedType, messages)
         for (message in metadataMessageList.filter { it.isRaw }) {
             findings += if (message.isDefined) FormatFinding.DecodeFailed(listOf(message.tag), message.name)
             else FormatFinding.ReservedTag(listOf(message.tag))
         }
-        for (message in messages.filter { it.isRaw }) {
+        for (message in messageList.filter { it.isRaw }) {
             if (message.isDefined) {
                 findings += FormatFinding.DecodeFailed(listOf(message.tag), message.name)
             } else if (specifiedType?.additionalFeaturesAllowed == false) {
                 findings += FormatFinding.NotAllowed(listOf(message.tag), message.name)
-            } else if (!needsProfile || profileDefinition != null) {
+            } else if (!requiresProfile || profileDefinition != null) {
                 findings += FormatFinding.UnknownTag(listOf(message.tag))
             }
         }
@@ -139,9 +122,11 @@ internal class VdsMessageGroup {
 
     /**
      * Required messages and lengths of a document type whose definitions are verified against its
-     * specification ([VdsDocumentTypeDto.specification]). Lengths are bytes; raw messages are skipped.
+     * specification ([VdsDocumentTypeDto.specification]). Lengths are bytes; a `maxBytes` of 0 means
+     * the specification gives no maximum. Metadata messages (e.g. TR-03171 v0.9 validity dates) are
+     * included; raw messages are skipped.
      */
-    private fun specificationFindings(docType: VdsDocumentTypeDto, messages: List<Message>): List<FormatFinding> {
+    private fun specificationFindings(docType: VdsDocumentTypeDto): List<FormatFinding> {
         val tags = derTlvList.map { it.tag.toInt() and 0xFF }.toSet()
         val findings = mutableListOf<FormatFinding>()
         docType.messages.filter { it.required && it.tag !in tags }
@@ -150,24 +135,20 @@ internal class VdsMessageGroup {
             val names = group.map { tag -> docType.messages.firstOrNull { it.tag == tag }?.name ?: "$tag" }
             findings += FormatFinding.MissingRequired(emptyList(), names.joinToString(" or "))
         }
-        for (message in messages.filter { !it.isRaw }) {
+        for (message in (metadataMessageList + messageList).filter { !it.isRaw }) {
             val definition = docType.messages.firstOrNull { it.tag == message.tag } ?: continue
             val length = message.value.rawBytes.size
-            if (length < definition.minBytes || length > definition.maxBytes) {
-                findings += FormatFinding.InvalidLength(
-                    listOf(message.tag), message.name, length, definition.minBytes, definition.maxBytes
-                )
+            val maxBytes = definition.maxBytes.takeIf { it > 0 }
+            if (length < definition.minBytes || (maxBytes != null && length > maxBytes)) {
+                findings += FormatFinding.InvalidLength(listOf(message.tag), message.name, length, definition.minBytes, maxBytes)
             }
         }
         return findings
     }
 
+    /** The seal's PROFILE_URI if its document type defines one. */
     private fun profileUri(): String? {
-        val tag = try {
-            DataEncoder.vdsDocumentTypes.getMessageTag(vdsType, "PROFILE_URI")
-        } catch (_: IllegalArgumentException) {
-            return null
-        }
+        val tag = documentTypeDto?.messages?.firstOrNull { it.name == "PROFILE_URI" }?.tag ?: return null
         return derTlvList.find { it.tag.toInt() == tag }?.value?.decodeToString()
     }
 
@@ -180,30 +161,37 @@ internal class VdsMessageGroup {
         internal var profileDefinition: VdsProfileDefinitionDto? = null
             private set
 
-        /** Builds a message group for a known base document type or predefined profile name. */
-        constructor(vdsType: String) : this() {
-            this.vdsType = vdsType
-            val docRef = DataEncoder.vdsDocumentTypes.getDocumentRef(vdsType)
-            if (docRef == null) {
-                // Not a base type — try resolving as a predefined extended definition name
-                val extDef = DataEncoder.vdsProfileDefinitions.resolveByNameUnique(vdsType)
-                if (extDef != null) {
-                    profileDefinition = extDef
-                    baseVdsType = extDef.baseDocumentType
-                } else {
-                    baseVdsType = vdsType
-                }
+        /** Builds a message group for a document type or registered profile name (see [profileForName]). */
+        constructor(vdsType: String) : this(vdsType, profileForName(vdsType))
+
+        /** Builds a message group for an already-resolved (e.g. TR-03171) profile definition. */
+        constructor(profileDefinition: VdsProfileDefinitionDto) : this(profileDefinition.definitionName, profileDefinition)
+
+        /**
+         * Builds a message group for [vdsType], or with an already-resolved [profile] for that profile.
+         *
+         * @throws IllegalArgumentException if the profile's base document type does not carry a profile
+         *   number (`uuidMessageLookup`), e.g. a custom type
+         */
+        constructor(vdsType: String, profile: VdsProfileDefinitionDto?) : this() {
+            this.profileDefinition = profile
+            if (profile == null) {
+                this.vdsType = vdsType
+                this.baseVdsType = vdsType
             } else {
-                baseVdsType = vdsType
+                val base = DataEncoder.vdsDocumentTypes.findDocumentTypeDto(profile.baseDocumentType)
+                require(base?.uuidMessageLookup == true) {
+                    "Base document type '${profile.baseDocumentType}' of profile '${profile.definitionName}' " +
+                            "does not carry a profile number (uuidMessageLookup)"
+                }
+                this.vdsType = profile.definitionName
+                this.baseVdsType = profile.baseDocumentType
+                this.uuidMessageTag = base.uuidMessageTag
             }
         }
 
-        /** Builds a message group for an already-resolved (e.g. TR-03171) profile definition. */
-        constructor(profileDefinition: VdsProfileDefinitionDto) : this() {
-            this.vdsType = profileDefinition.definitionName
-            this.profileDefinition = profileDefinition
-            this.baseVdsType = profileDefinition.baseDocumentType
-        }
+        /** The tag of the profile number in the base document type (TR-03171: 0). */
+        private var uuidMessageTag: Int = 0
 
         @Throws(IllegalArgumentException::class)
         fun <T> addMessage(tag: Int, value: T): Builder {
@@ -219,37 +207,15 @@ internal class VdsMessageGroup {
         }
 
         /**
-         * Enforces the encoder-side requirements of BSI TR-03171 v0.9 (document category 0xC9):
-         * PROFILE_URI (0x03) and CERTIFICATE_URI (0x04) are mandatory, VALID_FROM (0x01) / VALID_TO (0x02)
-         * must be present or absent as the profile's validFromPresent / validToPresent demand, and all
-         * non-optional profile entries must be present. No-op for all other document types.
+         * Builds the group and binds its definitions. With a profile, its UUID is prepended as the
+         * profile number (the base type's UUID tag, TR-03171: 0) and the group is typed as the
+         * profile's base document type.
          */
-        @Throws(IllegalArgumentException::class)
-        fun requireTr03171Conformance() {
-            if (baseVdsType != DataEncoder.ADMINISTRATIVE_DOCUMENTS_V9) return
-            val tags = derTlvList.map { it.tag.toInt() and 0xFF }.toSet()
-            val violations = Tr03171Conformance.check(baseVdsType, tags, profileDefinition)
-            require(violations.isEmpty()) {
-                "TR-03171: " + violations.joinToString("; ", transform = Tr03171Conformance::describe)
-            }
-        }
-
         @OptIn(ExperimentalStdlibApi::class)
         fun build(): VdsMessageGroup {
-            val group = VdsMessageGroup(this)
-            // If using an extended definition, inject UUID as Tag 0 and set definition on group
-            val definition = profileDefinition
-            if (definition != null) {
-                val uuidBytes = definition.definitionId.hexToByteArray()
-                val uuidTlv = DerTlv(0.toByte(), uuidBytes)
-                group.derTlvList = listOf(uuidTlv) + group.derTlvList
-                group.vdsType = baseVdsType
-                group.profileDefinition = definition
-                group.documentProfileUuid = uuidBytes
-                DataEncoder.vdsDocumentTypes.getMetadataTags(baseVdsType).forEach { group.metadataTags.add(it) }
-                if (group.metadataTags.isEmpty()) group.metadataTags.add(0)
-            }
-            return group
+            val definition = profileDefinition ?: return VdsMessageGroup(vdsType, derTlvList.toList())
+            val uuidTlv = DerTlv(uuidMessageTag.toByte(), definition.definitionId.hexToByteArray())
+            return VdsMessageGroup(baseVdsType, listOf(uuidTlv) + derTlvList, definition)
         }
     }
 

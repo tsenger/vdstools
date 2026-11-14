@@ -30,7 +30,6 @@ class VdsDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
     private var documentTypeDtoList: List<VdsDocumentTypeDto>
 
     private val vdsTypes: MutableMap<String, Int> = HashMap()
-    private val vdsTypesReverse: MutableMap<Int, String> = HashMap()
     private val vdsMessages: MutableSet<String> = mutableSetOf()
 
     companion object {
@@ -38,15 +37,16 @@ class VdsDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
     }
 
     init {
-        this.documentTypeDtoList = json.decodeFromString(jsonString)
-        populateMappings()
+        this.documentTypeDtoList = emptyList()
+        addEntriesFromJson(jsonString)
     }
 
     private fun populateMappings() {
+        vdsTypes.clear()
+        vdsMessages.clear()
         for ((documentType, documentRef, _, messages) in documentTypeDtoList) {
             if (documentType != "" && documentRef != "") {
                 vdsTypes[documentType] = documentRef.toInt(16)
-                vdsTypesReverse[documentRef.toInt(16)] = documentType
             }
             messages.forEach { vdsMessages.add(it.name) }
         }
@@ -81,9 +81,8 @@ class VdsDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
      * @param docRef The document reference number
      * @return The VDS type name, or null if the reference is not found
      */
-    fun getVdsType(docRef: Int): String? {
-        return vdsTypesReverse[docRef]
-    }
+    fun getVdsType(docRef: Int): String? =
+        documentTypeDtoList.lastOrNull { it.documentRef.isNotEmpty() && it.documentRef.toInt(16) == docRef }?.documentType
 
     /**
      * Checks if the given vdsType requires UUID-based profile lookup.
@@ -395,16 +394,20 @@ class VdsDocumentTypeRegistry(jsonString: String) : DefinitionRegistry {
         return MessageResolver.resolve(derTlv, asResolver(vdsType, profileDefinition))
     }
 
+    /**
+     * Adds document types. An entry replaces any entry with the same name or the same document
+     * reference; names and references thus stay unique.
+     */
     override fun addEntriesFromJson(jsonString: String) {
         val newDtos = json.decodeFromString<List<VdsDocumentTypeDto>>(jsonString)
+        var list = documentTypeDtoList
         for (dto in newDtos) {
-            documentTypeDtoList = documentTypeDtoList.filter { it.documentRef != dto.documentRef } + dto
-            if (dto.documentType != "" && dto.documentRef != "") {
-                vdsTypes[dto.documentType] = dto.documentRef.toInt(16)
-                vdsTypesReverse[dto.documentRef.toInt(16)] = dto.documentType
-            }
-            dto.messages.forEach { vdsMessages.add(it.name) }
+            list = list.filter {
+                !it.documentRef.equals(dto.documentRef, ignoreCase = true) && it.documentType != dto.documentType
+            } + dto
         }
+        documentTypeDtoList = list
+        populateMappings()
     }
 
     /** The document type definition of [vdsType], or null if it is not registered. */

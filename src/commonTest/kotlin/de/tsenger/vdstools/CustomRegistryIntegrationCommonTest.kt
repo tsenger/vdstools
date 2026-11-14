@@ -108,11 +108,10 @@ class CustomRegistryIntegrationCommonTest {
     @Test
     fun testCustomIdbMessageTypesUsedDuringIdbSealParsing() {
         // IDB payload with tag 4 (default: PROOF_OF_VACCINATION) containing 16 bytes
-        val payload = IdbPayload.fromByteArray(
-            "6abc61120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf".hexToByteArray(),
-            false
+        fun parse() = IdbSeal(
+            'A', IdbPayload.fromByteArray("6abc61120410b0b1b2b3b4b5b6b7b8b9babbbcbdbebf".hexToByteArray(), false)
         )
-        val seal = IdbSeal('A', payload)
+        val seal = parse()
 
         // Default: tag 4 -> PROOF_OF_VACCINATION
         assertEquals(1, seal.messageList.size)
@@ -121,8 +120,9 @@ class CustomRegistryIntegrationCommonTest {
         // Load custom types: only tag 1 -> MESSAGE_TYPE1, tag 2 -> MESSAGE_TYPE2
         DataEncoder.replaceCustomIdbMessageTypesFromFile("CustomIdbMessageTypes.json")
 
-        // Re-parse: messageList is computed on each access
-        val messages = seal.messageList
+        // The parsed seal keeps its definitions; parsing again applies the custom types
+        assertEquals("PROOF_OF_VACCINATION", seal.messageList[0].name)
+        val messages = parse().messageList
         assertEquals(1, messages.size)
         assertEquals(0x04, messages[0].tag)
         // Tag 4 is not in custom types -> raw, named by its tag

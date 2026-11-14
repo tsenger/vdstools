@@ -3,6 +3,7 @@ package de.tsenger.vdstools.vds
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.Signer
 import de.tsenger.vdstools.VdsProfileResolver
+import de.tsenger.vdstools.generic.FormatFinding
 import de.tsenger.vdstools.generic.MessageValue
 import kotlinx.datetime.LocalDate
 import kotlin.test.*
@@ -130,8 +131,8 @@ class VdsAdministrativeDocumentsV9CommonTest {
             .build()
 
         assertNotNull(group.documentProfileUuid)
-        assertEquals(16, group.documentProfileUuid!!.size)
-        assertEquals(testUuidHex, group.documentProfileUuid!!.toHexString())
+        assertEquals(16, group.documentProfileUuid.size)
+        assertEquals(testUuidHex, group.documentProfileUuid.toHexString())
     }
 
     // -------------------------------------------------------------------------
@@ -224,7 +225,7 @@ class VdsAdministrativeDocumentsV9CommonTest {
         // Must decode to DateValue (from DATE_STRING coding)
         assertTrue(validFrom.value is MessageValue.DateValue,
             "VALID_FROM must decode to DateValue, got ${validFrom.value::class.simpleName}")
-        assertEquals(date, (validFrom.value as MessageValue.DateValue).date)
+        assertEquals(date, validFrom.value.date)
 
         // Raw bytes must be the 8-byte YYYYMMDD UTF-8 string, not the 3-byte ICAO format
         assertEquals(8, validFrom.value.rawBytes.size,
@@ -244,7 +245,7 @@ class VdsAdministrativeDocumentsV9CommonTest {
         assertNotNull(validTo, "VALID_TO must be present in metadataMessageList")
 
         assertTrue(validTo.value is MessageValue.DateValue)
-        assertEquals(date, (validTo.value as MessageValue.DateValue).date)
+        assertEquals(date, validTo.value.date)
         assertEquals(8, validTo.value.rawBytes.size)
         assertEquals("20251231", validTo.value.rawBytes.decodeToString())
     }
@@ -423,7 +424,7 @@ class VdsAdministrativeDocumentsV9CommonTest {
         assertNotNull(validFrom, "VALID_FROM must be present in metadataMessageList")
         assertTrue(validFrom.value is MessageValue.DateValue,
             "VALID_FROM must decode to DateValue")
-        assertEquals(LocalDate(2025, 1, 1), (validFrom.value as MessageValue.DateValue).date)
+        assertEquals(LocalDate(2025, 1, 1), validFrom.value.date)
         // Raw bytes must be the 8-byte YYYYMMDD string (DATE_STRING coding)
         assertEquals(8, validFrom.value.rawBytes.size)
         assertEquals("20250101", validFrom.value.rawBytes.decodeToString())
@@ -508,54 +509,47 @@ class VdsAdministrativeDocumentsV9CommonTest {
     }
 
     @Test
-    fun testBuild_missingProfileUri_fails() {
-        val e = assertFailsWith<IllegalArgumentException> {
-            sealBuilder()
-                .addMessage("CERTIFICATE_URI", "example.com/certs")
-                .addMessage("SURNAME", "Mustermann")
-                .build(dummySigner)
-        }
-        assertTrue(e.message!!.contains("PROFILE_URI"), e.message)
+    fun testBuild_missingProfileUri_isReported() {
+        // the builder does not check; the finding is reported by the built seal
+        val seal = sealBuilder()
+            .addMessage("CERTIFICATE_URI", "example.com/certs")
+            .addMessage("SURNAME", "Mustermann")
+            .build(dummySigner)
+        assertTrue(seal.formatFindings.any { it is FormatFinding.MissingRequired && it.name == "PROFILE_URI" }, "${seal.formatFindings}")
     }
 
     @Test
-    fun testBuild_missingCertificateUri_fails() {
-        val e = assertFailsWith<IllegalArgumentException> {
-            sealBuilder()
-                .addMessage("PROFILE_URI", "example.com/profiles")
-                .addMessage("SURNAME", "Mustermann")
-                .build(dummySigner)
-        }
-        assertTrue(e.message!!.contains("CERTIFICATE_URI"), e.message)
+    fun testBuild_missingCertificateUri_isReported() {
+        val seal = sealBuilder()
+            .addMessage("PROFILE_URI", "example.com/profiles")
+            .addMessage("SURNAME", "Mustermann")
+            .build(dummySigner)
+        assertTrue(seal.formatFindings.any { it is FormatFinding.MissingRequired && it.name == "CERTIFICATE_URI" }, "${seal.formatFindings}")
     }
 
     @Test
-    fun testBuild_missingRequiredProfileEntry_fails() {
-        val e = assertFailsWith<IllegalArgumentException> {
-            sealBuilder()
-                .addMessage("PROFILE_URI", "example.com/profiles")
-                .addMessage("CERTIFICATE_URI", "example.com/certs")
-                .build(dummySigner)
-        }
-        assertTrue(e.message!!.contains("SURNAME"), e.message)
+    fun testBuild_missingRequiredProfileEntry_isReported() {
+        val seal = sealBuilder()
+            .addMessage("PROFILE_URI", "example.com/profiles")
+            .addMessage("CERTIFICATE_URI", "example.com/certs")
+            .build(dummySigner)
+        assertTrue(seal.formatFindings.any { it is FormatFinding.MissingRequired && it.name == "SURNAME" }, "${seal.formatFindings}")
     }
 
     @Test
-    fun testBuild_validFromPresentFalse_rejectsValidFrom() {
+    fun testBuild_validFromPresentFalse_reportsValidFrom() {
         // TEST_V9_PROFILE declares validFromPresent=false -> VALID_FROM must not be present
-        val e = assertFailsWith<IllegalArgumentException> {
-            sealBuilder()
-                .addMessage("PROFILE_URI", "example.com/profiles")
-                .addMessage("CERTIFICATE_URI", "example.com/certs")
-                .addMessage("VALID_FROM", LocalDate(2025, 1, 1))
-                .addMessage("SURNAME", "Mustermann")
-                .build(dummySigner)
-        }
-        assertTrue(e.message!!.contains("VALID_FROM"), e.message)
+        val seal = sealBuilder()
+            .addMessage("PROFILE_URI", "example.com/profiles")
+            .addMessage("CERTIFICATE_URI", "example.com/certs")
+            .addMessage("VALID_FROM", LocalDate(2025, 1, 1))
+            .addMessage("SURNAME", "Mustermann")
+            .build(dummySigner)
+        assertTrue(seal.formatFindings.any { it is FormatFinding.NotAllowed && it.name == "VALID_FROM" }, "${seal.formatFindings}")
     }
 
     @Test
-    fun testBuild_validFromAndToPresentTrue_requiresBothDates() {
+    fun testBuild_validFromAndToPresentTrue_reportsMissingDate() {
         DataEncoder.loadVdsProfileDefinitionFromXml(
             testProfileXml
                 .replace(testUuid, "11112222333344445555666677778888")
@@ -568,10 +562,8 @@ class VdsAdministrativeDocumentsV9CommonTest {
             .addMessage("CERTIFICATE_URI", "example.com/certs")
             .addMessage("SURNAME", "Mustermann")
 
-        val e = assertFailsWith<IllegalArgumentException> {
-            base().addMessage("VALID_FROM", LocalDate(2025, 1, 1)).build(dummySigner)
-        }
-        assertTrue(e.message!!.contains("VALID_TO"), e.message)
+        val incomplete = base().addMessage("VALID_FROM", LocalDate(2025, 1, 1)).build(dummySigner)
+        assertTrue(incomplete.formatFindings.any { it is FormatFinding.MissingRequired && it.name == "VALID_TO" }, "${incomplete.formatFindings}")
 
         val seal = base()
             .addMessage("VALID_FROM", LocalDate(2025, 1, 1))

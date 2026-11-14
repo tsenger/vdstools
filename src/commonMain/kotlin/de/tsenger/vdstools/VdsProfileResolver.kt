@@ -13,8 +13,10 @@ import de.tsenger.vdstools.vds.dto.VdsProfileDefinitionDto
  * the matching definition. The default resolver ignores the URI and looks (UUID, base type) up in
  * [DataEncoder.vdsProfileDefinitions].
  *
- * Only used when parsing. Building seals (e.g. `VdsSeal.Builder.forProfileUuid`)
- * still looks profiles up in [DataEncoder.vdsProfileDefinitions] directly.
+ * Used whenever a seal's profile is not given: when parsing, and when a base document type is built
+ * with the profile number set by hand. Building for a profile (`VdsSeal.Builder` by name,
+ * `forProfileUuid`, `forProfile`) takes the profile from [DataEncoder.vdsProfileDefinitions] or from
+ * the caller and does not call it; at that point the seal has no `PROFILE_URI` yet to decide by.
  */
 fun interface VdsProfileResolver {
     fun resolve(uuid: ByteArray, profileUri: String?, baseDocumentType: String): VdsProfileDefinitionDto?

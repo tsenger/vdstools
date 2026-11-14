@@ -64,6 +64,17 @@ class VdsDocumentTypeRegistryCommonTest {
     }
 
     @Test
+    fun testAvailableVdsMessages_forgetsReplacedDefinitions() {
+        val registry = VdsDocumentTypeRegistry(
+            """[{"documentType": "T", "documentRef": "fcfd", "messages": [{"name": "OLD_NAME", "tag": 1, "coding": "BYTES"}]}]"""
+        )
+        registry.addEntriesFromJson(
+            """[{"documentType": "T", "documentRef": "fcfd", "messages": [{"name": "NEW_NAME", "tag": 1, "coding": "BYTES"}]}]"""
+        )
+        assertEquals(setOf("NEW_NAME"), registry.availableVdsMessages)
+    }
+
+    @Test
     fun testGetDocumentRef_fakeSeal() {
         assertNull(DataEncoder.vdsDocumentTypes.getDocumentRef("FAKE_SEAL"))
     }

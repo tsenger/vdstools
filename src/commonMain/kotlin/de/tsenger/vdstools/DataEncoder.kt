@@ -26,8 +26,8 @@ import okio.*
  *
  * ## VDS – Visible Digital Seal (BSI TR-03137 / TR-03171)
  * A VDS barcode encodes exactly one document type. The document type is identified by a
- * one-byte `documentRef` in the seal header, which maps to a named profile in
- * `VdsDocumentTypes.json`. Each profile defines which messages (fields) the seal contains.
+ * one-byte `documentRef` in the seal header, which maps to a named profile in the
+ * `VdsDocumentTypes.json` files. Each profile defines which messages (fields) the seal contains.
  *
  * For administrative documents, the 256-value space of `documentRef` is not sufficient.
  * These types use a two-stage lookup: the header's `documentRef` points to a base type
@@ -41,9 +41,10 @@ import okio.*
  * ## IDB – ICAO Datastructure for Barcode (ICAO TR-IDB)
  * An IDB barcode can contain multiple message types simultaneously in its message group.
  * Which message types are expected in a given seal is determined by the national document
- * type, encoded as `NATIONAL_DOCUMENT_IDENTIFIER` (tag 0x86) within the message group.
- * The available message types are defined in `IdbMessageTypes.json`; the document
- * types and their expected message combinations in `IdbGermanDocumentTypes.json`.
+ * type, the value of the message type marked `identifiesDocumentType` (BSI TR-03137:
+ * `NATIONAL_DOCUMENT_IDENTIFIER`, tag 0x86).
+ * The available message types are defined in the `IdbMessageTypes.json` files; the document
+ * types and their expected message combinations in the `IdbDocumentTypes.json` files.
  *
  * ## Definition files and registries
  *
@@ -51,10 +52,11 @@ import okio.*
  * |---|---|---|---|
  * | `VdsDocumentTypes.json` | VDS | [vdsDocumentTypes] | Document type profiles: `documentRef` ↔ name ↔ messages |
  * | `IdbMessageTypes.json` | IDB | [idbMessageTypes] | IDB message type definitions: tag ↔ name ↔ coding |
- * | `IdbGermanDocumentTypes.json` | IDB | [idbDocumentTypes] | Document types: tag ↔ name ↔ expected messages |
+ * | `IdbDocumentTypes.json` | IDB | [idbDocumentTypes] | Document types: tag ↔ name ↔ expected messages |
  *
- * All definitions are loaded from JSON resources embedded at compile time. Custom definitions
- * can be provided at runtime to extend or replace the built-in ones.
+ * The bundled files are split by specification, one folder each: `icao-9303/`, `icao-idb/`,
+ * `bsi-tr-03137/` and `bsi-tr-03171/`. The files are embedded at compile time and apply to seals of
+ * every issuing country. Custom definitions can be provided at runtime to extend or replace them.
  *
  * ## Loading custom definitions
  *
@@ -95,16 +97,20 @@ object DataEncoder {
      */
     const val ADMINISTRATIVE_DOCUMENTS_V9 = "ADMINISTRATIVE_DOCUMENTS_V9"
 
+    /** A registry with the bundled definitions, one file per specification folder (alphabetical). */
+    private fun <R : DefinitionRegistry> bundled(jsonFiles: List<String>, create: (String) -> R): R =
+        create("[]").apply { jsonFiles.forEach(::addEntriesFromJson) }
+
     /** VDS document type profiles: `documentRef` ↔ name ↔ messages */
-    var vdsDocumentTypes: VdsDocumentTypeRegistry = VdsDocumentTypeRegistry(ResourceConstants.VDS_DOCUMENT_TYPES_JSON)
+    var vdsDocumentTypes: VdsDocumentTypeRegistry = bundled(ResourceConstants.VDS_DOCUMENT_TYPES_JSON, ::VdsDocumentTypeRegistry)
         internal set
 
     /** IDB message type definitions: tag ↔ name ↔ coding */
-    var idbMessageTypes: IdbMessageTypeRegistry = IdbMessageTypeRegistry(ResourceConstants.IDB_MESSAGE_TYPES_JSON)
+    var idbMessageTypes: IdbMessageTypeRegistry = bundled(ResourceConstants.IDB_MESSAGE_TYPES_JSON, ::IdbMessageTypeRegistry)
         internal set
 
     /** IDB document types: tag ↔ name ↔ expected messages */
-    var idbDocumentTypes: IdbDocumentTypeRegistry = IdbDocumentTypeRegistry(ResourceConstants.IDB_DOCUMENT_TYPES_JSON)
+    var idbDocumentTypes: IdbDocumentTypeRegistry = bundled(ResourceConstants.IDB_DOCUMENT_TYPES_JSON, ::IdbDocumentTypeRegistry)
         internal set
 
     /** UUID-based profile definitions for administrative documents, loaded via [loadVdsProfileDefinitionFromXml] */
@@ -119,7 +125,7 @@ object DataEncoder {
     /**
      * Resolves the profile definition while parsing UUID-based seals. Replace it to supply
      * profiles by (UUID, profile URI, base type); [resetToDefaults] restores [defaultVdsProfileResolver].
-     * Not used when building seals, which look profiles up in [vdsProfileDefinitions] directly.
+     * Building for a profile does not call it (see [VdsProfileResolver]).
      */
     var vdsProfileResolver: VdsProfileResolver = defaultVdsProfileResolver
 
@@ -131,9 +137,9 @@ object DataEncoder {
      */
     fun resetToDefaults() {
         try {
-            vdsDocumentTypes = VdsDocumentTypeRegistry(ResourceConstants.VDS_DOCUMENT_TYPES_JSON)
-            idbMessageTypes = IdbMessageTypeRegistry(ResourceConstants.IDB_MESSAGE_TYPES_JSON)
-            idbDocumentTypes = IdbDocumentTypeRegistry(ResourceConstants.IDB_DOCUMENT_TYPES_JSON)
+            vdsDocumentTypes = bundled(ResourceConstants.VDS_DOCUMENT_TYPES_JSON, ::VdsDocumentTypeRegistry)
+            idbMessageTypes = bundled(ResourceConstants.IDB_MESSAGE_TYPES_JSON, ::IdbMessageTypeRegistry)
+            idbDocumentTypes = bundled(ResourceConstants.IDB_DOCUMENT_TYPES_JSON, ::IdbDocumentTypeRegistry)
             vdsProfileDefinitions = VdsProfileDefinitionRegistry()
             vdsProfileResolver = defaultVdsProfileResolver
             logI(TAG,"Reset all registries to defaults")
@@ -193,7 +199,7 @@ object DataEncoder {
 
     /**
      * Merges custom VDS Document Types into the existing registry. Existing entries with the same
-     * documentRef are replaced; all other defaults are preserved.
+     * name or documentRef are replaced; all other defaults are preserved.
      *
      * @param jsonString Custom VdsDocumentTypes JSON content
      */
@@ -209,7 +215,7 @@ object DataEncoder {
 
     /**
      * Merges custom IDB Message Types into the existing registry. Existing entries with the
-     * same tag are replaced; all other defaults are preserved.
+     * same name or tag are replaced; all other defaults are preserved.
      *
      * @param jsonString Custom IdbMessageTypes JSON content
      */
@@ -225,7 +231,7 @@ object DataEncoder {
 
     /**
      * Merges custom IDB Document Types into the existing registry. Existing entries
-     * with the same tag are replaced; all other defaults are preserved.
+     * with the same name or tag are replaced; all other defaults are preserved.
      *
      * @param jsonString Custom IdbDocumentTypes JSON content
      */

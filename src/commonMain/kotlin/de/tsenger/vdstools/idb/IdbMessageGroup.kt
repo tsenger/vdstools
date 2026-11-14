@@ -1,5 +1,6 @@
 package de.tsenger.vdstools.idb
 
+import de.tsenger.vdstools.idb.dto.IdbMessageTypeDto
 import de.tsenger.vdstools.DataEncoder
 import de.tsenger.vdstools.asn1.DerTlv
 import de.tsenger.vdstools.generic.FormatFinding
@@ -10,21 +11,22 @@ import de.tsenger.vdstools.generic.MessageValue
 import de.tsenger.vdstools.vds.dto.MessageDto
 import okio.Buffer
 
-internal class IdbMessageGroup {
-    private var derTlvList: List<DerTlv>
+/**
+ * The message group of an IDB seal. Its messages are decoded with the IDB message types when the
+ * group is created (parsed or built); message types loaded or replaced later do not change it.
+ */
+internal class IdbMessageGroup(private val derTlvList: List<DerTlv>) {
 
-    constructor(derTlvList: List<DerTlv>) {
-        this.derTlvList = derTlvList
-    }
+    /** The message type of each top-level message (null: no definition). */
+    private val topLevelDefinitions: List<IdbMessageTypeDto?> =
+        derTlvList.map { DataEncoder.idbMessageTypes.getMessageTypeDto(it.tag.toInt() and 0xFF) }
 
-    private constructor(builder: Builder) {
-        this.derTlvList = builder.derTlvList
-    }
+    val messageList: List<Message> = derTlvList.mapIndexed { i, derTlv -> parseMessage(derTlv, null, topLevelDefinitions[i]) }
 
-    val messageList: List<Message>
-        get() = derTlvList.map { derTlv ->
-            parseMessage(derTlv, null)
-        }
+    /** The first top-level message whose type identifies the national document type, with that type. */
+    internal val documentTypeIdentifier: Pair<Message, IdbMessageTypeDto>? =
+        messageList.indices.firstOrNull { topLevelDefinitions[it]?.identifiesDocumentType == true }
+            ?.let { messageList[it] to topLevelDefinitions[it]!! }
 
     fun getMessageByTag(messageTag: Int): Message? {
         return messageList.firstOrNull { it.tag == messageTag }
@@ -53,7 +55,20 @@ internal class IdbMessageGroup {
             }
         }
         walk(messageList, emptyList())
+        findings += lengthFindings()
         return findings
+    }
+
+    /** Lengths of top-level messages whose message type is verified against a specification. */
+    private fun lengthFindings(): List<FormatFinding> = messageList.indices.mapNotNull { i ->
+        val definition = topLevelDefinitions[i]?.takeIf { it.specification != null } ?: return@mapNotNull null
+        val message = messageList[i]
+        if (message.isRaw) return@mapNotNull null
+        val length = message.value.rawBytes.size
+        val maxBytes = definition.maxBytes.takeIf { it > 0 }
+        if (length < definition.minBytes || (maxBytes != null && length > maxBytes)) {
+            FormatFinding.InvalidLength(listOf(message.tag), message.name, length, definition.minBytes, maxBytes)
+        } else null
     }
 
     val encoded: ByteArray
@@ -78,7 +93,8 @@ internal class IdbMessageGroup {
                 return subMessageDefs.firstOrNull { it.name.equals(name, ignoreCase = true) }?.tag
                     ?: throw IllegalArgumentException("Unknown sub-message '$name' for this container")
             }
-            return DataEncoder.idbMessageTypes.getMessageType(name) ?: 0
+            return DataEncoder.idbMessageTypes.getMessageType(name)
+                ?: throw IllegalArgumentException("Unknown IDB message type '$name'")
         }
 
         private fun resolveCoding(name: String, tag: Int): MessageCoding {
@@ -88,7 +104,7 @@ internal class IdbMessageGroup {
 
         private fun resolveChildDefs(name: String, tag: Int): List<MessageDto>? {
             if (subMessageDefs != null) return subMessageDefs.firstOrNull { it.tag == tag }?.messages
-            return DataEncoder.idbMessageTypes.getMessageTypeDto(tag)?.messages
+            return DataEncoder.idbMessageTypes.getMessageTypeDto(name)?.messages
         }
 
         @Throws(IllegalArgumentException::class)
@@ -138,7 +154,7 @@ internal class IdbMessageGroup {
         }
 
         fun build(): IdbMessageGroup {
-            return IdbMessageGroup(this)
+            return IdbMessageGroup(derTlvList.toList())
         }
     }
 
@@ -157,7 +173,10 @@ internal class IdbMessageGroup {
             return IdbMessageGroup(derTlvList)
         }
 
-        private fun parseMessage(derTlv: DerTlv, subMessageDefs: List<MessageDto>?): Message {
+        /** [topLevelDefinition] is the message type of a top-level message; unused inside a container. */
+        private fun parseMessage(
+            derTlv: DerTlv, subMessageDefs: List<MessageDto>?, topLevelDefinition: IdbMessageTypeDto? = null
+        ): Message {
             val tagInt = derTlv.tag.toInt() and 0xFF
 
             // Inside a container only the container's own definitions apply; the registry
@@ -170,7 +189,7 @@ internal class IdbMessageGroup {
                 val msgDef = subMessageDefs.firstOrNull { it.tag == tagInt } ?: return MessageResolver.unresolved(derTlv)
                 name = msgDef.name; coding = msgDef.coding; childDefs = msgDef.messages
             } else {
-                val dto = DataEncoder.idbMessageTypes.getMessageTypeDto(tagInt) ?: return MessageResolver.unresolved(derTlv)
+                val dto = topLevelDefinition ?: return MessageResolver.unresolved(derTlv)
                 name = dto.name; coding = dto.coding; childDefs = dto.messages
             }
             val value = MessageValue.fromBytes(derTlv.value, coding)

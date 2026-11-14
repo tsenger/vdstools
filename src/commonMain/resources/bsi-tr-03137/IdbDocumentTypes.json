@@ -2,6 +2,8 @@
   {
     "tag": 1,
     "name": "SUBSTITUTE_IDENTITY_DOCUMENT",
+    "specification": "BSI TR-03137-1 V3.0 §12.2.2 (Table 8, §11.2.2)",
+    "additionalMessagesAllowed": false,
     "messages": [
       {
         "name": "FACE_IMAGE",
@@ -24,6 +26,8 @@
   {
     "tag": 2,
     "name": "SUBSTITUTE_PASSPORT_DOCUMENT",
+    "specification": "BSI TR-03137-1 V3.0 §12.2.2 (Table 8, §11.2.2)",
+    "additionalMessagesAllowed": false,
     "messages": [
       {
         "name": "EMERGENCY_TRAVEL_DOCUMENT",
@@ -46,6 +50,8 @@
   {
     "tag": 3,
     "name": "EMERGENCY_TRAVEL_DOCUMENT",
+    "specification": "BSI TR-03137-1 V3.0 §12.2.2 (Table 8, §11.2.2)",
+    "additionalMessagesAllowed": false,
     "messages": [
       {
         "name": "EMERGENCY_TRAVEL_DOCUMENT",
@@ -68,6 +74,8 @@
   {
     "tag": 4,
     "name": "TEMPORARY_IDENTITY_CARD",
+    "specification": "BSI TR-03137-1 V3.0 §12.2.2 (Table 8, §11.2.2)",
+    "additionalMessagesAllowed": false,
     "messages": [
       {
         "name": "EMERGENCY_TRAVEL_DOCUMENT",
@@ -90,6 +98,8 @@
   {
     "tag": 5,
     "name": "TEMPORARY_OFFICIAL_PASSPORT",
+    "specification": "BSI TR-03137-1 V3.0 §12.2.2 (Table 8, §11.2.2)",
+    "additionalMessagesAllowed": false,
     "messages": [
       {
         "name": "MRZ_TD3",
@@ -112,6 +122,8 @@
   {
     "tag": 6,
     "name": "TEMPORARY_PASSPORT",
+    "specification": "BSI TR-03137-1 V3.0 §12.2.2 (Table 8, §11.2.2)",
+    "additionalMessagesAllowed": false,
     "messages": [
       {
         "name": "MRZ_TD3",
@@ -134,6 +146,8 @@
   {
     "tag": 7,
     "name": "TEMPORARY_DIPLOMATIC_PASSPORT",
+    "specification": "BSI TR-03137-1 V3.0 §12.2.2 (Table 8, §11.2.2)",
+    "additionalMessagesAllowed": false,
     "messages": [
       {
         "name": "MRZ_TD3",
@@ -156,6 +170,8 @@
   {
     "tag": 8,
     "name": "TEMPORARY_TRAVEL_DOCUMENT_REFUGEES",
+    "specification": "BSI TR-03137-1 V3.0 §12.2.2 (Table 8, §11.2.2)",
+    "additionalMessagesAllowed": false,
     "messages": [
       {
         "name": "MRZ_TD3",
@@ -178,6 +194,8 @@
   {
     "tag": 9,
     "name": "TEMPORARY_TRAVEL_DOCUMENT_STATELESS_PERSONS",
+    "specification": "BSI TR-03137-1 V3.0 §12.2.2 (Table 8, §11.2.2)",
+    "additionalMessagesAllowed": false,
     "messages": [
       {
         "name": "MRZ_TD3",
@@ -200,6 +218,8 @@
   {
     "tag": 10,
     "name": "TEMPORARY_TRAVEL_DOCUMENT_FOREIGNERS",
+    "specification": "BSI TR-03137-1 V3.0 §12.2.2 (Table 8, §11.2.2)",
+    "additionalMessagesAllowed": false,
     "messages": [
       {
         "name": "MRZ_TD3",
@@ -222,6 +242,8 @@
   {
     "tag": 11,
     "name": "PERMISSION_TO_RETAIN_PENDING_THE_ASYLUM_DECISION",
+    "specification": "BSI TR-03137-1 V3.0 §13.2.2",
+    "additionalMessagesAllowed": false,
     "messages": [
       {
         "name": "FACE_IMAGE",
@@ -244,6 +266,8 @@
   {
     "tag": 12,
     "name": "TEMPORARY_SUSPENSION_OF_DEPORTATION",
+    "specification": "BSI TR-03137-1 V3.0 §13.2.2",
+    "additionalMessagesAllowed": false,
     "messages": [
       {
         "name": "FACE_IMAGE",
@@ -266,6 +290,8 @@
   {
     "tag": 13,
     "name": "ARRIVAL_ATTESTATION_IDB",
+    "specification": "BSI TR-03137-1 V3.0 §13.2.2",
+    "additionalMessagesAllowed": false,
     "messages": [
       {
         "name": "FACE_IMAGE",
@@ -288,6 +314,8 @@
   {
     "tag": 14,
     "name": "PROVISIONAL_RESIDENCE_DOCUMENT",
+    "specification": "BSI TR-03137-1 V3.0 §14.2.2",
+    "additionalMessagesAllowed": false,
     "messages": [
       {
         "name": "MRZ_TD2",
@@ -310,6 +338,8 @@
   {
     "tag": 15,
     "name": "TEMPORARY_IDENTITY_DOCUMENT",
+    "specification": "BSI TR-03137-1 V3.0 §12.2.2 (Table 8, §11.2.2)",
+    "additionalMessagesAllowed": false,
     "messages": [
       {
         "name": "FACE_IMAGE",
@@ -332,6 +362,8 @@
   {
     "tag": 16,
     "name": "CERTIFYING_PERMANENT_RESIDENCE",
+    "specification": "BSI TR-03137-1 V3.0 §15.2.2",
+    "additionalMessagesAllowed": false,
     "messages": [
       {
         "name": "DOCUMENT_REFERENCE",
@@ -350,6 +382,8 @@
   {
     "tag": 17,
     "name": "FRONTIER_WORKER_PERMIT",
+    "specification": "BSI TR-03137-1 V3.0 §16.2.2",
+    "additionalMessagesAllowed": false,
     "messages": [
       {
         "name": "FACE_IMAGE",
@@ -372,6 +406,8 @@
   {
     "tag": 18,
     "name": "SUPPLEMENTARY_SHEET_FOR_RESIDENCE_PERMIT_CARD",
+    "specification": "BSI TR-03137-1 V3.0 §17.2.2",
+    "additionalMessagesAllowed": false,
     "messages": [
       {
         "name": "MRZ_TD1",

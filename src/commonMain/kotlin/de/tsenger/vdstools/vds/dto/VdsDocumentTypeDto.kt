@@ -13,7 +13,8 @@ import kotlinx.serialization.Serializable
  * @property uuidMessageTag The tag number containing the UUID for profile lookup (default: 0)
  * @property specification The specification the message definitions were verified against, e.g.
  *   `BSI TR-03137-1 V3.0 §7.2`. Only for such document types are required messages ([MessageDto.required],
- *   [requiredOneOf]) and lengths ([MessageDto.minBytes], [MessageDto.maxBytes]) reported as format findings.
+ *   [requiredOneOf]) and lengths ([MessageDto.minBytes], [MessageDto.maxBytes]) reported as format findings;
+ *   a `maxBytes` of 0 means the specification gives no maximum.
  * @property additionalFeaturesAllowed False if the specification forbids tags it does not define;
  *   such tags are then reported as not allowed instead of unknown. Only effective with [specification].
  * @property requiredOneOf Groups of tags of which at least one must be present, e.g. `[[1, 2]]` for
